@@ -1,0 +1,59 @@
+.bar {
+  height: 96px;
+  flex-shrink: 0;
+  border-top: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: #fef9c3;
+  height: 100%;
+  width: 80%;
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}
+
+.confirmBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 48px;
+}
+
+.confirmBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.confirmBtn:not(:disabled):hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.touchIcon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
