@@ -3,6 +3,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import SplashPage from '@/pages/SplashPage/SplashPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
+import SettingsPage from '@/pages/SettingsPage/SettingsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -18,7 +19,8 @@ export default function App() {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          {/* Future middle-zone screens (bending/ai, bending/manual, settings…) go here */}
+          <Route path="settings" element={<SettingsPage />} />
+          {/* Future middle-zone screens (bending/ai, bending/manual…) go here */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

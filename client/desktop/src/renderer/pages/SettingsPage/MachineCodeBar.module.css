@@ -1,0 +1,43 @@
+.bar {
+  display: grid;
+  grid-template-columns: 1fr 110px 1fr;
+  align-items: center;
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+}
+
+.sideRight {
+  justify-content: flex-end;
+}
+
+.label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+  text-transform: uppercase;
+}
+
+.value {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  text-decoration: line-through;
+}
+
+/* center column stays empty — aligns with gear icon column in SettingsHeader */
+.centerGap {
+  border-left: 2px solid var(--color-border);
+  border-right: 2px solid var(--color-border);
+  height: 100%;
+}
