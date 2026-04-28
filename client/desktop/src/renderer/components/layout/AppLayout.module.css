@@ -1,20 +1,36 @@
 .root {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  width: 100%;
+  width: 1080px;
+  height: 1920px;
   overflow: hidden;
-}
-
-.body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.content {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-lg);
   background-color: var(--color-bg);
+}
+
+/* Allow the browser/Electron window itself to scroll the full 1920px height
+   when running on a smaller display during development */
+
+/* Top zone — bending balls, fixed height */
+.top {
+  height: 750px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-bottom: 2px solid var(--color-border);
+}
+
+/* Middle zone — navigable content */
+.middle {
+  height: 750px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-bottom: 2px solid var(--color-border);
+  scroll-behavior: smooth;
+}
+
+/* Bottom zone — machine stats (1920 − 750 − 750 − 2borders = 418px) */
+.bottom {
+  height: 418px;
+  flex-shrink: 0;
+  overflow: hidden;
 }

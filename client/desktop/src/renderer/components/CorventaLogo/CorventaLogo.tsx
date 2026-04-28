@@ -1,7 +1,7 @@
 import styles from './CorventaLogo.module.css'
 
 interface CorventaLogoProps {
-  size?: 'full' | 'compact'
+  size?: 'full' | 'compact' | 'dashboard'
 }
 
 /**

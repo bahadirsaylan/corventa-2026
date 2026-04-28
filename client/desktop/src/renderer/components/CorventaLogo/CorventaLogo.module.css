@@ -14,6 +14,11 @@
   width: 640px;
 }
 
+/* Dashboard size — fits within 390px height in the center column */
+.wrapper.dashboard .card {
+  width: 340px;
+}
+
 .card {
   background: #ffffff;
   border: 1px solid #cccccc;
@@ -77,6 +82,25 @@
   height: 76px;
 }
 
+/* dashboard — center column of the dashboard screen */
+.dashboard .grid {
+  padding: 20px 24px;
+}
+
+.dashboard .letter {
+  font-size: 56px;
+  height: 72px;
+}
+
+.dashboard .dot {
+  height: 72px;
+}
+
+.dashboard .dot::after {
+  width: 28px;
+  height: 28px;
+}
+
 /* ── Red banner ──────────────────────────────────────── */
 .banner {
   background-color: var(--color-primary);
@@ -92,4 +116,9 @@
 .full .banner {
   font-size: 22px;
   padding: 20px 24px;
+}
+
+.dashboard .banner {
+  font-size: 11px;
+  padding: 10px 12px;
 }

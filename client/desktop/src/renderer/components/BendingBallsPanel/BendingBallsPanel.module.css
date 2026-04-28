@@ -1,0 +1,195 @@
+.panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* ── Header ───────────────────────────────────── */
+.header {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  border-bottom: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.headerLeft,
+.headerRight {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.headerLabel {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+}
+
+.headerValue {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.headerUnit {
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.headerCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.aiIcon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-text);
+}
+
+.aiLabel {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+/* ── Ball grid ────────────────────────────────── */
+.ballGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  padding: 24px 40px;
+  gap: 0;
+}
+
+.colLeft,
+.colRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.colCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.archLabel {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  background: #f5d76e;
+  padding: 6px 24px;
+  border-radius: 4px;
+}
+
+.arrowLeft,
+.arrowRight {
+  width: 100px;
+  height: 80px;
+}
+
+.arrowLeft svg,
+.arrowRight svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Stats footer bar ─────────────────────────── */
+.statsBar {
+  flex-shrink: 0;
+  height: 180px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  background: #f5d76e;
+  border-top: 2px solid rgba(0,0,0,0.1);
+}
+
+.statsCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  gap: 6px;
+}
+
+.statsCol + .statsCol {
+  border-left: 2px solid rgba(0,0,0,0.1);
+}
+
+.statsColCenter {
+  gap: 2px;
+}
+
+.speedText {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+}
+
+.speedValue {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.posSmall {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+}
+
+.posCurrent {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.posX {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.finishLabel {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.finishValue {
+  font-weight: 700;
+}
+
+.statusText {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-align: center;
+  letter-spacing: 0.04em;
+}

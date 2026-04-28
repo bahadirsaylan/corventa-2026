@@ -2,7 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 import SplashPage from '@/pages/SplashPage/SplashPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
-import DashboardPage from '@/pages/DashboardPage'
+import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -14,10 +14,11 @@ export default function App() {
         <Route path="/splash" element={<SplashPage />} />
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Authenticated app shell */}
+        {/* Authenticated 3-zone shell */}
         <Route path="/" element={<AppLayout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
-          {/* Future authenticated screens go here */}
+          {/* Future middle-zone screens (bending/ai, bending/manual, settings…) go here */}
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />

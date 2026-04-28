@@ -11,8 +11,8 @@
   --color-primary: #e8474a;
   --color-primary-dark: #c93235;
 
-  /* Background — salmon pink from design */
-  --color-bg: #f09090;
+  /* Background */
+  --color-bg: #ffffff;
   --color-bg-dark: #3a3a3a;
 
   /* Surface — logo card white */
@@ -60,11 +60,16 @@
 }
 
 html,
-body,
-#root {
+body {
   height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
+}
+
+#root {
+  /* Lets the 1920px AppLayout overflow and be scrolled by the window */
+  min-height: 100%;
+  width: 100%;
 }
 
 body {
