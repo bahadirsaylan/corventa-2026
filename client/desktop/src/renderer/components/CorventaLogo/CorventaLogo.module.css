@@ -1,0 +1,95 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Full size — used on splash screen (1080×1920) */
+.wrapper.full .card {
+  width: 780px;
+}
+
+/* Compact size — used on login screen */
+.wrapper.compact .card {
+  width: 640px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Letter grid ─────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 40px 48px;
+  gap: 0;
+}
+
+.full .grid {
+  padding: 56px 64px;
+}
+
+/* compact — login screen */
+.letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-logo-letter);
+  font-weight: 300;
+  line-height: 1;
+  font-family: var(--font-sans);
+  font-size: 108px;
+  height: 136px;
+}
+
+/* full — splash screen */
+.full .letter {
+  font-size: 160px;
+  height: 200px;
+}
+
+.dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 136px;
+}
+
+.full .dot {
+  height: 200px;
+}
+
+.dot::after {
+  content: '';
+  display: block;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+}
+
+.full .dot::after {
+  width: 76px;
+  height: 76px;
+}
+
+/* ── Red banner ──────────────────────────────────────── */
+.banner {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  /* compact */
+  font-size: 16px;
+  padding: 14px 16px;
+}
+
+.full .banner {
+  font-size: 22px;
+  padding: 20px 24px;
+}

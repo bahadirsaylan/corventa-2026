@@ -6,17 +6,19 @@ let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    minWidth: 1024,
-    minHeight: 600,
+    width: 1080,
+    height: 1920,
+    minWidth: 1080,
+    minHeight: 1920,
+    resizable: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
     },
-    titleBarStyle: 'hiddenInset',
+    // No native title bar — full bleed UI
+    frame: false,
     show: false,
   })
 
