@@ -1,0 +1,36 @@
+.panel {
+  width: 220px;
+  flex-shrink: 0;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin: 8px 8px 8px 0;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: var(--color-bg);
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sectionText {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}

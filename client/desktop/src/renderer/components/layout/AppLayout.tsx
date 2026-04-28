@@ -8,12 +8,12 @@ export default function AppLayout() {
     <div className={styles.root}>
       {/* Top zone — always visible bending positions (750px) */}
       <div className={styles.top}>
-        <BendingBallsPanel />
+        <Outlet />
       </div>
 
       {/* Middle zone — navigable screens (750px) */}
       <main className={styles.middle}>
-        <Outlet />
+        <BendingBallsPanel />
       </main>
 
       {/* Bottom zone — always visible machine stats (480px) */}

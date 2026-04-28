@@ -4,6 +4,7 @@ import SplashPage from '@/pages/SplashPage/SplashPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
+import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -20,7 +21,7 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="settings" element={<SettingsPage />} />
-          {/* Future middle-zone screens (bending/ai, bending/manual…) go here */}
+          <Route path="bending/ai" element={<AiBendingPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
