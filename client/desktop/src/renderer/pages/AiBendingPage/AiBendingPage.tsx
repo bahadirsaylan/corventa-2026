@@ -1,11 +1,11 @@
-import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
+import PageHeader from '@/components/PageHeader/PageHeader'
 import styles from './AiBendingPage.module.css'
+import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 export default function AiBendingPage() {
-  const navigate = useNavigate()
   const profileId  = useBendingJobStore((s) => s.params.profileId)
   const setParams  = useBendingJobStore((s) => s.setParams)
 
@@ -13,20 +13,12 @@ export default function AiBendingPage() {
     <div className={styles.page}>
 
       {/* ── Header ──────────────────────────────── */}
-      <div className={styles.header}>
-        <button
-          className={styles.backBtn}
-          onClick={() => navigate('/dashboard')}
-          aria-label="Back to dashboard"
-        >
-          ←
-        </button>
-
-        <div className={styles.headerCenter}>
-          <AiChipIcon className={styles.aiIcon} />
-          <span className={styles.headerLabel}>ARTIFICIAL INTELLIGENCE MODE</span>
-        </div>
-      </div>
+      <PageHeader
+        backTo="/dashboard"
+        icon={artificialIntelligenceIcon}
+        iconAlt="Artificial Intelligence"
+        label="ARTIFICIAL INTELLIGENCE MODE"
+      />
 
       {/* ── Title ───────────────────────────────── */}
       <h2 className={styles.title}>KIVIRIM PROFİLİNİ SEÇİNİZ</h2>
@@ -66,27 +58,6 @@ export default function AiBendingPage() {
 }
 
 /* ── Icons ──────────────────────────────────── */
-
-function AiChipIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="14" y="14" width="36" height="36" rx="4" stroke="currentColor" strokeWidth="3" />
-      <rect x="23" y="23" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2.5" />
-      <line x1="32" y1="2"  x2="32" y2="14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      <line x1="32" y1="50" x2="32" y2="62" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      <line x1="2"  y1="32" x2="14" y2="32" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      <line x1="50" y1="32" x2="62" y2="32" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-      <line x1="20" y1="2"  x2="20" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="44" y1="2"  x2="44" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="20" y1="50" x2="20" y2="62" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="44" y1="50" x2="44" y2="62" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="2"  y1="20" x2="14" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="2"  y1="44" x2="14" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="50" y1="20" x2="62" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <line x1="50" y1="44" x2="62" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function WarningIcon({ className }: { className?: string }) {
   return (

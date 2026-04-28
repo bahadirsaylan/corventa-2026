@@ -1,5 +1,6 @@
 import BendingBall from './BendingBall'
 import styles from './BendingBallsPanel.module.css'
+import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 // Static mock data — will be replaced by real-time Engine API data
 const balls = {
@@ -34,23 +35,7 @@ export default function BendingBallsPanel() {
         </div>
 
         <div className={styles.headerCenter}>
-          {/* AI chip icon — SVG inline */}
-          <svg className={styles.aiIcon} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="16" y="16" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="3"/>
-            <rect x="24" y="24" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2.5"/>
-            <line x1="32" y1="4" x2="32" y2="16" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="32" y1="48" x2="32" y2="60" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="4" y1="32" x2="16" y2="32" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="48" y1="32" x2="60" y2="32" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-            <line x1="20" y1="4" x2="20" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="44" y1="4" x2="44" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="20" y1="48" x2="20" y2="60" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="44" y1="48" x2="44" y2="60" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="4" y1="20" x2="16" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="4" y1="44" x2="16" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="48" y1="20" x2="60" y2="20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <line x1="48" y1="44" x2="60" y2="44" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+          <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.aiIcon} width={80} height={80} />
           <span className={styles.aiLabel}>ARTIFICIAL INTELLIGENCE MODE</span>
         </div>
 

@@ -3,6 +3,7 @@
   flex-direction: row;
   gap: 0;
   height: 100%;
+  width: 80%;
 }
 
 /* 4-column × 3-row grid */
