@@ -40,7 +40,7 @@ export default function BendingMethodPage() {
           if (bendingMethod === 'ring') navigate('/bending/ai/measurements/ring')
           if (bendingMethod === 'arc')    navigate('/bending/ai/measurements/arc')
           if (bendingMethod === 'spiral') navigate('/bending/ai/measurements/spiral')
-          /* TODO: add route for sivama method */
+          if (bendingMethod === 'sivama') navigate('/bending/ai/measurements/sivama')
         }}
       />
 
