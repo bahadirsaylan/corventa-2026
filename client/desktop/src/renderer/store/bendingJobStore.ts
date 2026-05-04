@@ -42,6 +42,24 @@ export interface ArcBendingParams {
   G: number | null
 }
 
+// ── Spiral bending measurements ───────────────────────────────────────────────
+export type SpiralDirection = 'left' | 'right'
+
+export interface SpiralBendingParams {
+  /** Profile 1st edge dimension (mm) */
+  A: number | null
+  /** Profile 2nd edge dimension (mm) */
+  B: number | null
+  /** Profile wall thickness (mm) */
+  S: number | null
+  /** Bending radius (mm) */
+  R: number | null
+  /** Machine speed (m/min) */
+  H: number | null
+  /** Spiral winding direction */
+  Y: SpiralDirection | null
+}
+
 // ── Profile shapes selectable on the AI Bending profile screen ──────────────
 export type BendingProfileId =
   | 'square-out'
@@ -73,6 +91,9 @@ export interface StartBendingJobPayload {
   /** Present when bendingMethod === 'arc' */
   arcBending?: ArcBendingParams
 
+  /** Present when bendingMethod === 'spiral' */
+  spiralBending?: SpiralBendingParams
+
   // Future fields (angle, speed, material, dimensions, repeatCount) go here
 }
 
@@ -84,7 +105,7 @@ export interface StartBendingJobPayload {
 export function prepareBendingJobPayload(
   params: BendingJobParams,
 ): StartBendingJobPayload | null {
-  const { profileId, bendingDirection, bendingMethod, ringBending, arcBending } = params
+  const { profileId, bendingDirection, bendingMethod, ringBending, arcBending, spiralBending } = params
 
   if (!profileId || !bendingDirection || !bendingMethod) return null
 
@@ -120,6 +141,21 @@ export function prepareBendingJobPayload(
     return { profileId, bendingDirection, bendingMethod, arcBending }
   }
 
+  if (bendingMethod === 'spiral') {
+    if (
+      !spiralBending ||
+      spiralBending.A === null ||
+      spiralBending.B === null ||
+      spiralBending.S === null ||
+      spiralBending.R === null ||
+      spiralBending.H === null ||
+      spiralBending.Y === null
+    ) {
+      return null
+    }
+    return { profileId, bendingDirection, bendingMethod, spiralBending }
+  }
+
   // Other methods don't require specific measurements
   return { profileId, bendingDirection, bendingMethod }
 }
@@ -140,6 +176,9 @@ export interface BendingJobParams {
 
   /** Arc bending measurement parameters (set across multi-step screen) */
   arcBending: ArcBendingParams | null
+
+  /** Spiral bending measurement parameters (set across multi-step screen) */
+  spiralBending: SpiralBendingParams | null
 
   /**
    * Bending angle in degrees (0–360).
@@ -201,6 +240,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   bendingMethod:    null,
   ringBending:      null,
   arcBending:       null,
+  spiralBending:    null,
   angle:        null,
   speedMPerMin: null,
   material:     null,

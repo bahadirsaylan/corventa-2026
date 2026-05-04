@@ -1,21 +1,21 @@
 import { useState } from 'react'
-import styles from './ArcMeasurementForm.module.css'
-import ArcInfoModal from './ArcInfoModal'
+import styles from './SpiralMeasurementForm.module.css'
+import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { SpiralDirection } from '@/store/bendingJobStore'
 import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend4-3-buyuk.png'
+import methodImage from '@/assets/images/blend4-4-buyuk.png'
 
-export type ArcFieldKey = 'A' | 'B' | 'S' | 'H' | 'R' | 'P' | 'L' | 'G'
+export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'H'
+export type SpiralFieldKey = SpiralNumericKey | 'Y'
 
-export interface ArcMeasurementValues {
+export interface SpiralMeasurementValues {
   A: string
   B: string
   S: string
-  H: string
   R: string
-  P: string
-  L: string
-  G: string
+  H: string
+  Y: SpiralDirection | ''
 }
 
 interface FieldInfo {
@@ -23,7 +23,7 @@ interface FieldInfo {
   description: string
 }
 
-const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
+const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
   A: {
     title: 'A :',
     description:
@@ -42,52 +42,45 @@ const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
   R: {
     title: 'R :',
     description:
-      'KIVIRIM YARICAP ÖLÇÜSÜDÜR. GERÇEKLEŞMESİNİ İSTEDİĞİNİZ YARİÇAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA GEOMETRİK OLARAK GİRDİĞİNİZ YARICAP DEĞERİNİ DİKKATE ALARAK KIVIRIM YAPAR.',
-  },
-  P: {
-    title: 'P :',
-    description:
-      'KIVIRIM ÇAP ADEDİDİR. PARÇANIZDAKİ KAÇ ADET ÇAP KIVRIMI VARSA GİRMELİSİNİZ. AKSİ HALDE MAKİNA KIVIRIM BİTİNCE PROGRAMI SONLANDIRACAKTIR.',
-  },
-  L: {
-    title: 'L :',
-    description:
-      'SONRAKİ RADİUSA OLAN DÜZLÜKTİR. HESAPLAMA RADİUSLARIN SONUNDAN YAPILIR. ART ARDA GELEN RADİUSLARDA "0" OLARAK YAZILMALIDIR. HER RADİUSUN BİTİŞİNDE YENİDEN SORULACAKTIR.',
+      'KIVIRIM YARICAP ÖLÇÜSÜDÜR. SERPANTİN KIVRIMININ BAŞLANGIÇ YARICAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA BU DEĞERİ ESAS ALARAK GEOMETRİK KIVIRIM YAPAR.',
   },
   H: {
     title: 'H :',
     description:
       'MAKİNE HIZINI METRE/DAKİKA PARAMETRESİNDE BELİRLENEN SINIRLAR İÇERİSİNDE AYARLAMANIZA OLANAK SAĞLAMAKTADIR.',
   },
-  G: {
-    title: 'G :',
+  Y: {
+    title: 'Y :',
     description:
-      'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMI EN KISA SÜREDE YAPAR.',
+      'MAKİNENİN SERPANTİNE YÖNÜNÜ SEÇMEMİZİ SAĞLAR. MAKİNE YAPILAN SEÇİM DOĞRULTUSUNDA GEOMETRİSEL KIVRIMINI GERÇEKLEŞTİRİR.',
   },
 }
 
-const LEFT_FIELDS:  ArcFieldKey[] = ['A', 'B', 'S', 'H']
-const RIGHT_FIELDS: ArcFieldKey[] = ['R', 'P', 'L', 'G']
+const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S']
+const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'H', 'Y']
 
 interface Props {
-  values: ArcMeasurementValues
-  onChange: (values: ArcMeasurementValues) => void
+  values: SpiralMeasurementValues
+  onChange: (values: SpiralMeasurementValues) => void
   onReset: () => void
 }
 
-export default function ArcMeasurementForm({ values, onChange, onReset }: Props) {
-  const [openInfo, setOpenInfo]       = useState<ArcFieldKey | null>(null)
-  const [numpadField, setNumpadField] = useState<ArcFieldKey | null>(null)
+export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
+  const [openInfo, setOpenInfo]       = useState<SpiralFieldKey | null>(null)
+  const [numpadField, setNumpadField] = useState<SpiralNumericKey | null>(null)
 
   function handleNumpadConfirm(value: string) {
     if (numpadField) onChange({ ...values, [numpadField]: value })
   }
 
-  function renderField(field: ArcFieldKey) {
+  function handleDirectionSelect(dir: SpiralDirection) {
+    onChange({ ...values, Y: dir })
+  }
+
+  function renderNumericField(field: SpiralNumericKey) {
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
-
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
           onClick={() => setNumpadField(field)}
@@ -98,7 +91,6 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
         </div>
-
         <button
           className={styles.infoBtn}
           onClick={() => setOpenInfo(field)}
@@ -110,6 +102,44 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
     )
   }
 
+  function renderDirectionField() {
+    return (
+      <div key="Y" className={styles.inputRow}>
+        <span className={styles.fieldLabel}>Y:</span>
+        <div className={styles.directionGroup}>
+          <button
+            className={`${styles.dirBtn} ${values.Y === 'left' ? styles.dirBtnActive : ''}`}
+            onClick={() => handleDirectionSelect('left')}
+            aria-label="Spiral direction left"
+            aria-pressed={values.Y === 'left'}
+          >
+            《
+          </button>
+          <button
+            className={`${styles.dirBtn} ${values.Y === 'right' ? styles.dirBtnActive : ''}`}
+            onClick={() => handleDirectionSelect('right')}
+            aria-label="Spiral direction right"
+            aria-pressed={values.Y === 'right'}
+          >
+            》
+          </button>
+        </div>
+        <button
+          className={styles.infoBtn}
+          onClick={() => setOpenInfo('Y')}
+          aria-label="Info for Y"
+        >
+          ?
+        </button>
+      </div>
+    )
+  }
+
+  function renderRightField(field: SpiralFieldKey) {
+    if (field === 'Y') return renderDirectionField()
+    return renderNumericField(field as SpiralNumericKey)
+  }
+
   return (
     <div className={styles.wrapper}>
 
@@ -119,7 +149,7 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
           <img src={profileImage} alt="Profile diagram" className={styles.tileImage} />
         </div>
         <div className={styles.imageTile}>
-          <img src={methodImage} alt="Arc method diagram" className={styles.tileImage} />
+          <img src={methodImage} alt="Spiral method diagram" className={styles.tileImage} />
         </div>
       </div>
 
@@ -127,10 +157,10 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderField)}
+            {LEFT_FIELDS.map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
-            {RIGHT_FIELDS.map(renderField)}
+            {RIGHT_FIELDS.map(renderRightField)}
           </div>
         </div>
 
@@ -141,7 +171,7 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
 
       {/* ── Info modal ──────────────────────────── */}
       {openInfo && (
-        <ArcInfoModal
+        <SpiralInfoModal
           title={FIELD_INFO[openInfo].title}
           description={FIELD_INFO[openInfo].description}
           onClose={() => setOpenInfo(null)}

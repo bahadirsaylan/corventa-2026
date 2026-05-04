@@ -9,6 +9,7 @@ import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionP
 import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
 import RingBendingMeasurementsPage from '@/pages/RingBendingMeasurementsPage/RingBendingMeasurementsPage'
 import ArcBendingMeasurementsPage from '@/pages/ArcBendingMeasurementsPage/ArcBendingMeasurementsPage'
+import SpiralBendingMeasurementsPage from '@/pages/SpiralBendingMeasurementsPage/SpiralBendingMeasurementsPage'
 import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="bending/ai/method" element={<BendingMethodPage />} />
           <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />
           <Route path="bending/ai/measurements/arc" element={<ArcBendingMeasurementsPage />} />
+          <Route path="bending/ai/measurements/spiral" element={<SpiralBendingMeasurementsPage />} />
           <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
         </Route>
 
