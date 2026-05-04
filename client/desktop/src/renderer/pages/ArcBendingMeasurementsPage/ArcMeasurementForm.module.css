@@ -1,0 +1,158 @@
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ── Left: image tiles ──────────────────────── */
+.images {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
+  width: 48%;
+}
+
+.imageTile {
+  background-color: #f0a0a0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.tileImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── Right: section wrapper ─────────────────── */
+.inputSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* ── Right: 2-column input grid ─────────────── */
+.inputGrid {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  align-items: center;
+}
+
+.inputCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Single input row: label + input + ? ────── */
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fieldLabel {
+  width: 26px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.fieldInput {
+  flex: 1;
+  height: 40px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  transition: border-color 0.15s, background-color 0.15s;
+  user-select: none;
+}
+
+.fieldInput:hover {
+  border-color: var(--color-primary);
+  background-color: #fff;
+}
+
+.fieldInputFilled {
+  color: var(--color-text);
+  border-color: var(--color-primary);
+}
+
+.placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* ── Reset button ───────────────────────────── */
+.resetBtn {
+  align-self: center;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background-color: #d9534f;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.resetBtn:hover {
+  filter: brightness(0.9);
+}
+
+.resetBtn:active {
+  filter: brightness(0.8);
+}
+
+/* ── Info button ────────────────────────────── */
+.infoBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #4a90d9;
+  background: #4a90d9;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.infoBtn:hover {
+  background-color: #2d6fb8;
+  border-color: #2d6fb8;
+}

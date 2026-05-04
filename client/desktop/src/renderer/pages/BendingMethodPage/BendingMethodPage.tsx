@@ -38,7 +38,8 @@ export default function BendingMethodPage() {
         confirmDisabled={!bendingMethod}
         onConfirm={() => {
           if (bendingMethod === 'ring') navigate('/bending/ai/measurements/ring')
-          /* TODO: add routes for arc, spiral, sivama methods */
+          if (bendingMethod === 'arc')  navigate('/bending/ai/measurements/arc')
+          /* TODO: add routes for spiral, sivama methods */
         }}
       />
 

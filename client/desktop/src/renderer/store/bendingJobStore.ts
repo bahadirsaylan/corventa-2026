@@ -22,6 +22,26 @@ export interface RingBendingParams {
   G: number | null
 }
 
+// ── Arc bending measurements ──────────────────────────────────────────────────
+export interface ArcBendingParams {
+  /** Profile 1st edge dimension (mm) */
+  A: number | null
+  /** Profile 2nd edge dimension (mm) */
+  B: number | null
+  /** Profile wall thickness (mm) */
+  S: number | null
+  /** Bending radius (mm) */
+  R: number | null
+  /** Number of arc bends (count) */
+  P: number | null
+  /** Flatness to next radius (mm) */
+  L: number | null
+  /** Machine speed (m/min) */
+  H: number | null
+  /** Step increment value */
+  G: number | null
+}
+
 // ── Profile shapes selectable on the AI Bending profile screen ──────────────
 export type BendingProfileId =
   | 'square-out'
@@ -50,6 +70,9 @@ export interface StartBendingJobPayload {
   /** Present when bendingMethod === 'ring' */
   ringBending?: RingBendingParams
 
+  /** Present when bendingMethod === 'arc' */
+  arcBending?: ArcBendingParams
+
   // Future fields (angle, speed, material, dimensions, repeatCount) go here
 }
 
@@ -61,7 +84,7 @@ export interface StartBendingJobPayload {
 export function prepareBendingJobPayload(
   params: BendingJobParams,
 ): StartBendingJobPayload | null {
-  const { profileId, bendingDirection, bendingMethod, ringBending } = params
+  const { profileId, bendingDirection, bendingMethod, ringBending, arcBending } = params
 
   if (!profileId || !bendingDirection || !bendingMethod) return null
 
@@ -80,7 +103,24 @@ export function prepareBendingJobPayload(
     return { profileId, bendingDirection, bendingMethod, ringBending }
   }
 
-  // Other methods don't require ringBending
+  if (bendingMethod === 'arc') {
+    if (
+      !arcBending ||
+      arcBending.A === null ||
+      arcBending.B === null ||
+      arcBending.S === null ||
+      arcBending.R === null ||
+      arcBending.P === null ||
+      arcBending.L === null ||
+      arcBending.H === null ||
+      arcBending.G === null
+    ) {
+      return null
+    }
+    return { profileId, bendingDirection, bendingMethod, arcBending }
+  }
+
+  // Other methods don't require specific measurements
   return { profileId, bendingDirection, bendingMethod }
 }
 
@@ -97,6 +137,9 @@ export interface BendingJobParams {
 
   /** Ring bending measurement parameters (set across multi-step screen) */
   ringBending: RingBendingParams | null
+
+  /** Arc bending measurement parameters (set across multi-step screen) */
+  arcBending: ArcBendingParams | null
 
   /**
    * Bending angle in degrees (0–360).
@@ -157,6 +200,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   bendingDirection: null,
   bendingMethod:    null,
   ringBending:      null,
+  arcBending:       null,
   angle:        null,
   speedMPerMin: null,
   material:     null,
