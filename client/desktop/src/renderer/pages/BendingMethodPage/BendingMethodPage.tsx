@@ -1,17 +1,15 @@
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
-import BendingProfileGrid from './BendingProfileGrid'
-import ProfileInfoPanel from './ProfileInfoPanel'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import styles from './AiBendingPage.module.css'
+import BendingMethodGrid from './BendingMethodGrid'
+import styles from './BendingMethodPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
-export default function AiBendingPage() {
+export default function BendingMethodPage() {
   const navigate = useNavigate()
-  const profileId = useBendingJobStore((s) => s.params.profileId)
+  const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
   const setParams = useBendingJobStore((s) => s.setParams)
-  const resetJob = useBendingJobStore((s) => s.resetJob)
 
   return (
     <div className={styles.page}>
@@ -24,23 +22,24 @@ export default function AiBendingPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVIRIM PROFİLİNİ SEÇİNİZ</h2>
+      <h2 className={styles.title}>KIVIRIM METODUNU SEÇİNİZ</h2>
 
-      {/* ── Content row ─────────────────────────── */}
+      {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <BendingProfileGrid
-          selected={profileId}
-          onSelect={(id) => setParams({ profileId: id })}
+        <BendingMethodGrid
+          selected={bendingMethod}
+          onSelect={(id) => setParams({ bendingMethod: id })}
         />
-        <ProfileInfoPanel />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}
       <StatusBar
-        backTo="/dashboard"
-        onBack={resetJob}
-        confirmDisabled={!profileId}
-        onConfirm={() => navigate('/bending/ai/direction')}
+        backTo="/bending/ai/direction"
+        confirmDisabled={!bendingMethod}
+        onConfirm={() => {
+          if (bendingMethod === 'ring') navigate('/bending/ai/measurements/ring')
+          /* TODO: add routes for arc, spiral, sivama methods */
+        }}
       />
 
     </div>

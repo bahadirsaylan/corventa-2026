@@ -1,19 +1,32 @@
+import { useNavigate } from 'react-router-dom'
 import styles from './StatusBar.module.css'
-import alertIcon from '@/assets/images/alert.png'
-import wifiIcon from '@/assets/images/wifi.png'
 import touchIcon from '@/assets/images/touch.png'
 
 interface StatusBarProps {
+  backTo?: string
+  onBack?: () => void
   onConfirm?: () => void
   confirmDisabled?: boolean
 }
 
-export default function StatusBar({ onConfirm, confirmDisabled = false }: StatusBarProps) {
+export default function StatusBar({ backTo, onBack, onConfirm, confirmDisabled = false }: StatusBarProps) {
+  const navigate = useNavigate()
+
+  function handleBack() {
+    if (onBack) onBack()
+    else if (backTo) navigate(backTo)
+  }
+
   return (
     <div className={styles.bar}>
       <div className={styles.left}>
-        <img src={alertIcon} alt="Alert" className={styles.icon} />
-        <img src={wifiIcon} alt="WiFi" className={styles.icon} />
+        <button
+          className={styles.backBtn}
+          onClick={handleBack}
+          aria-label="Go back"
+        >
+          ←
+        </button>
       </div>
 
       <div className={styles.right}>

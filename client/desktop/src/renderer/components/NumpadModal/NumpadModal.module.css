@@ -1,0 +1,139 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+/* ── Modal card ─────────────────────────────── */
+.modal {
+  background-color: var(--color-bg, #f5f0e8);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 300px;
+  user-select: none;
+}
+
+/* ── Display row ────────────────────────────── */
+.displayRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fieldLabel {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary, #c0392b);
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.display {
+  flex: 1;
+  height: 52px;
+  background-color: #fff;
+  border: 2px solid var(--color-border, #ddd);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 14px;
+  overflow: hidden;
+}
+
+.displayValue {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text, #1a1a1a);
+  letter-spacing: 0.04em;
+}
+
+/* ── Numpad grid ────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.key {
+  height: 64px;
+  font-size: 24px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  background-color: #f0a0a0;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: filter 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.key:active {
+  filter: brightness(0.82);
+}
+
+.key:hover {
+  filter: brightness(0.93);
+}
+
+.keyBackspace {
+  background-color: #e8c8a0;
+  font-size: 20px;
+}
+
+/* ── Action row ─────────────────────────────── */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+
+.clearBtn {
+  height: 60px;
+  font-size: 22px;
+  font-weight: 800;
+  border: none;
+  border-radius: 10px;
+  background-color: #d9534f;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+
+.clearBtn:active {
+  filter: brightness(0.82);
+}
+
+.clearBtn:hover {
+  filter: brightness(0.9);
+}
+
+.confirmBtn {
+  height: 60px;
+  font-size: 26px;
+  font-weight: 800;
+  border: none;
+  border-radius: 10px;
+  background-color: #5cb85c;
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+
+.confirmBtn:active {
+  filter: brightness(0.82);
+}
+
+.confirmBtn:hover {
+  filter: brightness(0.9);
+}

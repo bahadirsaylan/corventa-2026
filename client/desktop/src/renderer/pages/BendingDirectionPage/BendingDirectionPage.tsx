@@ -1,17 +1,15 @@
-import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
-import BendingProfileGrid from './BendingProfileGrid'
-import ProfileInfoPanel from './ProfileInfoPanel'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import styles from './AiBendingPage.module.css'
+import BendingDirectionGrid from './BendingDirectionGrid'
+import styles from './BendingDirectionPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import { useNavigate } from 'react-router-dom'
 
-export default function AiBendingPage() {
+export default function BendingDirectionPage() {
   const navigate = useNavigate()
-  const profileId = useBendingJobStore((s) => s.params.profileId)
+  const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
   const setParams = useBendingJobStore((s) => s.setParams)
-  const resetJob = useBendingJobStore((s) => s.resetJob)
 
   return (
     <div className={styles.page}>
@@ -24,23 +22,21 @@ export default function AiBendingPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVIRIM PROFİLİNİ SEÇİNİZ</h2>
+      <h2 className={styles.title}>KIVIRIM YÖNÜNÜ SEÇİNİZ</h2>
 
-      {/* ── Content row ─────────────────────────── */}
+      {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <BendingProfileGrid
-          selected={profileId}
-          onSelect={(id) => setParams({ profileId: id })}
+        <BendingDirectionGrid
+          selected={bendingDirection}
+          onSelect={(id) => setParams({ bendingDirection: id })}
         />
-        <ProfileInfoPanel />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}
       <StatusBar
-        backTo="/dashboard"
-        onBack={resetJob}
-        confirmDisabled={!profileId}
-        onConfirm={() => navigate('/bending/ai/direction')}
+        backTo="/bending/ai"
+        confirmDisabled={!bendingDirection}
+        onConfirm={() => navigate('/bending/ai/method')}
       />
 
     </div>

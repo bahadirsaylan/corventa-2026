@@ -5,6 +5,10 @@ import LoginPage from '@/pages/LoginPage/LoginPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
+import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
+import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
+import RingBendingMeasurementsPage from '@/pages/RingBendingMeasurementsPage/RingBendingMeasurementsPage'
+import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -22,6 +26,10 @@ export default function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="bending/ai" element={<AiBendingPage />} />
+          <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
+          <Route path="bending/ai/method" element={<BendingMethodPage />} />
+          <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />
+          <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
