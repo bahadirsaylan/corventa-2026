@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "3Hsgu1b05mI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Application\\CncBendingMachine.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Kadir\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",
+    "C:\\Users\\Kadir\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
+    "C:\\Users\\Kadir\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\Kadir\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
