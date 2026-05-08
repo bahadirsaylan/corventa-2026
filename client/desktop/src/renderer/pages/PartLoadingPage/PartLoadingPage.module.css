@@ -25,6 +25,35 @@
 
 }
 
+/* ── Auto-correct toggle ────────────────────── */
+.autoCorrectToggle {
+  flex-shrink: 0;
+  margin: 0 24px 8px;
+  height: 40px;
+  padding: 0 20px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: center;
+}
+
+.autoCorrectToggleActive {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary-dark, #b91c1c);
+}
+
+.autoCorrectHint {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
 /* ── Loaded notification bar ────────────────── */
 .loadedBar {
   flex-shrink: 0;

@@ -39,6 +39,9 @@ export default function PartLoadingPage() {
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)
   const [errorStep, setErrorStep] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  // SLPIS sensoru saha kalibre edilmemis durumda — operator gerekli oldugunda
+  // checkbox'i acar. Default kapali => skipAutoCorrect=true (3 adimli pipeline).
+  const [useAutoCorrect, setUseAutoCorrect] = useState(false)
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
 
@@ -58,6 +61,7 @@ export default function PartLoadingPage() {
       await executeBendingFlow({
         activeSensorSide: 'Left',
         operatorName: null,
+        skipAutoCorrect: !useAutoCorrect,
         onStep: (step) => setActiveStep(step),
       })
       setPhase('started')
@@ -102,6 +106,24 @@ export default function PartLoadingPage() {
           {errorStep ? `[${errorStep.toUpperCase()}] ` : ''}
           {errorMessage}
         </div>
+      )}
+
+      {phase !== 'starting' && phase !== 'started' && (
+        <button
+          type="button"
+          className={`${styles.autoCorrectToggle} ${
+            useAutoCorrect ? styles.autoCorrectToggleActive : ''
+          }`}
+          onClick={() => setUseAutoCorrect((v) => !v)}
+          aria-pressed={useAutoCorrect}
+        >
+          {useAutoCorrect ? '☑' : '☐'} OTOMATİK GERİ ESNEME DÜZELTMESİ
+          {!useAutoCorrect && (
+            <span className={styles.autoCorrectHint}>
+              &nbsp;— SLPIS KAPALI (3 ADIM PIPELINE)
+            </span>
+          )}
+        </button>
       )}
 
       <div className={styles.content}>

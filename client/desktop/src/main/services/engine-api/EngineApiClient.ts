@@ -55,8 +55,10 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/preparation/stage`, req)
   }
 
-  startBendingJob(jobId: number): Promise<StartJobResponse> {
-    return http.post<StartJobResponse>(`${this.baseUrl}/api/bending-job/${jobId}/start`)
+  startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {
+    const u = new URL(`${this.baseUrl}/api/bending-job/${jobId}/start`)
+    if (skipAutoCorrect) u.searchParams.set('skipAutoCorrect', 'true')
+    return http.post<StartJobResponse>(u.toString())
   }
 
   cancelBendingJob(jobId: number): Promise<unknown> {

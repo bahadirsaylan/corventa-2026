@@ -1,0 +1,47 @@
+// window.corventa.bending.* — bending pipeline endpoint'lerine renderer erişimi.
+
+import { ipcRenderer } from 'electron'
+
+import {
+  Ipc,
+  type ApplyStageRequest,
+  type BendingCalculateRequest,
+  type BendingCalculateResponse,
+  type BendingJob,
+  type BendingJobCreateRequest,
+  type BendingPreviewRequest,
+  type BendingPreviewResponse,
+  type RecommendStageResponse,
+  type StartJobResponse,
+} from '@shared'
+
+export const bendingApi = {
+  calculate: (req: BendingCalculateRequest): Promise<BendingCalculateResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.BendingCalculate, req),
+
+  preview: (req: BendingPreviewRequest): Promise<BendingPreviewResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.BendingPreview, req),
+
+  recommendStage: (profileA: number): Promise<RecommendStageResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.RecommendStage, profileA),
+
+  applyStage: (req: ApplyStageRequest): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ApplyStage, req),
+
+  createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),
+
+  getActiveJob: (): Promise<BendingJob | null> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.GetActiveBendingJob),
+
+  getJob: (id: number): Promise<BendingJob> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.GetBendingJob, id),
+
+  startJob: (jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.StartBendingJob, { jobId, skipAutoCorrect }),
+
+  cancelJob: (jobId: number): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CancelBendingJob, jobId),
+}
+
+export type BendingApi = typeof bendingApi
