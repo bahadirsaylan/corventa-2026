@@ -52,7 +52,9 @@ export class EngineApiClient {
   }
 
   applyStage(req: ApplyStageRequest): Promise<unknown> {
-    return http.post(`${this.baseUrl}/api/preparation/stage`, req)
+    // Stage transition 3 piston paralel hareket — 30-60sn surebilir.
+    // Default 10sn timeout yetmediginden manuel override.
+    return http.post(`${this.baseUrl}/api/preparation/stage`, req, { timeoutMs: 120_000 })
   }
 
   startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {
