@@ -1,3 +1,7 @@
+// Yağ + sensör + emniyet durumu — dashboard alt panelinde sürekli görünür.
+// Backend MachineState selector'larından beslenir; bağlantı kapalıyken 0 değerleriyle render eder.
+
+import { useSafety, useSensors } from '@/hooks/useMachineState'
 import styles from './OilStatsList.module.css'
 
 interface StatRow {
@@ -6,19 +10,59 @@ interface StatRow {
   ok: boolean
 }
 
-// Static mock — will be driven by DataAPI/WebSocket
-const rows: StatRow[] = [
-  { label: 'YAĞ SICAKLIĞI',       value: '90°C',     ok: true  },
-  { label: 'YAĞ SEVİYESİ',        value: 'NORMAL',   ok: true  },
-  { label: 'YAĞLAMA VERİMLİLİĞİ', value: '%82',      ok: true  },
-  { label: 'YAĞ BASINCI',         value: '000',      ok: true  },
-  { label: 'DÖNÜŞ HIZI',          value: '10M/Dak.', ok: true  },
-  { label: 'TEMAS SENSÖRÜ',       value: 'ARIZALI',  ok: false },
-  { label: 'YAN DAY. CETVELLER',  value: 'FAAL',     ok: true  },
-  { label: 'ANA CETVELLER',       value: 'FAAL',     ok: true  },
-]
+// Backend'de henüz mapping olmayan ölçümler için sabit eşikler
+const OIL_TEMP_OK_C = 75
+const OIL_LEVEL_OK_PERCENT = 30
 
 export default function OilStatsList() {
+  const sensors = useSensors()
+  const safety = useSafety()
+
+  const partSensorActive = safety.leftPartSensor || safety.rightPartSensor
+
+  const rows: StatRow[] = [
+    {
+      label: 'YAĞ SICAKLIĞI',
+      value: `${sensors.oilTempC}°C`,
+      ok: sensors.oilTempC > 0 && sensors.oilTempC < OIL_TEMP_OK_C,
+    },
+    {
+      label: 'YAĞ SEVİYESİ',
+      value: sensors.oilLevelPercent >= OIL_LEVEL_OK_PERCENT ? 'NORMAL' : 'DÜŞÜK',
+      ok: sensors.oilLevelPercent >= OIL_LEVEL_OK_PERCENT,
+    },
+    {
+      label: 'YAĞ NEMİ',
+      value: `%${sensors.oilHumidityPercent}`,
+      ok: sensors.oilHumidityPercent < 50,
+    },
+    {
+      label: 'YAĞ BASINCI',
+      value: `${sensors.s1PressureBar} bar`,
+      ok: sensors.s1PressureBar > 0,
+    },
+    {
+      label: 'AKIŞ S1 / S2',
+      value: `${sensors.s1FlowCms} / ${sensors.s2FlowCms}`,
+      ok: true,
+    },
+    {
+      label: 'TEMAS SENSÖRÜ',
+      value: partSensorActive ? 'AKTİF' : 'PASİF',
+      ok: partSensorActive,
+    },
+    {
+      label: 'ACİL DURDURMA',
+      value: safety.emergencyStopOK ? 'OK' : 'BASILI',
+      ok: safety.emergencyStopOK,
+    },
+    {
+      label: 'MOTOR / FAN',
+      value: safety.motorThermalOK && safety.fanThermalOK ? 'FAAL' : 'TERMAL',
+      ok: safety.motorThermalOK && safety.fanThermalOK,
+    },
+  ]
+
   return (
     <ul className={styles.grid}>
       {rows.map((row) => (

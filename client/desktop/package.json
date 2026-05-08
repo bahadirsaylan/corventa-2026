@@ -15,9 +15,11 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@microsoft/signalr": "^10.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.6.0",
+    "winston": "^3.19.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

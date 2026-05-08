@@ -1,0 +1,135 @@
+.page {
+  width: 100%;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+  background-color: #fdf8e8;
+  overflow: hidden;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 24px 8px;
+  gap: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.metaRow {
+  flex-shrink: 0;
+  background: #cfd1d3;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.metaRow:hover {
+  filter: brightness(0.97);
+}
+
+.metaCode {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.04em;
+}
+
+.metaName {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+}
+
+.tableScroll {
+  flex: 1;
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  min-height: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #fdf8e8;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.colNo {
+  width: 140px;
+}
+
+.emptyRow {
+  text-align: center;
+  padding: 32px;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.actionBtn {
+  height: 48px;
+  background-color: #f8d4d4;
+  border: 2px solid #f0a0a0;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.actionBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.actionBtn:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionBtnPrimary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
