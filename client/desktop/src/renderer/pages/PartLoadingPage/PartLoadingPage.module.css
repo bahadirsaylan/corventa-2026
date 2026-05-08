@@ -25,6 +25,57 @@
 
 }
 
+/* ── Parça boyu input ───────────────────────── */
+.partLengthRow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 24px 8px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.partLengthLabel {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+  min-width: 140px;
+}
+
+.partLengthInput {
+  flex: 1;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  background: #fefefe;
+  text-align: right;
+}
+
+.partLengthInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.partLengthInputError {
+  border-color: #b91c1c;
+  background: #fee2e2;
+}
+
+.partLengthHint {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
 /* ── Auto-correct toggle ────────────────────── */
 .autoCorrectToggle {
   flex-shrink: 0;
