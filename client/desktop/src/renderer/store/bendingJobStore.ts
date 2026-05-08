@@ -20,6 +20,8 @@ export interface RingBendingParams {
   H: number | null
   /** Step increment value */
   G: number | null
+  /** Part length — profile total length (mm) */
+  L: number | null
 }
 
 // ── Arc bending measurements ──────────────────────────────────────────────────
@@ -136,7 +138,8 @@ export function prepareBendingJobPayload(
       ringBending.S === null ||
       ringBending.R === null ||
       ringBending.H === null ||
-      ringBending.G === null
+      ringBending.G === null ||
+      ringBending.L === null
     ) {
       return null
     }

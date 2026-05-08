@@ -122,9 +122,20 @@ export function mapToCreateRequest(
     }
   }
 
-  // partLengthMm UI'da henüz toplanmıyor — uzman ileride eklerse buraya bağlanacak.
-  // Şimdilik default 6000mm (operatöre uygun şekilde sayfa eklenince mapping güncellenir).
-  const partLengthMm = params.widthMm ?? 6000
+  // partLengthMm — UI'daki olcum ekranindan toplanir (ring icin L field, diger
+  // method'lar TODO). opts.partLengthMm verilirse o override eder.
+  // Hicbiri yoksa hata firlatir — eskinin "sessizce 6000mm gonder" davranisi
+  // sahada rotasyonun yanlis hedefe gitmesine sebep olmustu.
+  let partLengthMm: number | undefined
+  if (params.bendingMethod === 'ring' && params.ringBending?.L != null) {
+    partLengthMm = params.ringBending.L
+  }
+  if (params.widthMm != null) {
+    partLengthMm = params.widthMm
+  }
+  if (partLengthMm == null || !Number.isFinite(partLengthMm) || partLengthMm <= 0) {
+    throw new JobMappingError('partLengthMm', 'Parça uzunluğu (L) girilmemiş veya geçersiz')
+  }
 
   return {
     profileType,

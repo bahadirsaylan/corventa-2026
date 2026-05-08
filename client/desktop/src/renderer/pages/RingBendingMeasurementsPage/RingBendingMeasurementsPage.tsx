@@ -7,7 +7,7 @@ import MeasurementForm, { MeasurementValues } from './MeasurementForm'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
-const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '' }
+const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
 function isComplete(v: MeasurementValues) {
   return Object.values(v).every((val) => val.trim() !== '')
@@ -22,6 +22,7 @@ function fromStore(stored: ReturnType<typeof useBendingJobStore.getState>['param
     R: stored.R != null ? String(stored.R) : '',
     H: stored.H != null ? String(stored.H) : '',
     G: stored.G != null ? String(stored.G) : '',
+    L: stored.L != null ? String(stored.L) : '',
   }
 }
 
@@ -45,6 +46,7 @@ export default function RingBendingMeasurementsPage() {
         R: parseFloat(values.R),
         H: parseFloat(values.H),
         G: parseFloat(values.G),
+        L: parseFloat(values.L),
       },
     })
     navigate('/bending/ai/part-loading')

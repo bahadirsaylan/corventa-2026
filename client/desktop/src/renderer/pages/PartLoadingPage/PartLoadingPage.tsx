@@ -42,14 +42,8 @@ export default function PartLoadingPage() {
   // SLPIS sensoru saha kalibre edilmemis durumda — operator gerekli oldugunda
   // checkbox'i acar. Default kapali => skipAutoCorrect=true (3 adimli pipeline).
   const [useAutoCorrect, setUseAutoCorrect] = useState(false)
-  // Parca boyu UI'da henuz dedicated ekrandan toplanmiyor — buraya direkt operator
-  // girer. Default null => buton disable, girilince enable. Eski mapper hardcoded
-  // 6000mm'ye dususun gercek parcayi gecmesi rotasyonun "hicbir zaman varmama"
-  // hatasina yol aciyordu (saha gozlemi).
-  const [partLengthMm, setPartLengthMm] = useState<number | ''>('')
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
-  const partLengthValid = typeof partLengthMm === 'number' && partLengthMm >= 100 && partLengthMm <= 12000
 
   // PartLoadingPage'in eski "manuel TOUCH onay" akışı korunur — operatör sensörü
   // beklemek istemiyorsa onay verir; sensör aktifse de zaten başlatabilir.
@@ -57,7 +51,7 @@ export default function PartLoadingPage() {
   const isBusy = phase === 'starting'
 
   async function handleStart() {
-    if (!canStart || isBusy || !partLengthValid) return
+    if (!canStart || isBusy) return
     setPhase('starting')
     setActiveStep(null)
     setErrorStep(null)
@@ -67,7 +61,6 @@ export default function PartLoadingPage() {
       await executeBendingFlow({
         activeSensorSide: 'Left',
         operatorName: null,
-        partLengthMm: partLengthMm as number,
         skipAutoCorrect: !useAutoCorrect,
         onStep: (step) => setActiveStep(step),
       })
@@ -116,34 +109,6 @@ export default function PartLoadingPage() {
       )}
 
       {phase !== 'starting' && phase !== 'started' && (
-        <div className={styles.partLengthRow}>
-          <label className={styles.partLengthLabel} htmlFor="partLengthInput">
-            PARÇA BOYU (mm)
-          </label>
-          <input
-            id="partLengthInput"
-            type="number"
-            min={100}
-            max={12000}
-            step={10}
-            inputMode="numeric"
-            className={`${styles.partLengthInput} ${
-              !partLengthValid && partLengthMm !== '' ? styles.partLengthInputError : ''
-            }`}
-            placeholder="örn. 1500"
-            value={partLengthMm}
-            onChange={(e) => {
-              const v = e.target.value
-              setPartLengthMm(v === '' ? '' : Number(v))
-            }}
-          />
-          {!partLengthValid && partLengthMm !== '' && (
-            <span className={styles.partLengthHint}>100–12000 mm aralığında olmalı</span>
-          )}
-        </div>
-      )}
-
-      {phase !== 'starting' && phase !== 'started' && (
         <button
           type="button"
           className={`${styles.autoCorrectToggle} ${
@@ -165,7 +130,7 @@ export default function PartLoadingPage() {
         {canStart ? (
           <button
             className={styles.startBtn}
-            disabled={isBusy || !params.profileId || !partLengthValid}
+            disabled={isBusy || !params.profileId}
             onClick={handleStart}
           >
             <span className={styles.startLabel}>KIVRIMI</span>
