@@ -183,7 +183,31 @@
 }
 
 .finishValue {
+  font-weight: 800;
+  color: var(--color-primary);
+  font-size: 28px;
+}
+
+.finishPercent {
   font-weight: 700;
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+.progressBarOuter {
+  width: 90%;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  border-radius: 6px;
 }
 
 .statusText {
