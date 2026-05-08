@@ -2,7 +2,10 @@
 // Backend SignalR /machineHub'tan gelen MachineState'i selector ile dinler.
 // Backend kapalıyken default 0 değerleriyle render eder; ConnectionBanner durumu söyler.
 
+import { useEffect, useState } from 'react'
+
 import BendingBall from './BendingBall'
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import styles from './BendingBallsPanel.module.css'
@@ -23,6 +26,31 @@ export default function BendingBallsPanel() {
 
   // Aktif job çapı: gelecekte useActiveBendingJob() ile gelecek; şimdilik bendingProgress yoksa "—"
   const archLabel = progress ? `R ${progress.jobId}` : 'R —'
+
+  // ── İptal butonu state'i ────────────────────────
+  // Backend'de henüz dedicated cancel endpoint yok (CLAUDE.md TODO). Bu yüzden
+  // operatöre net uyarı veriyoruz: emergency-stop makineyi durdurur ama job
+  // state otomatik temizlenmeyebilir.
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelInfo, setCancelInfo] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!cancelInfo) return
+    const t = setTimeout(() => setCancelInfo(null), 8000)
+    return () => clearTimeout(t)
+  }, [cancelInfo])
+
+  async function confirmCancel() {
+    setShowCancelModal(false)
+    try {
+      await window.corventa.machine.emergencyStop()
+      setCancelInfo(
+        'BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.',
+      )
+    } catch (e) {
+      setCancelInfo('İPTAL ÇAĞRISI BAŞARISIZ: ' + (e instanceof Error ? e.message : String(e)))
+    }
+  }
 
   return (
     <div className={styles.panel}>
@@ -46,11 +74,42 @@ export default function BendingBallsPanel() {
         </div>
 
         <div className={styles.headerRight}>
+          {progress && (
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={() => setShowCancelModal(true)}
+              aria-label="Bukumu iptal et"
+            >
+              ■ İPTAL
+            </button>
+          )}
           <span className={styles.headerLabel}>TOLERANCE</span>
           <span className={styles.headerValue}>0.1</span>
           <span className={styles.headerUnit}>mm</span>
         </div>
       </div>
+
+      {cancelInfo && <div className={styles.cancelInfoBar}>{cancelInfo}</div>}
+
+      {showCancelModal && (
+        <ConfirmModal
+          message={
+            <>
+              BÜKÜM İPTAL EDİLECEK — TÜM HAREKET ANINDA DURDURULACAK
+              <br />
+              <span style={{ fontSize: 14, fontWeight: 500 }}>
+                (Hidrolik motor + valfler kapatılacak, job state Failed olarak işaretlenmeyebilir)
+              </span>
+            </>
+          }
+          variant="danger"
+          confirmLabel="İPTAL ET"
+          cancelLabel="VAZGEÇ"
+          onCancel={() => setShowCancelModal(false)}
+          onConfirm={confirmCancel}
+        />
+      )}
 
       {/* ── Ball grid ──────────────────────────────── */}
       <div className={styles.ballGrid}>
