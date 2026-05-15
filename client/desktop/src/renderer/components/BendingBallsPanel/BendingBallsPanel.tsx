@@ -169,7 +169,7 @@ export default function BendingBallsPanel() {
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
           <p className={styles.speedText}>
-            KIVRIM HIZI <span className={styles.speedValue}>—</span> METRE / DAKİKA
+            ROTASYON HIZI <span className={styles.speedValue}>—</span>
           </p>
         </div>
 
