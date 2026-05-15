@@ -15,52 +15,53 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  border-radius: 10px;
-  border: 2px solid #e0e0e0;
-  padding: 10px 8px;
+  gap: 10px;
+  border-radius: 12px;
+  border: 3px solid #d0d0d0;
+  padding: 14px 12px;
   overflow: hidden;
 }
 
 .boxOk {
-  border-color: #d4f0dc;
-  background: #f4fbf6;
+  border-color: #4ade80;
+  background: #ecfdf3;
 }
 
 .boxFail {
-  border-color: #fad4d4;
-  background: #fff5f5;
+  border-color: #f87171;
+  background: #fef2f2;
 }
 
 .icon {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 36px;
+  font-weight: 800;
   line-height: 1;
   flex-shrink: 0;
 }
 
-.iconOk   { color: #22c55e; }
-.iconFail { color: var(--color-primary); }
+.iconOk   { color: #16a34a; }
+.iconFail { color: #dc2626; }
 
+/* Label kontrast: muted gri yerine koyu, kalın — operatör vardiya değişiminde uzaktan okuyabilmeli */
 .label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
   text-align: center;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   line-height: 1.2;
   text-transform: uppercase;
   flex-shrink: 0;
 }
 
 .value {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 30px;
+  font-weight: 900;
   color: var(--color-text);
   letter-spacing: 0.02em;
   flex-shrink: 0;
 }
 
 .valueFail {
-  color: var(--color-primary);
+  color: #dc2626;
 }
