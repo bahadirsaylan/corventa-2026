@@ -1,12 +1,12 @@
 .box {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   align-items: center;
 }
 
 .label {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -15,16 +15,16 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
 }
 
 .btn {
-  width: 56px;
-  height: 56px;
+  width: 84px;
+  height: 84px;
   background: #fff;
   border: 3px solid var(--color-primary);
   border-radius: 50%;
-  font-size: 28px;
+  font-size: 38px;
   font-weight: 800;
   color: var(--color-primary);
   cursor: pointer;
@@ -33,19 +33,22 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
+  touch-action: manipulation;
+  transition: transform 0.08s;
 }
 
 .btn:active,
 .btnActive {
   background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(232, 71, 74, 0.4);
+  box-shadow: 0 0 0 4px rgba(232, 71, 74, 0.5);
+  transform: scale(0.96);
 }
 
 .value {
-  min-width: 60px;
+  min-width: 84px;
   font-family: var(--font-mono);
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 800;
   color: var(--color-primary);
   text-align: center;
