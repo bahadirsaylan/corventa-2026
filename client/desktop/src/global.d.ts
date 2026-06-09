@@ -6,6 +6,7 @@ import type { ElectronAPI } from '@electron-toolkit/preload'
 import type { BendingApi } from './preload/api/bending'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
+import type { ServiceApi } from './preload/api/service'
 
 declare global {
   interface CorventaAPI {
@@ -13,6 +14,7 @@ declare global {
     machine: MachineApi
     bending: BendingApi
     events: EventsApi
+    service: ServiceApi
   }
 
   interface Window {

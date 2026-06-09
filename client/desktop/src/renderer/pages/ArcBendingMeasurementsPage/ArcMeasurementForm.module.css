@@ -69,6 +69,18 @@
   gap: 8px;
 }
 
+/* ── Bottom 2-column row (G + LT) ── */
+.bottomRow {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.bottomRow > * {
+  flex: 1;
+}
+
 .fieldLabel {
   width: 26px;
   font-size: 17px;

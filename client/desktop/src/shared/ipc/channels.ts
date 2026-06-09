@@ -19,6 +19,7 @@ export const IpcInvoke = {
   CreateBendingJob: 'data:create-bending-job',
   GetActiveBendingJob: 'data:get-active-bending-job',
   GetBendingJob: 'data:get-bending-job',
+  AddArcSegment: 'data:add-arc-segment',
 
   // Machine commands — Manuel mode kontrolleri
   PistonJog: 'piston:jog',
@@ -34,6 +35,22 @@ export const IpcInvoke = {
   EmergencyStop: 'machine:emergency-stop',
   SetMachineMode: 'machine:set-mode',
   SendMachineCommand: 'machine:send-command',
+
+  // DataApi — Service modülü (Soru/Öneri/Şikayet + Servis Talepleri/Raporları)
+  ServiceListTickets: 'service:list-tickets',
+  ServiceGetTicket: 'service:get-ticket',
+  ServiceCreateTicket: 'service:create-ticket',
+  ServiceUpdateTicketStatus: 'service:update-ticket-status',
+
+  ServiceListRequests: 'service:list-requests',
+  ServiceGetRequest: 'service:get-request',
+  ServiceCreateRequest: 'service:create-request',
+  ServiceUpdateRequest: 'service:update-request',
+  ServiceStartRequest: 'service:start-request',
+  ServiceCompleteRequest: 'service:complete-request',
+  ServiceConfirmRequest: 'service:confirm-request',
+  ServiceRateRequest: 'service:rate-request',
+  ServiceListReports: 'service:list-reports',
 } as const
 
 // send (main → renderer, push)

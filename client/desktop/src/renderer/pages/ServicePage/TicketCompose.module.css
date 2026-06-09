@@ -1,0 +1,150 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.introRow {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  background: #fcefd4;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.badgeWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.intro {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.formBox {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.formHeader {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f7f3e7;
+  border-bottom: 1.5px solid #c5c1b6;
+  align-items: center;
+}
+
+.formCode {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.titleInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.titleInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.bodyInput {
+  width: 100%;
+  min-height: 240px;
+  border: none;
+  outline: none;
+  padding: 18px 22px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text);
+  resize: none;
+  background: #ffffff;
+}
+
+.bodyInput::placeholder {
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.errorBox {
+  padding: 10px 16px;
+  background: #fae0e0;
+  border: 1.5px solid #c93235;
+  border-radius: 8px;
+  color: #c93235;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.actionRow {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 12px;
+}
+
+.cancelBtn,
+.submitBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: filter 0.12s, transform 0.08s;
+  min-height: 70px;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.cancelBtn:active,
+.submitBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}
+
+.cancelBtn:disabled,
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}

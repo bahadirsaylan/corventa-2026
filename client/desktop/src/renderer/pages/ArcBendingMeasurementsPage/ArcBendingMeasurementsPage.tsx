@@ -7,7 +7,7 @@ import ArcMeasurementForm, { ArcMeasurementValues } from './ArcMeasurementForm'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
-const EMPTY: ArcMeasurementValues = { A: '', B: '', S: '', H: '', R: '', P: '', L: '', G: '' }
+const EMPTY: ArcMeasurementValues = { A: '', B: '', S: '', H: '', R: '', Alpha: '', P: '', L: '', G: '', LT: '' }
 
 function isComplete(v: ArcMeasurementValues) {
   return Object.values(v).every((val) => val.trim() !== '')
@@ -23,9 +23,11 @@ function fromStore(
     S: stored.S != null ? String(stored.S) : '',
     H: stored.H != null ? String(stored.H) : '',
     R: stored.R != null ? String(stored.R) : '',
+    Alpha: stored.Alpha != null ? String(stored.Alpha) : '',
     P: stored.P != null ? String(stored.P) : '',
     L: stored.L != null ? String(stored.L) : '',
     G: stored.G != null ? String(stored.G) : '',
+    LT: stored.LTotal != null ? String(stored.LTotal) : '',
   }
 }
 
@@ -48,9 +50,11 @@ export default function ArcBendingMeasurementsPage() {
         S: parseFloat(values.S),
         H: parseFloat(values.H),
         R: parseFloat(values.R),
+        Alpha: parseFloat(values.Alpha),
         P: parseFloat(values.P),
         L: parseFloat(values.L),
         G: parseFloat(values.G),
+        LTotal: parseFloat(values.LT),
       },
     })
     navigate('/bending/ai/part-loading')

@@ -34,10 +34,14 @@ export interface ArcBendingParams {
   S: number | null
   /** Bending radius (mm) */
   R: number | null
+  /** Bending angle α (degrees) — first segment's α; 0 < α < 180 */
+  Alpha: number | null
   /** Number of arc bends (count) */
   P: number | null
   /** Flatness to next radius (mm) */
   L: number | null
+  /** Total part length (mm) — operatörün fiziksel profil uzunluğu, güvenlik payı kontrolü için */
+  LTotal: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Step increment value */
@@ -153,8 +157,10 @@ export function prepareBendingJobPayload(
       arcBending.B === null ||
       arcBending.S === null ||
       arcBending.R === null ||
+      arcBending.Alpha === null ||
       arcBending.P === null ||
       arcBending.L === null ||
+      arcBending.LTotal === null ||
       arcBending.H === null ||
       arcBending.G === null
     ) {

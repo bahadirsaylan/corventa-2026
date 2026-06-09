@@ -42,6 +42,13 @@ export const bendingApi = {
 
   cancelJob: (jobId: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CancelBendingJob, jobId),
+
+  // Arc interactive — pipeline çalışırken sıradaki segment'i ekler.
+  addArcSegment: (
+    jobId: number,
+    segment: { segmentOrder: number; radiusMm: number; angleDeg: number; straightAfterMm: number },
+  ): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AddArcSegment, { jobId, segment }),
 }
 
 export type BendingApi = typeof bendingApi

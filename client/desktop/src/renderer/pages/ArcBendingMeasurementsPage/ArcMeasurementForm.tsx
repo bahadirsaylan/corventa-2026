@@ -5,7 +5,7 @@ import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import profileImage from '@/assets/images/blend4-1-buyuk.png'
 import methodImage from '@/assets/images/blend4-3-buyuk.png'
 
-export type ArcFieldKey = 'A' | 'B' | 'S' | 'H' | 'R' | 'P' | 'L' | 'G'
+export type ArcFieldKey = 'A' | 'B' | 'S' | 'H' | 'R' | 'Alpha' | 'P' | 'L' | 'G' | 'LT'
 
 export interface ArcMeasurementValues {
   A: string
@@ -13,9 +13,11 @@ export interface ArcMeasurementValues {
   S: string
   H: string
   R: string
+  Alpha: string
   P: string
   L: string
   G: string
+  LT: string
 }
 
 interface FieldInfo {
@@ -44,6 +46,11 @@ const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
     description:
       'KIVIRIM YARICAP ÖLÇÜSÜDÜR. GERÇEKLEŞMESİNİ İSTEDİĞİNİZ YARİÇAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA GEOMETRİK OLARAK GİRDİĞİNİZ YARICAP DEĞERİNİ DİKKATE ALARAK KIVIRIM YAPAR.',
   },
+  Alpha: {
+    title: 'α :',
+    description:
+      'KIVIRIM AÇI ÖLÇÜSÜDÜR (derece). KAÇ DERECELİK BİR KIVRIM İSTEDİĞİNİZİ GİRİN (0 < α < 180). YAY UZUNLUĞU L = 2π·R·(180-α)/360 FORMÜLÜYLE HESAPLANIR. HER RADİUSUN BİTİŞİNDE YENİDEN SORULACAKTIR.',
+  },
   P: {
     title: 'P :',
     description:
@@ -64,10 +71,16 @@ const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
     description:
       'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMI EN KISA SÜREDE YAPAR.',
   },
+  LT: {
+    title: 'LT :',
+    description:
+      'PROFİLİN TOPLAM UZUNLUĞUDUR (mm). TÜM KIVRIM VE DÜZLÜKLERİN TOPLAMI, GÜVENLİK PAYI KADAR EKSİK OLMALIDIR. MAKİNE KIVIRIMI BU UZUNLUĞA GÖRE PLANLAR.',
+  },
 }
 
-const LEFT_FIELDS:  ArcFieldKey[] = ['A', 'B', 'S', 'H']
-const RIGHT_FIELDS: ArcFieldKey[] = ['R', 'P', 'L', 'G']
+const LEFT_FIELDS:   ArcFieldKey[] = ['A', 'B', 'S', 'H']
+const RIGHT_FIELDS:  ArcFieldKey[] = ['R', 'Alpha', 'P', 'L']
+const BOTTOM_FIELDS: ArcFieldKey[] = ['G', 'LT']
 
 interface Props {
   values: ArcMeasurementValues
@@ -84,9 +97,10 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
   }
 
   function renderField(field: ArcFieldKey) {
+    const displayLabel = field === 'Alpha' ? 'α' : field
     return (
       <div key={field} className={styles.inputRow}>
-        <span className={styles.fieldLabel}>{field}:</span>
+        <span className={styles.fieldLabel}>{displayLabel}:</span>
 
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
@@ -123,7 +137,7 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
         </div>
       </div>
 
-      {/* ── Right: 2-column input grid + reset ──── */}
+      {/* ── Right: 2-column input grid + bottom LT row + reset ──── */}
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
@@ -132,6 +146,11 @@ export default function ArcMeasurementForm({ values, onChange, onReset }: Props)
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
           </div>
+        </div>
+
+        {/* Alt satır: G (adım) + LT (toplam parça boyu) yan yana */}
+        <div className={styles.bottomRow}>
+          {BOTTOM_FIELDS.map(renderField)}
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>

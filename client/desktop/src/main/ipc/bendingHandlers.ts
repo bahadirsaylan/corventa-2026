@@ -46,6 +46,20 @@ export function registerBendingHandlers(): void {
   })
 
   ipcMain.handle(
+    Ipc.IpcInvoke.AddArcSegment,
+    async (
+      _evt,
+      payload: {
+        jobId: number
+        segment: { segmentOrder: number; radiusMm: number; angleDeg: number; straightAfterMm: number }
+      },
+    ) => {
+      log.info('add-arc-segment', payload)
+      return dataApi.addArcSegment(payload.jobId, payload.segment)
+    },
+  )
+
+  ipcMain.handle(
     Ipc.IpcInvoke.StartBendingJob,
     async (_evt, payload: number | { jobId: number; skipAutoCorrect?: boolean }) => {
       // Eski sozlesme number ile gelirdi; backward compat icin dual-shape destek.

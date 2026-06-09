@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import AppLayout from '@/components/layout/AppLayout'
+import ArcNextSegmentModal from '@/components/ArcNextSegmentModal/ArcNextSegmentModal'
 import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
 import { subscribeToBackend } from '@/bootstrap/subscribeToBackend'
@@ -21,6 +22,15 @@ import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
 import ManuelBendingPage from '@/pages/ManuelBendingPage/ManuelBendingPage'
 import ManuelProgramEditorPage from '@/pages/ManuelProgramEditorPage/ManuelProgramEditorPage'
 import ManuelBendingRunPage from '@/pages/ManuelBendingRunPage/ManuelBendingRunPage'
+import ServiceHomePage from '@/pages/ServicePage/ServiceHomePage'
+import TicketListPage from '@/pages/ServicePage/TicketListPage'
+import ServiceRequestsPage from '@/pages/ServicePage/ServiceRequestsPage'
+import ServiceRequestFormPage from '@/pages/ServicePage/ServiceRequestFormPage'
+import ServiceRequestDetailPage from '@/pages/ServicePage/ServiceRequestDetailPage'
+import InstallationPage from '@/pages/ServicePage/InstallationPage'
+import TrainingPage from '@/pages/ServicePage/TrainingPage'
+import TrainingTopicPage from '@/pages/ServicePage/TrainingTopicPage'
+import TrainingQuizPage from '@/pages/ServicePage/TrainingQuizPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -33,6 +43,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ConnectionBanner />
+      {/* Arc interactive flow — backend awaitingArcSegmentInput=true gönderince
+          rotadan bağımsız global modal açılır, R/α/L sorar, DataApi'ye gönderir. */}
+      <ArcNextSegmentModal />
       <HashRouter>
         <Routes>
           {/* Auth / pre-login screens — full screen, no chrome */}
@@ -64,6 +77,28 @@ export default function App() {
               path="bending/manual/run/:programNo"
               element={<ManuelBendingRunPage />}
             />
+
+            {/* Service modülü — SEKIL 31-53 */}
+            <Route path="service" element={<ServiceHomePage />} />
+            <Route
+              path="service/questions"
+              element={<TicketListPage type="question" />}
+            />
+            <Route
+              path="service/suggestions"
+              element={<TicketListPage type="suggestion" />}
+            />
+            <Route
+              path="service/complaints"
+              element={<TicketListPage type="complaint" />}
+            />
+            <Route path="service/requests" element={<ServiceRequestsPage />} />
+            <Route path="service/requests/new" element={<ServiceRequestFormPage />} />
+            <Route path="service/requests/:id" element={<ServiceRequestDetailPage />} />
+            <Route path="service/installation" element={<InstallationPage />} />
+            <Route path="service/training" element={<TrainingPage />} />
+            <Route path="service/training/topic/:id" element={<TrainingTopicPage />} />
+            <Route path="service/training/quiz/:id" element={<TrainingQuizPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

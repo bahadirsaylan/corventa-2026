@@ -17,6 +17,7 @@ import {
   BendingMethod,
   ProfileType,
   type BendingJobCreateRequest,
+  type BendingSegmentInput,
 } from '@shared/types'
 
 const PROFILE_MAP: Record<BendingProfileId, ProfileType> = {
@@ -122,19 +123,56 @@ export function mapToCreateRequest(
     }
   }
 
-  // partLengthMm — UI'daki olcum ekranindan toplanir (ring icin L field, diger
-  // method'lar TODO). opts.partLengthMm verilirse o override eder.
-  // Hicbiri yoksa hata firlatir — eskinin "sessizce 6000mm gonder" davranisi
-  // sahada rotasyonun yanlis hedefe gitmesine sebep olmustu.
+  // partLengthMm — UI'daki olcum ekranindan toplanir:
+  //   - ring: ringBending.L = parça toplam uzunluğu
+  //   - arc:  arcBending.LTotal = parça toplam uzunluğu (arcBending.L per-segment düzlük!)
+  //   - diger: TODO
+  // opts.widthMm override eder. Hicbiri yoksa hata firlatir — eskinin
+  // "sessizce 6000mm gonder" davranisi sahada rotasyonun yanlis hedefe gitmesine
+  // sebep olmustu.
   let partLengthMm: number | undefined
   if (params.bendingMethod === 'ring' && params.ringBending?.L != null) {
     partLengthMm = params.ringBending.L
+  }
+  if (params.bendingMethod === 'arc' && params.arcBending?.LTotal != null) {
+    partLengthMm = params.arcBending.LTotal
   }
   if (params.widthMm != null) {
     partLengthMm = params.widthMm
   }
   if (partLengthMm == null || !Number.isFinite(partLengthMm) || partLengthMm <= 0) {
     throw new JobMappingError('partLengthMm', 'Parça uzunluğu (L) girilmemiş veya geçersiz')
+  }
+
+  // Arc-only payload — P (segment sayısı), G (Arc step), H (kıvrım hız) + 1. segment
+  let totalSegmentCount: number | null | undefined
+  let arcStepDistanceMm: number | null | undefined
+  let kivrimHizMetreDakika: number | null | undefined
+  let segments: BendingSegmentInput[] | undefined
+
+  if (params.bendingMethod === 'arc' && params.arcBending) {
+    const ab = params.arcBending
+    if (ab.P == null || !Number.isFinite(ab.P) || ab.P <= 0) {
+      throw new JobMappingError('P', 'Segment sayısı (P) girilmemiş veya geçersiz')
+    }
+    if (ab.G == null || !Number.isFinite(ab.G) || ab.G <= 0) {
+      throw new JobMappingError('G', 'Adım değeri (G) girilmemiş veya geçersiz')
+    }
+    if (ab.Alpha == null || !Number.isFinite(ab.Alpha) || ab.Alpha <= 0 || ab.Alpha >= 180) {
+      throw new JobMappingError('Alpha', 'Açı (α) 0 < α < 180 olmalı')
+    }
+    if (ab.L == null || !Number.isFinite(ab.L) || ab.L < 0) {
+      throw new JobMappingError('L', 'Düzlük mesafesi (L) ≥ 0 olmalı')
+    }
+    totalSegmentCount = Math.round(ab.P)
+    arcStepDistanceMm = ab.G
+    kivrimHizMetreDakika = ab.H
+    segments = [{
+      segmentOrder: 1,
+      radiusMm: ab.R ?? 0,        // UI'daki R = yarıçap (entity ile aynı)
+      angleDeg: ab.Alpha,
+      straightAfterMm: ab.L,
+    }]
   }
 
   return {
@@ -145,11 +183,17 @@ export function mapToCreateRequest(
     profileB: B,
     profileS: S,
     targetDiameterMm: R,
-    profileH: H,
-    profileG: G,
+    // Arc'ta H/G Arc-specific field'larda; FullCircle'da profileH/profileG'de
+    profileH: method === BendingMethod.Arc ? null : H,
+    profileG: method === BendingMethod.Arc ? null : G,
     partLengthMm,
     activeSensorSide: opts.activeSensorSide ?? 'Left',
     stepDistanceMm: G ?? 30,
+    // Arc-only — backend Method=Arc ise zorunlu olarak doğrular
+    totalSegmentCount,
+    arcStepDistanceMm,
+    kivrimHizMetreDakika,
+    segments,
     operatorName: opts.operatorName ?? null,
     notes: opts.notes ?? null,
   }

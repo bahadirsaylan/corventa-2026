@@ -84,7 +84,7 @@ export async function executeBendingFlow(
   try {
     const calc = await window.corventa.bending.calculate({
       ballDiameter: createReq.ballDiameterMm ?? 220,
-      thickness: createReq.profileA,
+      thickness: createReq.profileA,  // ⚠ BendingCalculator "Thickness" = profilin radyal kesit boyutu (kenar A), duvar kalınlığı (S) DEĞİL. R2 = Rarc - Thickness - Rk formülünde kullanılır.
       centerDistance: createReq.centerDistanceMm ?? 300.82,
       targetBendingDiameter: createReq.targetDiameterMm,
       xA1: createReq.xA1 ?? -493,

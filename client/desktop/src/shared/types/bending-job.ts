@@ -76,6 +76,15 @@ export interface BendingJob {
   notes: string | null
 }
 
+// Arc (çok açılı) bending — ilk segment payload'u (backend BendingSegment entity'si)
+// Sonraki segment'ler POST /api/bending-job/{id}/next-segment ile interactive eklenir.
+export interface BendingSegmentInput {
+  segmentOrder: number  // 1 from UI (Create body); 2+ via interactive
+  radiusMm: number      // yarıçap (UI'daki R direkt, /2 yok)
+  angleDeg: number      // α — 0 < α < 180
+  straightAfterMm: number  // L_düz, ≥ 0
+}
+
 // UI'dan job kaydederken gönderilecek minimum alanlar.
 // Geri kalan field'lar backend default'larından gelir (DataAPI tarafında ileride netleştirilecek).
 // Şu an için backend tüm alanları kabul ediyor; mapper bu interface'i full BendingJob'a çevirir.
@@ -97,6 +106,12 @@ export interface BendingJobCreateRequest {
   stepDistanceMm: number
   totalPasos?: number
   calculatedPistonPositionMm?: number | null
+
+  // Arc-only fields (Method=Arc ise zorunlu; diğer method'larda null)
+  totalSegmentCount?: number | null       // P
+  arcStepDistanceMm?: number | null       // G — Arc'a özel job-level adım
+  kivrimHizMetreDakika?: number | null    // H (m/min) — Arc'a özel hız
+  segments?: BendingSegmentInput[]        // İlk segment burada; sonrakiler interactive
 
   // Operator metadata
   operatorName?: string | null
@@ -124,4 +139,11 @@ export interface BendingProgress {
   totalPasos: number
   percentComplete: number
   message: string
+
+  // Arc interactive flow — FullCircle job'larında her zaman false/null.
+  // awaitingArcSegmentInput=true iken UI SEKIL-14-LP modal'ı açıp R/α/L sorar,
+  // POST /api/bending-jobs/{id}/segments ile DataApi'ye gönderir, modal kapanır.
+  awaitingArcSegmentInput?: boolean
+  completedSegmentOrder?: number | null
+  totalSegmentCount?: number | null
 }
