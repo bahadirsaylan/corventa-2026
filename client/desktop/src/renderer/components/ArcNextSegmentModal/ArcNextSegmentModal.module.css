@@ -36,6 +36,43 @@
   color: var(--color-text-muted, #555);
 }
 
+.budget {
+  background-color: #fdf7ec;
+  border: 1px solid #e5d6b8;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.budgetRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.budgetRow strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.budgetRemaining {
+  color: #2e7d32;
+}
+
+.budgetExceeded {
+  color: #b00020;
+}
+
+.budgetWarning {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b00020;
+  text-align: center;
+}
+
 .fields {
   display: flex;
   flex-direction: column;

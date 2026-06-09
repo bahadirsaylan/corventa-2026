@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useMachineStateStore } from '@/stores/machineStateStore'
+import type { BendingJob } from '@shared/types'
 import styles from './ArcNextSegmentModal.module.css'
 
 type FieldKey = 'R' | 'Alpha' | 'L'
@@ -25,7 +26,7 @@ const FIELD_INFO: Record<FieldKey, { label: string; placeholder: string; hint: s
   L: { label: 'L (mm)', placeholder: 'Düzlük', hint: 'BİTİŞTEN SONRAKİ DÜZLÜK (≥ 0)' },
 }
 
-function isValid(v: FieldState): boolean {
+function isFieldsValid(v: FieldState): boolean {
   const r = parseFloat(v.R)
   const a = parseFloat(v.Alpha)
   const l = parseFloat(v.L)
@@ -35,6 +36,30 @@ function isValid(v: FieldState): boolean {
   return true
 }
 
+// ArcBendingCalculator ile birebir aynı formül — server-side parity.
+function computeArcLength(radiusMm: number, angleDeg: number): number {
+  return (2 * Math.PI * radiusMm * (180 - angleDeg)) / 360
+}
+
+interface LengthBudget {
+  used: number    // Σ önceki yay + Σ önceki düzlük
+  available: number // partLength - 2*safetyMargin - zeroReset
+  remaining: number // available - used
+}
+
+function computeBudget(job: BendingJob | null): LengthBudget | null {
+  if (!job) return null
+  const usedArc = (job.segments ?? []).reduce(
+    (acc, s) => acc + computeArcLength(s.radiusMm, s.angleDeg),
+    0,
+  )
+  const usedStraight = (job.segments ?? []).reduce((acc, s) => acc + s.straightAfterMm, 0)
+  const used = usedArc + usedStraight
+  const available =
+    (job.partLengthMm ?? 0) - 2 * (job.safetyMarginMm ?? 0) - (job.zeroResetDistanceMm ?? 0)
+  return { used, available, remaining: Math.max(0, available - used) }
+}
+
 export default function ArcNextSegmentModal() {
   const progress = useMachineStateStore((s) => s.bendingProgress)
 
@@ -42,12 +67,33 @@ export default function ArcNextSegmentModal() {
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [job, setJob] = useState<BendingJob | null>(null)
 
   const isOpen = !!progress?.awaitingArcSegmentInput
   const nextOrder = progress?.completedSegmentOrder
     ? progress.completedSegmentOrder + 1
     : null
   const total = progress?.totalSegmentCount ?? null
+
+  // Modal açıldığında active job'u çek (kümülatif hesap için)
+  useEffect(() => {
+    if (!isOpen || !progress) {
+      setJob(null)
+      return
+    }
+    let cancelled = false
+    void window.corventa.bending
+      .getJob(progress.jobId)
+      .then((j) => {
+        if (!cancelled) setJob(j)
+      })
+      .catch(() => {
+        // Job fetch fail — budget gösterimi olmadan devam, server-side kontrol yine yapacak
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, progress?.jobId])
 
   // Modal kapandıkça (awaitingArcSegmentInput false olunca) state'i sıfırla.
   useEffect(() => {
@@ -61,8 +107,24 @@ export default function ArcNextSegmentModal() {
 
   if (!isOpen || !progress) return null
 
+  const budget = computeBudget(job)
+
+  // Bu segmentin yay+düzlüğü (anlık girilen değerlere göre)
+  const r = parseFloat(values.R)
+  const a = parseFloat(values.Alpha)
+  const l = parseFloat(values.L)
+  const newArc =
+    Number.isFinite(r) && r > 0 && Number.isFinite(a) && a > 0 && a < 180
+      ? computeArcLength(r, a)
+      : 0
+  const newStraight = Number.isFinite(l) && l >= 0 ? l : 0
+  const newTotal = newArc + newStraight
+  const wouldExceed = budget != null && newTotal > budget.remaining + 0.01
+  const fieldsValid = isFieldsValid(values)
+  const canSubmit = fieldsValid && !submitting && !wouldExceed
+
   async function handleSubmit() {
-    if (!progress || !nextOrder || !isValid(values)) return
+    if (!progress || !nextOrder || !canSubmit) return
     setSubmitting(true)
     setErrorMsg(null)
     try {
@@ -76,7 +138,7 @@ export default function ArcNextSegmentModal() {
       // bir sonraki SignalR push ile modal kapanır.
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      setErrorMsg(`Segment gönderilemedi: ${msg}`)
+      setErrorMsg(`Segment reddedildi: ${msg}`)
       setSubmitting(false)
     }
   }
@@ -91,6 +153,38 @@ export default function ArcNextSegmentModal() {
               : 'SIRADAKİ SEGMENT'}
           </h2>
           <p className={styles.subtitle}>R, α ve L değerlerini girin</p>
+
+          {budget && (
+            <div className={styles.budget}>
+              <div className={styles.budgetRow}>
+                <span>Kullanılabilir parça:</span>
+                <strong>{budget.available.toFixed(1)} mm</strong>
+              </div>
+              <div className={styles.budgetRow}>
+                <span>Önceki segment(ler):</span>
+                <strong>{budget.used.toFixed(1)} mm</strong>
+              </div>
+              <div className={styles.budgetRow}>
+                <span>Bu segment (yay {newArc.toFixed(1)} + düz {newStraight.toFixed(1)}):</span>
+                <strong>{newTotal.toFixed(1)} mm</strong>
+              </div>
+              <div
+                className={
+                  wouldExceed
+                    ? `${styles.budgetRow} ${styles.budgetExceeded}`
+                    : `${styles.budgetRow} ${styles.budgetRemaining}`
+                }
+              >
+                <span>Kalan (bu segment dahil):</span>
+                <strong>{(budget.remaining - newTotal).toFixed(1)} mm</strong>
+              </div>
+              {wouldExceed && (
+                <div className={styles.budgetWarning}>
+                  ⚠ Parça boyu yetersiz — R, α veya L değerini küçültün
+                </div>
+              )}
+            </div>
+          )}
 
           <div className={styles.fields}>
             {(Object.keys(FIELD_INFO) as FieldKey[]).map((field) => {
@@ -118,7 +212,7 @@ export default function ArcNextSegmentModal() {
           <button
             type="button"
             className={styles.submit}
-            disabled={!isValid(values) || submitting}
+            disabled={!canSubmit}
             onClick={handleSubmit}
           >
             {submitting ? 'Gönderiliyor...' : 'ONAYLA VE DEVAM'}

@@ -74,6 +74,10 @@ export interface BendingJob {
   // User
   operatorName: string | null
   notes: string | null
+
+  // Arc segments — server BendingJob.Segments nav property'sini include eder.
+  // Arc dışı method'larda null/undefined. ArcNextSegmentModal kümülatif boy hesabı için okur.
+  segments?: BendingSegmentInput[]
 }
 
 // Arc (çok açılı) bending — ilk segment payload'u (backend BendingSegment entity'si)
