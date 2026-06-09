@@ -54,8 +54,18 @@ export function registerBendingHandlers(): void {
         segment: { segmentOrder: number; radiusMm: number; angleDeg: number; straightAfterMm: number }
       },
     ) => {
-      log.info('add-arc-segment', payload)
-      return dataApi.addArcSegment(payload.jobId, payload.segment)
+      log.info('add-arc-segment (→ engine /next-segment)', payload)
+      // Bending API endpoint'ini cagiriyoruz cunku:
+      //   1) DB yazimini DataApi /segments uzerinden yapiyor (kumulatif validation orada calisir)
+      //   2) ArcSegmentInputCoordinator sinyali iceride atiliyor → pipeline devam
+      // DataApi'ye DIREKT POST etmek coordinator'i bypass eder → pipeline asili kalir.
+      //
+      // Backend DiameterMm (Ø) bekler, UI R (yaricap) toplar → R*2 cevirimi burada.
+      return engineApi.provideNextArcSegment(payload.jobId, {
+        diameterMm: payload.segment.radiusMm * 2,
+        angleDeg: payload.segment.angleDeg,
+        straightAfterMm: payload.segment.straightAfterMm,
+      })
     },
   )
 

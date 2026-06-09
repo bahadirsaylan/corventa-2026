@@ -69,6 +69,17 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/cancel`)
   }
 
+  // Arc interactive — pipeline awaitingArcSegmentInput=true iken çağrılır:
+  //   1) Bending API yeni segment'i DB'ye yazar (DataApi /segments üzerinden)
+  //   2) ArcSegmentInputCoordinator sinyallenir → pipeline devam eder
+  // ÖNEMLİ: backend DiameterMm (Ø) bekler — modal R (yarıçap) topluyorsa caller R*2 göndermeli.
+  provideNextArcSegment(
+    jobId: number,
+    payload: { diameterMm: number; angleDeg: number; straightAfterMm: number },
+  ): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/bending-job/${jobId}/next-segment`, payload)
+  }
+
   // ---------- Machine state (SignalR fallback / initial dump) ----------
 
   getCurrentState(): Promise<unknown> {
