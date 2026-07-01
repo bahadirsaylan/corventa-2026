@@ -11,6 +11,9 @@ import SplashPage from '@/pages/SplashPage/SplashPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
+import WelcomeMessagePage from '@/pages/WelcomeMessagePage/WelcomeMessagePage'
+import WarrantyPage from '@/pages/WarrantyPage/WarrantyPage'
+import ChecklistPage from '@/pages/ChecklistPage/ChecklistPage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
 import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
@@ -58,6 +61,9 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/welcome-message" element={<WelcomeMessagePage />} />
+            <Route path="settings/warranty" element={<WarrantyPage />} />
+            <Route path="settings/checklist" element={<ChecklistPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
             <Route path="bending/ai/method" element={<BendingMethodPage />} />

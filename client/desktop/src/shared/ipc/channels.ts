@@ -51,6 +51,9 @@ export const IpcInvoke = {
   ServiceConfirmRequest: 'service:confirm-request',
   ServiceRateRequest: 'service:rate-request',
   ServiceListReports: 'service:list-reports',
+
+  // System / utilities
+  OpenUserGuide: 'system:open-user-guide',
 } as const
 
 // send (main → renderer, push)

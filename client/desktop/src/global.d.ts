@@ -7,6 +7,7 @@ import type { BendingApi } from './preload/api/bending'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
 import type { ServiceApi } from './preload/api/service'
+import type { SystemApi } from './preload/api/system'
 
 declare global {
   interface CorventaAPI {
@@ -15,6 +16,7 @@ declare global {
     bending: BendingApi
     events: EventsApi
     service: ServiceApi
+    system: SystemApi
   }
 
   interface Window {
