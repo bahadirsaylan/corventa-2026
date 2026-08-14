@@ -137,6 +137,9 @@ export function mapToCreateRequest(
   if (params.bendingMethod === 'arc' && params.arcBending?.LTotal != null) {
     partLengthMm = params.arcBending.LTotal
   }
+  if (params.bendingMethod === 'spiral' && params.spiralBending?.L != null) {
+    partLengthMm = params.spiralBending.L
+  }
   if (params.widthMm != null) {
     partLengthMm = params.widthMm
   }

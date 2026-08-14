@@ -60,6 +60,8 @@ export interface SpiralBendingParams {
   S: number | null
   /** Bending radius (mm) */
   R: number | null
+  /** Part total length (mm) */
+  L: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Spiral winding direction */
@@ -176,6 +178,7 @@ export function prepareBendingJobPayload(
       spiralBending.B === null ||
       spiralBending.S === null ||
       spiralBending.R === null ||
+      spiralBending.L === null ||
       spiralBending.H === null ||
       spiralBending.Y === null
     ) {
