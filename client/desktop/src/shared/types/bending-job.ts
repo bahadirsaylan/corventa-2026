@@ -150,4 +150,9 @@ export interface BendingProgress {
   awaitingArcSegmentInput?: boolean
   completedSegmentOrder?: number | null
   totalSegmentCount?: number | null
+
+  // Serpantin flow — pipeline yan dayama ayarı için operatör onayı bekliyor.
+  // true iken UI büyük "DEVAM ET" butonu göster, tıklanınca
+  // POST /api/bending-job/{id}/confirm-side-support çağrılır.
+  awaitingSideSupportConfirmation?: boolean
 }

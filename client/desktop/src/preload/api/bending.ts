@@ -49,6 +49,10 @@ export const bendingApi = {
     segment: { segmentOrder: number; radiusMm: number; angleDeg: number; straightAfterMm: number },
   ): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.AddArcSegment, { jobId, segment }),
+
+  // Serpantin — operatör yan dayama ayarını bitirince "DEVAM ET" onayı.
+  confirmSideSupport: (jobId: number): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ConfirmSideSupport, jobId),
 }
 
 export type BendingApi = typeof bendingApi

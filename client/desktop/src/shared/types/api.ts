@@ -123,6 +123,17 @@ export interface PneumaticRequest {
   direction: JogDirection
 }
 
+// Yan dayama (side support) — 3 tip × 2 taraf, basılı-tut pattern.
+// mouseDown → direction=1|-1, mouseUp/mouseLeave → direction=0.
+export type SideSupportSide = 'left' | 'right'
+export type SideSupportType = 'joint' | 'body' | 'reel'
+
+export interface SideSupportRequest {
+  side: SideSupportSide
+  type: SideSupportType
+  direction: JogDirection
+}
+
 // Bağlantı durumu — connection manager'dan UI'a gelir.
 export type ConnectionState =
   | 'disconnected'

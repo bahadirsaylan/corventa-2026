@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CncBendingMachine.DataApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d4b61919cffcaf79abda3dad070d85c1d5d3902b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7c9b85fd3d7a9daa1e9f9ce083062f5f497be1f")]
 [assembly: System.Reflection.AssemblyProductAttribute("CncBendingMachine.DataApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CncBendingMachine.DataApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

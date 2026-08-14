@@ -44,7 +44,7 @@ const DIRECTION_MAP = {
 const METHOD_MAP = {
   ring: BendingMethod.FullCircle,
   arc: BendingMethod.Arc,
-  spiral: BendingMethod.Spiral,
+  spiral: BendingMethod.Serpantin,
   sivama: BendingMethod.Sivama,
 } as const
 

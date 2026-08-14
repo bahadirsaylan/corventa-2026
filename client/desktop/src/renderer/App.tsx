@@ -5,6 +5,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import ArcNextSegmentModal from '@/components/ArcNextSegmentModal/ArcNextSegmentModal'
 import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
+import VirtualKeyboard from '@/components/KeyboardModal/VirtualKeyboard'
 import { subscribeToBackend } from '@/bootstrap/subscribeToBackend'
 
 import SplashPage from '@/pages/SplashPage/SplashPage'
@@ -13,7 +14,19 @@ import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
 import WelcomeMessagePage from '@/pages/WelcomeMessagePage/WelcomeMessagePage'
 import WarrantyPage from '@/pages/WarrantyPage/WarrantyPage'
+import MaintenancePage from '@/pages/MaintenancePage/MaintenancePage'
 import ChecklistPage from '@/pages/ChecklistPage/ChecklistPage'
+import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnectionPage'
+import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
+import DefaultSpeedsPage from '@/pages/DefaultSpeedsPage/DefaultSpeedsPage'
+import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
+import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
+import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
+import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountReportPage'
+import LanguagePage from '@/pages/LanguagePage/LanguagePage'
+import CertificateQueryPage from '@/pages/CertificateQueryPage/CertificateQueryPage'
+import CustomerChangePage from '@/pages/CustomerChangePage/CustomerChangePage'
+import MachineTransferPage from '@/pages/MachineTransferPage/MachineTransferPage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
 import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
@@ -49,6 +62,9 @@ export default function App() {
       {/* Arc interactive flow — backend awaitingArcSegmentInput=true gönderince
           rotadan bağımsız global modal açılır, R/α/L sorar, DataApi'ye gönderir. */}
       <ArcNextSegmentModal />
+      {/* Global sanal klavye — her text/textarea odaklanınca otomatik açılır.
+          Bypass: input'a data-no-keyboard="true" koy. Number input'lar NumpadModal'a bırakılır. */}
+      <VirtualKeyboard />
       <HashRouter>
         <Routes>
           {/* Auth / pre-login screens — full screen, no chrome */}
@@ -63,7 +79,19 @@ export default function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/welcome-message" element={<WelcomeMessagePage />} />
             <Route path="settings/warranty" element={<WarrantyPage />} />
+            <Route path="settings/maintenance" element={<MaintenancePage />} />
             <Route path="settings/checklist" element={<ChecklistPage />} />
+            <Route path="settings/big-data" element={<BigDataConnectionPage />} />
+            <Route path="settings/users" element={<UserManagementPage />} />
+            <Route path="settings/default-speeds" element={<DefaultSpeedsPage />} />
+            <Route path="settings/encoder-reset" element={<EncoderResetPage />} />
+            <Route path="settings/error-reports" element={<ErrorReportsPage />} />
+            <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
+            <Route path="settings/bending-count" element={<BendingCountReportPage />} />
+            <Route path="settings/language" element={<LanguagePage />} />
+            <Route path="settings/certificate" element={<CertificateQueryPage />} />
+            <Route path="settings/customer-change" element={<CustomerChangePage />} />
+            <Route path="settings/machine-transfer" element={<MachineTransferPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
             <Route path="bending/ai/method" element={<BendingMethodPage />} />

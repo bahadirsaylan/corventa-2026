@@ -14,6 +14,7 @@ import type {
   RotationDistanceRequest,
   RotationJogRequest,
   RotationPositionRequest,
+  SideSupportRequest,
 } from '@shared/types'
 
 const log = childLogger('ipc:machine')
@@ -66,6 +67,16 @@ export function registerMachineHandlers(): void {
   })
   ipcMain.handle(Ipc.IpcInvoke.PneumaticStop, async (_evt, side: string) => {
     return engineApi.pneumaticStop(side)
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SideSupportControl, async (_evt, req: SideSupportRequest) => {
+    // Basılı-tut UX → log spam olmasın diye sadece dir!=0 (başlatma) info; stop'ta debug.
+    if (req.direction === 0) {
+      log.debug('side support stop', req)
+    } else {
+      log.info('side support control', req)
+    }
+    return engineApi.sideSupportControl(req)
   })
 
   ipcMain.handle(Ipc.IpcInvoke.EmergencyStop, async () => {

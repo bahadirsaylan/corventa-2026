@@ -13,6 +13,7 @@ import {
   type RotationDistanceRequest,
   type RotationJogRequest,
   type RotationPositionRequest,
+  type SideSupportRequest,
 } from '@shared'
 
 export const machineApi = {
@@ -44,6 +45,10 @@ export const machineApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.PneumaticControl, req),
   pneumaticStop: (side: string): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.PneumaticStop, side),
+
+  // Manuel yan dayama (basılı-tut pattern)
+  sideSupportControl: (req: SideSupportRequest): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SideSupportControl, req),
 
   emergencyStop: (): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.EmergencyStop),
 

@@ -84,4 +84,9 @@ export function registerBendingHandlers(): void {
     log.warn('cancel-bending-job (backend endpoint may not exist yet)', { jobId })
     return engineApi.cancelBendingJob(jobId)
   })
+
+  ipcMain.handle(Ipc.IpcInvoke.ConfirmSideSupport, async (_evt, jobId: number) => {
+    log.info('confirm-side-support (Serpantin operator confirmation)', { jobId })
+    return engineApi.confirmSideSupport(jobId)
+  })
 }

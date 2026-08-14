@@ -14,6 +14,7 @@ export const IpcInvoke = {
   ApplyStage: 'preparation:apply-stage',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
+  ConfirmSideSupport: 'bending-job:confirm-side-support',
 
   // DataApi
   CreateBendingJob: 'data:create-bending-job',
@@ -32,6 +33,7 @@ export const IpcInvoke = {
   RotationStop: 'rotation:stop',
   PneumaticControl: 'pneumatic:control',
   PneumaticStop: 'pneumatic:stop',
+  SideSupportControl: 'side-support:control',
   EmergencyStop: 'machine:emergency-stop',
   SetMachineMode: 'machine:set-mode',
   SendMachineCommand: 'machine:send-command',
@@ -51,6 +53,13 @@ export const IpcInvoke = {
   ServiceConfirmRequest: 'service:confirm-request',
   ServiceRateRequest: 'service:rate-request',
   ServiceListReports: 'service:list-reports',
+
+  // DataApi — Settings (Ayarlar sayfaları)
+  SettingsGetIdentity: 'settings:get-identity',
+  SettingsUpdateIdentity: 'settings:update-identity',
+  SettingsGetMaintenance: 'settings:get-maintenance',
+  SettingsMarkMaintenanceCompleted: 'settings:mark-maintenance-completed',
+  SettingsSetMaintenanceMode: 'settings:set-maintenance-mode',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

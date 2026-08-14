@@ -16,6 +16,7 @@ import type {
   RotationDistanceRequest,
   RotationJogRequest,
   RotationPositionRequest,
+  SideSupportRequest,
   StartJobResponse,
 } from '@shared/types'
 
@@ -67,6 +68,11 @@ export class EngineApiClient {
     // NOT: Backend'de henüz cancel endpoint'i yok (CLAUDE.md "yapılacaklar"da listede).
     // Eklendiğinde burayı tek noktadan değiştiririz.
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/cancel`)
+  }
+
+  // Serpantin — operatör yan dayama ayarını bitirince "DEVAM ET" onayı.
+  confirmSideSupport(jobId: number): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/bending-job/${jobId}/confirm-side-support`)
   }
 
   // Arc interactive — pipeline awaitingArcSegmentInput=true iken çağrılır:
@@ -137,6 +143,13 @@ export class EngineApiClient {
 
   pneumaticStop(side: string): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/pneumatic/${side}/stop`)
+  }
+
+  // Yan dayama — basılı-tut pattern.
+  // direction=1 → forward, -1 → backward, 0 → stop (buton bırakıldı).
+  sideSupportControl(req: SideSupportRequest): Promise<unknown> {
+    const path = req.direction === 1 ? 'forward' : req.direction === -1 ? 'backward' : 'stop'
+    return http.post(`${this.baseUrl}/api/side-support/${req.side}/${req.type}/${path}`)
   }
 
   emergencyStop(): Promise<unknown> {

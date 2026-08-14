@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj": {}
+    "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj": {
+    "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj",
+        "projectUniqueName": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj",
         "projectName": "CncBendingMachine.Web",
-        "projectPath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj",
+        "projectPath": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj",
         "packagesPath": "C:\\Users\\Kadir\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Web\\obj\\",
+        "outputPath": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Web\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -74,7 +74,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.317\\RuntimeIdentifierGraph.json"
         }
       }
     }

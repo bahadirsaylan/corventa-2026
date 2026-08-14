@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 
 import BendingBall from './BendingBall'
+import SideSupportControls from './SideSupportControls'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
@@ -52,6 +53,22 @@ export default function BendingBallsPanel() {
     }
   }
 
+  // ── Serpantin yan dayama onayı ──────────────────
+  // Pipeline ilk 3/4 rotasyondan sonra durur, operatör yan dayama ayarını yapıp bu butona basar.
+  // Backend awaitingSideSupportConfirmation=true iken görünür; onay endpoint pipeline'ı uyandırır.
+  const [confirming, setConfirming] = useState(false)
+  async function handleConfirmSideSupport() {
+    if (!progress || confirming) return
+    setConfirming(true)
+    try {
+      await window.corventa.bending.confirmSideSupport(progress.jobId)
+    } catch (e) {
+      setCancelInfo('ONAY BAŞARISIZ: ' + (e instanceof Error ? e.message : String(e)))
+    } finally {
+      setConfirming(false)
+    }
+  }
+
   return (
     <div className={styles.panel}>
       {/* ── Header row ─────────────────────────────── */}
@@ -92,6 +109,22 @@ export default function BendingBallsPanel() {
 
       {cancelInfo && <div className={styles.cancelInfoBar}>{cancelInfo}</div>}
 
+      {progress?.awaitingSideSupportConfirmation && (
+        <div className={styles.confirmBar}>
+          <span className={styles.confirmText}>
+            YAN DAYAMA AYARINI BİTİRDİYSEN
+          </span>
+          <button
+            type="button"
+            className={styles.confirmBtn}
+            onClick={handleConfirmSideSupport}
+            disabled={confirming}
+          >
+            {confirming ? '...' : '▶ DEVAM ET'}
+          </button>
+        </div>
+      )}
+
       {showCancelModal && (
         <ConfirmModal
           message={
@@ -111,23 +144,14 @@ export default function BendingBallsPanel() {
         />
       )}
 
-      {/* ── Ball grid ──────────────────────────────── */}
+      {/* ── Content grid: yan dayamalar (sol) + top grid + yan dayamalar (sağ) ── */}
+      <div className={styles.contentGrid}>
+        <div className={styles.sideCol}>
+          <SideSupportControls side="left" />
+        </div>
       <div className={styles.ballGrid}>
-        {/* Left arrow + ball */}
+        {/* Left column — sadece ball */}
         <div className={styles.colLeft}>
-          <div className={styles.arrowLeft}>
-            <svg viewBox="0 0 80 80" fill="none">
-              <circle cx="12" cy="40" r="8" stroke="#999" strokeWidth="3" />
-              <path
-                d="M20 40 Q50 10 68 40"
-                stroke="#f5d76e"
-                strokeWidth="14"
-                fill="none"
-                strokeLinecap="round"
-              />
-              <polygon points="58,28 72,36 64,50" fill="var(--color-primary)" />
-            </svg>
-          </div>
           <BendingBall id="left" value={left.positionMm} active={left.moving || left.inPosition} />
         </div>
 
@@ -142,26 +166,17 @@ export default function BendingBallsPanel() {
           />
         </div>
 
-        {/* Right arrow + ball */}
+        {/* Right column — sadece ball */}
         <div className={styles.colRight}>
-          <div className={styles.arrowRight}>
-            <svg viewBox="0 0 80 80" fill="none">
-              <circle cx="68" cy="40" r="8" stroke="#999" strokeWidth="3" />
-              <path
-                d="M60 40 Q30 10 12 40"
-                stroke="#f5d76e"
-                strokeWidth="14"
-                fill="none"
-                strokeLinecap="round"
-              />
-              <polygon points="22,28 8,36 16,50" fill="var(--color-primary)" />
-            </svg>
-          </div>
           <BendingBall
             id="right"
             value={right.positionMm}
             active={right.moving || right.inPosition}
           />
+        </div>
+      </div>
+        <div className={styles.sideCol}>
+          <SideSupportControls side="right" />
         </div>
       </div>
 

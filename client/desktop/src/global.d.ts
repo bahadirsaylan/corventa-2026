@@ -7,6 +7,7 @@ import type { BendingApi } from './preload/api/bending'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
 import type { ServiceApi } from './preload/api/service'
+import type { SettingsApi } from './preload/api/settings'
 import type { SystemApi } from './preload/api/system'
 
 declare global {
@@ -16,6 +17,7 @@ declare global {
     bending: BendingApi
     events: EventsApi
     service: ServiceApi
+    settings: SettingsApi
     system: SystemApi
   }
 

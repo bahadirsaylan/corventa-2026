@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "GmQTLEOmQvA=",
+  "dgSpecHash": "y6j+pHMU9Ak=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Api\\CncBendingMachine.Api.csproj",
+  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Api\\CncBendingMachine.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kadir\\.nuget\\packages\\fluentmodbus\\5.0.2\\fluentmodbus.5.0.2.nupkg.sha512",
     "C:\\Users\\Kadir\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",

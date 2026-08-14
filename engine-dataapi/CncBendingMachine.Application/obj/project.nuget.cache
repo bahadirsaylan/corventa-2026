@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "3Hsgu1b05mI=",
+  "dgSpecHash": "5z4+zpZ9I0k=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.Application\\CncBendingMachine.Application.csproj",
+  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.Application\\CncBendingMachine.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kadir\\.nuget\\packages\\mediatr\\12.4.1\\mediatr.12.4.1.nupkg.sha512",
     "C:\\Users\\Kadir\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",

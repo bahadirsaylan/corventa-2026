@@ -51,7 +51,7 @@ export type BendingDirection = (typeof BendingDirection)[keyof typeof BendingDir
 export const BendingMethod = {
   FullCircle: 0,
   Arc: 1,
-  Spiral: 2,
+  Serpantin: 2,
   Sivama: 3,
 } as const
 export type BendingMethod = (typeof BendingMethod)[keyof typeof BendingMethod]

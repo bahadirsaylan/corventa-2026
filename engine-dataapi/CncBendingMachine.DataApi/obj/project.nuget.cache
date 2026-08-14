@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PKNCPeKWxac=",
+  "dgSpecHash": "4fe8oqbzQmE=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa\\src\\CncBendingMachine.DataApi\\CncBendingMachine.DataApi.csproj",
+  "projectFilePath": "C:\\Users\\Kadir\\Desktop\\corventa-2026\\engine-dataapi\\CncBendingMachine.DataApi\\CncBendingMachine.DataApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kadir\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Kadir\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.11\\microsoft.aspnetcore.openapi.8.0.11.nupkg.sha512",

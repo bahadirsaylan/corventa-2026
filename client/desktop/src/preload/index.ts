@@ -5,6 +5,7 @@ import { bendingApi } from './api/bending'
 import { eventsApi } from './api/events'
 import { machineApi } from './api/machine'
 import { serviceApi } from './api/service'
+import { settingsApi } from './api/settings'
 import { systemApi } from './api/system'
 
 if (process.contextIsolated) {
@@ -17,6 +18,7 @@ if (process.contextIsolated) {
       bending: bendingApi,
       events: eventsApi,
       service: serviceApi,
+      settings: settingsApi,
       system: systemApi,
     })
   } catch (error) {

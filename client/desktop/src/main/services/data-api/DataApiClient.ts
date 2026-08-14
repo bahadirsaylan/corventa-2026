@@ -4,6 +4,9 @@ import { getConfig } from '@main/config/runtime-config'
 import { http } from '@main/lib/http'
 import type {
   BendingJob,
+  MachineIdentity,
+  MaintenancePeriodKey,
+  MaintenanceState,
   ServiceRequest,
   ServiceRequestCreateRequest,
   ServiceTicket,
@@ -132,6 +135,36 @@ export class DataApiClient {
     return http.post<ServiceRequest>(
       `${this.baseUrl}/api/service/requests/${id}/rating`,
       { rating, note },
+    )
+  }
+
+  // ---------- Machine Identity (garanti + müşteri) ----------
+
+  getMachineIdentity(): Promise<MachineIdentity> {
+    return http.get<MachineIdentity>(`${this.baseUrl}/api/machine-identity`)
+  }
+
+  updateMachineIdentity(identity: MachineIdentity): Promise<MachineIdentity> {
+    return http.put<MachineIdentity>(`${this.baseUrl}/api/machine-identity`, identity)
+  }
+
+  // ---------- Maintenance State (bakım periyot takibi) ----------
+
+  getMaintenanceState(): Promise<MaintenanceState> {
+    return http.get<MaintenanceState>(`${this.baseUrl}/api/maintenance`)
+  }
+
+  markMaintenanceCompleted(period: MaintenancePeriodKey): Promise<MaintenanceState> {
+    return http.post<MaintenanceState>(
+      `${this.baseUrl}/api/maintenance/mark-completed?period=${encodeURIComponent(period)}`,
+      {},
+    )
+  }
+
+  setMaintenanceMode(on: boolean): Promise<MaintenanceState> {
+    return http.post<MaintenanceState>(
+      `${this.baseUrl}/api/maintenance/mode?on=${on}`,
+      {},
     )
   }
 }
