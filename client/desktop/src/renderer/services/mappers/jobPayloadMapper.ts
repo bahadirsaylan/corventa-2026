@@ -111,9 +111,8 @@ export function mapToCreateRequest(
     A = params.sivamaBending.A ?? 0
     B = params.sivamaBending.B ?? 0
     S = params.sivamaBending.S ?? 0
+    R = (params.sivamaBending.R ?? 0) * 2 // yarıçap → çap (backend TargetDiameterMm)
     H = params.sivamaBending.H
-    // Sivama'da X (açı) var ama backend henüz açı tabanlı bükümü desteklemiyor
-    // → şimdilik R=0 gönderiliyor; backend tarafında açı parametresi eklendiğinde güncellenecek
   }
 
   const required = { A, B, S, R }
@@ -139,6 +138,9 @@ export function mapToCreateRequest(
   }
   if (params.bendingMethod === 'spiral' && params.spiralBending?.L != null) {
     partLengthMm = params.spiralBending.L
+  }
+  if (params.bendingMethod === 'sivama' && params.sivamaBending?.L != null) {
+    partLengthMm = params.sivamaBending.L
   }
   if (params.widthMm != null) {
     partLengthMm = params.widthMm
@@ -178,6 +180,12 @@ export function mapToCreateRequest(
     }]
   }
 
+  // Sivama-only — backend Method=Sivama ise zorunlu olarak doğrular
+  let sivamaAngleDeg: number | null | undefined
+  if (params.bendingMethod === 'sivama' && params.sivamaBending?.X != null) {
+    sivamaAngleDeg = params.sivamaBending.X
+  }
+
   return {
     profileType,
     direction,
@@ -197,6 +205,8 @@ export function mapToCreateRequest(
     arcStepDistanceMm,
     kivrimHizMetreDakika,
     segments,
+    // Sivama-only — backend Method=Sivama ise zorunlu olarak doğrular
+    sivamaAngleDeg,
     operatorName: opts.operatorName ?? null,
     notes: opts.notes ?? null,
   }

@@ -117,6 +117,9 @@ export interface BendingJobCreateRequest {
   kivrimHizMetreDakika?: number | null    // H (m/min) — Arc'a özel hız
   segments?: BendingSegmentInput[]        // İlk segment burada; sonrakiler interactive
 
+  // Sivama-only field (Method=Sivama ise zorunlu; diğer method'larda null)
+  sivamaAngleDeg?: number | null          // X — Sıvama ilk rotasyon açısı (derece)
+
   // Operator metadata
   operatorName?: string | null
   notes?: string | null

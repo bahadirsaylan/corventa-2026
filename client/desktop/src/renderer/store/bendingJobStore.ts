@@ -76,8 +76,12 @@ export interface SivamaBendingParams {
   B: number | null
   /** Profile wall thickness (mm) */
   S: number | null
+  /** Target bending radius (mm) — backend'e ×2 = çap gider */
+  R: number | null
   /** Bending angle (degrees) */
   X: number | null
+  /** Part total length (mm) */
+  L: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Sivama winding direction */
@@ -193,7 +197,9 @@ export function prepareBendingJobPayload(
       sivamaBending.A === null ||
       sivamaBending.B === null ||
       sivamaBending.S === null ||
+      sivamaBending.R === null ||
       sivamaBending.X === null ||
+      sivamaBending.L === null ||
       sivamaBending.H === null ||
       sivamaBending.Y === null
     ) {
