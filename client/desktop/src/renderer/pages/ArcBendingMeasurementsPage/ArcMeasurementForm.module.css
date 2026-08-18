@@ -168,3 +168,41 @@
   background-color: #2d6fb8;
   border-color: #2d6fb8;
 }
+
+/* ── Mode toggle (R+α / R+Yay) ─────────────── */
+.modeToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.modeActive,
+.modeInactive {
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.modeActive {
+  background-color: #c0392b;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.modeInactive {
+  background-color: transparent;
+  color: #666;
+}
+
+.modeInactive:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}

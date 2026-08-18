@@ -73,6 +73,57 @@
   text-align: center;
 }
 
+.budgetInfo {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1565c0;
+  text-align: center;
+  font-style: italic;
+}
+
+.modeToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 4px;
+  background-color: #ede4d0;
+  border-radius: 10px;
+}
+
+.modeActive,
+.modeInactive {
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.modeActive {
+  background-color: var(--color-primary, #c0392b);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.modeInactive {
+  background-color: transparent;
+  color: var(--color-text-muted, #666);
+}
+
+.modeInactive:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.modeActive:disabled,
+.modeInactive:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .fields {
   display: flex;
   flex-direction: column;
