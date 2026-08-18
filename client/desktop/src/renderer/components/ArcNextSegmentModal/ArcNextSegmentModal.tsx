@@ -43,7 +43,7 @@ function computeArcLength(radiusMm: number, angleDeg: number): number {
 
 interface LengthBudget {
   used: number    // Σ önceki yay + Σ önceki düzlük
-  available: number // partLength - 2*safetyMargin - zeroReset
+  available: number // partLength - 2*safetyMargin (backend BendingJobController.cs:856 ile birebir)
   remaining: number // available - used
 }
 
@@ -55,8 +55,10 @@ function computeBudget(job: BendingJob | null): LengthBudget | null {
   )
   const usedStraight = (job.segments ?? []).reduce((acc, s) => acc + s.straightAfterMm, 0)
   const used = usedArc + usedStraight
-  const available =
-    (job.partLengthMm ?? 0) - 2 * (job.safetyMarginMm ?? 0) - (job.zeroResetDistanceMm ?? 0)
+  // Zero pay'i (zeroResetDistanceMm) DÜŞÜLMEZ — Zero sonrası parça alt+üst top arasında sıkışık,
+  // makine üzerinde ve büküm için kullanılabilir durumda. Yalnızca iki uçtan safety margin düşülür.
+  // Backend formülü ile birebir (BendingJobController.cs:856 + ArcBendingCalculator.cs:140).
+  const available = (job.partLengthMm ?? 0) - 2 * (job.safetyMarginMm ?? 0)
   return { used, available, remaining: Math.max(0, available - used) }
 }
 
