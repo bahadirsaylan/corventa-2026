@@ -158,4 +158,18 @@ export interface BendingProgress {
   // true iken UI büyük "DEVAM ET" butonu göster, tıklanınca
   // POST /api/bending-job/{id}/confirm-side-support çağrılır.
   awaitingSideSupportConfirmation?: boolean
+
+  // Arc ölçüm hatası retry akışı (2026-08-18):
+  //   awaitingMeasurementRetry=true iken UI MODAL 1 (Retract + Remeasure) açar.
+  //   pneumaticRetractedForRetry=true olunca Modal 1'de "Tekrar Ölç" butonu AKTİF olur.
+  //   awaitingMeasurementFinalDecision=true iken UI MODAL 2 (Finish + Skip) açar.
+  //   POST /api/bending-job/{id}/measurement-retry-action ile action gönderilir.
+  awaitingMeasurementRetry?: boolean
+  pneumaticRetractedForRetry?: boolean
+  awaitingMeasurementFinalDecision?: boolean
+  prevMeasuredRadiusMm?: number | null
+  lastMeasuredRadiusMm?: number | null
+  targetRadiusMm?: number | null
+  measurementRetrySegmentOrder?: number | null
+  measurementRetryIteration?: number | null
 }

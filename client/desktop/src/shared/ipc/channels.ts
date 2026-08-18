@@ -15,6 +15,8 @@ export const IpcInvoke = {
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   ConfirmSideSupport: 'bending-job:confirm-side-support',
+  MeasurementRetryAction: 'bending-job:measurement-retry-action',
+  CancelMeasurementRetry: 'bending-job:cancel-measurement-retry',
 
   // DataApi
   CreateBendingJob: 'data:create-bending-job',

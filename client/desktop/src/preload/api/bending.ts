@@ -53,6 +53,14 @@ export const bendingApi = {
   // Serpantin — operatör yan dayama ayarını bitirince "DEVAM ET" onayı.
   confirmSideSupport: (jobId: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ConfirmSideSupport, jobId),
+
+  // Arc ölçüm hatası retry modal (2026-08-18):
+  //   action: "retract" | "remeasure" | "finish_all" | "skip_segment"
+  measurementRetryAction: (jobId: number, action: string): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.MeasurementRetryAction, { jobId, action }),
+
+  cancelMeasurementRetry: (jobId: number): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CancelMeasurementRetry, jobId),
 }
 
 export type BendingApi = typeof bendingApi

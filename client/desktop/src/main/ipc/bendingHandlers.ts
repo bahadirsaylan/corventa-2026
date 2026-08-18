@@ -89,4 +89,18 @@ export function registerBendingHandlers(): void {
     log.info('confirm-side-support (Serpantin operator confirmation)', { jobId })
     return engineApi.confirmSideSupport(jobId)
   })
+
+  // Arc ölçüm hatası retry modal — 2 modal (Modal 1: retract/remeasure, Modal 2: finish_all/skip_segment)
+  ipcMain.handle(
+    Ipc.IpcInvoke.MeasurementRetryAction,
+    async (_evt, payload: { jobId: number; action: string }) => {
+      log.info('measurement-retry-action', payload)
+      return engineApi.measurementRetryAction(payload.jobId, payload.action)
+    },
+  )
+
+  ipcMain.handle(Ipc.IpcInvoke.CancelMeasurementRetry, async (_evt, jobId: number) => {
+    log.info('cancel-measurement-retry (manuel modal iptali)', { jobId })
+    return engineApi.cancelMeasurementRetry(jobId)
+  })
 }

@@ -86,6 +86,21 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/next-segment`, payload)
   }
 
+  // Arc ölçüm hatası retry modal akışı (2026-08-18).
+  //   action: "retract" | "remeasure" | "finish_all" | "skip_segment"
+  //   Modal 1: retract → remeasure (retract sonrası Tekrar Ölç aktif olur)
+  //   Modal 2: finish_all → job Completed, skip_segment → sonraki segmente geç
+  measurementRetryAction(jobId: number, action: string): Promise<unknown> {
+    return http.post(
+      `${this.baseUrl}/api/bending-job/${jobId}/measurement-retry-action`,
+      { action },
+    )
+  }
+
+  cancelMeasurementRetry(jobId: number): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/bending-job/${jobId}/cancel-measurement-retry`)
+  }
+
   // ---------- Machine state (SignalR fallback / initial dump) ----------
 
   getCurrentState(): Promise<unknown> {

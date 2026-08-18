@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import AppLayout from '@/components/layout/AppLayout'
 import ArcNextSegmentModal from '@/components/ArcNextSegmentModal/ArcNextSegmentModal'
+import MeasurementErrorModal from '@/components/MeasurementErrorModal/MeasurementErrorModal'
 import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
 import VirtualKeyboard from '@/components/KeyboardModal/VirtualKeyboard'
@@ -62,6 +63,10 @@ export default function App() {
       {/* Arc interactive flow — backend awaitingArcSegmentInput=true gönderince
           rotadan bağımsız global modal açılır, R/α/L sorar, DataApi'ye gönderir. */}
       <ArcNextSegmentModal />
+      {/* Arc ölçüm hatası retry akışı (2026-08-18) — backend awaitingMeasurementRetry
+          veya awaitingMeasurementFinalDecision=true gönderince global modal açılır.
+          Modal 1: Retract + Remeasure. Modal 2: Finish + Skip. */}
+      <MeasurementErrorModal />
       {/* Global sanal klavye — her text/textarea odaklanınca otomatik açılır.
           Bypass: input'a data-no-keyboard="true" koy. Number input'lar NumpadModal'a bırakılır. */}
       <VirtualKeyboard />
