@@ -55,6 +55,10 @@ export default function MeasurementErrorModal() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setErrorMsg(`İşlem başarısız: ${msg}`)
+    } finally {
+      //   BUG FIX 2026-08-19: HTTP başarılı olduğunda da submitting reset edilmeli.
+      //   Aksi halde "Gönderiliyor…" yazısı silinmez, buton disabled kalır — kullanıcı
+      //   retract sonrası "Tekrar Ölç" butonunu tıklayamaz.
       setSubmitting(null)
     }
   }
