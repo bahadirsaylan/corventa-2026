@@ -416,9 +416,17 @@ export default function ArcMeasurementForm({
       DEFAULT_SAFETY_MM,
     )
   })
-  const cumulativeBudget = budgets.reduce((sum, b) => sum + b.total, 0)
+  //   RAW toplam (kullanıcı bakış açısı: yay + düzlük fiziksel, safety uygulanmadan).
+  //   cumulativeBudget (safety uygulanmış) sadece internal check için — UI'da göstermez,
+  //   backend zaten DataApi validation'da bütçe check yapar.
+  const cumulativeRaw = values.segments.reduce((sum, seg, i) => {
+    const b = budgets[i]
+    const L = parseFloat(seg.L)
+    if (!b.valid) return sum
+    return sum + b.arc + (Number.isFinite(L) ? L : 0)
+  }, 0)
   const ltValid = ltMm > 0
-  const remaining = ltValid ? ltMm - cumulativeBudget : 0
+  const remaining = ltValid ? ltMm - cumulativeRaw : 0
   const remainingOverflow = ltValid && remaining < 0
   const anyBudgetValid = budgets.some((b) => b.valid)
 
@@ -552,7 +560,7 @@ export default function ArcMeasurementForm({
             }`}
           >
             <span>
-              Toplam bütçe: <b>{cumulativeBudget.toFixed(1)}mm</b>
+              Toplam mesafe: <b>{cumulativeRaw.toFixed(1)}mm</b>
               {ltValid && (
                 <>
                   {' '}/ LT <b>{ltMm.toFixed(1)}mm</b>
