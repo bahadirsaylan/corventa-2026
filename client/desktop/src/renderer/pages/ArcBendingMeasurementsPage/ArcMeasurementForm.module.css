@@ -212,8 +212,11 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 280px;
+  flex: 1 1 auto;
+  min-height: 0;         /* flex parent'ta scroll için gerekli */
+  max-height: 46vh;      /* uyarılı kartlar için genişletildi (2026-08-24 kayma fix) */
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 4px 2px;
 }
 
@@ -228,31 +231,35 @@
   border-radius: 8px;
 }
 
+/* Segment kartı — grid layout: 92px header + 1fr fields; alt satırlar (bütçe/uyarı) full genişlik */
 .segmentCard {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 10px;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  column-gap: 12px;
+  row-gap: 4px;
+  padding: 8px 10px;
   background-color: rgba(0, 0, 0, 0.04);
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .segmentHeader {
-  min-width: 92px;
+  grid-column: 1;
+  grid-row: 1;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--color-primary);
-  flex-shrink: 0;
+  align-self: center;
 }
 
 .segmentFields {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 10px;
-  flex: 1;
 }
 
 .segmentFieldRow {
@@ -317,17 +324,16 @@
   border-color: #2d6fb8;
 }
 
-/* ── Segment bütçe göstergesi (per-card + total) ── */
+/* ── Segment bütçe göstergesi (grid'in 2. satırı, full genişlik) ── */
 .segmentBudgetInfo {
+  grid-column: 1 / -1;
+  grid-row: 2;
   font-size: 11px;
   color: var(--color-text-muted);
-  padding-left: 100px;    /* SEGMENT n header genişliği kadar hizala */
   padding-top: 4px;
   font-weight: 600;
   line-height: 1.3;
-  width: 100%;
   border-top: 1px dashed rgba(0, 0, 0, 0.1);
-  margin-top: 4px;
 }
 
 .segmentBudgetInfo b {
@@ -377,9 +383,9 @@
 }
 
 .segmentInfeasibleWarn {
-  width: 100%;
+  grid-column: 1 / -1;
+  grid-row: 3;
   padding: 8px 10px;
-  margin-top: 6px;
   background-color: rgba(231, 76, 60, 0.15);
   border: 1px solid rgba(231, 76, 60, 0.4);
   border-radius: 6px;
