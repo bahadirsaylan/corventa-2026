@@ -119,6 +119,30 @@ function computeAngleFromArc(radiusMm: number, arcMm: number): number {
   return 180 - (arcMm * 180) / (Math.PI * radiusMm)
 }
 
+// Backend safetyMarginMm varsayılanı — MachineSettings.DefaultSafetyMarginMm eşleşmesi
+// Backend DataApi ile UI arasında runtime pull yerine sabit tutuldu; kullanıcı LT'ye buna
+// göre bakar. Değişirse UI hala backend'in gerçek reject/kabul kararına güvenir.
+const DEFAULT_SAFETY_MM = 100
+
+interface SegmentBudget {
+  arc: number         // ham yay (mm)
+  effArc: number      // bütçedeki yay (son seg -safety)
+  effStraight: number // bütçedeki düzlük (seg1 min=safety)
+  total: number       // segment bütçe toplamı
+  valid: boolean      // R+α+L tam ve geçerli mi
+}
+
+function calcSegmentBudget(
+  order: number, totalP: number, R: number, alpha: number, L: number, safety: number,
+): SegmentBudget {
+  const valid = R > 0 && alpha > 0 && alpha < 180 && L >= 0
+  if (!valid) return { arc: 0, effArc: 0, effStraight: 0, total: 0, valid: false }
+  const arc = computeArcLength(R, alpha)
+  const effArc = (totalP > 0 && order === totalP) ? Math.max(0, arc - safety) : arc
+  const effStraight = order === 1 ? Math.max(L, safety) : L
+  return { arc, effArc, effStraight, total: effArc + effStraight, valid: true }
+}
+
 export function makeEmptySegment(): ArcSegmentValues {
   return { R: '', Alpha: '', ArcLen: '', L: '' }
 }
@@ -257,6 +281,27 @@ export default function ArcMeasurementForm({
     )
   }
 
+  // Bütçe hesaplaması — her render'da (segments/LT/P değişince)
+  const totalP = parseInt(values.P, 10) || values.segments.length
+  const ltMm = parseFloat(values.LT) || 0
+  const budgets: SegmentBudget[] = values.segments.map((seg, i) => {
+    const R = parseFloat(seg.R)
+    const alpha = parseFloat(seg.Alpha)
+    const L = parseFloat(seg.L)
+    return calcSegmentBudget(
+      i + 1, totalP,
+      Number.isFinite(R) ? R : 0,
+      Number.isFinite(alpha) ? alpha : 0,
+      Number.isFinite(L) ? L : 0,
+      DEFAULT_SAFETY_MM,
+    )
+  })
+  const cumulativeBudget = budgets.reduce((sum, b) => sum + b.total, 0)
+  const ltValid = ltMm > 0
+  const remaining = ltValid ? ltMm - cumulativeBudget : 0
+  const remainingOverflow = ltValid && remaining < 0
+  const anyBudgetValid = budgets.some((b) => b.valid)
+
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return values[numpadTarget.field] ?? ''
@@ -316,19 +361,63 @@ export default function ArcMeasurementForm({
               ⚠ Önce P (segment sayısı) giriniz — kartlar otomatik açılır.
             </div>
           )}
-          {values.segments.map((_, i) => (
-            <div key={i} className={styles.segmentCard}>
-              <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
-              <div className={styles.segmentFields}>
-                {renderSegmentField(i, 'R', 'R')}
-                {inputMode === 'angle'
-                  ? renderSegmentField(i, 'Alpha', 'α')
-                  : renderSegmentField(i, 'ArcLen', 'Yay')}
-                {renderSegmentField(i, 'L', 'L')}
+          {values.segments.map((_, i) => {
+            const b = budgets[i]
+            return (
+              <div key={i} className={styles.segmentCard}>
+                <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
+                <div className={styles.segmentFields}>
+                  {renderSegmentField(i, 'R', 'R')}
+                  {inputMode === 'angle'
+                    ? renderSegmentField(i, 'Alpha', 'α')
+                    : renderSegmentField(i, 'ArcLen', 'Yay')}
+                  {renderSegmentField(i, 'L', 'L')}
+                </div>
+                {b?.valid && (
+                  <div className={styles.segmentBudgetInfo}>
+                    Yay: <b>{b.arc.toFixed(1)}mm</b>
+                    {' · '}Bütçe: <b>{b.total.toFixed(1)}mm</b>
+                    {i + 1 === totalP && b.effArc !== b.arc && (
+                      <span className={styles.budgetNote}>
+                        {' '}(son seg yay −{DEFAULT_SAFETY_MM}mm safety)
+                      </span>
+                    )}
+                    {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
+                      <span className={styles.budgetNote}>
+                        {' '}(seg1 düzlük min={DEFAULT_SAFETY_MM}mm safety)
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
+
+        {/* Toplam bütçe + kalan gösterge */}
+        {anyBudgetValid && (
+          <div
+            className={`${styles.totalBudgetInfo} ${
+              remainingOverflow ? styles.budgetOver : styles.budgetOk
+            }`}
+          >
+            <span>
+              Toplam bütçe: <b>{cumulativeBudget.toFixed(1)}mm</b>
+              {ltValid && (
+                <>
+                  {' '}/ LT <b>{ltMm.toFixed(1)}mm</b>
+                </>
+              )}
+            </span>
+            {ltValid && (
+              <span>
+                Kalan: <b>{remaining.toFixed(1)}mm</b>
+                {remainingOverflow && ' ⚠ AŞIM'}
+              </span>
+            )}
+            {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}
+          </div>
+        )}
 
         <button className={styles.resetBtn} onClick={onReset}>
           ↺ SIFIRLA
