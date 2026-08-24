@@ -125,7 +125,7 @@ function computeAngleFromArc(radiusMm: number, arcMm: number): number {
 // mercii her zaman kesindir).
 const DEFAULT_SAFETY_MM = 100                    // MachineSettings.DefaultSafetyMarginMm
 export const DEFAULT_MEASUREMENT_DISTANCE_MM = 850  // MachineSettings.DefaultMeasurementDistanceMm — "T"
-export const DEFAULT_XA1_ABS_MM = 493            // |MachineSettings.DefaultXA1|
+export const DEFAULT_XA1_ABS_MM = 465            // |MachineSettings.DefaultXA1| — Stage 2 default (2026-08-24)
 
 interface SegmentBudget {
   arc: number         // ham yay (mm)
