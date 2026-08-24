@@ -166,7 +166,7 @@ export interface SegmentFeasibility {
 }
 
 export function checkSegmentFeasibility(
-  arc: number, L: number, remainingAfterSeg: number,
+  arc: number, L: number, remainingAfterSeg: number, partAdvanceBeforeSeg: number,
   tMm: number, xa1AbsMm: number,
 ): SegmentFeasibility {
   //   Min yay 250mm — SLPIS ölçemez, backend runtime fail
@@ -177,18 +177,7 @@ export function checkSegmentFeasibility(
       detail: `Yay uzunluğu ${arc.toFixed(1)}mm minimum ${MIN_ARC_LENGTH_MM}mm'den küçük — R veya α değerini büyütün.`,
     }
   }
-  //   T kuralı — ölçüm için parça yeterli mi
-  if (arc < tMm) {
-    const needed = tMm - arc
-    if (remainingAfterSeg < needed) {
-      return {
-        feasible: false,
-        reason: 'T-measurement',
-        detail: `Yay ${arc.toFixed(1)}mm < T=${tMm.toFixed(0)}mm; ölçüm için ekstra ${needed.toFixed(1)}mm rotasyon lazım ama kalan parça ${remainingAfterSeg.toFixed(1)}mm yetersiz.`,
-      }
-    }
-  }
-  //   XA1 mod matrisi
+  //   XA1 mod matrisi ÖNCE — mode belirlensin, T kuralı mode'a göre farklı yön kullanacak.
   const duzlukOk = L > xa1AbsMm
   const kalanOk = remainingAfterSeg > xa1AbsMm
   if (!duzlukOk && !kalanOk) {
@@ -198,15 +187,37 @@ export function checkSegmentFeasibility(
       detail: `Düzlük ${L.toFixed(1)}mm VE kalan parça ${remainingAfterSeg.toFixed(1)}mm her ikisi de |XA1|=${xa1AbsMm.toFixed(0)}mm'den küçük — hiçbir büküm modu çalışamaz.`,
     }
   }
-  if (duzlukOk && kalanOk)  return { feasible: true, mode: 'middle' }
-  if (!duzlukOk && kalanOk) return { feasible: true, mode: 'normal' }
-  //   duzlukOk && !kalanOk → ReverseNormal (ters büküm)
-  return {
-    feasible: true,
-    mode: 'reverse-normal',
-    detail: `Kalan parça (${remainingAfterSeg.toFixed(1)}mm) |XA1|'den küçük — normal yönde yetmez, ` +
-            `ters yönde bükülecek (yay boyunca geri döner, ölçüm karşı sensor tarafında).`,
+  let mode: SegmentMode
+  let modeDetail: string | undefined
+  if (duzlukOk && kalanOk) {
+    mode = 'middle'
+  } else if (!duzlukOk && kalanOk) {
+    mode = 'normal'
+  } else {
+    //   duzlukOk && !kalanOk → ReverseNormal (ters büküm)
+    mode = 'reverse-normal'
+    modeDetail = `Kalan parça (${remainingAfterSeg.toFixed(1)}mm) |XA1|'den küçük — normal yönde yetmez, ` +
+                 `ters yönde bükülecek (yay boyunca geri döner, ölçüm karşı sensor tarafında).`
   }
+
+  //   T kuralı — ölçüm için parça yeterli mi (MOD-AWARE):
+  //     Normal + Middle: ölçüm ekstra rot İLERİ yönde → kalan_raw ≥ needed olmalı
+  //     ReverseNormal:   ölçüm ekstra rot GERİ yönde → partAdvance ≥ needed olmalı
+  if (arc < tMm) {
+    const needed = tMm - arc
+    const availableForMeasurement = mode === 'reverse-normal' ? partAdvanceBeforeSeg : remainingAfterSeg
+    const dirLabel = mode === 'reverse-normal' ? 'öndeki parça (partAdvance)' : 'kalan parça'
+    if (availableForMeasurement < needed) {
+      return {
+        feasible: false,
+        reason: 'T-measurement',
+        detail: `Yay ${arc.toFixed(1)}mm < T=${tMm.toFixed(0)}mm; ${mode === 'reverse-normal' ? 'ters' : 'normal'} yönde ` +
+                `ölçüm için ekstra ${needed.toFixed(1)}mm rotasyon lazım ama ${dirLabel} ${availableForMeasurement.toFixed(1)}mm yetersiz.`,
+      }
+    }
+  }
+
+  return { feasible: true, mode, detail: modeDetail }
 }
 
 // Segments listesinin feasibility'sini toplu hesap — Page'in isComplete'ında kullanılır.
@@ -230,6 +241,9 @@ export function computeAllFeasibilities(
       Number.isFinite(L) ? L : 0,
       safety,
     )
+    //   partAdvanceBeforeSeg: seg dahil edilmeden önceki kümülatif raw (ters bükümde
+    //   ölçüm ekstra rot için parça öncesi tarafta yer var mı diye kullanılır).
+    const partAdvanceBeforeSeg = cumRaw
     cumRaw += b.arc + (Number.isFinite(L) ? L : 0)   // RAW fiziksel
     //   Feasibility check yapılabilmesi için: LT girilmiş VE segment geçerli olmalı.
     //   Aksi halde 'feasible' varsayarız (kullanıcı henüz veri girmedi).
@@ -239,7 +253,11 @@ export function computeAllFeasibilities(
     }
     const remainingRaw = ltMm - cumRaw
     result.push(
-      checkSegmentFeasibility(b.arc, Number.isFinite(L) ? L : 0, remainingRaw, tMm, xa1AbsMm),
+      checkSegmentFeasibility(
+        b.arc, Number.isFinite(L) ? L : 0,
+        remainingRaw, partAdvanceBeforeSeg,
+        tMm, xa1AbsMm,
+      ),
     )
   }
   return result
