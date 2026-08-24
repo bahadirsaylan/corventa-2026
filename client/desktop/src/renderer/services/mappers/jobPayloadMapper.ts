@@ -98,7 +98,12 @@ export function mapToCreateRequest(
     A = params.arcBending.A ?? 0
     B = params.arcBending.B ?? 0
     S = params.arcBending.S ?? 0
-    R = (params.arcBending.R ?? 0) * 2 // Arc'ta R yarıçap — backend Ø ister, ×2
+    // Arc: TargetDiameterMm backend'de "job-level" bir alan; birden fazla segment
+    // olduğu için tek bir "hedef çap" yok — ilk segmentin çapını gönder (backend Arc
+    // pipeline'ı bu alanı sadece log/UI için kullanır, hesap her segment'in kendi
+    // radiusMm'i üzerinden yapılır).
+    const firstSeg = params.arcBending.segments?.[0]
+    R = (firstSeg?.R ?? 0) * 2
     H = params.arcBending.H
     G = params.arcBending.G
   } else if (params.bendingMethod === 'spiral' && params.spiralBending) {
@@ -163,21 +168,37 @@ export function mapToCreateRequest(
     if (ab.G == null || !Number.isFinite(ab.G) || ab.G <= 0) {
       throw new JobMappingError('G', 'Adım değeri (G) girilmemiş veya geçersiz')
     }
-    if (ab.Alpha == null || !Number.isFinite(ab.Alpha) || ab.Alpha <= 0 || ab.Alpha >= 180) {
-      throw new JobMappingError('Alpha', 'Açı (α) 0 < α < 180 olmalı')
+    if (!ab.segments || ab.segments.length === 0) {
+      throw new JobMappingError('segments', 'Segment listesi boş')
     }
-    if (ab.L == null || !Number.isFinite(ab.L) || ab.L < 0) {
-      throw new JobMappingError('L', 'Düzlük mesafesi (L) ≥ 0 olmalı')
+    if (ab.segments.length !== Math.round(ab.P)) {
+      throw new JobMappingError(
+        'segments',
+        `Segment sayısı P (${ab.P}) ile listedeki (${ab.segments.length}) uyuşmuyor`,
+      )
     }
+    // Her segment R>0, 0<α<180, L≥0 validate
+    ab.segments.forEach((seg, i) => {
+      const order = i + 1
+      if (seg.R == null || !Number.isFinite(seg.R) || seg.R <= 0) {
+        throw new JobMappingError(`segment${order}.R`, `Segment ${order}: R (yarıçap) 0'dan büyük olmalı`)
+      }
+      if (seg.Alpha == null || !Number.isFinite(seg.Alpha) || seg.Alpha <= 0 || seg.Alpha >= 180) {
+        throw new JobMappingError(`segment${order}.Alpha`, `Segment ${order}: α 0 < α < 180 olmalı`)
+      }
+      if (seg.L == null || !Number.isFinite(seg.L) || seg.L < 0) {
+        throw new JobMappingError(`segment${order}.L`, `Segment ${order}: L (düzlük) ≥ 0 olmalı`)
+      }
+    })
     totalSegmentCount = Math.round(ab.P)
     arcStepDistanceMm = ab.G
     kivrimHizMetreDakika = ab.H
-    segments = [{
-      segmentOrder: 1,
-      radiusMm: ab.R ?? 0,        // UI'daki R = yarıçap (entity ile aynı)
-      angleDeg: ab.Alpha,
-      straightAfterMm: ab.L,
-    }]
+    segments = ab.segments.map((seg, i) => ({
+      segmentOrder: i + 1,
+      radiusMm: seg.R as number,        // UI'daki R = yarıçap (entity ile aynı)
+      angleDeg: seg.Alpha as number,
+      straightAfterMm: seg.L as number,
+    }))
   }
 
   // Sivama-only — backend Method=Sivama ise zorunlu olarak doğrular

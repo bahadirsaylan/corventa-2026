@@ -1,72 +1,109 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import ArcMeasurementForm, { ArcInputMode, ArcMeasurementValues } from './ArcMeasurementForm'
+import ArcMeasurementForm, {
+  ArcInputMode,
+  ArcMeasurementValues,
+  ArcSegmentValues,
+  makeEmptySegment,
+} from './ArcMeasurementForm'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 const EMPTY: ArcMeasurementValues = {
-  A: '', B: '', S: '', H: '', R: '', Alpha: '', ArcLen: '', P: '', L: '', G: '', LT: '',
+  A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
+  segments: [],
 }
 
-// isComplete: mode'a göre farklı — angle mode Alpha zorunlu, arcLen mode ArcLen zorunlu.
-// Diğer field'lar hep zorunlu. ArcLen mode'da Alpha auto-hesaplandığı için o da dolu olur.
-function isComplete(v: ArcMeasurementValues, mode: ArcInputMode) {
-  const required: Array<keyof ArcMeasurementValues> =
+// isComplete: ana bilgiler + P adet segment tam olarak dolmalı.
+// Mode'a göre segment gereklilik: angle → Alpha zorunlu, arcLen → ArcLen zorunlu (form sync effect
+// diğerini R + kaynak'tan doldurur, yani genelde ikisi de dolu olur ama zorunluluk sadece kaynağa).
+function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
+  const mainRequired: Array<keyof Omit<ArcMeasurementValues, 'segments'>> = [
+    'A', 'B', 'S', 'H', 'P', 'G', 'LT',
+  ]
+  if (!mainRequired.every((k) => v[k].trim() !== '')) return false
+  const p = parseInt(v.P, 10)
+  if (!Number.isFinite(p) || p <= 0) return false
+  if (v.segments.length !== p) return false
+  const segRequired: ArcSegmentValues =
     mode === 'angle'
-      ? ['A', 'B', 'S', 'H', 'R', 'Alpha', 'P', 'L', 'G', 'LT']
-      : ['A', 'B', 'S', 'H', 'R', 'ArcLen', 'P', 'L', 'G', 'LT']
-  return required.every((k) => v[k].trim() !== '')
+      ? { R: 'x', Alpha: 'x', ArcLen: '', L: 'x' }
+      : { R: 'x', Alpha: '', ArcLen: 'x', L: 'x' }
+  return v.segments.every((seg) =>
+    (Object.keys(segRequired) as Array<keyof ArcSegmentValues>).every(
+      (k) => segRequired[k] === '' || seg[k].trim() !== '',
+    ),
+  )
+}
+
+function segmentToStore(seg: ArcSegmentValues): ArcSegmentParams {
+  return {
+    R: seg.R !== '' ? parseFloat(seg.R) : null,
+    Alpha: seg.Alpha !== '' ? parseFloat(seg.Alpha) : null,
+    L: seg.L !== '' ? parseFloat(seg.L) : null,
+  }
+}
+
+function segmentFromStore(seg: ArcSegmentParams): ArcSegmentValues {
+  return {
+    R: seg.R != null ? String(seg.R) : '',
+    Alpha: seg.Alpha != null ? String(seg.Alpha) : '',
+    // ArcLen store'da tutulmuyor — form sync effect hesaplar
+    ArcLen: '',
+    L: seg.L != null ? String(seg.L) : '',
+  }
 }
 
 function fromStore(
   stored: ReturnType<typeof useBendingJobStore.getState>['params']['arcBending'],
 ): ArcMeasurementValues {
-  if (!stored) return { ...EMPTY }
+  if (!stored) return { ...EMPTY, segments: [] }
   return {
     A: stored.A != null ? String(stored.A) : '',
     B: stored.B != null ? String(stored.B) : '',
     S: stored.S != null ? String(stored.S) : '',
     H: stored.H != null ? String(stored.H) : '',
-    R: stored.R != null ? String(stored.R) : '',
-    Alpha: stored.Alpha != null ? String(stored.Alpha) : '',
-    // ArcLen store'da tutulmuyor — sync effect anında hesaplayacak (R + Alpha varsa)
-    ArcLen: '',
     P: stored.P != null ? String(stored.P) : '',
-    L: stored.L != null ? String(stored.L) : '',
     G: stored.G != null ? String(stored.G) : '',
     LT: stored.LTotal != null ? String(stored.LTotal) : '',
+    segments: (stored.segments ?? []).map(segmentFromStore),
   }
 }
 
 export default function ArcBendingMeasurementsPage() {
   const navigate = useNavigate()
   const arcBending = useBendingJobStore((s) => s.params.arcBending)
-  const setParams  = useBendingJobStore((s) => s.setParams)
+  const setParams = useBendingJobStore((s) => s.setParams)
   const [values, setValues] = useState<ArcMeasurementValues>(() => fromStore(arcBending))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
 
   function handleReset() {
-    setValues({ ...EMPTY })
+    setValues({ ...EMPTY, segments: [] })
     setParams({ arcBending: null })
   }
 
   function handleConfirm() {
-    // Backend her durumda α bekler. ArcLen mode'da sync effect Alpha alanını doldurmuş olur.
+    // Backend her durumda α bekler. ArcLen mode'da form sync effect Alpha alanını doldurmuş olur.
+    const p = parseInt(values.P, 10)
+    // Segments dizisi P kadar olmalı; form useEffect zaten senkronize etti ama defensive:
+    const normalizedSegments =
+      values.segments.length === p
+        ? values.segments
+        : Array.from({ length: p }, (_, i) => values.segments[i] ?? makeEmptySegment())
+
     setParams({
       arcBending: {
         A: parseFloat(values.A),
         B: parseFloat(values.B),
         S: parseFloat(values.S),
         H: parseFloat(values.H),
-        R: parseFloat(values.R),
-        Alpha: parseFloat(values.Alpha),
-        P: parseFloat(values.P),
-        L: parseFloat(values.L),
+        P: p,
         G: parseFloat(values.G),
         LTotal: parseFloat(values.LT),
+        segments: normalizedSegments.map(segmentToStore),
       },
     })
     navigate('/bending/ai/part-loading')

@@ -206,3 +206,113 @@
 .modeInactive:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
+
+/* ── Segment cards (2026-08-24) — P adet dinamik segment listesi ── */
+.segmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+.segmentsHint {
+  padding: 12px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  background-color: rgba(255, 165, 0, 0.08);
+  border: 1px dashed rgba(255, 165, 0, 0.4);
+  border-radius: 8px;
+}
+
+.segmentCard {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.segmentHeader {
+  min-width: 92px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.segmentFields {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex: 1;
+}
+
+.segmentFieldRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.segmentFieldLabel {
+  width: 24px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.segmentFieldInput {
+  flex: 1;
+  height: 34px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  transition: border-color 0.15s, background-color 0.15s;
+  user-select: none;
+}
+
+.segmentFieldInput:hover {
+  border-color: var(--color-primary);
+  background-color: #fff;
+}
+
+.segmentInfoBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #4a90d9;
+  background: #4a90d9;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.segmentInfoBtn:hover {
+  background-color: #2d6fb8;
+  border-color: #2d6fb8;
+}

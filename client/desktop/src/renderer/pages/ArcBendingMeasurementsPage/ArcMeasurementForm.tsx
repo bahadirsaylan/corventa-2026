@@ -7,29 +7,42 @@ import methodImage from '@/assets/images/blend4-3-buyuk.png'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
+// 2026-08-24: Eski akışta tek segment vardı, artık P adet segment ana ekranda
+// alınıyor (arcBending.segments[]). Her segment kendi R/α/L değerlerine sahip;
+// mode toggle (angle/arcLen) tüm segmentler için ortak.
 export type ArcInputMode = 'angle' | 'arcLen'
-export type ArcFieldKey = 'A' | 'B' | 'S' | 'H' | 'R' | 'Alpha' | 'ArcLen' | 'P' | 'L' | 'G' | 'LT'
+
+export type ArcMainFieldKey = 'A' | 'B' | 'S' | 'H' | 'P' | 'G' | 'LT'
+export type ArcSegmentFieldKey = 'R' | 'Alpha' | 'ArcLen' | 'L'
+
+export interface ArcSegmentValues {
+  R: string
+  Alpha: string
+  ArcLen: string
+  L: string
+}
 
 export interface ArcMeasurementValues {
   A: string
   B: string
   S: string
   H: string
-  R: string
-  Alpha: string
-  ArcLen: string
   P: string
-  L: string
   G: string
   LT: string
+  segments: ArcSegmentValues[]
 }
+
+type NumpadTarget =
+  | { kind: 'main'; field: ArcMainFieldKey }
+  | { kind: 'segment'; index: number; field: ArcSegmentFieldKey }
 
 interface FieldInfo {
   title: string
   description: string
 }
 
-const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
+const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   A: {
     title: 'A :',
     description:
@@ -48,27 +61,27 @@ const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
   R: {
     title: 'R :',
     description:
-      'KIVIRIM YARICAP ÖLÇÜSÜDÜR. GERÇEKLEŞMESİNİ İSTEDİĞİNİZ YARİÇAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA GEOMETRİK OLARAK GİRDİĞİNİZ YARICAP DEĞERİNİ DİKKATE ALARAK KIVIRIM YAPAR.',
+      'KIVIRIM YARIÇAP ÖLÇÜSÜDÜR (mm). BU SEGMENTİN HEDEF YARIÇAP DEĞERİDİR. HER SEGMENT KENDİ R DEĞERİNE SAHİPTİR.',
   },
   Alpha: {
     title: 'α :',
     description:
-      'KIVIRIM AÇI ÖLÇÜSÜDÜR (derece). KAÇ DERECELİK BİR KIVRIM İSTEDİĞİNİZİ GİRİN (0 < α < 180). YAY UZUNLUĞU L = 2π·R·(180-α)/360 FORMÜLÜYLE HESAPLANIR. HER RADİUSUN BİTİŞİNDE YENİDEN SORULACAKTIR.',
+      'KIVIRIM AÇI ÖLÇÜSÜDÜR (derece). BU SEGMENTİN AÇISI (0 < α < 180). YAY UZUNLUĞU L = 2π·R·(180-α)/360 FORMÜLÜYLE HESAPLANIR.',
   },
   ArcLen: {
     title: 'Yay :',
     description:
-      'KIVIRIM YAY UZUNLUĞU (mm). AÇI YERİNE DOĞRUDAN YAY UZUNLUĞU GİRMEK İÇİN KULLANIN (0 < Yay < π·R). BACKEND α = 180 − (Yay·180)/(π·R) İLE α HESAPLAR VE İŞİ AYNI ŞEKİLDE YÜRÜR.',
+      'KIVIRIM YAY UZUNLUĞU (mm). AÇI YERİNE DOĞRUDAN YAY UZUNLUĞU GİRMEK İÇİN KULLANIN (0 < Yay < π·R). BACKEND α = 180 − (Yay·180)/(π·R) İLE α HESAPLAR.',
   },
   P: {
     title: 'P :',
     description:
-      'KIVIRIM ÇAP ADEDİDİR. PARÇANIZDAKİ KAÇ ADET ÇAP KIVRIMI VARSA GİRMELİSİNİZ. AKSİ HALDE MAKİNA KIVIRIM BİTİNCE PROGRAMI SONLANDIRACAKTIR.',
+      'KIVIRIM ÇAP ADEDİDİR. PARÇANIZDAKİ KAÇ ADET ÇAP KIVRIMI VARSA GİRMELİSİNİZ. GİRDİĞİNİZ SAYI KADAR SEGMENT KARTI OTOMATİK AÇILIR VE HER BİRİNİ AYRI DOLDURURSUNUZ.',
   },
   L: {
     title: 'L :',
     description:
-      'SONRAKİ RADİUSA OLAN DÜZLÜKTİR. HESAPLAMA RADİUSLARIN SONUNDAN YAPILIR. ART ARDA GELEN RADİUSLARDA "0" OLARAK YAZILMALIDIR. HER RADİUSUN BİTİŞİNDE YENİDEN SORULACAKTIR.',
+      'BU SEGMENTİN SONRAKİ RADİUSA OLAN DÜZLÜĞÜDÜR (mm). ART ARDA GELEN RADİUSLARDA "0" OLARAK YAZILMALIDIR. SON SEGMENTTE 0 OLABİLİR.',
   },
   H: {
     title: 'H :',
@@ -87,12 +100,8 @@ const FIELD_INFO: Record<ArcFieldKey, FieldInfo> = {
   },
 }
 
-const LEFT_FIELDS:   ArcFieldKey[] = ['A', 'B', 'S', 'H']
-// Sağ sütun: 'Alpha' veya 'ArcLen' (mode'a göre) — R, [Alpha/ArcLen], P, L
-function rightFields(mode: ArcInputMode): ArcFieldKey[] {
-  return ['R', mode === 'angle' ? 'Alpha' : 'ArcLen', 'P', 'L']
-}
-const BOTTOM_FIELDS: ArcFieldKey[] = ['G', 'LT']
+const MAIN_LEFT: ArcMainFieldKey[] = ['A', 'B', 'S', 'H']
+const MAIN_RIGHT: ArcMainFieldKey[] = ['P', 'G', 'LT']
 
 interface Props {
   values: ArcMeasurementValues
@@ -110,6 +119,22 @@ function computeAngleFromArc(radiusMm: number, arcMm: number): number {
   return 180 - (arcMm * 180) / (Math.PI * radiusMm)
 }
 
+export function makeEmptySegment(): ArcSegmentValues {
+  return { R: '', Alpha: '', ArcLen: '', L: '' }
+}
+
+/** P input'una göre segments dizisini yeniden boyutlandır — mevcut verileri korur */
+export function resizeSegments(
+  current: ArcSegmentValues[],
+  targetCount: number,
+): ArcSegmentValues[] {
+  if (targetCount <= 0) return []
+  if (current.length === targetCount) return current
+  if (current.length > targetCount) return current.slice(0, targetCount)
+  const extra = Array.from({ length: targetCount - current.length }, makeEmptySegment)
+  return [...current, ...extra]
+}
+
 export default function ArcMeasurementForm({
   values,
   onChange,
@@ -117,51 +142,77 @@ export default function ArcMeasurementForm({
   inputMode,
   onInputModeChange,
 }: Props) {
-  const [openInfo, setOpenInfo]       = useState<ArcFieldKey | null>(null)
-  const [numpadField, setNumpadField] = useState<ArcFieldKey | null>(null)
+  const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
+  const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
 
-  // Otomatik α ↔ Yay sync — R varsa: kaynak alan değişince diğerini otomatik doldur.
-  // Mode değişince değerler korunur (R aynı → diğerini otomatik hesaplar).
+  // P input değişince segments dizisini otomatik boyutlandır (append/pop, verileri korur)
   useEffect(() => {
-    const r = parseFloat(values.R)
-    if (!Number.isFinite(r) || r <= 0) return
-    if (inputMode === 'angle') {
-      const a = parseFloat(values.Alpha)
-      if (Number.isFinite(a) && a > 0 && a < 180) {
-        const arcStr = computeArcLength(r, a).toFixed(1)
-        if (values.ArcLen !== arcStr) onChange({ ...values, ArcLen: arcStr })
-      }
-    } else {
-      const l = parseFloat(values.ArcLen)
-      if (Number.isFinite(l) && l > 0 && l < Math.PI * r) {
-        const aStr = computeAngleFromArc(r, l).toFixed(2)
-        if (values.Alpha !== aStr) onChange({ ...values, Alpha: aStr })
-      }
+    const p = parseInt(values.P, 10)
+    if (!Number.isFinite(p) || p <= 0) return
+    const resized = resizeSegments(values.segments, p)
+    if (resized !== values.segments) {
+      onChange({ ...values, segments: resized })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.R, values.Alpha, values.ArcLen, inputMode])
+  }, [values.P])
+
+  // Segment içi otomatik α ↔ Yay sync — R + kaynak alan varsa diğerini otomatik doldur.
+  useEffect(() => {
+    let changed = false
+    const nextSegments = values.segments.map((seg) => {
+      const r = parseFloat(seg.R)
+      if (!Number.isFinite(r) || r <= 0) return seg
+      if (inputMode === 'angle') {
+        const a = parseFloat(seg.Alpha)
+        if (Number.isFinite(a) && a > 0 && a < 180) {
+          const arcStr = computeArcLength(r, a).toFixed(1)
+          if (seg.ArcLen !== arcStr) {
+            changed = true
+            return { ...seg, ArcLen: arcStr }
+          }
+        }
+      } else {
+        const l = parseFloat(seg.ArcLen)
+        if (Number.isFinite(l) && l > 0 && l < Math.PI * r) {
+          const aStr = computeAngleFromArc(r, l).toFixed(2)
+          if (seg.Alpha !== aStr) {
+            changed = true
+            return { ...seg, Alpha: aStr }
+          }
+        }
+      }
+      return seg
+    })
+    if (changed) onChange({ ...values, segments: nextSegments })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.segments, inputMode])
 
   function handleNumpadConfirm(value: string) {
-    if (numpadField) onChange({ ...values, [numpadField]: value })
+    if (!numpadTarget) return
+    if (numpadTarget.kind === 'main') {
+      onChange({ ...values, [numpadTarget.field]: value })
+    } else {
+      const nextSegments = values.segments.map((seg, i) =>
+        i === numpadTarget.index ? { ...seg, [numpadTarget.field]: value } : seg,
+      )
+      onChange({ ...values, segments: nextSegments })
+    }
   }
 
-  function renderField(field: ArcFieldKey) {
-    const displayLabel = field === 'Alpha' ? 'α' : field === 'ArcLen' ? 'Yay' : field
+  function renderMainField(field: ArcMainFieldKey) {
     return (
       <div key={field} className={styles.inputRow}>
-        <span className={styles.fieldLabel}>{displayLabel}:</span>
-
+        <span className={styles.fieldLabel}>{field}:</span>
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadField(field)}
+          onClick={() => setNumpadTarget({ kind: 'main', field })}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadField(field)}
+          onKeyDown={(e) => e.key === 'Enter' && setNumpadTarget({ kind: 'main', field })}
           aria-label={`Enter value for ${field}`}
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
         </div>
-
         <button
           className={styles.infoBtn}
           onClick={() => setOpenInfo(field)}
@@ -173,11 +224,55 @@ export default function ArcMeasurementForm({
     )
   }
 
-  const currentRightFields = rightFields(inputMode)
+  function renderSegmentField(
+    segIndex: number,
+    field: ArcSegmentFieldKey,
+    displayLabel: string,
+  ) {
+    const seg = values.segments[segIndex]
+    const val = seg?.[field] ?? ''
+    return (
+      <div key={field} className={styles.segmentFieldRow}>
+        <span className={styles.segmentFieldLabel}>{displayLabel}:</span>
+        <div
+          className={`${styles.segmentFieldInput} ${val ? styles.fieldInputFilled : ''}`}
+          onClick={() => setNumpadTarget({ kind: 'segment', index: segIndex, field })}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) =>
+            e.key === 'Enter' && setNumpadTarget({ kind: 'segment', index: segIndex, field })
+          }
+          aria-label={`Segment ${segIndex + 1} value for ${field}`}
+        >
+          {val || <span className={styles.placeholder}>0</span>}
+        </div>
+        <button
+          className={styles.segmentInfoBtn}
+          onClick={() => setOpenInfo(field)}
+          aria-label={`Info for ${field}`}
+        >
+          ?
+        </button>
+      </div>
+    )
+  }
+
+  const currentNumpadValue = (() => {
+    if (!numpadTarget) return ''
+    if (numpadTarget.kind === 'main') return values[numpadTarget.field] ?? ''
+    return values.segments[numpadTarget.index]?.[numpadTarget.field] ?? ''
+  })()
+
+  const numpadLabel = (() => {
+    if (!numpadTarget) return ''
+    if (numpadTarget.kind === 'main') return numpadTarget.field
+    const disp =
+      numpadTarget.field === 'Alpha' ? 'α' : numpadTarget.field === 'ArcLen' ? 'Yay' : numpadTarget.field
+    return `Seg ${numpadTarget.index + 1} · ${disp}`
+  })()
 
   return (
     <div className={styles.wrapper}>
-
       {/* ── Left: two image tiles ───────────────── */}
       <div className={styles.images}>
         <div className={styles.imageTile}>
@@ -188,9 +283,15 @@ export default function ArcMeasurementForm({
         </div>
       </div>
 
-      {/* ── Right: 2-column input grid + bottom LT row + reset ──── */}
+      {/* ── Right: main info + segments list + reset ──── */}
       <div className={styles.inputSection}>
-        {/* Toggle: R+α / R+Yay */}
+        {/* Üst: A/B/S/H + P/G/LT (2-col grid) */}
+        <div className={styles.inputGrid}>
+          <div className={styles.inputCol}>{MAIN_LEFT.map(renderMainField)}</div>
+          <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
+        </div>
+
+        {/* Mode toggle (tüm segmentler için ortak) */}
         <div className={styles.modeToggle}>
           <button
             type="button"
@@ -208,18 +309,25 @@ export default function ArcMeasurementForm({
           </button>
         </div>
 
-        <div className={styles.inputGrid}>
-          <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderField)}
-          </div>
-          <div className={styles.inputCol}>
-            {currentRightFields.map(renderField)}
-          </div>
-        </div>
-
-        {/* Alt satır: G (adım) + LT (toplam parça boyu) yan yana */}
-        <div className={styles.bottomRow}>
-          {BOTTOM_FIELDS.map(renderField)}
+        {/* Segment kartları — P adet dinamik. P henüz girilmemişse boş liste. */}
+        <div className={styles.segmentsList}>
+          {values.segments.length === 0 && (
+            <div className={styles.segmentsHint}>
+              ⚠ Önce P (segment sayısı) giriniz — kartlar otomatik açılır.
+            </div>
+          )}
+          {values.segments.map((_, i) => (
+            <div key={i} className={styles.segmentCard}>
+              <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
+              <div className={styles.segmentFields}>
+                {renderSegmentField(i, 'R', 'R')}
+                {inputMode === 'angle'
+                  ? renderSegmentField(i, 'Alpha', 'α')
+                  : renderSegmentField(i, 'ArcLen', 'Yay')}
+                {renderSegmentField(i, 'L', 'L')}
+              </div>
+            </div>
+          ))}
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
@@ -237,12 +345,12 @@ export default function ArcMeasurementForm({
       )}
 
       {/* ── Numpad modal ────────────────────────── */}
-      {numpadField && (
+      {numpadTarget && (
         <NumpadModal
-          fieldLabel={numpadField}
-          initialValue={values[numpadField]}
+          fieldLabel={numpadLabel}
+          initialValue={currentNumpadValue}
           onConfirm={handleNumpadConfirm}
-          onClose={() => setNumpadField(null)}
+          onClose={() => setNumpadTarget(null)}
         />
       )}
     </div>
