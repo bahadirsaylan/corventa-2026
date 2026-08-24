@@ -146,19 +146,38 @@ function calcSegmentBudget(
   return { arc, effArc, effStraight, total: effArc + effStraight, valid: true }
 }
 
-// Segment imkân kontrolü (2026-08-24):
-//   Kural 1 (T): yay < T ise (yay + kalan) ≥ T olmalı; aksi halde ölçüm imkânsız.
-//   Kural 2 (XA1): düzlük < |XA1| VE kalan < |XA1| → hem Middle hem Normal mod başarısız.
+// Segment imkân kontrolü (2026-08-24 revize — mod matrisi + min yay):
+//   Min yay: L_yay ≥ 250mm (SLPIS prop çubuğu minimum ölçüm mesafesi).
+//   Kural 1 (T): yay < T ise (yay + kalan_raw) ≥ T olmalı; aksi halde ölçüm imkânsız.
+//   Kural 2 (XA1 matrisi — mod belirleme):
+//     Düzlük > XA1 && Kalan > XA1 → Middle mod
+//     Düzlük < XA1 && Kalan > XA1 → Normal mod
+//     Düzlük > XA1 && Kalan < XA1 → ReverseNormal (ters büküm, yay boyunca geri döner)
+//     Düzlük < XA1 && Kalan < XA1 → İmkânsız (hiçbir mod çalışmaz)
+export type SegmentMode = 'normal' | 'middle' | 'reverse-normal'
+
+export const MIN_ARC_LENGTH_MM = 250
+
 export interface SegmentFeasibility {
-  feasible: boolean
-  reason?: 'T-measurement' | 'XA1-min'
-  detail?: string
+  feasible: boolean          // false = imkânsız (submit block), true = 3 mod'dan biri seçildi
+  mode?: SegmentMode         // yalnızca feasible=true iken
+  reason?: 'T-measurement' | 'XA1-min' | 'min-arc'
+  detail?: string            // imkânsızlık detayı VEYA ReverseNormal bilgisi
 }
 
 export function checkSegmentFeasibility(
   arc: number, L: number, remainingAfterSeg: number,
   tMm: number, xa1AbsMm: number,
 ): SegmentFeasibility {
+  //   Min yay 250mm — SLPIS ölçemez, backend runtime fail
+  if (arc < MIN_ARC_LENGTH_MM) {
+    return {
+      feasible: false,
+      reason: 'min-arc',
+      detail: `Yay uzunluğu ${arc.toFixed(1)}mm minimum ${MIN_ARC_LENGTH_MM}mm'den küçük — R veya α değerini büyütün.`,
+    }
+  }
+  //   T kuralı — ölçüm için parça yeterli mi
   if (arc < tMm) {
     const needed = tMm - arc
     if (remainingAfterSeg < needed) {
@@ -169,23 +188,36 @@ export function checkSegmentFeasibility(
       }
     }
   }
-  if (L < xa1AbsMm && remainingAfterSeg < xa1AbsMm) {
+  //   XA1 mod matrisi
+  const duzlukOk = L > xa1AbsMm
+  const kalanOk = remainingAfterSeg > xa1AbsMm
+  if (!duzlukOk && !kalanOk) {
     return {
       feasible: false,
       reason: 'XA1-min',
-      detail: `Düzlük ${L.toFixed(1)}mm VE kalan parça ${remainingAfterSeg.toFixed(1)}mm her ikisi de |XA1|=${xa1AbsMm.toFixed(0)}mm'den küçük — Middle mod (düzlük yeterli) veya Normal mod (kalan yeterli) çalışamaz.`,
+      detail: `Düzlük ${L.toFixed(1)}mm VE kalan parça ${remainingAfterSeg.toFixed(1)}mm her ikisi de |XA1|=${xa1AbsMm.toFixed(0)}mm'den küçük — hiçbir büküm modu çalışamaz.`,
     }
   }
-  return { feasible: true }
+  if (duzlukOk && kalanOk)  return { feasible: true, mode: 'middle' }
+  if (!duzlukOk && kalanOk) return { feasible: true, mode: 'normal' }
+  //   duzlukOk && !kalanOk → ReverseNormal (ters büküm)
+  return {
+    feasible: true,
+    mode: 'reverse-normal',
+    detail: `Kalan parça (${remainingAfterSeg.toFixed(1)}mm) |XA1|'den küçük — normal yönde yetmez, ` +
+            `ters yönde bükülecek (yay boyunca geri döner, ölçüm karşı sensor tarafında).`,
+  }
 }
 
 // Segments listesinin feasibility'sini toplu hesap — Page'in isComplete'ında kullanılır.
+// kalan_seg_sonu = FIZIKSEL RAW kalan (yay + düzlük toplamı, safety uygulanmaz) — kullanıcı
+// bakış açısıyla parçanın seg sonrasında arkada duran uzunluğu.
 export function computeAllFeasibilities(
   segments: ArcSegmentValues[], totalP: number, ltMm: number, safety: number,
   tMm: number, xa1AbsMm: number,
 ): SegmentFeasibility[] {
   const result: SegmentFeasibility[] = []
-  let cumBudget = 0
+  let cumRaw = 0
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i]
     const R = parseFloat(seg.R)
@@ -198,16 +230,16 @@ export function computeAllFeasibilities(
       Number.isFinite(L) ? L : 0,
       safety,
     )
-    cumBudget += b.total
+    cumRaw += b.arc + (Number.isFinite(L) ? L : 0)   // RAW fiziksel
     //   Feasibility check yapılabilmesi için: LT girilmiş VE segment geçerli olmalı.
     //   Aksi halde 'feasible' varsayarız (kullanıcı henüz veri girmedi).
     if (!b.valid || ltMm <= 0) {
       result.push({ feasible: true })
       continue
     }
-    const remaining = ltMm - cumBudget
+    const remainingRaw = ltMm - cumRaw
     result.push(
-      checkSegmentFeasibility(b.arc, Number.isFinite(L) ? L : 0, remaining, tMm, xa1AbsMm),
+      checkSegmentFeasibility(b.arc, Number.isFinite(L) ? L : 0, remainingRaw, tMm, xa1AbsMm),
     )
   }
   return result
@@ -479,6 +511,14 @@ export default function ArcMeasurementForm({
                       ⚠ Bu kıvrım mümkün değil, parça uzunluğunu arttırın ya da manuel bükün!
                     </div>
                     <div className={styles.warnDetail}>{f.detail}</div>
+                  </div>
+                )}
+                {f && f.feasible && f.mode === 'reverse-normal' && (
+                  <div className={styles.segmentReverseInfo}>
+                    <div className={styles.reverseHead}>
+                      🔄 TERS BÜKÜM — parça yay boyunca geri döner, ölçüm karşı sensor'da
+                    </div>
+                    <div className={styles.reverseDetail}>{f.detail}</div>
                   </div>
                 )}
               </div>

@@ -403,3 +403,25 @@
   font-weight: 500;
   color: #7c1e17;
 }
+
+/* ── Ters büküm info (mavi banner) — imkânsız değil, bilgi ── */
+.segmentReverseInfo {
+  grid-column: 1 / -1;
+  padding: 8px 10px;
+  background-color: rgba(52, 152, 219, 0.12);
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  border-radius: 6px;
+  color: #1f5f8b;
+  font-size: 12px;
+}
+
+.reverseHead {
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.reverseDetail {
+  font-size: 11px;
+  font-weight: 500;
+  color: #164764;
+}
