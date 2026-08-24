@@ -119,10 +119,13 @@ function computeAngleFromArc(radiusMm: number, arcMm: number): number {
   return 180 - (arcMm * 180) / (Math.PI * radiusMm)
 }
 
-// Backend safetyMarginMm varsayılanı — MachineSettings.DefaultSafetyMarginMm eşleşmesi
-// Backend DataApi ile UI arasında runtime pull yerine sabit tutuldu; kullanıcı LT'ye buna
-// göre bakar. Değişirse UI hala backend'in gerçek reject/kabul kararına güvenir.
-const DEFAULT_SAFETY_MM = 100
+// Backend varsayılanları — MachineSettings alanlarıyla eşleşir. Runtime fetch yerine
+// sabit tutuldu; kullanıcı UI erken uyarı için bakar, backend gerçek DB değerleriyle
+// son kararı verir (kalibrasyon değişirse UI biraz drift eder ama backend reject/kabul
+// mercii her zaman kesindir).
+const DEFAULT_SAFETY_MM = 100                    // MachineSettings.DefaultSafetyMarginMm
+export const DEFAULT_MEASUREMENT_DISTANCE_MM = 850  // MachineSettings.DefaultMeasurementDistanceMm — "T"
+export const DEFAULT_XA1_ABS_MM = 493            // |MachineSettings.DefaultXA1|
 
 interface SegmentBudget {
   arc: number         // ham yay (mm)
@@ -141,6 +144,73 @@ function calcSegmentBudget(
   const effArc = (totalP > 0 && order === totalP) ? Math.max(0, arc - safety) : arc
   const effStraight = order === 1 ? Math.max(L, safety) : L
   return { arc, effArc, effStraight, total: effArc + effStraight, valid: true }
+}
+
+// Segment imkân kontrolü (2026-08-24):
+//   Kural 1 (T): yay < T ise (yay + kalan) ≥ T olmalı; aksi halde ölçüm imkânsız.
+//   Kural 2 (XA1): düzlük < |XA1| VE kalan < |XA1| → hem Middle hem Normal mod başarısız.
+export interface SegmentFeasibility {
+  feasible: boolean
+  reason?: 'T-measurement' | 'XA1-min'
+  detail?: string
+}
+
+export function checkSegmentFeasibility(
+  arc: number, L: number, remainingAfterSeg: number,
+  tMm: number, xa1AbsMm: number,
+): SegmentFeasibility {
+  if (arc < tMm) {
+    const needed = tMm - arc
+    if (remainingAfterSeg < needed) {
+      return {
+        feasible: false,
+        reason: 'T-measurement',
+        detail: `Yay ${arc.toFixed(1)}mm < T=${tMm.toFixed(0)}mm; ölçüm için ekstra ${needed.toFixed(1)}mm rotasyon lazım ama kalan parça ${remainingAfterSeg.toFixed(1)}mm yetersiz.`,
+      }
+    }
+  }
+  if (L < xa1AbsMm && remainingAfterSeg < xa1AbsMm) {
+    return {
+      feasible: false,
+      reason: 'XA1-min',
+      detail: `Düzlük ${L.toFixed(1)}mm VE kalan parça ${remainingAfterSeg.toFixed(1)}mm her ikisi de |XA1|=${xa1AbsMm.toFixed(0)}mm'den küçük — Middle mod (düzlük yeterli) veya Normal mod (kalan yeterli) çalışamaz.`,
+    }
+  }
+  return { feasible: true }
+}
+
+// Segments listesinin feasibility'sini toplu hesap — Page'in isComplete'ında kullanılır.
+export function computeAllFeasibilities(
+  segments: ArcSegmentValues[], totalP: number, ltMm: number, safety: number,
+  tMm: number, xa1AbsMm: number,
+): SegmentFeasibility[] {
+  const result: SegmentFeasibility[] = []
+  let cumBudget = 0
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i]
+    const R = parseFloat(seg.R)
+    const alpha = parseFloat(seg.Alpha)
+    const L = parseFloat(seg.L)
+    const b = calcSegmentBudget(
+      i + 1, totalP,
+      Number.isFinite(R) ? R : 0,
+      Number.isFinite(alpha) ? alpha : 0,
+      Number.isFinite(L) ? L : 0,
+      safety,
+    )
+    cumBudget += b.total
+    //   Feasibility check yapılabilmesi için: LT girilmiş VE segment geçerli olmalı.
+    //   Aksi halde 'feasible' varsayarız (kullanıcı henüz veri girmedi).
+    if (!b.valid || ltMm <= 0) {
+      result.push({ feasible: true })
+      continue
+    }
+    const remaining = ltMm - cumBudget
+    result.push(
+      checkSegmentFeasibility(b.arc, Number.isFinite(L) ? L : 0, remaining, tMm, xa1AbsMm),
+    )
+  }
+  return result
 }
 
 export function makeEmptySegment(): ArcSegmentValues {
@@ -281,7 +351,7 @@ export default function ArcMeasurementForm({
     )
   }
 
-  // Bütçe hesaplaması — her render'da (segments/LT/P değişince)
+  // Bütçe + imkân hesaplaması — her render'da (segments/LT/P değişince)
   const totalP = parseInt(values.P, 10) || values.segments.length
   const ltMm = parseFloat(values.LT) || 0
   const budgets: SegmentBudget[] = values.segments.map((seg, i) => {
@@ -301,6 +371,14 @@ export default function ArcMeasurementForm({
   const remaining = ltValid ? ltMm - cumulativeBudget : 0
   const remainingOverflow = ltValid && remaining < 0
   const anyBudgetValid = budgets.some((b) => b.valid)
+
+  //   Feasibility: T + XA1 imkân kontrolleri (her segment için).
+  //   LT girilmemişse hesap yapılmaz (kullanıcı henüz yeterli veri girmemiş).
+  const feasibilities = computeAllFeasibilities(
+    values.segments, totalP, ltMm, DEFAULT_SAFETY_MM,
+    DEFAULT_MEASUREMENT_DISTANCE_MM, DEFAULT_XA1_ABS_MM,
+  )
+  const anyInfeasible = feasibilities.some((f) => !f.feasible)
 
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
@@ -363,8 +441,14 @@ export default function ArcMeasurementForm({
           )}
           {values.segments.map((_, i) => {
             const b = budgets[i]
+            const f = feasibilities[i]
             return (
-              <div key={i} className={styles.segmentCard}>
+              <div
+                key={i}
+                className={`${styles.segmentCard} ${
+                  f && !f.feasible ? styles.segmentCardInfeasible : ''
+                }`}
+              >
                 <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
                 <div className={styles.segmentFields}>
                   {renderSegmentField(i, 'R', 'R')}
@@ -389,6 +473,14 @@ export default function ArcMeasurementForm({
                     )}
                   </div>
                 )}
+                {f && !f.feasible && (
+                  <div className={styles.segmentInfeasibleWarn}>
+                    <div className={styles.warnHead}>
+                      ⚠ Bu kıvrım mümkün değil, parça uzunluğunu arttırın ya da manuel bükün!
+                    </div>
+                    <div className={styles.warnDetail}>{f.detail}</div>
+                  </div>
+                )}
               </div>
             )
           })}
@@ -398,7 +490,7 @@ export default function ArcMeasurementForm({
         {anyBudgetValid && (
           <div
             className={`${styles.totalBudgetInfo} ${
-              remainingOverflow ? styles.budgetOver : styles.budgetOk
+              remainingOverflow || anyInfeasible ? styles.budgetOver : styles.budgetOk
             }`}
           >
             <span>
@@ -413,6 +505,7 @@ export default function ArcMeasurementForm({
               <span>
                 Kalan: <b>{remaining.toFixed(1)}mm</b>
                 {remainingOverflow && ' ⚠ AŞIM'}
+                {!remainingOverflow && anyInfeasible && ' ⚠ İMKÂNSIZ SEGMENT VAR'}
               </span>
             )}
             {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}

@@ -369,3 +369,31 @@
   border-left: 4px solid #c0392b;
   color: #a93226;
 }
+
+/* ── Segment imkânsızlık uyarısı (T/XA1 kuralları) ── */
+.segmentCardInfeasible {
+  background-color: rgba(231, 76, 60, 0.08);
+  border-color: rgba(231, 76, 60, 0.5);
+}
+
+.segmentInfeasibleWarn {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  background-color: rgba(231, 76, 60, 0.15);
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  border-radius: 6px;
+  color: #a93226;
+  font-size: 12px;
+}
+
+.warnHead {
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.warnDetail {
+  font-size: 11px;
+  font-weight: 500;
+  color: #7c1e17;
+}

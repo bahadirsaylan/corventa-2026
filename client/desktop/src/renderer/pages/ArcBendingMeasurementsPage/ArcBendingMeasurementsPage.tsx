@@ -7,6 +7,9 @@ import ArcMeasurementForm, {
   ArcInputMode,
   ArcMeasurementValues,
   ArcSegmentValues,
+  DEFAULT_MEASUREMENT_DISTANCE_MM,
+  DEFAULT_XA1_ABS_MM,
+  computeAllFeasibilities,
   makeEmptySegment,
 } from './ArcMeasurementForm'
 import styles from './ArcBendingMeasurementsPage.module.css'
@@ -17,7 +20,8 @@ const EMPTY: ArcMeasurementValues = {
   segments: [],
 }
 
-// isComplete: ana bilgiler + P adet segment tam olarak dolmalı.
+// isComplete: ana bilgiler + P adet segment tam olarak dolmalı VE hiçbir segment
+// imkânsız olmamalı (T + XA1 kuralları — feasibility).
 // Mode'a göre segment gereklilik: angle → Alpha zorunlu, arcLen → ArcLen zorunlu (form sync effect
 // diğerini R + kaynak'tan doldurur, yani genelde ikisi de dolu olur ama zorunluluk sadece kaynağa).
 function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
@@ -32,11 +36,21 @@ function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
     mode === 'angle'
       ? { R: 'x', Alpha: 'x', ArcLen: '', L: 'x' }
       : { R: 'x', Alpha: '', ArcLen: 'x', L: 'x' }
-  return v.segments.every((seg) =>
+  const allFieldsFilled = v.segments.every((seg) =>
     (Object.keys(segRequired) as Array<keyof ArcSegmentValues>).every(
       (k) => segRequired[k] === '' || seg[k].trim() !== '',
     ),
   )
+  if (!allFieldsFilled) return false
+
+  //   Feasibility kontrolü — herhangi bir segment imkânsızsa (T/XA1 kuralı ihlal)
+  //   submit disable. Backend zaten DataApi validation'da reject eder, UI erken uyarı.
+  const ltMm = parseFloat(v.LT) || 0
+  const feasibilities = computeAllFeasibilities(
+    v.segments, p, ltMm, 100 /*safety*/,
+    DEFAULT_MEASUREMENT_DISTANCE_MM, DEFAULT_XA1_ABS_MM,
+  )
+  return feasibilities.every((f) => f.feasible)
 }
 
 function segmentToStore(seg: ArcSegmentValues): ArcSegmentParams {
