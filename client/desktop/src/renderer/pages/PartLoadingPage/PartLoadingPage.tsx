@@ -35,6 +35,14 @@ export default function PartLoadingPage() {
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
 
+  // 2026-09-03: geri butonu bende geldiğim büküm yöntemi sayfasına dönmeli
+  // (eskiden sabit /ring idi → arc'tan geldiysem yanlış yere gidiyordu).
+  const backTo =
+    params.bendingMethod === 'arc'    ? '/bending/ai/measurements/arc'    :
+    params.bendingMethod === 'spiral' ? '/bending/ai/measurements/spiral' :
+    params.bendingMethod === 'sivama' ? '/bending/ai/measurements/sivama' :
+                                        '/bending/ai/measurements/ring'
+
   const [phase, setPhase] = useState<Phase>('idle')
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)
   const [errorStep, setErrorStep] = useState<string | null>(null)
@@ -167,7 +175,7 @@ export default function PartLoadingPage() {
       </div>
 
       <StatusBar
-        backTo="/bending/ai/measurements/ring"
+        backTo={backTo}
         onConfirm={() => {
           if (phase === 'idle') setPhase('loaded')
           else if (phase === 'error') setPhase('idle')

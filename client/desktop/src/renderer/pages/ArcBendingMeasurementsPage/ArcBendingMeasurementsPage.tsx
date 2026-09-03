@@ -4,12 +4,14 @@ import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobSto
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import ArcMeasurementForm, {
+  ArcFormStage,
   ArcInputMode,
   ArcMeasurementValues,
   ArcSegmentValues,
   DEFAULT_MEASUREMENT_DISTANCE_MM,
   DEFAULT_XA1_ABS_MM,
   computeAllFeasibilities,
+  mainFieldsValid,
   makeEmptySegment,
 } from './ArcMeasurementForm'
 import styles from './ArcBendingMeasurementsPage.module.css'
@@ -21,7 +23,8 @@ const EMPTY: ArcMeasurementValues = {
 }
 
 // isComplete: ana bilgiler + P adet segment tam olarak dolmalı VE hiçbir segment
-// imkânsız olmamalı (T + XA1 kuralları — feasibility).
+// imkânsız olmamalı (T + XA1 kuralları — feasibility) VE segmentlerin toplam RAW
+// mesafesi LT'yi aşmamalı (budget overflow).
 // Mode'a göre segment gereklilik: angle → Alpha zorunlu, arcLen → ArcLen zorunlu (form sync effect
 // diğerini R + kaynak'tan doldurur, yani genelde ikisi de dolu olur ama zorunluluk sadece kaynağa).
 function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
@@ -43,9 +46,21 @@ function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
   )
   if (!allFieldsFilled) return false
 
+  //   Budget overflow kontrolü — segmentlerin toplam RAW mesafesi (yay + düzlük)
+  //   LT'yi aşmamalı. Aşarsa backend zaten reject eder ama UI'da erken block.
+  const ltMm = parseFloat(v.LT) || 0
+  const cumulativeRaw = v.segments.reduce((sum, seg) => {
+    const R = parseFloat(seg.R)
+    const alpha = parseFloat(seg.Alpha)
+    const L = parseFloat(seg.L)
+    if (!(R > 0 && alpha > 0 && alpha < 180)) return sum
+    const arc = (2 * Math.PI * R * (180 - alpha)) / 360
+    return sum + arc + (Number.isFinite(L) ? L : 0)
+  }, 0)
+  if (cumulativeRaw > ltMm) return false
+
   //   Feasibility kontrolü — herhangi bir segment imkânsızsa (T/XA1 kuralı ihlal)
   //   submit disable. Backend zaten DataApi validation'da reject eder, UI erken uyarı.
-  const ltMm = parseFloat(v.LT) || 0
   const feasibilities = computeAllFeasibilities(
     v.segments, p, ltMm, 100 /*safety*/,
     DEFAULT_MEASUREMENT_DISTANCE_MM, DEFAULT_XA1_ABS_MM,
@@ -93,10 +108,13 @@ export default function ArcBendingMeasurementsPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   const [values, setValues] = useState<ArcMeasurementValues>(() => fromStore(arcBending))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
+  // 2026-09-03: 2-aşamalı wizard — 'main' (ana parametreler) / 'segments' (segment kartları).
+  const [stage, setStage] = useState<ArcFormStage>('main')
 
   function handleReset() {
     setValues({ ...EMPTY, segments: [] })
     setParams({ arcBending: null })
+    setStage('main')
   }
 
   function handleConfirm() {
@@ -144,15 +162,24 @@ export default function ArcBendingMeasurementsPage() {
           onReset={handleReset}
           inputMode={inputMode}
           onInputModeChange={setInputMode}
+          stage={stage}
         />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}
-      <StatusBar
-        backTo="/bending/ai/method"
-        confirmDisabled={!isComplete(values, inputMode)}
-        onConfirm={handleConfirm}
-      />
+      {stage === 'main' ? (
+        <StatusBar
+          backTo="/bending/ai/method"
+          confirmDisabled={!mainFieldsValid(values)}
+          onConfirm={() => setStage('segments')}
+        />
+      ) : (
+        <StatusBar
+          onBack={() => setStage('main')}
+          confirmDisabled={!isComplete(values, inputMode)}
+          onConfirm={handleConfirm}
+        />
+      )}
 
     </div>
   )

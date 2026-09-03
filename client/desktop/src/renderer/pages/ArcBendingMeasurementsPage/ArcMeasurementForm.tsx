@@ -103,12 +103,23 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
 const MAIN_LEFT: ArcMainFieldKey[] = ['A', 'B', 'S', 'H']
 const MAIN_RIGHT: ArcMainFieldKey[] = ['P', 'G', 'LT']
 
+export type ArcFormStage = 'main' | 'segments'
+
 interface Props {
   values: ArcMeasurementValues
   onChange: (values: ArcMeasurementValues) => void
   onReset: () => void
   inputMode: ArcInputMode
   onInputModeChange: (mode: ArcInputMode) => void
+  stage: ArcFormStage
+}
+
+/** Aşama 1'den 2'ye geçiş kontrolü — sadece ana required alanların dolu ve P>0 olmasını arar. */
+export function mainFieldsValid(v: ArcMeasurementValues): boolean {
+  const mainRequired: ArcMainFieldKey[] = ['A', 'B', 'S', 'H', 'P', 'G', 'LT']
+  if (!mainRequired.every((k) => v[k].trim() !== '')) return false
+  const p = parseInt(v.P, 10)
+  return Number.isFinite(p) && p > 0
 }
 
 // Backend Core/Models/ArcBudgetCalculator ile birebir formüller
@@ -174,17 +185,19 @@ export function checkSegmentFeasibility(
     return {
       feasible: false,
       reason: 'min-arc',
-      detail: `Yay uzunluğu ${arc.toFixed(1)}mm minimum ${MIN_ARC_LENGTH_MM}mm'den küçük — R veya α değerini büyütün.`,
+      detail: `Yay uzunluğunu veya Açı değerini arttırın`,
     }
   }
   //   XA1 mod matrisi ÖNCE — mode belirlensin, T kuralı mode'a göre farklı yön kullanacak.
   const duzlukOk = L > xa1AbsMm
   const kalanOk = remainingAfterSeg > xa1AbsMm
   if (!duzlukOk && !kalanOk) {
+    //   Fix: LT'yi (XA1 - kalan + 1)mm arttırırsak kalan XA1'i geçer → Normal mod çalışır.
+    const deficit = Math.max(1, Math.ceil(xa1AbsMm - remainingAfterSeg + 1))
     return {
       feasible: false,
       reason: 'XA1-min',
-      detail: `Düzlük ${L.toFixed(1)}mm VE kalan parça ${remainingAfterSeg.toFixed(1)}mm her ikisi de |XA1|=${xa1AbsMm.toFixed(0)}mm'den küçük — hiçbir büküm modu çalışamaz.`,
+      detail: `Parçayı ${deficit}mm arttırın`,
     }
   }
   let mode: SegmentMode
@@ -285,6 +298,7 @@ export default function ArcMeasurementForm({
   onReset,
   inputMode,
   onInputModeChange,
+  stage,
 }: Props) {
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
@@ -452,135 +466,158 @@ export default function ArcMeasurementForm({
     return `Seg ${numpadTarget.index + 1} · ${disp}`
   })()
 
+  // 2026-09-03: 2-aşamalı wizard. Aşama 1'de görseller + ana parametreler; aşama 2'de
+  // özet bant + tam genişlik segmentler + mode toggle + toplam bütçe.
+  const isMainStage = stage === 'main'
+
   return (
-    <div className={styles.wrapper}>
-      {/* ── Left: two image tiles ───────────────── */}
-      <div className={styles.images}>
-        <div className={styles.imageTile}>
-          <img src={profileImage} alt="Profile diagram" className={styles.tileImage} />
+    <div className={`${styles.wrapper} ${isMainStage ? styles.wrapperMain : styles.wrapperSegments}`}>
+      {/* ── AŞAMA 1: Sol görseller ─────────────── */}
+      {isMainStage && (
+        <div className={styles.images}>
+          <div className={styles.imageTile}>
+            <img src={profileImage} alt="Profile diagram" className={styles.tileImage} />
+          </div>
+          <div className={styles.imageTile}>
+            <img src={methodImage} alt="Arc method diagram" className={styles.tileImage} />
+          </div>
         </div>
-        <div className={styles.imageTile}>
-          <img src={methodImage} alt="Arc method diagram" className={styles.tileImage} />
-        </div>
-      </div>
+      )}
 
-      {/* ── Right: main info + segments list + reset ──── */}
+      {/* ── Sağ / Ana bölüm ─────────────────────── */}
       <div className={styles.inputSection}>
-        {/* Üst: A/B/S/H + P/G/LT (2-col grid) */}
-        <div className={styles.inputGrid}>
-          <div className={styles.inputCol}>{MAIN_LEFT.map(renderMainField)}</div>
-          <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
-        </div>
-
-        {/* Mode toggle (tüm segmentler için ortak) */}
-        <div className={styles.modeToggle}>
-          <button
-            type="button"
-            className={inputMode === 'angle' ? styles.modeActive : styles.modeInactive}
-            onClick={() => onInputModeChange('angle')}
-          >
-            R + α (Açı)
-          </button>
-          <button
-            type="button"
-            className={inputMode === 'arcLen' ? styles.modeActive : styles.modeInactive}
-            onClick={() => onInputModeChange('arcLen')}
-          >
-            R + Yay (mm)
-          </button>
-        </div>
-
-        {/* Segment kartları — P adet dinamik. P henüz girilmemişse boş liste. */}
-        <div className={styles.segmentsList}>
-          {values.segments.length === 0 && (
-            <div className={styles.segmentsHint}>
-              ⚠ Önce P (segment sayısı) giriniz — kartlar otomatik açılır.
+        {isMainStage ? (
+          <>
+            {/* AŞAMA 1: A/B/S/H + P/G/LT (2-col grid) */}
+            <div className={styles.inputGrid}>
+              <div className={styles.inputCol}>{MAIN_LEFT.map(renderMainField)}</div>
+              <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
             </div>
-          )}
-          {values.segments.map((_, i) => {
-            const b = budgets[i]
-            const f = feasibilities[i]
-            return (
+
+            <button className={styles.resetBtn} onClick={onReset}>
+              ↺ SIFIRLA
+            </button>
+          </>
+        ) : (
+          <>
+            {/* AŞAMA 2: Kompakt özet bant */}
+            <div className={styles.summaryBar}>
+              <span><b>A</b>={values.A || '—'}</span>
+              <span><b>B</b>={values.B || '—'}</span>
+              <span><b>S</b>={values.S || '—'}</span>
+              <span><b>H</b>={values.H || '—'}</span>
+              <span><b>P</b>={values.P || '—'}</span>
+              <span><b>G</b>={values.G || '—'}</span>
+              <span><b>LT</b>={values.LT || '—'}mm</span>
+            </div>
+
+            {/* Mode toggle (tüm segmentler için ortak) */}
+            <div className={styles.modeToggle}>
+              <button
+                type="button"
+                className={inputMode === 'angle' ? styles.modeActive : styles.modeInactive}
+                onClick={() => onInputModeChange('angle')}
+              >
+                R + α (Açı)
+              </button>
+              <button
+                type="button"
+                className={inputMode === 'arcLen' ? styles.modeActive : styles.modeInactive}
+                onClick={() => onInputModeChange('arcLen')}
+              >
+                R + Yay (mm)
+              </button>
+            </div>
+
+            {/* Segment kartları — P adet dinamik. */}
+            <div className={styles.segmentsList}>
+              {values.segments.length === 0 && (
+                <div className={styles.segmentsHint}>
+                  ⚠ Önce P (segment sayısı) giriniz — kartlar otomatik açılır.
+                </div>
+              )}
+              {values.segments.map((_, i) => {
+                const b = budgets[i]
+                const f = feasibilities[i]
+                return (
+                  <div
+                    key={i}
+                    className={`${styles.segmentCard} ${
+                      f && !f.feasible ? styles.segmentCardInfeasible : ''
+                    }`}
+                  >
+                    <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
+                    <div className={styles.segmentFields}>
+                      {/* 2026-09-03: sıra L → α/Yay → R (Düzlük, Yay, Radyus) */}
+                      {renderSegmentField(i, 'L', 'L')}
+                      {inputMode === 'angle'
+                        ? renderSegmentField(i, 'Alpha', 'α')
+                        : renderSegmentField(i, 'ArcLen', 'Yay')}
+                      {renderSegmentField(i, 'R', 'R')}
+                    </div>
+                    {b?.valid && (
+                      <div className={styles.segmentBudgetInfo}>
+                        Yay: <b>{b.arc.toFixed(1)}mm</b>
+                        {' · '}Bütçe: <b>{b.total.toFixed(1)}mm</b>
+                        {i + 1 === totalP && b.effArc !== b.arc && (
+                          <span className={styles.budgetNote}>
+                            {' '}(son seg yay −{DEFAULT_SAFETY_MM}mm safety)
+                          </span>
+                        )}
+                        {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
+                          <span className={styles.budgetNote}>
+                            {' '}(seg1 düzlük min={DEFAULT_SAFETY_MM}mm safety)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {f && !f.feasible && (
+                      <div className={styles.segmentInfeasibleWarn}>
+                        <div className={styles.warnHead}>
+                          {f.reason === 'min-arc'
+                            ? '⚠ Yay uzunluğu minimum sınırın altında'
+                            : '⚠ Bu kıvrım mümkün değil, parça uzunluğunu arttırın ya da manuel bükün!'}
+                        </div>
+                        <div className={styles.warnDetail}>{f.detail}</div>
+                      </div>
+                    )}
+                    {f && f.feasible && f.mode === 'reverse-normal' && (
+                      <div className={styles.segmentReverseInfo}>
+                        <div className={styles.reverseHead}>🔄 TERS BÜKÜM</div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Toplam bütçe + kalan gösterge */}
+            {anyBudgetValid && (
               <div
-                key={i}
-                className={`${styles.segmentCard} ${
-                  f && !f.feasible ? styles.segmentCardInfeasible : ''
+                className={`${styles.totalBudgetInfo} ${
+                  remainingOverflow || anyInfeasible ? styles.budgetOver : styles.budgetOk
                 }`}
               >
-                <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
-                <div className={styles.segmentFields}>
-                  {renderSegmentField(i, 'R', 'R')}
-                  {inputMode === 'angle'
-                    ? renderSegmentField(i, 'Alpha', 'α')
-                    : renderSegmentField(i, 'ArcLen', 'Yay')}
-                  {renderSegmentField(i, 'L', 'L')}
-                </div>
-                {b?.valid && (
-                  <div className={styles.segmentBudgetInfo}>
-                    Yay: <b>{b.arc.toFixed(1)}mm</b>
-                    {' · '}Bütçe: <b>{b.total.toFixed(1)}mm</b>
-                    {i + 1 === totalP && b.effArc !== b.arc && (
-                      <span className={styles.budgetNote}>
-                        {' '}(son seg yay −{DEFAULT_SAFETY_MM}mm safety)
-                      </span>
-                    )}
-                    {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
-                      <span className={styles.budgetNote}>
-                        {' '}(seg1 düzlük min={DEFAULT_SAFETY_MM}mm safety)
-                      </span>
-                    )}
-                  </div>
+                <span>
+                  Toplam mesafe: <b>{cumulativeRaw.toFixed(1)}mm</b>
+                  {ltValid && (
+                    <>
+                      {' '}/ LT <b>{ltMm.toFixed(1)}mm</b>
+                    </>
+                  )}
+                </span>
+                {ltValid && (
+                  <span>
+                    Kalan: <b>{remaining.toFixed(1)}mm</b>
+                    {remainingOverflow && ' ⚠ AŞIM'}
+                    {!remainingOverflow && anyInfeasible && ' ⚠ İMKÂNSIZ SEGMENT VAR'}
+                  </span>
                 )}
-                {f && !f.feasible && (
-                  <div className={styles.segmentInfeasibleWarn}>
-                    <div className={styles.warnHead}>
-                      ⚠ Bu kıvrım mümkün değil, parça uzunluğunu arttırın ya da manuel bükün!
-                    </div>
-                    <div className={styles.warnDetail}>{f.detail}</div>
-                  </div>
-                )}
-                {f && f.feasible && f.mode === 'reverse-normal' && (
-                  <div className={styles.segmentReverseInfo}>
-                    <div className={styles.reverseHead}>
-                      🔄 TERS BÜKÜM — parça yay boyunca geri döner, ölçüm karşı sensor'da
-                    </div>
-                    <div className={styles.reverseDetail}>{f.detail}</div>
-                  </div>
-                )}
+                {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}
               </div>
-            )
-          })}
-        </div>
-
-        {/* Toplam bütçe + kalan gösterge */}
-        {anyBudgetValid && (
-          <div
-            className={`${styles.totalBudgetInfo} ${
-              remainingOverflow || anyInfeasible ? styles.budgetOver : styles.budgetOk
-            }`}
-          >
-            <span>
-              Toplam mesafe: <b>{cumulativeRaw.toFixed(1)}mm</b>
-              {ltValid && (
-                <>
-                  {' '}/ LT <b>{ltMm.toFixed(1)}mm</b>
-                </>
-              )}
-            </span>
-            {ltValid && (
-              <span>
-                Kalan: <b>{remaining.toFixed(1)}mm</b>
-                {remainingOverflow && ' ⚠ AŞIM'}
-                {!remainingOverflow && anyInfeasible && ' ⚠ İMKÂNSIZ SEGMENT VAR'}
-              </span>
             )}
-            {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}
-          </div>
+          </>
         )}
-
-        <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
-        </button>
       </div>
 
       {/* ── Info modal ──────────────────────────── */}

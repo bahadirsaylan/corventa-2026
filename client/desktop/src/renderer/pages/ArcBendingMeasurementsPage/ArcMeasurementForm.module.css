@@ -9,6 +9,17 @@
   align-items: stretch;
 }
 
+/* Aşama 1 — görseller + ana grid yan yana (mevcut layout) */
+.wrapperMain {
+  /* varsayılan flex-row zaten yeterli */
+}
+
+/* Aşama 2 — görseller yok, tam genişlik segmentler */
+.wrapperSegments {
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* ── Left: image tiles ──────────────────────── */
 .images {
   display: flex;
@@ -45,6 +56,12 @@
   flex-direction: column;
   justify-content: center;
   gap: 12px;
+  min-height: 0;      /* nested flex overflow için gerekli */
+}
+
+/* Aşama 2'de segmentler taşınca alt kısmın kesilmemesi için centering'i kapat */
+.wrapperSegments .inputSection {
+  justify-content: flex-start;
 }
 
 /* ── Right: 2-column input grid ─────────────── */
@@ -208,16 +225,37 @@
 }
 
 /* ── Segment cards (2026-08-24) — P adet dinamik segment listesi ── */
+/* 2026-09-03: aşama 2'de tam alan, görseller yok. flex chain doğal olarak
+   kalan alanı doldurur; max-height sabiti kaldırıldı (küçük ekranlarda .content
+   yüksekliği 68vh'den küçük olduğu için son segment kesiliyordu). */
 .segmentsList {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  flex: 1 1 auto;
-  min-height: 0;         /* flex parent'ta scroll için gerekli */
-  max-height: 46vh;      /* uyarılı kartlar için genişletildi (2026-08-24 kayma fix) */
+  flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4px 2px;
+}
+
+/* ── Aşama 2 üstündeki kompakt özet bant ── */
+.summaryBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  align-items: center;
+}
+
+.summaryBar b {
+  color: var(--color-text);
+  font-weight: 800;
+  margin-right: 2px;
 }
 
 .segmentsHint {
