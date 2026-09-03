@@ -23,6 +23,8 @@ export const IpcInvoke = {
   GetActiveBendingJob: 'data:get-active-bending-job',
   GetBendingJob: 'data:get-bending-job',
   AddArcSegment: 'data:add-arc-segment',
+  // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukumun onceden eslesme kontrolu (read-only)
+  FindSimilarBendingJob: 'data:find-similar-bending-job',
 
   // Machine commands — Manuel mode kontrolleri
   PistonJog: 'piston:jog',

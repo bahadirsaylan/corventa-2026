@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useSensors } from '@/hooks/useMachineState'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
+import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
 import MeasurementForm, { MeasurementValues } from './MeasurementForm'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import type { SimilarBendingJobRequest } from '@shared/types'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
@@ -32,12 +35,16 @@ export default function RingBendingMeasurementsPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   const [values, setValues] = useState<MeasurementValues>(() => fromStore(ringBending))
 
+  // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
+  const sensors = useSensors()
+  const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)
+
   function handleReset() {
     setValues({ ...EMPTY })
     setParams({ ringBending: null })
   }
 
-  function handleConfirm() {
+  function persistAndNavigate() {
     setParams({
       ringBending: {
         A: parseFloat(values.A),
@@ -50,6 +57,23 @@ export default function RingBendingMeasurementsPage() {
       },
     })
     navigate('/bending/ai/part-loading')
+  }
+
+  function handleConfirm() {
+    // Parametreler tamsa AI eşleşme modalını aç. Modal fetch fail olsa bile
+    // "KAPAT" veya "BÜKÜMÜ BAŞLAT" ile devam eder — büküm akışını bloklamaz.
+    const req: SimilarBendingJobRequest = {
+      targetDiameterMm: parseFloat(values.R),
+      partLengthMm: parseFloat(values.L),
+      stepDistanceMm: parseFloat(values.G),
+      profileA: parseFloat(values.A),
+      profileB: parseFloat(values.B),
+      profileS: parseFloat(values.S),
+      ballDiameterMm: 220, // Backend default; ilerideki setting UI ile override edilebilir
+      // Yağ sıcaklığı: SignalR /machineHub'dan canlı — 0 ise API'ye gönderme (yağ filtresi atlansın)
+      oilTempC: sensors.oilTempC > 0 ? sensors.oilTempC : undefined,
+    }
+    setAiModalRequest(req)
   }
 
   return (
@@ -76,6 +100,18 @@ export default function RingBendingMeasurementsPage() {
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
       />
+
+      {/* AI RECIPE FAZ 4B UI — parametre onayı sonrası eşleşme preview modali */}
+      {aiModalRequest && (
+        <AiRecipePreviewModal
+          request={aiModalRequest}
+          onProceed={() => {
+            setAiModalRequest(null)
+            persistAndNavigate()
+          }}
+          onClose={() => setAiModalRequest(null)}
+        />
+      )}
 
     </div>
   )

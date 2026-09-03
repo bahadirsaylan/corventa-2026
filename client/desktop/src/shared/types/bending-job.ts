@@ -139,6 +139,43 @@ export interface BendingJobCreateRequest {
   zeroResetDistanceMm?: number
 }
 
+// AI RECIPE FAZ 4B UI (2026-09-04) — bir dairesel bukum baslamadan onceki eslesme kontrolu
+export interface SimilarBendingJobRequest {
+  targetDiameterMm: number
+  partLengthMm: number
+  stepDistanceMm: number
+  profileA: number
+  profileB: number
+  profileS: number
+  ballDiameterMm: number
+  // Opsiyonel — SignalR /machineHub'dan MachineState.Sensors.OilTempC verilirse ±2°C filtre uygulanir
+  oilTempC?: number
+}
+
+export interface SimilarBendingJobIteration {
+  iterationOrder: number
+  measuredDiameterMm: number
+  errorMm: number
+  correctionPistonPositionMm: number
+  measurementSide: string
+  isWithinTolerance: boolean
+}
+
+export interface SimilarBendingJobResponse {
+  // null = eslesme yok, ilk kez bu parametre kombinasyonu.
+  match: {
+    id: number
+    durationSeconds: number
+    totalSpringbackIterations: number
+    createdAt: string
+    completedAt: string
+    oilTempAtStartC?: number | null
+    oilTempAvgC?: number | null
+    recipeUsedFromJobId?: number | null
+  } | null
+  iterations: SimilarBendingJobIteration[]
+}
+
 // Bending pipeline ilerlemesi (SignalR /machineHub "BendingProgress" event'i).
 export interface BendingProgress {
   jobId: number

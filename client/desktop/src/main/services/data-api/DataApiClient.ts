@@ -12,6 +12,8 @@ import type {
   ServiceTicket,
   ServiceTicketAction,
   ServiceTicketCreateRequest,
+  SimilarBendingJobRequest,
+  SimilarBendingJobResponse,
 } from '@shared/types'
 
 export class DataApiClient {
@@ -40,6 +42,24 @@ export class DataApiClient {
 
   getActiveBendingJob(): Promise<BendingJob | null> {
     return http.get<BendingJob | null>(`${this.baseUrl}/api/bending-jobs/active`)
+  }
+
+  // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukum baslamadan onceki eslesme kontrolu.
+  // Backend GET /api/bending-jobs/similar (read-only, side-effect yok).
+  findSimilarCircularJob(req: SimilarBendingJobRequest): Promise<SimilarBendingJobResponse> {
+    const params = new URLSearchParams({
+      targetDiameterMm: String(req.targetDiameterMm),
+      partLengthMm: String(req.partLengthMm),
+      stepDistanceMm: String(req.stepDistanceMm),
+      profileA: String(req.profileA),
+      profileB: String(req.profileB),
+      profileS: String(req.profileS),
+      ballDiameterMm: String(req.ballDiameterMm),
+    })
+    if (req.oilTempC != null) params.set('oilTempC', String(req.oilTempC))
+    return http.get<SimilarBendingJobResponse>(
+      `${this.baseUrl}/api/bending-jobs/similar?${params.toString()}`,
+    )
   }
 
   // Arc interactive — sıradaki segment'i ekler (pipeline çalışırken).

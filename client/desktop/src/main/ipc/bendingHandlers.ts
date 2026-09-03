@@ -5,7 +5,7 @@ import { ipcMain } from 'electron'
 import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
-import { Ipc, type BendingJob, type BendingJobCreateRequest } from '@shared'
+import { Ipc, type BendingJob, type BendingJobCreateRequest, type SimilarBendingJobRequest } from '@shared'
 
 const log = childLogger('ipc:bending')
 
@@ -44,6 +44,15 @@ export function registerBendingHandlers(): void {
   ipcMain.handle(Ipc.IpcInvoke.GetBendingJob, async (_evt, id: number) => {
     return dataApi.getBendingJob(id)
   })
+
+  // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukum eslesme kontrolu (read-only, side-effect yok)
+  ipcMain.handle(
+    Ipc.IpcInvoke.FindSimilarBendingJob,
+    async (_evt, req: SimilarBendingJobRequest) => {
+      log.debug('find-similar-bending-job', { req })
+      return dataApi.findSimilarCircularJob(req)
+    },
+  )
 
   ipcMain.handle(
     Ipc.IpcInvoke.AddArcSegment,

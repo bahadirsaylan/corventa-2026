@@ -12,6 +12,8 @@ import {
   type BendingPreviewRequest,
   type BendingPreviewResponse,
   type RecommendStageResponse,
+  type SimilarBendingJobRequest,
+  type SimilarBendingJobResponse,
   type StartJobResponse,
 } from '@shared'
 
@@ -30,6 +32,10 @@ export const bendingApi = {
 
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),
+
+  // AI RECIPE FAZ 4B UI (2026-09-04) — bukum baslamadan onceki eslesme kontrolu (read-only)
+  findSimilar: (req: SimilarBendingJobRequest): Promise<SimilarBendingJobResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.FindSimilarBendingJob, req),
 
   getActiveJob: (): Promise<BendingJob | null> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.GetActiveBendingJob),
