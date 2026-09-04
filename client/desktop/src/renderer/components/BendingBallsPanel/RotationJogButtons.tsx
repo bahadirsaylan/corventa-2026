@@ -6,10 +6,11 @@ import { useCallback, useRef } from 'react'
 import { useBendingProgress } from '@/hooks/useMachineState'
 import styles from './RotationJogButtons.module.css'
 
-// Sabit jog hizi — %20 = 2V. Ileride ayarlar sayfasindan degistirilebilir.
-const JOG_SPEED_PERCENT = 20
+interface Props {
+  speedPercent: number
+}
 
-export default function RotationJogButtons() {
+export default function RotationJogButtons({ speedPercent }: Props) {
   const progress = useBendingProgress()
 
   // BendingProgress store'da son mesaj kalır (backend job Completed olunca
@@ -28,8 +29,8 @@ export default function RotationJogButtons() {
         {bendingActive && <span className={styles.disabledHint}> (BÜKÜM AKTİF)</span>}
       </div>
       <div className={styles.btnRow}>
-        <JogButton direction={-1} label="CCW" arrow="◀" disabled={bendingActive} />
-        <JogButton direction={+1} label="CW" arrow="▶" disabled={bendingActive} />
+        <JogButton direction={-1} label="CCW" arrow="◀" disabled={bendingActive} speedPercent={speedPercent} />
+        <JogButton direction={+1} label="CW" arrow="▶" disabled={bendingActive} speedPercent={speedPercent} />
       </div>
     </div>
   )
@@ -40,18 +41,19 @@ interface JogButtonProps {
   label: string
   arrow: string
   disabled: boolean
+  speedPercent: number
 }
 
-function JogButton({ direction, label, arrow, disabled }: JogButtonProps) {
+function JogButton({ direction, label, arrow, disabled, speedPercent }: JogButtonProps) {
   const activeRef = useRef(false)
 
   const start = useCallback(() => {
     if (disabled || activeRef.current) return
     activeRef.current = true
     void window.corventa.machine
-      .rotationJog({ direction, speedPercent: JOG_SPEED_PERCENT })
+      .rotationJog({ direction, speedPercent })
       .catch(() => { /* backend fail sessizce yut, stop yine denenir */ })
-  }, [direction, disabled])
+  }, [direction, disabled, speedPercent])
 
   const stop = useCallback(() => {
     if (!activeRef.current) return

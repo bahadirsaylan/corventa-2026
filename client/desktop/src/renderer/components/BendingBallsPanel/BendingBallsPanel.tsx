@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react'
 import BendingBall from './BendingBall'
 import SideSupportControls from './SideSupportControls'
 import RotationJogButtons from './RotationJogButtons'
+import JogSpeedControl from './JogSpeedControl'
+import type { PistonName } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
@@ -22,6 +24,29 @@ export default function BendingBallsPanel() {
 
   // Büküm ilerlemesi (varsa)
   const progress = useBendingProgress()
+
+  // 2026-09-05: Manuel jog hızı — piston + rotasyon ortak kullanır.
+  //   Voltaj cevirimi: %20 = 2V. Default %20 makul (yavaş + kontrol edilebilir).
+  const [jogSpeedPercent, setJogSpeedPercent] = useState(20)
+
+  // Büküm bitti tespiti (rotasyon jog ile aynı mantık)
+  const isFinished =
+    !!progress && progress.totalPasos > 0 &&
+    (progress.completedPasos >= progress.totalPasos || progress.percentComplete >= 100)
+  const bendingActive = !!progress && !isFinished
+
+  // Piston jog handler (basılı-tut)
+  //   ManuelBendingRunPage pattern'i: + = direction=-1 (ileri, iş parçasına),
+  //   - = direction=+1 (geri, uzağa). Backend polarite kontrolünü yapıyor.
+  const jogPistonStart = (piston: PistonName, direction: 1 | -1) => {
+    if (bendingActive) return
+    void window.corventa.machine
+      .pistonJog({ piston, direction, speedPercent: jogSpeedPercent })
+      .catch(() => { /* stop yine denenir */ })
+  }
+  const jogPistonStop = (piston: PistonName) => {
+    void window.corventa.machine.pistonStop(piston).catch(() => {})
+  }
 
   // Sensörler ve tolerans bilgisi
   const s1Pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
@@ -151,28 +176,52 @@ export default function BendingBallsPanel() {
           <SideSupportControls side="left" />
         </div>
       <div className={styles.ballGrid}>
-        {/* Left column — sadece ball */}
+        {/* Left column */}
         <div className={styles.colLeft}>
-          <BendingBall id="left" value={left.positionMm} active={left.moving || left.inPosition} />
+          <BendingBall
+            id="left"
+            value={left.positionMm}
+            active={left.moving || left.inPosition}
+            disabled={bendingActive}
+            onJogPlusStart={() => jogPistonStart('left', -1)}
+            onJogMinusStart={() => jogPistonStart('left', 1)}
+            onJogStop={() => jogPistonStop('left')}
+          />
         </div>
 
-        {/* Center column — top ball + arch label + bottom ball */}
+        {/* Center column */}
         <div className={styles.colCenter}>
-          <BendingBall id="top" value={top.positionMm} active={top.moving || top.inPosition} />
+          <BendingBall
+            id="top"
+            value={top.positionMm}
+            active={top.moving || top.inPosition}
+            disabled={bendingActive}
+            onJogPlusStart={() => jogPistonStart('upper', -1)}
+            onJogMinusStart={() => jogPistonStart('upper', 1)}
+            onJogStop={() => jogPistonStop('upper')}
+          />
           <div className={styles.archLabel}>{archLabel}</div>
           <BendingBall
             id="bottom"
             value={bottom.positionMm}
             active={bottom.moving || bottom.inPosition}
+            disabled={bendingActive}
+            onJogPlusStart={() => jogPistonStart('lower', -1)}
+            onJogMinusStart={() => jogPistonStart('lower', 1)}
+            onJogStop={() => jogPistonStop('lower')}
           />
         </div>
 
-        {/* Right column — sadece ball */}
+        {/* Right column */}
         <div className={styles.colRight}>
           <BendingBall
             id="right"
             value={right.positionMm}
             active={right.moving || right.inPosition}
+            disabled={bendingActive}
+            onJogPlusStart={() => jogPistonStart('right', -1)}
+            onJogMinusStart={() => jogPistonStart('right', 1)}
+            onJogStop={() => jogPistonStop('right')}
           />
         </div>
       </div>
@@ -184,7 +233,14 @@ export default function BendingBallsPanel() {
       {/* ── Stats footer ───────────────────────────── */}
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
-          <RotationJogButtons />
+          <div className={styles.jogGroup}>
+            <RotationJogButtons speedPercent={jogSpeedPercent} />
+            <JogSpeedControl
+              value={jogSpeedPercent}
+              onChange={setJogSpeedPercent}
+              disabled={bendingActive}
+            />
+          </div>
         </div>
 
         <div className={`${styles.statsCol} ${styles.statsColCenter}`}>

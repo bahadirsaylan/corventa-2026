@@ -59,9 +59,18 @@ export default function RingBendingMeasurementsPage() {
     navigate('/bending/ai/part-loading')
   }
 
+  const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
+
   function handleConfirm() {
-    // Parametreler tamsa AI eşleşme modalını aç. Modal fetch fail olsa bile
-    // "KAPAT" veya "BÜKÜMÜ BAŞLAT" ile devam eder — büküm akışını bloklamaz.
+    // Yari oto mod'da AI recipe uygulanmiyor (skipAutoCorrect=true → AutoCorrect
+    // adimi atlanir, recipe fetch bloku da orada). Preview modal bilgi amaciyla
+    // acilirdi ama gereksiz — direkt PartLoading'e gec.
+    if (bendingMode === 'semi') {
+      persistAndNavigate()
+      return
+    }
+
+    // AI mod: parametreler tamsa AI eşleşme modalını aç.
     const req: SimilarBendingJobRequest = {
       targetDiameterMm: parseFloat(values.R),
       partLengthMm: parseFloat(values.L),
@@ -69,8 +78,7 @@ export default function RingBendingMeasurementsPage() {
       profileA: parseFloat(values.A),
       profileB: parseFloat(values.B),
       profileS: parseFloat(values.S),
-      ballDiameterMm: 220, // Backend default; ilerideki setting UI ile override edilebilir
-      // Yağ sıcaklığı: SignalR /machineHub'dan canlı — 0 ise API'ye gönderme (yağ filtresi atlansın)
+      ballDiameterMm: 220,
       oilTempC: sensors.oilTempC > 0 ? sensors.oilTempC : undefined,
     }
     setAiModalRequest(req)

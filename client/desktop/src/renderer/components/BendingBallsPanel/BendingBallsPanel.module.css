@@ -228,6 +228,14 @@
   gap: 2px;
 }
 
+/* Jog kontrolleri (rotasyon butonlari + hiz ayari) tek col icinde dikey */
+.jogGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
 .speedText {
   font-size: 22px;
   font-weight: 500;
