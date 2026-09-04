@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 
+// ── Bending mode (2026-09-05) — Otomatik akış varyantı ─────────────────────
+// 'ai'   = tam otomatik + geri esneme + AI recipe hızlandırma
+// 'semi' = büküm otomatik, geri esneme ölçümü/düzeltme USTAYA (skipAutoCorrect=true)
+export type BendingModeId = 'ai' | 'semi'
+
 // ── Bending direction selectable on the direction screen ────────────────────
 export type BendingDirectionId = 'left' | 'right' | 'other'
 
@@ -233,6 +238,9 @@ export interface BendingJobParams {
   /** Profile shape selected on the AI Bending profile screen */
   profileId: BendingProfileId | null
 
+  /** Bending mode — Otomatik/AI vs Yarı Otomatik (2026-09-05) */
+  bendingMode: BendingModeId | null
+
   /** Bending direction selected on the direction screen */
   bendingDirection: BendingDirectionId | null
 
@@ -307,6 +315,7 @@ interface BendingJobState {
 
 const INITIAL_PARAMS: BendingJobParams = {
   profileId:        null,
+  bendingMode:      null,
   bendingDirection: null,
   bendingMethod:    null,
   ringBending:      null,

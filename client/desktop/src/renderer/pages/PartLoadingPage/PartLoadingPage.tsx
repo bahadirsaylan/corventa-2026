@@ -47,9 +47,13 @@ export default function PartLoadingPage() {
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)
   const [errorStep, setErrorStep] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  // SLPIS sensoru saha kalibre edilmemis durumda — operator gerekli oldugunda
-  // checkbox'i acar. Default kapali => skipAutoCorrect=true (3 adimli pipeline).
-  const [useAutoCorrect, setUseAutoCorrect] = useState(false)
+  // 2026-09-05: bendingMode'a gore useAutoCorrect otomatik.
+  //   mode='ai'   → true  (tam otomatik + geri esneme)
+  //   mode='semi' → false (yari oto, geri esneme USTAYA)
+  //   mode=null   → false (backward compat: mevcut default)
+  // Kullanici modu BendingModeSelectPage'de setti, PartLoading burada saygi gosterir.
+  const isSemiAuto = params.bendingMode === 'semi'
+  const [useAutoCorrect, setUseAutoCorrect] = useState(params.bendingMode === 'ai')
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
 
@@ -116,7 +120,12 @@ export default function PartLoadingPage() {
         </div>
       )}
 
-      {phase !== 'starting' && phase !== 'started' && (
+      {phase !== 'starting' && phase !== 'started' && isSemiAuto && (
+        <div className={styles.loadedBar} style={{ background: '#27ae60', color: '#fff' }}>
+          🧑‍🔧 YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak
+        </div>
+      )}
+      {phase !== 'starting' && phase !== 'started' && !isSemiAuto && (
         <button
           type="button"
           className={`${styles.autoCorrectToggle} ${

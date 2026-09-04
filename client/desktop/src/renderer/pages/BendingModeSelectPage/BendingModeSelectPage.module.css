@@ -1,0 +1,126 @@
+.page {
+  position: relative;
+  width: 100%;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+.title {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  padding: 20px 0 12px;
+  margin: 0;
+}
+
+.cardGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 16px 32px 32px;
+  min-height: 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 28px;
+  border: 3px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  font-family: inherit;
+  text-align: center;
+  user-select: none;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.card:active {
+  transform: translateY(-1px);
+}
+
+/* AI kartı — kırmızı (primary) */
+.cardAi {
+  background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+  color: #fff;
+  border-color: #c0392b;
+}
+
+.cardAi .cardSubtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cardAi .cardFeatures {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* Yarı Oto kartı — yeşil */
+.cardSemi {
+  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+  color: #fff;
+  border-color: #27ae60;
+}
+
+.cardSemi .cardSubtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.cardSemi .cardFeatures {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.cardIcon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.cardTitle {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1.15;
+}
+
+.cardSubtitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 12px;
+}
+
+.cardFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.7;
+}
+
+.cardFeatures li {
+  padding-left: 20px;
+  position: relative;
+}
+
+.cardFeatures li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+}
