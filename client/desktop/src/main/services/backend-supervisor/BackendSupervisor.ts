@@ -5,16 +5,18 @@
 import { spawn, ChildProcess } from 'child_process'
 import http from 'http'
 import { existsSync } from 'fs'
+import { homedir } from 'os'
+import { join } from 'path'
 import { childLogger } from '@main/lib/logger'
 
 const log = childLogger('backend-supervisor')
 
 // Backend project paths — dev mode ile ayni repo koken varsayilir.
-// (~/Desktop/SoftPLCCorventa/src/...)
-// Repo path'i .env ile de override edilebilir: CORVENTA_BACKEND_REPO
+// Default: <UserProfile>\Desktop\SoftPLCCorventa (herhangi bir Windows kullanicisi icin dogru).
+// Override: CORVENTA_BACKEND_REPO env variable — repo baska yerdeyse zorunlu.
 const REPO_ROOT =
   process.env.CORVENTA_BACKEND_REPO ??
-  'C:\\Users\\Kadir\\Desktop\\SoftPLCCorventa'
+  join(homedir(), 'Desktop', 'SoftPLCCorventa')
 
 interface BackendService {
   name: string
