@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 
 import BendingBall from './BendingBall'
 import SideSupportControls from './SideSupportControls'
+import RotationJogButtons from './RotationJogButtons'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
@@ -183,9 +184,7 @@ export default function BendingBallsPanel() {
       {/* ── Stats footer ───────────────────────────── */}
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
-          <p className={styles.speedText}>
-            ROTASYON HIZI <span className={styles.speedValue}>—</span>
-          </p>
+          <RotationJogButtons />
         </div>
 
         <div className={`${styles.statsCol} ${styles.statsColCenter}`}>
