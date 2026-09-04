@@ -11,7 +11,15 @@ const JOG_SPEED_PERCENT = 20
 
 export default function RotationJogButtons() {
   const progress = useBendingProgress()
-  const bendingActive = !!progress
+
+  // BendingProgress store'da son mesaj kalır (backend job Completed olunca
+  // artık push atmıyor ama store'daki son değer null'a düşmüyor). Bu yüzden
+  // "büküm aktif" tespitini pasos toplamına göre yapıyoruz: totalPasos'a
+  // ulaşıldıysa (veya %100) büküm bitti sayılır → jog aktif.
+  const isFinished =
+    !!progress && progress.totalPasos > 0 &&
+    (progress.completedPasos >= progress.totalPasos || progress.percentComplete >= 100)
+  const bendingActive = !!progress && !isFinished
 
   return (
     <div className={styles.wrap}>
