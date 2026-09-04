@@ -156,6 +156,13 @@ export class BackendSupervisor {
         // detached:false → parent olurse child da olur
         detached: false,
         windowsHide: true, // Console penceresi acilmasin (Windows only)
+        // --no-launch-profile ASPNETCORE_ENVIRONMENT'i da devre disi birakti; explicit ver
+        // ki Swagger + Development-only ozellikler acik olsun (dev mode kullanim icin).
+        // Production'da CORVENTA_ASPNETCORE_ENV=Production ile override edilebilir.
+        env: {
+          ...process.env,
+          ASPNETCORE_ENVIRONMENT: process.env.CORVENTA_ASPNETCORE_ENV ?? 'Development',
+        },
       },
     )
 
