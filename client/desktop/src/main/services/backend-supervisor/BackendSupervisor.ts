@@ -26,26 +26,31 @@ interface BackendService {
   optional: boolean // true = fail'de warn + devam (Web icin)
 }
 
+// Health timeout — yavas PC'de dotnet run + build + startup 2dk+ surebilir.
+// Env variable ile override: CORVENTA_HEALTH_TIMEOUT_MS (ms cinsinden).
+// Default: 180sn (3dk) — makul yavas PC icin guvenli.
+const HEALTH_TIMEOUT_MS = Number(process.env.CORVENTA_HEALTH_TIMEOUT_MS) || 180_000
+
 const SERVICES: BackendService[] = [
   {
     name: 'DataApi',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.DataApi\\CncBendingMachine.DataApi.csproj`,
     healthUrl: 'http://localhost:5002/health',
-    healthTimeoutMs: 30_000,
+    healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: false,
   },
   {
     name: 'BendingApi',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.Api\\CncBendingMachine.Api.csproj`,
     healthUrl: 'http://localhost:5000/api/machine/state',
-    healthTimeoutMs: 30_000,
+    healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: false,
   },
   {
     name: 'BlazorWeb',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj`,
     healthUrl: 'http://localhost:5001',
-    healthTimeoutMs: 20_000,
+    healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: true, // test ekrani, fail'de UI yine acilsin
   },
 ]

@@ -228,7 +228,7 @@ app.whenReady().then(async () => {
   backendSupervisor.onStatus((s: SupervisorStatus) => {
     const label =
       s.kind === 'starting' ? `${s.service} baslatiliyor...` :
-      s.kind === 'waiting'  ? `${s.service} hazir olmasi bekleniyor...` :
+      s.kind === 'waiting'  ? `${s.service} hazir olmasi bekleniyor (ilk acilista 2-3dk surebilir)...` :
       s.kind === 'ready'    ? 'Butun servisler hazir' :
       s.kind === 'failed'   ? `HATA: ${s.service} — ${s.error}` :
                               ''
