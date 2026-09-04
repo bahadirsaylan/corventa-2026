@@ -22,6 +22,10 @@ interface BackendService {
   name: string
   csprojPath: string
   healthUrl: string
+  // ASP.NET default portu 5000 — --no-launch-profile ile launchSettings devre disi kaldi,
+  // yani her servise explicit --urls vermek zorunda kaliyoruz. Aksi halde hepsi 5000'de
+  // dinlemeye calisir ve ilk basarili spawn portu tutar, digerleri "Address in use" fail eder.
+  applicationUrl: string
   healthTimeoutMs: number
   optional: boolean // true = fail'de warn + devam (Web icin)
 }
@@ -35,6 +39,7 @@ const SERVICES: BackendService[] = [
   {
     name: 'DataApi',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.DataApi\\CncBendingMachine.DataApi.csproj`,
+    applicationUrl: 'http://localhost:5002',
     healthUrl: 'http://localhost:5002/health',
     healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: false,
@@ -42,6 +47,7 @@ const SERVICES: BackendService[] = [
   {
     name: 'BendingApi',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.Api\\CncBendingMachine.Api.csproj`,
+    applicationUrl: 'http://localhost:5000',
     healthUrl: 'http://localhost:5000/api/machine/state',
     healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: false,
@@ -49,6 +55,7 @@ const SERVICES: BackendService[] = [
   {
     name: 'BlazorWeb',
     csprojPath: `${REPO_ROOT}\\src\\CncBendingMachine.Web\\CncBendingMachine.Web.csproj`,
+    applicationUrl: 'http://localhost:5001',
     healthUrl: 'http://localhost:5001',
     healthTimeoutMs: HEALTH_TIMEOUT_MS,
     optional: true, // test ekrani, fail'de UI yine acilsin
@@ -131,13 +138,16 @@ export class BackendSupervisor {
   }
 
   private spawnDotnet(svc: BackendService): ChildProcess {
-    log.info(`spawn ${svc.name}`, { csproj: svc.csprojPath })
+    log.info(`spawn ${svc.name}`, { csproj: svc.csprojPath, url: svc.applicationUrl })
 
-    // `dotnet run --project X --no-launch-profile` — launchSettings.json'daki
-    // hazirlanmis profiller devreye girmesin, cikti temiz olsun.
+    // --no-launch-profile: launchSettings.json profillerini devre disi birak (temiz cikti,
+    //                      swagger browser popup yok).
+    // --urls: explicit port ver. Aksi halde ASP.NET default 5000'e dusuyor,
+    //         3 servis 5000'e sikisiyor + iki fail.
+    // -- (double dash): dotnet run bunun sonrasindakileri uygulamaya iletir.
     const proc = spawn(
       'dotnet',
-      ['run', '--project', svc.csprojPath, '--no-launch-profile'],
+      ['run', '--project', svc.csprojPath, '--no-launch-profile', '--', '--urls', svc.applicationUrl],
       {
         // Windows'ta dotnet PATH'te. shell:true gerekmez cunku args ayri.
         shell: false,
