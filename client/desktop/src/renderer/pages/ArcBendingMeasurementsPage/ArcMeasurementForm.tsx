@@ -452,18 +452,43 @@ export default function ArcMeasurementForm({
   )
   const anyInfeasible = feasibilities.some((f) => !f.feasible)
 
-  //   LEADING FIRE hesap (mekanikçi direktifi 2026-09-07):
-  //   İlk segmentin düzlüğü 500mm'den az ise, parçaya leading tarafından fire eklenmesi gerek
-  //   (Seg1 ÖNDEN büküm — Middle mode — yapabilsin diye). Operatörün parça boyunu artırıp
-  //   parçayı fire kadar uzun kesmesi lazım. Backend Aynı hesabı yapıyor
-  //   (ArcBudgetCalculator.LeadingFireThresholdMm = 500).
-  const LEADING_FIRE_THRESHOLD_MM = 500
+  //   MEKANİKÇİ KURALI (2026-09-07):
+  //   - leading ≥ 500 → FORWARD, extension yok, Seg1 Middle
+  //   - trailing ≥ 500 (leading kısa) → REVERSE, extension yok, parça sonundan başla
+  //   - her ikisi < 500 → HANGİSİ BÜYÜKSE 500'e tamamla:
+  //       leading > trailing: leading'e fire (kesilecek), FORWARD
+  //       trailing ≥ leading: trailing'e material (kalır), REVERSE
+  //   Backend aynı kural ArcBudgetCalculator.DecideExtension'da.
+  const MIDDLE_THRESHOLD_MM = 500
   const firstSegDuz = values.segments.length > 0 ? parseFloat(values.segments[0].L) : NaN
-  const leadingFireMm = Number.isFinite(firstSegDuz) && firstSegDuz >= 0
-    ? Math.max(0, LEADING_FIRE_THRESHOLD_MM - firstSegDuz)
-    : 0
-  const requiredLTWithFireMm = cumulativeRaw + leadingFireMm
-  const partLengthInsufficientForFire = leadingFireMm > 0 && ltValid && ltMm < requiredLTWithFireMm - 1
+  const validFirstDuz = Number.isFinite(firstSegDuz) && firstSegDuz >= 0
+  const trailingMm = ltValid ? Math.max(0, ltMm - cumulativeRaw) : 0
+  const leadingOk = validFirstDuz && firstSegDuz >= MIDDLE_THRESHOLD_MM
+  const trailingOk = ltValid && trailingMm >= MIDDLE_THRESHOLD_MM
+
+  let leadingFireMm = 0
+  let trailingExtMm = 0
+  let executionDirection: 'Forward' | 'Reverse' = 'Forward'
+
+  if (validFirstDuz) {
+    if (leadingOk) {
+      executionDirection = 'Forward'
+    } else if (trailingOk) {
+      executionDirection = 'Reverse'
+    } else if (ltValid) {
+      // Her ikisi de eşik altı — hangisi büyükse onu tamamla
+      if (firstSegDuz >= trailingMm) {
+        executionDirection = 'Forward'
+        leadingFireMm = MIDDLE_THRESHOLD_MM - firstSegDuz
+      } else {
+        executionDirection = 'Reverse'
+        trailingExtMm = MIDDLE_THRESHOLD_MM - trailingMm
+      }
+    }
+  }
+  const totalExtensionMm = leadingFireMm + trailingExtMm
+  const requiredLTMm = ltMm + totalExtensionMm
+  const partLengthInsufficientForFire = totalExtensionMm > 0 && ltValid && ltMm < requiredLTMm - 1
 
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
@@ -604,27 +629,63 @@ export default function ArcMeasurementForm({
               })}
             </div>
 
-            {/* LEADING FIRE uyarısı — ilk düzlük 500mm'den küçük ise (2026-09-07) */}
-            {leadingFireMm > 0 && anyBudgetValid && (
-              <div className={partLengthInsufficientForFire ? styles.fireWarnBad : styles.fireWarnOk}>
-                {partLengthInsufficientForFire ? (
-                  <>
+            {/* MEKANİKÇİ KURALI uyarı bandı (2026-09-07 revize) */}
+            {anyBudgetValid && validFirstDuz && ltValid && (
+              <>
+                {/* Extension gerekli — parça yetersiz (turuncu, kalın) */}
+                {partLengthInsufficientForFire && leadingFireMm > 0 && (
+                  <div className={styles.fireWarnBad}>
                     <div className={styles.fireWarnHead}>
-                      ⚠ Parçanızı <b>{leadingFireMm.toFixed(0)} mm</b> uzatın
+                      ⚠ Parçanızı <b>{leadingFireMm.toFixed(0)} mm</b> uzatın (başına fire)
                     </div>
                     <div className={styles.fireWarnBody}>
-                      Yeni parça boyu (LT): <b>{requiredLTWithFireMm.toFixed(0)} mm</b> olmalı
+                      Yeni parça boyu (LT): <b>{requiredLTMm.toFixed(0)} mm</b> olmalı
                       &nbsp;(şu an <b>{ltMm.toFixed(0)} mm</b>).
                       Uzatılan {leadingFireMm.toFixed(0)} mm büküm sonrası kesilecek.
                     </div>
-                  </>
-                ) : (
-                  <div className={styles.fireWarnHead}>
-                    ℹ İlk düzlüğe <b>{leadingFireMm.toFixed(0)} mm</b> fire eklenecek —
-                    parça boyu ({ltMm.toFixed(0)} mm) yeterli. Fire büküm sonrası kesilecek.
                   </div>
                 )}
-              </div>
+                {partLengthInsufficientForFire && trailingExtMm > 0 && (
+                  <div className={styles.fireWarnBad}>
+                    <div className={styles.fireWarnHead}>
+                      ⚠ Parçanızı <b>{trailingExtMm.toFixed(0)} mm</b> uzatın (sonuna güvenlik payı)
+                    </div>
+                    <div className={styles.fireWarnBody}>
+                      Yeni parça boyu (LT): <b>{requiredLTMm.toFixed(0)} mm</b> olmalı
+                      &nbsp;(şu an <b>{ltMm.toFixed(0)} mm</b>).
+                      Ek parça ucunda kalır (kesilmez). Büküm parçanın SONUNDAN başlar.
+                    </div>
+                  </div>
+                )}
+                {/* Extension gerekmez ama Reverse mode aktif (info) */}
+                {!partLengthInsufficientForFire && executionDirection === 'Reverse' && totalExtensionMm === 0 && (
+                  <div className={styles.fireWarnOk}>
+                    <div className={styles.fireWarnHead}>
+                      ℹ Büküm parçanın SONUNDAN başlayacak
+                    </div>
+                    <div className={styles.fireWarnBody}>
+                      Parça sonu ({trailingMm.toFixed(0)} mm) yeterli, ilk düzlük ({firstSegDuz.toFixed(0)} mm) kısa.
+                      Ek malzeme gerekmez. Bükümün sonu operatör Seg 1 pozisyonunda biter.
+                    </div>
+                  </div>
+                )}
+                {/* Extension yapıldı, parça yeterli (info) */}
+                {!partLengthInsufficientForFire && totalExtensionMm > 0 && (
+                  <div className={styles.fireWarnOk}>
+                    <div className={styles.fireWarnHead}>
+                      {leadingFireMm > 0
+                        ? `ℹ İlk düzlüğe ${leadingFireMm.toFixed(0)} mm fire eklenecek`
+                        : `ℹ Parça sonuna ${trailingExtMm.toFixed(0)} mm güvenlik payı eklenecek`}
+                    </div>
+                    <div className={styles.fireWarnBody}>
+                      Parça boyu ({ltMm.toFixed(0)} mm) yeterli.
+                      {leadingFireMm > 0
+                        ? ' Fire büküm sonrası kesilecek.'
+                        : ' Ek parça ucunda kalır. Büküm parçanın SONUNDAN başlar.'}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Toplam bütçe + kalan gösterge */}

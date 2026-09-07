@@ -59,14 +59,23 @@ function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
   }, 0)
   if (cumulativeRaw > ltMm) return false
 
-  //   LEADING FIRE kontrolü (mekanikçi direktifi 2026-09-07):
-  //   İlk düzlük < 500mm ise, parça boyu fire dahil olacak şekilde uzatılmalı.
-  //   Aksi halde backend job start'ta reject eder → UI erken block.
-  const LEADING_FIRE_THRESHOLD_MM = 500
+  //   MEKANİKÇİ KURALI (2026-09-07): mode + extension
+  //   - leading ≥ 500 → OK
+  //   - trailing ≥ 500 (leading kısa) → REVERSE, OK
+  //   - her ikisi < 500 → hangisi büyükse 500'e tamamla, extension gerek
+  const MIDDLE_THRESHOLD_MM = 500
   const firstSegDuz = parseFloat(v.segments[0]?.L ?? '')
   if (Number.isFinite(firstSegDuz) && firstSegDuz >= 0) {
-    const leadingFire = Math.max(0, LEADING_FIRE_THRESHOLD_MM - firstSegDuz)
-    if (leadingFire > 0 && ltMm < cumulativeRaw + leadingFire - 1) return false
+    const trailing = Math.max(0, ltMm - cumulativeRaw)
+    const leadingOk = firstSegDuz >= MIDDLE_THRESHOLD_MM
+    const trailingOk = trailing >= MIDDLE_THRESHOLD_MM
+    if (!leadingOk && !trailingOk) {
+      // Extension gerekli — hangisi büyükse onu 500'e tamamla
+      const ext = MIDDLE_THRESHOLD_MM - Math.max(firstSegDuz, trailing)
+      if (ext > 0 && ltMm < ltMm + ext - 1) return false  // = ext > 0 kontrolü
+      // Yani: ext > 0 varsa parça uzatma gerek, İLERİ disabled
+      if (ext > 0) return false
+    }
   }
 
   //   Feasibility kontrolü — herhangi bir segment imkânsızsa (T/XA1 kuralı ihlal)
