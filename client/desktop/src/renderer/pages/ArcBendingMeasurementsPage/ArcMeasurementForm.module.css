@@ -414,6 +414,38 @@
   color: #a93226;
 }
 
+/* LEADING FIRE uyarısı (2026-09-07) — ilk düzlük 500mm'den kısa → parça uzatma gerek */
+.fireWarnBad {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  margin-top: 8px;
+  background-color: rgba(230, 126, 34, 0.15);
+  border-left: 4px solid #d35400;
+  color: #7e3d10;
+}
+
+.fireWarnOk {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: 8px;
+  background-color: rgba(52, 152, 219, 0.1);
+  border-left: 4px solid #2980b9;
+  color: #1c5f89;
+}
+
+.fireWarnHead {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.fireWarnBody {
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 /* ── Segment imkânsızlık uyarısı (T/XA1 kuralları) ── */
 .segmentCardInfeasible {
   background-color: rgba(231, 76, 60, 0.08);
