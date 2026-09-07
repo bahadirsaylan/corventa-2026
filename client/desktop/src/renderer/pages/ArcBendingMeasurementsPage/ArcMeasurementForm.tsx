@@ -452,19 +452,6 @@ export default function ArcMeasurementForm({
   )
   const anyInfeasible = feasibilities.some((f) => !f.feasible)
 
-  //   LEADING FIRE hesap (mekanikçi direktifi 2026-09-07):
-  //   İlk segmentin düzlüğü 500mm'den az ise, parçaya leading tarafından fire eklenmesi gerek
-  //   (Seg1 ÖNDEN büküm — Middle mode — yapabilsin diye). Operatörün parça boyunu artırıp
-  //   parçayı fire kadar uzun kesmesi lazım. Backend Aynı hesabı yapıyor
-  //   (ArcBudgetCalculator.LeadingFireThresholdMm = 500).
-  const LEADING_FIRE_THRESHOLD_MM = 500
-  const firstSegDuz = values.segments.length > 0 ? parseFloat(values.segments[0].L) : NaN
-  const leadingFireMm = Number.isFinite(firstSegDuz) && firstSegDuz >= 0
-    ? Math.max(0, LEADING_FIRE_THRESHOLD_MM - firstSegDuz)
-    : 0
-  const requiredLTWithFireMm = cumulativeRaw + leadingFireMm
-  const partLengthInsufficientForFire = leadingFireMm > 0 && ltValid && ltMm < requiredLTWithFireMm - 1
-
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return values[numpadTarget.field] ?? ''
@@ -604,36 +591,11 @@ export default function ArcMeasurementForm({
               })}
             </div>
 
-            {/* LEADING FIRE uyarısı — ilk düzlük 500mm'den küçük ise (2026-09-07) */}
-            {leadingFireMm > 0 && anyBudgetValid && (
-              <div className={partLengthInsufficientForFire ? styles.fireWarnBad : styles.fireWarnOk}>
-                {partLengthInsufficientForFire ? (
-                  <>
-                    <div className={styles.fireWarnHead}>
-                      ⚠ Parçanızı <b>{leadingFireMm.toFixed(0)} mm</b> uzatın
-                    </div>
-                    <div className={styles.fireWarnBody}>
-                      Yeni parça boyu (LT): <b>{requiredLTWithFireMm.toFixed(0)} mm</b> olmalı
-                      &nbsp;(şu an <b>{ltMm.toFixed(0)} mm</b>).
-                      Uzatılan {leadingFireMm.toFixed(0)} mm büküm sonrası kesilecek.
-                    </div>
-                  </>
-                ) : (
-                  <div className={styles.fireWarnHead}>
-                    ℹ İlk düzlüğe <b>{leadingFireMm.toFixed(0)} mm</b> fire eklenecek —
-                    parça boyu ({ltMm.toFixed(0)} mm) yeterli. Fire büküm sonrası kesilecek.
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Toplam bütçe + kalan gösterge */}
             {anyBudgetValid && (
               <div
                 className={`${styles.totalBudgetInfo} ${
-                  remainingOverflow || anyInfeasible || partLengthInsufficientForFire
-                    ? styles.budgetOver
-                    : styles.budgetOk
+                  remainingOverflow || anyInfeasible ? styles.budgetOver : styles.budgetOk
                 }`}
               >
                 <span>
