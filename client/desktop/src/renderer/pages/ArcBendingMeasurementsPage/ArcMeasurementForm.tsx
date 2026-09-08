@@ -103,7 +103,7 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
 const MAIN_LEFT: ArcMainFieldKey[] = ['A', 'B', 'S', 'H']
 const MAIN_RIGHT: ArcMainFieldKey[] = ['P', 'G', 'LT']
 
-export type ArcFormStage = 'main' | 'segments'
+export type ArcFormStage = 'main' | 'segments' | 'summary'
 
 interface Props {
   values: ArcMeasurementValues

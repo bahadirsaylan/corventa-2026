@@ -12,6 +12,7 @@ import ArcMeasurementForm, {
   mainFieldsValid,
 } from './ArcMeasurementForm'
 import ArcPlanConfirmModal from './ArcPlanConfirmModal'
+import ArcPlanSummary from './ArcPlanSummary'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
@@ -108,7 +109,11 @@ export default function ArcBendingMeasurementsPage() {
   // ONAYLA akışı state'i.
   const [validating, setValidating] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+  //   planResult: backend'den dönen ham sonuç. Modal (extension/reversal onayı) için.
+  //   acceptedPlan: kullanıcı modal'ı onayladıktan sonra (veya modal gerekmediyse) saklanır;
+  //   aşama 3 (summary) bunu okur, tekrar segmentleri düzenlemek istenirse null'a döner.
   const [planResult, setPlanResult] = useState<ValidateArcPlanResponse | null>(null)
+  const [acceptedPlan, setAcceptedPlan] = useState<ValidateArcPlanResponse | null>(null)
 
   function handleReset() {
     setValues({ ...EMPTY, segments: [] })
@@ -116,6 +121,7 @@ export default function ArcBendingMeasurementsPage() {
     setStage('main')
     setValidationError(null)
     setPlanResult(null)
+    setAcceptedPlan(null)
   }
 
   // Segmentleri backend planner formatına çevir (α her durumda dolu — form sync effect halleder).
@@ -146,9 +152,9 @@ export default function ArcBendingMeasurementsPage() {
       }
       setPlanResult(res)
       setValidating(false)
-      // Uzatma YOK ve ters YOK ise direkt devam et — modal göstermeye gerek yok.
+      // Uzatma YOK ve ters YOK ise direkt aşama 3'e geç — modal göstermeye gerek yok.
       if ((res.extensionMm ?? 0) === 0 && !res.isReversed) {
-        finalizePlanAndNavigate(res)
+        acceptPlanAndGoToSummary(res)
       }
     } catch (err: unknown) {
       setValidationError(err instanceof Error ? err.message : String(err))
@@ -156,7 +162,9 @@ export default function ArcBendingMeasurementsPage() {
     }
   }
 
-  function finalizePlanAndNavigate(res: ValidateArcPlanResponse) {
+  // 2026-09-08: Plan kabul → store'a yaz + aşama 3 (summary) göster.
+  //   Part-loading'e geçiş operatörün "İLERİ" onayına bırakıldı → aşama 3 → part-loading.
+  function acceptPlanAndGoToSummary(res: ValidateArcPlanResponse) {
     const p = parseInt(values.P, 10)
 
     // Ayarlanmış segmentler backend'den geldiyse onları kullan, yoksa mevcut.
@@ -189,7 +197,20 @@ export default function ArcBendingMeasurementsPage() {
         isReversedOrder: res.isReversed ?? false,
       },
     })
+    setAcceptedPlan(res)
+    setStage('summary')
+    setPlanResult(null) // Modal'ı kapat (varsa)
+  }
+
+  function handleSummaryProceed() {
     navigate('/bending/ai/part-loading')
+  }
+
+  function handleSummaryBack() {
+    // Aşama 3'ten aşama 2'ye dön — kullanıcı segment düzenlemek isteyebilir. Plan sıfırlanır,
+    // ONAYLA tekrar bastırılacak. Store'daki değerler kalır (kullanıcı geri gelirse görür).
+    setAcceptedPlan(null)
+    setStage('segments')
   }
 
   return (
@@ -202,27 +223,39 @@ export default function ArcBendingMeasurementsPage() {
       <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
 
       <div className={styles.content}>
-        <ArcMeasurementForm
-          values={values}
-          onChange={setValues}
-          onReset={handleReset}
-          inputMode={inputMode}
-          onInputModeChange={setInputMode}
-          stage={stage}
-        />
+        {stage === 'summary' && acceptedPlan ? (
+          <ArcPlanSummary values={values} plan={acceptedPlan} />
+        ) : (
+          <ArcMeasurementForm
+            values={values}
+            onChange={setValues}
+            onReset={handleReset}
+            inputMode={inputMode}
+            onInputModeChange={setInputMode}
+            stage={stage}
+          />
+        )}
       </div>
 
-      {stage === 'main' ? (
+      {stage === 'main' && (
         <StatusBar
           backTo="/bending/ai/method"
           confirmDisabled={!mainFieldsValid(values)}
           onConfirm={() => setStage('segments')}
         />
-      ) : (
+      )}
+      {stage === 'segments' && (
         <StatusBar
           onBack={() => setStage('main')}
           confirmDisabled={!isComplete(values, inputMode) || validating}
           onConfirm={handleConfirmClick}
+        />
+      )}
+      {stage === 'summary' && (
+        <StatusBar
+          onBack={handleSummaryBack}
+          confirmDisabled={false}
+          onConfirm={handleSummaryProceed}
         />
       )}
 
@@ -256,8 +289,7 @@ export default function ArcBendingMeasurementsPage() {
           onCancel={() => setPlanResult(null)}
           onAccept={() => {
             const p = planResult
-            setPlanResult(null)
-            finalizePlanAndNavigate(p)
+            acceptPlanAndGoToSummary(p)
           }}
         />
       )}
