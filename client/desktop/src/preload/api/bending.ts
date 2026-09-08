@@ -15,6 +15,8 @@ import {
   type SimilarBendingJobRequest,
   type SimilarBendingJobResponse,
   type StartJobResponse,
+  type ValidateArcPlanRequest,
+  type ValidateArcPlanResponse,
 } from '@shared'
 
 export const bendingApi = {
@@ -23,6 +25,10 @@ export const bendingApi = {
 
   preview: (req: BendingPreviewRequest): Promise<BendingPreviewResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.BendingPreview, req),
+
+  // 2026-09-08: Arc onayla — segmentleri backend planner'a gönder, uzatma + sıralama kararı al.
+  validateArcPlan: (req: ValidateArcPlanRequest): Promise<ValidateArcPlanResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.BendingArcValidatePlan, req),
 
   recommendStage: (profileA: number): Promise<RecommendStageResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.RecommendStage, profileA),

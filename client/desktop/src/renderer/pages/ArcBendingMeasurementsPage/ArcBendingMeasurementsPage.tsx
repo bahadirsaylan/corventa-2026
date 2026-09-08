@@ -8,25 +8,26 @@ import ArcMeasurementForm, {
   ArcInputMode,
   ArcMeasurementValues,
   ArcSegmentValues,
-  DEFAULT_MEASUREMENT_DISTANCE_MM,
-  DEFAULT_XA1_ABS_MM,
-  computeAllFeasibilities,
+  MIN_ARC_LENGTH_MM,
   mainFieldsValid,
-  makeEmptySegment,
 } from './ArcMeasurementForm'
+import ArcPlanConfirmModal from './ArcPlanConfirmModal'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
 
 const EMPTY: ArcMeasurementValues = {
   A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
   segments: [],
 }
 
-// isComplete: ana bilgiler + P adet segment tam olarak dolmalı VE hiçbir segment
-// imkânsız olmamalı (T + XA1 kuralları — feasibility) VE segmentlerin toplam RAW
-// mesafesi LT'yi aşmamalı (budget overflow).
-// Mode'a göre segment gereklilik: angle → Alpha zorunlu, arcLen → ArcLen zorunlu (form sync effect
-// diğerini R + kaynak'tan doldurur, yani genelde ikisi de dolu olur ama zorunluluk sadece kaynağa).
+// 2026-09-08 refactor:
+//   Aşama 2'de ONAYLA basılınca backend'in ArcExtensionPlanner'ına gönderilir. Backend
+//   bükülebilirlik + ölçülebilirlik kontrolü + gerekiyorsa parça uzatma + sıralama
+//   tersine çevirme kararı döner. Uzatma varsa modal ile onay istenir; onaydan sonra
+//   segments/LT store'da ayarlanıp part-loading'e geçilir.
+//   isComplete artık SADECE ana alanların dolu, segment alanlarının dolu, budget aşımı
+//   yok ve min-yay ihlali yok kontrolü yapar. Bükülebilirlik/ölçülebilirlik backend'de.
 function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
   const mainRequired: Array<keyof Omit<ArcMeasurementValues, 'segments'>> = [
     'A', 'B', 'S', 'H', 'P', 'G', 'LT',
@@ -46,26 +47,21 @@ function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
   )
   if (!allFieldsFilled) return false
 
-  //   Budget overflow kontrolü — segmentlerin toplam RAW mesafesi (yay + düzlük)
-  //   LT'yi aşmamalı. Aşarsa backend zaten reject eder ama UI'da erken block.
+  // Budget overflow — segmentlerin toplam RAW mesafesi LT'yi aşmamalı.
   const ltMm = parseFloat(v.LT) || 0
-  const cumulativeRaw = v.segments.reduce((sum, seg) => {
+  let cumulativeRaw = 0
+  for (const seg of v.segments) {
     const R = parseFloat(seg.R)
     const alpha = parseFloat(seg.Alpha)
     const L = parseFloat(seg.L)
-    if (!(R > 0 && alpha > 0 && alpha < 180)) return sum
+    if (!(R > 0 && alpha > 0 && alpha < 180)) return false
     const arc = (2 * Math.PI * R * (180 - alpha)) / 360
-    return sum + arc + (Number.isFinite(L) ? L : 0)
-  }, 0)
+    if (arc < MIN_ARC_LENGTH_MM) return false
+    cumulativeRaw += arc + (Number.isFinite(L) ? L : 0)
+  }
   if (cumulativeRaw > ltMm) return false
 
-  //   Feasibility kontrolü — herhangi bir segment imkânsızsa (T/XA1 kuralı ihlal)
-  //   submit disable. Backend zaten DataApi validation'da reject eder, UI erken uyarı.
-  const feasibilities = computeAllFeasibilities(
-    v.segments, p, ltMm, 100 /*safety*/,
-    DEFAULT_MEASUREMENT_DISTANCE_MM, DEFAULT_XA1_ABS_MM,
-  )
-  return feasibilities.every((f) => f.feasible)
+  return true
 }
 
 function segmentToStore(seg: ArcSegmentValues): ArcSegmentParams {
@@ -80,7 +76,6 @@ function segmentFromStore(seg: ArcSegmentParams): ArcSegmentValues {
   return {
     R: seg.R != null ? String(seg.R) : '',
     Alpha: seg.Alpha != null ? String(seg.Alpha) : '',
-    // ArcLen store'da tutulmuyor — form sync effect hesaplar
     ArcLen: '',
     L: seg.L != null ? String(seg.L) : '',
   }
@@ -108,23 +103,74 @@ export default function ArcBendingMeasurementsPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   const [values, setValues] = useState<ArcMeasurementValues>(() => fromStore(arcBending))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
-  // 2026-09-03: 2-aşamalı wizard — 'main' (ana parametreler) / 'segments' (segment kartları).
   const [stage, setStage] = useState<ArcFormStage>('main')
+
+  // ONAYLA akışı state'i.
+  const [validating, setValidating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [planResult, setPlanResult] = useState<ValidateArcPlanResponse | null>(null)
 
   function handleReset() {
     setValues({ ...EMPTY, segments: [] })
     setParams({ arcBending: null })
     setStage('main')
+    setValidationError(null)
+    setPlanResult(null)
   }
 
-  function handleConfirm() {
-    // Backend her durumda α bekler. ArcLen mode'da form sync effect Alpha alanını doldurmuş olur.
+  // Segmentleri backend planner formatına çevir (α her durumda dolu — form sync effect halleder).
+  function segmentsToPlannerRequest(): ValidateArcPlanSegment[] {
+    return values.segments.map((seg, i) => ({
+      segmentOrder: i + 1,
+      radiusMm: parseFloat(seg.R),
+      angleDeg: parseFloat(seg.Alpha),
+      straightAfterMm: parseFloat(seg.L),
+    }))
+  }
+
+  async function handleConfirmClick() {
+    setValidating(true)
+    setValidationError(null)
+    setPlanResult(null)
+    try {
+      const req = {
+        partLengthMm: parseFloat(values.LT),
+        xa1AbsMm: 0, // Backend default (Stage 2 = 465). Gelecekte stage'e göre doldurulabilir.
+        segments: segmentsToPlannerRequest(),
+      }
+      const res = await window.corventa.bending.validateArcPlan(req)
+      if (!res || res.success === false) {
+        setValidationError(res?.error || 'Backend hesaplama başarısız')
+        setValidating(false)
+        return
+      }
+      setPlanResult(res)
+      setValidating(false)
+      // Uzatma YOK ve ters YOK ise direkt devam et — modal göstermeye gerek yok.
+      if ((res.extensionMm ?? 0) === 0 && !res.isReversed) {
+        finalizePlanAndNavigate(res)
+      }
+    } catch (err: unknown) {
+      setValidationError(err instanceof Error ? err.message : String(err))
+      setValidating(false)
+    }
+  }
+
+  function finalizePlanAndNavigate(res: ValidateArcPlanResponse) {
     const p = parseInt(values.P, 10)
-    // Segments dizisi P kadar olmalı; form useEffect zaten senkronize etti ama defensive:
-    const normalizedSegments =
-      values.segments.length === p
-        ? values.segments
-        : Array.from({ length: p }, (_, i) => values.segments[i] ?? makeEmptySegment())
+
+    // Ayarlanmış segmentler backend'den geldiyse onları kullan, yoksa mevcut.
+    const adjSegs = res.adjustedSegments && res.adjustedSegments.length === p
+      ? res.adjustedSegments.map<ArcSegmentParams>((s) => ({
+          R: s.radiusMm,
+          Alpha: s.angleDeg,
+          L: s.straightAfterMm,
+        }))
+      : values.segments.slice(0, p).map(segmentToStore)
+
+    const finalLT = res.adjustedPartLengthMm && res.adjustedPartLengthMm > 0
+      ? res.adjustedPartLengthMm
+      : parseFloat(values.LT)
 
     setParams({
       arcBending: {
@@ -134,8 +180,13 @@ export default function ArcBendingMeasurementsPage() {
         H: parseFloat(values.H),
         P: p,
         G: parseFloat(values.G),
-        LTotal: parseFloat(values.LT),
-        segments: normalizedSegments.map(segmentToStore),
+        LTotal: finalLT,
+        segments: adjSegs.length === p
+          ? adjSegs
+          : Array.from({ length: p }, (_, i) => adjSegs[i] ?? {
+              R: null, Alpha: null, L: null,
+            } as ArcSegmentParams),
+        isReversedOrder: res.isReversed ?? false,
       },
     })
     navigate('/bending/ai/part-loading')
@@ -143,18 +194,13 @@ export default function ArcBendingMeasurementsPage() {
 
   return (
     <div className={styles.page}>
-
-      {/* ── Header ──────────────────────────────── */}
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
         label="ARTIFICIAL INTELLIGENCE MODE"
       />
-
-      {/* ── Title ───────────────────────────────── */}
       <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
 
-      {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
         <ArcMeasurementForm
           values={values}
@@ -166,7 +212,6 @@ export default function ArcBendingMeasurementsPage() {
         />
       </div>
 
-      {/* ── Bottom status bar ───────────────────── */}
       {stage === 'main' ? (
         <StatusBar
           backTo="/bending/ai/method"
@@ -176,11 +221,46 @@ export default function ArcBendingMeasurementsPage() {
       ) : (
         <StatusBar
           onBack={() => setStage('main')}
-          confirmDisabled={!isComplete(values, inputMode)}
-          onConfirm={handleConfirm}
+          confirmDisabled={!isComplete(values, inputMode) || validating}
+          onConfirm={handleConfirmClick}
         />
       )}
 
+      {/* Loading overlay (validate-plan sırasında) */}
+      {validating && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingBox}>
+            <div className={styles.spinner} />
+            <div>KIVRIM PLANI HESAPLANIYOR...</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hata modalı */}
+      {validationError && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingBox}>
+            <div className={styles.errorHead}>⚠ HESAPLAMA HATASI</div>
+            <div className={styles.errorBody}>{validationError}</div>
+            <button className={styles.errorBtn} onClick={() => setValidationError(null)}>
+              TAMAM
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Plan sonuç modalı — sadece extension veya reversal varsa */}
+      {planResult && ((planResult.extensionMm ?? 0) > 0 || planResult.isReversed) && (
+        <ArcPlanConfirmModal
+          plan={planResult}
+          onCancel={() => setPlanResult(null)}
+          onAccept={() => {
+            const p = planResult
+            setPlanResult(null)
+            finalizePlanAndNavigate(p)
+          }}
+        />
+      )}
     </div>
   )
 }

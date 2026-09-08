@@ -71,6 +71,40 @@ export interface ApplyStageRequest {
   speedPercent: number
 }
 
+// POST /api/bending/arc/validate-plan — 2026-09-08
+// Operatör segmentleri girip ONAYLA'ya basınca backend ArcExtensionPlanner çağrılır.
+// Bükülebilirlik (XA1) + ölçülebilirlik (850mm) kontrolü + gerekiyorsa parça uzatma
+// + sıralama tersine çevirme kararı.
+export interface ValidateArcPlanRequest {
+  partLengthMm: number
+  /** |XA1| mutlak (mm). 0 gönderilirse backend default 465 (Stage 2) kullanır. */
+  xa1AbsMm: number
+  segments: ValidateArcPlanSegment[]
+}
+
+export interface ValidateArcPlanSegment {
+  segmentOrder: number
+  /** YARIÇAP (mm). UI çap topluyorsa /2 gönder. */
+  radiusMm: number
+  angleDeg: number
+  /** Bu segment sonrası düz mesafe. Seg1 için: leading straight. */
+  straightAfterMm: number
+}
+
+export type ArcExtensionSide = 'None' | 'Leading' | 'Trailing'
+
+export interface ValidateArcPlanResponse {
+  success: boolean
+  error?: string
+  isReversed?: boolean
+  extensionMm?: number
+  side?: ArcExtensionSide
+  isMeasurementOnly?: boolean
+  adjustedPartLengthMm?: number
+  adjustedSegments?: ValidateArcPlanSegment[]
+  warningMessage?: string
+}
+
 // POST /api/bending-job/{id}/start  (no body)
 export interface StartJobResponse {
   success: boolean

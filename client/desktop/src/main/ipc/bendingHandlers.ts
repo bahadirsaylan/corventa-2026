@@ -20,6 +20,11 @@ export function registerBendingHandlers(): void {
     return engineApi.preview(req)
   })
 
+  ipcMain.handle(Ipc.IpcInvoke.BendingArcValidatePlan, async (_evt, req) => {
+    log.info('arc-validate-plan', { req })
+    return engineApi.validateArcPlan(req)
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.RecommendStage, async (_evt, profileA: number) => {
     log.debug('recommend-stage', { profileA })
     return engineApi.recommendStage(profileA)

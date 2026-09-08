@@ -63,6 +63,12 @@ export interface ArcBendingParams {
    * mapper backend'e segments: [{ segmentOrder: 1, R, α, L }, ...] olarak gönderir.
    */
   segments: ArcSegmentParams[]
+  /**
+   * 2026-09-08: Arc planner (ONAYLA) sonucu. Segmentler backend'e orijinal sırada
+   * gider ama true ise runtime handler ters iterasyon yapar (SegN önce). Null =
+   * planner hiç çağrılmadı (eski akış — backward compat).
+   */
+  isReversedOrder?: boolean | null
 }
 
 // ── Spiral bending measurements ───────────────────────────────────────────────

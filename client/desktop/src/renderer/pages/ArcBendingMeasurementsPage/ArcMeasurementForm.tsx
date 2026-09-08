@@ -131,12 +131,9 @@ function computeAngleFromArc(radiusMm: number, arcMm: number): number {
 }
 
 // Backend varsayılanları — MachineSettings alanlarıyla eşleşir. Runtime fetch yerine
-// sabit tutuldu; kullanıcı UI erken uyarı için bakar, backend gerçek DB değerleriyle
-// son kararı verir (kalibrasyon değişirse UI biraz drift eder ama backend reject/kabul
-// mercii her zaman kesindir).
-const DEFAULT_SAFETY_MM = 100                    // MachineSettings.DefaultSafetyMarginMm
-export const DEFAULT_MEASUREMENT_DISTANCE_MM = 850  // MachineSettings.DefaultMeasurementDistanceMm — "T"
-export const DEFAULT_XA1_ABS_MM = 465            // |MachineSettings.DefaultXA1| — Stage 2 default (2026-08-24)
+// sabit tutuldu; sadece bütçe göstergesindeki "seg1 min=safety" ve "son yay -safety"
+// notları için kullanılır. Backend planner XA1/T gerçek DB değerleriyle son kararı verir.
+const DEFAULT_SAFETY_MM = 100
 
 interface SegmentBudget {
   arc: number         // ham yay (mm)
@@ -157,124 +154,14 @@ function calcSegmentBudget(
   return { arc, effArc, effStraight, total: effArc + effStraight, valid: true }
 }
 
-// Segment imkân kontrolü (2026-08-24 revize — mod matrisi + min yay):
-//   Min yay: L_yay ≥ 250mm (SLPIS prop çubuğu minimum ölçüm mesafesi).
-//   Kural 1 (T): yay < T ise (yay + kalan_raw) ≥ T olmalı; aksi halde ölçüm imkânsız.
-//   Kural 2 (XA1 matrisi — mod belirleme):
-//     Düzlük > XA1 && Kalan > XA1 → Middle mod
-//     Düzlük < XA1 && Kalan > XA1 → Normal mod
-//     Düzlük > XA1 && Kalan < XA1 → ReverseNormal (ters büküm, yay boyunca geri döner)
-//     Düzlük < XA1 && Kalan < XA1 → İmkânsız (hiçbir mod çalışmaz)
-export type SegmentMode = 'normal' | 'middle' | 'reverse-normal'
-
+// 2026-09-08: Per-segment XA1/T feasibility ARTIK YOK. Bunun yerine tüm plan
+// (bükülebilirlik, ölçülebilirlik, parça uzatma, sıralama) ONAYLA butonuna basınca
+// backend'in ArcExtensionPlanner'ına gönderiliyor (POST /api/bending/arc/validate-plan).
+// UI'da sadece hafif validasyonlar kalır:
+//   - R/α/L numeric ve geçerli
+//   - yay ≥ 250mm (SLPIS min ölçüm mesafesi — erken uyarı, backend zaten reject eder)
+//   - Toplam bütçe LT'yi aşmasın
 export const MIN_ARC_LENGTH_MM = 250
-
-export interface SegmentFeasibility {
-  feasible: boolean          // false = imkânsız (submit block), true = 3 mod'dan biri seçildi
-  mode?: SegmentMode         // yalnızca feasible=true iken
-  reason?: 'T-measurement' | 'XA1-min' | 'min-arc'
-  detail?: string            // imkânsızlık detayı VEYA ReverseNormal bilgisi
-}
-
-export function checkSegmentFeasibility(
-  arc: number, L: number, remainingAfterSeg: number, partAdvanceBeforeSeg: number,
-  tMm: number, xa1AbsMm: number,
-): SegmentFeasibility {
-  //   Min yay 250mm — SLPIS ölçemez, backend runtime fail
-  if (arc < MIN_ARC_LENGTH_MM) {
-    return {
-      feasible: false,
-      reason: 'min-arc',
-      detail: `Yay uzunluğunu veya Açı değerini arttırın`,
-    }
-  }
-  //   XA1 mod matrisi ÖNCE — mode belirlensin, T kuralı mode'a göre farklı yön kullanacak.
-  const duzlukOk = L > xa1AbsMm
-  const kalanOk = remainingAfterSeg > xa1AbsMm
-  if (!duzlukOk && !kalanOk) {
-    //   Fix: LT'yi (XA1 - kalan + 1)mm arttırırsak kalan XA1'i geçer → Normal mod çalışır.
-    const deficit = Math.max(1, Math.ceil(xa1AbsMm - remainingAfterSeg + 1))
-    return {
-      feasible: false,
-      reason: 'XA1-min',
-      detail: `Parçayı ${deficit}mm arttırın`,
-    }
-  }
-  let mode: SegmentMode
-  let modeDetail: string | undefined
-  if (duzlukOk && kalanOk) {
-    mode = 'middle'
-  } else if (!duzlukOk && kalanOk) {
-    mode = 'normal'
-  } else {
-    //   duzlukOk && !kalanOk → ReverseNormal (ters büküm)
-    mode = 'reverse-normal'
-    modeDetail = `Kalan parça (${remainingAfterSeg.toFixed(1)}mm) |XA1|'den küçük — normal yönde yetmez, ` +
-                 `ters yönde bükülecek (yay boyunca geri döner, ölçüm karşı sensor tarafında).`
-  }
-
-  //   T kuralı — ölçüm için parça yeterli mi (MOD-AWARE):
-  //     Normal + Middle: ölçüm ekstra rot İLERİ yönde → kalan_raw ≥ needed olmalı
-  //     ReverseNormal:   ölçüm ekstra rot GERİ yönde → partAdvance ≥ needed olmalı
-  if (arc < tMm) {
-    const needed = tMm - arc
-    const availableForMeasurement = mode === 'reverse-normal' ? partAdvanceBeforeSeg : remainingAfterSeg
-    const dirLabel = mode === 'reverse-normal' ? 'öndeki parça (partAdvance)' : 'kalan parça'
-    if (availableForMeasurement < needed) {
-      return {
-        feasible: false,
-        reason: 'T-measurement',
-        detail: `Yay ${arc.toFixed(1)}mm < T=${tMm.toFixed(0)}mm; ${mode === 'reverse-normal' ? 'ters' : 'normal'} yönde ` +
-                `ölçüm için ekstra ${needed.toFixed(1)}mm rotasyon lazım ama ${dirLabel} ${availableForMeasurement.toFixed(1)}mm yetersiz.`,
-      }
-    }
-  }
-
-  return { feasible: true, mode, detail: modeDetail }
-}
-
-// Segments listesinin feasibility'sini toplu hesap — Page'in isComplete'ında kullanılır.
-// kalan_seg_sonu = FIZIKSEL RAW kalan (yay + düzlük toplamı, safety uygulanmaz) — kullanıcı
-// bakış açısıyla parçanın seg sonrasında arkada duran uzunluğu.
-export function computeAllFeasibilities(
-  segments: ArcSegmentValues[], totalP: number, ltMm: number, safety: number,
-  tMm: number, xa1AbsMm: number,
-): SegmentFeasibility[] {
-  const result: SegmentFeasibility[] = []
-  let cumRaw = 0
-  for (let i = 0; i < segments.length; i++) {
-    const seg = segments[i]
-    const R = parseFloat(seg.R)
-    const alpha = parseFloat(seg.Alpha)
-    const L = parseFloat(seg.L)
-    const b = calcSegmentBudget(
-      i + 1, totalP,
-      Number.isFinite(R) ? R : 0,
-      Number.isFinite(alpha) ? alpha : 0,
-      Number.isFinite(L) ? L : 0,
-      safety,
-    )
-    //   partAdvanceBeforeSeg: seg dahil edilmeden önceki kümülatif raw (ters bükümde
-    //   ölçüm ekstra rot için parça öncesi tarafta yer var mı diye kullanılır).
-    const partAdvanceBeforeSeg = cumRaw
-    cumRaw += b.arc + (Number.isFinite(L) ? L : 0)   // RAW fiziksel
-    //   Feasibility check yapılabilmesi için: LT girilmiş VE segment geçerli olmalı.
-    //   Aksi halde 'feasible' varsayarız (kullanıcı henüz veri girmedi).
-    if (!b.valid || ltMm <= 0) {
-      result.push({ feasible: true })
-      continue
-    }
-    const remainingRaw = ltMm - cumRaw
-    result.push(
-      checkSegmentFeasibility(
-        b.arc, Number.isFinite(L) ? L : 0,
-        remainingRaw, partAdvanceBeforeSeg,
-        tMm, xa1AbsMm,
-      ),
-    )
-  }
-  return result
-}
 
 export function makeEmptySegment(): ArcSegmentValues {
   return { R: '', Alpha: '', ArcLen: '', L: '' }
@@ -444,13 +331,11 @@ export default function ArcMeasurementForm({
   const remainingOverflow = ltValid && remaining < 0
   const anyBudgetValid = budgets.some((b) => b.valid)
 
-  //   Feasibility: T + XA1 imkân kontrolleri (her segment için).
-  //   LT girilmemişse hesap yapılmaz (kullanıcı henüz yeterli veri girmemiş).
-  const feasibilities = computeAllFeasibilities(
-    values.segments, totalP, ltMm, DEFAULT_SAFETY_MM,
-    DEFAULT_MEASUREMENT_DISTANCE_MM, DEFAULT_XA1_ABS_MM,
-  )
-  const anyInfeasible = feasibilities.some((f) => !f.feasible)
+  //   2026-09-08: Per-segment feasibility (T + XA1) UI'dan kaldırıldı.
+  //   Sadece min-yay (< 250) erken uyarı olarak per-segment kartta gösterilir;
+  //   asıl bükülebilirlik/ölçülebilirlik/uzatma kararı ONAYLA sonrası backend'de
+  //   (ArcExtensionPlanner → /api/bending/arc/validate-plan).
+  const anyMinArcViolation = budgets.some((b) => b.valid && b.arc < MIN_ARC_LENGTH_MM)
 
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
@@ -538,17 +423,16 @@ export default function ArcMeasurementForm({
               )}
               {values.segments.map((_, i) => {
                 const b = budgets[i]
-                const f = feasibilities[i]
+                const minArcViolation = b?.valid && b.arc < MIN_ARC_LENGTH_MM
                 return (
                   <div
                     key={i}
                     className={`${styles.segmentCard} ${
-                      f && !f.feasible ? styles.segmentCardInfeasible : ''
+                      minArcViolation ? styles.segmentCardInfeasible : ''
                     }`}
                   >
                     <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
                     <div className={styles.segmentFields}>
-                      {/* 2026-09-03: sıra L → α/Yay → R (Düzlük, Yay, Radyus) */}
                       {renderSegmentField(i, 'L', 'L')}
                       {inputMode === 'angle'
                         ? renderSegmentField(i, 'Alpha', 'α')
@@ -571,19 +455,12 @@ export default function ArcMeasurementForm({
                         )}
                       </div>
                     )}
-                    {f && !f.feasible && (
+                    {minArcViolation && (
                       <div className={styles.segmentInfeasibleWarn}>
                         <div className={styles.warnHead}>
-                          {f.reason === 'min-arc'
-                            ? '⚠ Yay uzunluğu minimum sınırın altında'
-                            : '⚠ Bu kıvrım mümkün değil, parça uzunluğunu arttırın ya da manuel bükün!'}
+                          ⚠ Yay uzunluğu minimum sınırın altında ({b.arc.toFixed(1)}mm &lt; {MIN_ARC_LENGTH_MM}mm)
                         </div>
-                        <div className={styles.warnDetail}>{f.detail}</div>
-                      </div>
-                    )}
-                    {f && f.feasible && f.mode === 'reverse-normal' && (
-                      <div className={styles.segmentReverseInfo}>
-                        <div className={styles.reverseHead}>🔄 TERS BÜKÜM</div>
+                        <div className={styles.warnDetail}>Yay uzunluğunu veya Açı değerini arttırın</div>
                       </div>
                     )}
                   </div>
@@ -595,7 +472,7 @@ export default function ArcMeasurementForm({
             {anyBudgetValid && (
               <div
                 className={`${styles.totalBudgetInfo} ${
-                  remainingOverflow || anyInfeasible ? styles.budgetOver : styles.budgetOk
+                  remainingOverflow || anyMinArcViolation ? styles.budgetOver : styles.budgetOk
                 }`}
               >
                 <span>
@@ -610,7 +487,7 @@ export default function ArcMeasurementForm({
                   <span>
                     Kalan: <b>{remaining.toFixed(1)}mm</b>
                     {remainingOverflow && ' ⚠ AŞIM'}
-                    {!remainingOverflow && anyInfeasible && ' ⚠ İMKÂNSIZ SEGMENT VAR'}
+                    {!remainingOverflow && anyMinArcViolation && ' ⚠ YAY MİNİMUM ALTINDA'}
                   </span>
                 )}
                 {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}

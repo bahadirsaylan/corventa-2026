@@ -116,6 +116,9 @@ export interface BendingJobCreateRequest {
   arcStepDistanceMm?: number | null       // G — Arc'a özel job-level adım
   kivrimHizMetreDakika?: number | null    // H (m/min) — Arc'a özel hız
   segments?: BendingSegmentInput[]        // İlk segment burada; sonrakiler interactive
+  // 2026-09-08: UI planner (ArcExtensionPlanner) ters sıralamayı önerdiyse true.
+  // Segmentler DB'ye orijinal user-input sırada gider; runtime handler ters çevirir.
+  isReversedArcOrder?: boolean | null
 
   // Sivama-only field (Method=Sivama ise zorunlu; diğer method'larda null)
   sivamaAngleDeg?: number | null          // X — Sıvama ilk rotasyon açısı (derece)

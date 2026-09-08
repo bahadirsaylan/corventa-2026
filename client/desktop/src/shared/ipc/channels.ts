@@ -10,6 +10,7 @@ export const IpcInvoke = {
   // Engine API — bending pipeline
   BendingCalculate: 'bending:calculate',
   BendingPreview: 'bending:preview',
+  BendingArcValidatePlan: 'bending:arc-validate-plan',
   RecommendStage: 'preparation:recommend-stage',
   ApplyStage: 'preparation:apply-stage',
   StartBendingJob: 'bending-job:start',

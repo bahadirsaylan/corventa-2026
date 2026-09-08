@@ -137,16 +137,14 @@ export default function BendingBallsPanel() {
 
       {progress?.awaitingSideSupportConfirmation && (
         <div className={styles.confirmBar}>
-          <span className={styles.confirmText}>
-            YAN DAYAMA AYARINI BİTİRDİYSEN
-          </span>
+          <span className={styles.confirmText}>YAN DAYAMA HAZIR MI?</span>
           <button
             type="button"
             className={styles.confirmBtn}
             onClick={handleConfirmSideSupport}
             disabled={confirming}
           >
-            {confirming ? '...' : '▶ DEVAM ET'}
+            {confirming ? '...' : '▶ DEVAM'}
           </button>
         </div>
       )}

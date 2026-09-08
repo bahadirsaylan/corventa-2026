@@ -18,6 +18,8 @@ import type {
   RotationPositionRequest,
   SideSupportRequest,
   StartJobResponse,
+  ValidateArcPlanRequest,
+  ValidateArcPlanResponse,
 } from '@shared/types'
 
 export class EngineApiClient {
@@ -44,6 +46,12 @@ export class EngineApiClient {
 
   preview(req: BendingPreviewRequest): Promise<BendingPreviewResponse> {
     return http.post<BendingPreviewResponse>(`${this.baseUrl}/api/bending/geometric/preview`, req)
+  }
+
+  // 2026-09-08: Arc segmentlerini backend planner'a gönderir — bükülebilirlik/ölçülebilirlik
+  // kontrolü + parça uzatma + sıralama tersine çevirme kararı. Operatör ONAYLA'ya basınca çağrılır.
+  validateArcPlan(req: ValidateArcPlanRequest): Promise<ValidateArcPlanResponse> {
+    return http.post<ValidateArcPlanResponse>(`${this.baseUrl}/api/bending/arc/validate-plan`, req)
   }
 
   recommendStage(profileA: number): Promise<RecommendStageResponse> {

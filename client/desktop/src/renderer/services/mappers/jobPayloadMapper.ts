@@ -159,6 +159,7 @@ export function mapToCreateRequest(
   let arcStepDistanceMm: number | null | undefined
   let kivrimHizMetreDakika: number | null | undefined
   let segments: BendingSegmentInput[] | undefined
+  let isReversedArcOrder: boolean | undefined
 
   if (params.bendingMethod === 'arc' && params.arcBending) {
     const ab = params.arcBending
@@ -199,6 +200,7 @@ export function mapToCreateRequest(
       angleDeg: seg.Alpha as number,
       straightAfterMm: seg.L as number,
     }))
+    isReversedArcOrder = ab.isReversedOrder ?? false
   }
 
   // Sivama-only — backend Method=Sivama ise zorunlu olarak doğrular
@@ -226,6 +228,7 @@ export function mapToCreateRequest(
     arcStepDistanceMm,
     kivrimHizMetreDakika,
     segments,
+    isReversedArcOrder,
     // Sivama-only — backend Method=Sivama ise zorunlu olarak doğrular
     sivamaAngleDeg,
     operatorName: opts.operatorName ?? null,
