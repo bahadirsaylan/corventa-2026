@@ -26,18 +26,18 @@ export default function ArcPlanSummary({ values, plan }: Props) {
   const extension = plan.extensionMm ?? 0
   const isReversed = plan.isReversed === true
 
-  // Aşama 3'te gösterilecek segmentler = planner'ın döndüğü adjustedSegments
-  // (leading uzatma varsa Seg1.L extended). Yoksa mevcut values.segments.
-  interface SumSeg { R: number; alpha: number; L: number; arc: number }
-  const segsRaw: SumSeg[] =
+  // Orijinal (user-input) segmentler.
+  interface SumSeg { R: number; alpha: number; L: number; arc: number; origOrder: number }
+  const origSegs: SumSeg[] =
     plan.adjustedSegments && plan.adjustedSegments.length === p
-      ? plan.adjustedSegments.map((s) => ({
+      ? plan.adjustedSegments.map((s, i) => ({
           R: s.radiusMm,
           alpha: s.angleDeg,
           L: s.straightAfterMm,
           arc: computeArcLength(s.radiusMm, s.angleDeg),
+          origOrder: i + 1,
         }))
-      : values.segments.map((s) => {
+      : values.segments.map((s, i) => {
           const R = parseFloat(s.R)
           const alpha = parseFloat(s.Alpha)
           return {
@@ -45,17 +45,46 @@ export default function ArcPlanSummary({ values, plan }: Props) {
             alpha,
             L: parseFloat(s.L),
             arc: computeArcLength(R, alpha),
+            origOrder: i + 1,
           }
         })
 
-  const totalArc = segsRaw.reduce((sum, s) => sum + s.arc, 0)
-  const totalStraight = segsRaw.reduce((sum, s) => sum + s.L, 0)
-  const trailing = Math.max(0, ltAdjusted - totalArc - totalStraight)
+  const origSumArcs = origSegs.reduce((sum, s) => sum + s.arc, 0)
+  const origSumLs = origSegs.reduce((sum, s) => sum + s.L, 0)
+  const trailing = Math.max(0, ltAdjusted - origSumArcs - origSumLs)
 
-  //   Reversal durumunda büküm sırası: SegN → Seg1. Görsel olarak kartları çevirmek
-  //   yerine kartlar hala 1..N (kullanıcının girdiği sıra) numarasıyla; başlık banner
-  //   "TERS SIRA" olarak bilgi verir. Operatör kendi input'unu tanır.
-  //   Kart üstündeki numara = orijinal input sırası (1..N). Reversed olsa bile böyle.
+  //   2026-09-08: Reversal durumunda kartlar BÜKÜM SIRASINDA gösterilir (parça sonundan
+  //   parça başına). Backend BuildReversedSegments transform'unun aynısı:
+  //     new[0] = { arc: orig[N-1].arc, L: trailing }
+  //     new[i] = { arc: orig[N-1-i].arc, L: orig[N-i].L }  (i >= 1)
+  //   Böylece UI operatöre kartları FİZİKSEL BÜKÜM SIRASINDA gösterir (1. bükülen sol,
+  //   son bükülen sağ). origOrder alanı orijinal input sırasını tutar (kartın altında).
+  const displaySegs: SumSeg[] = isReversed
+    ? [
+        // reversed[0]: arc from last orig, L = trailing
+        {
+          R: origSegs[p - 1].R,
+          alpha: origSegs[p - 1].alpha,
+          L: trailing,
+          arc: origSegs[p - 1].arc,
+          origOrder: p,
+        },
+        // reversed[1..N-1]
+        ...Array.from({ length: p - 1 }, (_, k) => {
+          const i = k + 1
+          return {
+            R: origSegs[p - 1 - i].R,
+            alpha: origSegs[p - 1 - i].alpha,
+            L: origSegs[p - i].L,
+            arc: origSegs[p - 1 - i].arc,
+            origOrder: p - i,
+          }
+        }),
+      ]
+    : origSegs
+
+  const totalArc = displaySegs.reduce((sum, s) => sum + s.arc, 0)
+  const totalStraight = displaySegs.reduce((sum, s) => sum + s.L, 0)
 
   return (
     <div className={styles.wrapper}>
@@ -90,12 +119,15 @@ export default function ArcPlanSummary({ values, plan }: Props) {
         <span><b>Kalan</b> {trailing.toFixed(0)}mm</span>
       </div>
 
-      {/* ── Segment strip (2×2 mini kartlar yan yana) ── */}
+      {/* ── Segment strip (2×2 mini kartlar yan yana, büküm sırasında) ── */}
       <div className={styles.strip}>
-        {segsRaw.map((s, i) => (
+        {displaySegs.map((s, i) => (
           <div key={i} className={styles.card}>
             <div className={styles.cell + ' ' + styles.cellLeftTop}>
               <span className={styles.value}>{i + 1}.</span>
+              {isReversed && (
+                <span className={styles.origBadge}>Seg{s.origOrder}</span>
+              )}
             </div>
             <div className={styles.cell + ' ' + styles.cellRightTop}>
               <span className={styles.label}>L</span>

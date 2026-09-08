@@ -115,6 +115,17 @@
   color: #14532d;
 }
 
+/* Reversal durumunda kart üstünde orijinal segment numarası badge'i */
+.origBadge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-top: 1px;
+}
+
 /* Sağ üst — L (düzlük) */
 .cellRightTop {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
