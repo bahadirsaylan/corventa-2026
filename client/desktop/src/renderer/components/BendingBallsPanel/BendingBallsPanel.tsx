@@ -29,17 +29,23 @@ export default function BendingBallsPanel() {
   //   Voltaj cevirimi: %20 = 2V. Default %20 makul (yavaş + kontrol edilebilir).
   const [jogSpeedPercent, setJogSpeedPercent] = useState(20)
 
-  // Büküm bitti tespiti (rotasyon jog ile aynı mantık)
-  const isFinished =
-    !!progress && progress.totalPasos > 0 &&
-    (progress.completedPasos >= progress.totalPasos || progress.percentComplete >= 100)
-  const bendingActive = !!progress && !isFinished
+  // Büküm bitti tespiti — 2026-09-10: daha sıkı. Sadece "gerçekten aktif" saymalı ki
+  // stale/iptal edilmiş job sonrası jog butonları kilit kalmasın.
+  //   Aktif = progress var VE totalPasos > 0 VE completedPasos < totalPasos VE %<100.
+  //   (Cancel/fail sonrası completedPasos hedefine ulaşmasa da UI kilit kalmayacak
+  //    çünkü kullanıcı jog butonlarına devam edebilmeli — safety backend'in görevi.)
+  const bendingActive =
+    !!progress
+    && progress.totalPasos > 0
+    && progress.completedPasos < progress.totalPasos
+    && progress.percentComplete < 100
 
   // Piston jog handler (basılı-tut)
   //   ManuelBendingRunPage pattern'i: + = direction=-1 (ileri, iş parçasına),
   //   - = direction=+1 (geri, uzağa). Backend polarite kontrolünü yapıyor.
+  //   2026-09-10: UI'da bendingActive check'i KALDIRILDI — safety layer backend'de,
+  //   burada blocking sadece kilit-kalıntısı sorununa yol açıyordu.
   const jogPistonStart = (piston: PistonName, direction: 1 | -1) => {
-    if (bendingActive) return
     void window.corventa.machine
       .pistonJog({ piston, direction, speedPercent: jogSpeedPercent })
       .catch(() => { /* stop yine denenir */ })
@@ -180,7 +186,6 @@ export default function BendingBallsPanel() {
             id="left"
             value={left.positionMm}
             active={left.moving || left.inPosition}
-            disabled={bendingActive}
             onJogPlusStart={() => jogPistonStart('left', -1)}
             onJogMinusStart={() => jogPistonStart('left', 1)}
             onJogStop={() => jogPistonStop('left')}
@@ -193,7 +198,6 @@ export default function BendingBallsPanel() {
             id="top"
             value={top.positionMm}
             active={top.moving || top.inPosition}
-            disabled={bendingActive}
             onJogPlusStart={() => jogPistonStart('upper', -1)}
             onJogMinusStart={() => jogPistonStart('upper', 1)}
             onJogStop={() => jogPistonStop('upper')}
@@ -203,7 +207,6 @@ export default function BendingBallsPanel() {
             id="bottom"
             value={bottom.positionMm}
             active={bottom.moving || bottom.inPosition}
-            disabled={bendingActive}
             onJogPlusStart={() => jogPistonStart('lower', -1)}
             onJogMinusStart={() => jogPistonStart('lower', 1)}
             onJogStop={() => jogPistonStop('lower')}
@@ -216,7 +219,6 @@ export default function BendingBallsPanel() {
             id="right"
             value={right.positionMm}
             active={right.moving || right.inPosition}
-            disabled={bendingActive}
             onJogPlusStart={() => jogPistonStart('right', -1)}
             onJogMinusStart={() => jogPistonStart('right', 1)}
             onJogStop={() => jogPistonStop('right')}
