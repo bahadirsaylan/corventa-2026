@@ -162,6 +162,9 @@ function calcSegmentBudget(
 //   - yay ≥ 250mm (SLPIS min ölçüm mesafesi — erken uyarı, backend zaten reject eder)
 //   - Toplam bütçe LT'yi aşmasın
 export const MIN_ARC_LENGTH_MM = 250
+// 2026-09-10: fp precision toleransı — kullanıcı yay=250 girdiğinde α ters formül
+// sonrası arc yeniden hesaplanınca 249.9999... çıkıyor. 250 dahil olmalı → 0.5mm epsilon.
+export const MIN_ARC_LENGTH_EPSILON = 0.5
 
 export function makeEmptySegment(): ArcSegmentValues {
   return { R: '', Alpha: '', ArcLen: '', L: '' }
@@ -335,7 +338,7 @@ export default function ArcMeasurementForm({
   //   Sadece min-yay (< 250) erken uyarı olarak per-segment kartta gösterilir;
   //   asıl bükülebilirlik/ölçülebilirlik/uzatma kararı ONAYLA sonrası backend'de
   //   (ArcExtensionPlanner → /api/bending/arc/validate-plan).
-  const anyMinArcViolation = budgets.some((b) => b.valid && b.arc < MIN_ARC_LENGTH_MM)
+  const anyMinArcViolation = budgets.some((b) => b.valid && b.arc < MIN_ARC_LENGTH_MM - MIN_ARC_LENGTH_EPSILON)
 
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
@@ -423,7 +426,7 @@ export default function ArcMeasurementForm({
               )}
               {values.segments.map((_, i) => {
                 const b = budgets[i]
-                const minArcViolation = b?.valid && b.arc < MIN_ARC_LENGTH_MM
+                const minArcViolation = b?.valid && b.arc < MIN_ARC_LENGTH_MM - MIN_ARC_LENGTH_EPSILON
                 return (
                   <div
                     key={i}
