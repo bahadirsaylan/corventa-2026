@@ -14,11 +14,11 @@ export default function DashboardPage() {
       <div className={styles.colLeft}>
         <button
           className={`${styles.navBtn} ${styles.navBtnPrimary}`}
-          onClick={() => navigate('/bending/ai')}
+          onClick={() => navigate('/bending/mode')}
         >
-          <span className={styles.navBtnLabel}>ARTIFICIAL<br />INTELLIGENCE</span>
+          <span className={styles.navBtnLabel}>OTOMATIK<br />BUKUM</span>
           <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
-          <span className={styles.navBtnSub}>BENDING</span>
+          <span className={styles.navBtnSub}>AI / YARI OTO</span>
         </button>
 
         <button

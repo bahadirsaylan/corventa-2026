@@ -6,7 +6,7 @@ import { SpiralDirection } from '@/store/bendingJobStore'
 import profileImage from '@/assets/images/blend4-1-buyuk.png'
 import methodImage from '@/assets/images/blend4-4-buyuk.png'
 
-export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'H'
+export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'L' | 'H'
 export type SpiralFieldKey = SpiralNumericKey | 'Y'
 
 export interface SpiralMeasurementValues {
@@ -14,6 +14,7 @@ export interface SpiralMeasurementValues {
   B: string
   S: string
   R: string
+  L: string
   H: string
   Y: SpiralDirection | ''
 }
@@ -44,6 +45,11 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
     description:
       'KIVIRIM YARICAP ÖLÇÜSÜDÜR. SERPANTİN KIVRIMININ BAŞLANGIÇ YARICAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA BU DEĞERİ ESAS ALARAK GEOMETRİK KIVIRIM YAPAR.',
   },
+  L: {
+    title: 'L :',
+    description:
+      'PARÇANIN TOPLAM UZUNLUĞUDUR (mm). MAKİNE BU DEĞERİ ESAS ALARAK ROTASYONU HESAPLAR. GÜVENLİK PAYI ÇIKARILDIKTAN SONRA KALAN MESAFE KADAR DÖNER.',
+  },
   H: {
     title: 'H :',
     description:
@@ -56,7 +62,7 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
   },
 }
 
-const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S']
+const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'H', 'Y']
 
 interface Props {

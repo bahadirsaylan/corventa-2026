@@ -5,7 +5,7 @@ import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import profileImage from '@/assets/images/blend4-1-buyuk.png'
 import methodImage from '@/assets/images/blend4-2-buyuk.png'
 
-export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G'
+export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
 
 export interface MeasurementValues {
   A: string
@@ -14,6 +14,7 @@ export interface MeasurementValues {
   R: string
   H: string
   G: string
+  L: string
 }
 
 interface FieldInfo {
@@ -52,9 +53,13 @@ const FIELD_INFO: Record<FieldKey, FieldInfo> = {
     description:
       'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMNI EN KISA SÜREDE YAPAR.',
   },
+  L: {
+    title: 'L:',
+    description: 'PROFİLE AİT UZUNLUK ÖLÇÜSÜDÜR.',
+  },
 }
 
-const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S']
+const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: FieldKey[] = ['R', 'H', 'G']
 
 interface Props {
