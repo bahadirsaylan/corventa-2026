@@ -222,7 +222,10 @@ export default function ArcMeasurementForm({
       } else {
         const l = parseFloat(seg.ArcLen)
         if (Number.isFinite(l) && l > 0 && l < Math.PI * r) {
-          const aStr = computeAngleFromArc(r, l).toFixed(2)
+          //   2026-09-10: α precision 2 → 4 ondalık. Aksi halde yay=500 → α=151.35 saklandığında
+          //   ters formülden arc yeniden hesaplanınca 500.031 çıkıyor, 3 segmentte cumulative ~0.1mm
+          //   hata → trailing "199.9" görünüyor. 4 ondalık ile arc precision <0.001mm.
+          const aStr = computeAngleFromArc(r, l).toFixed(4)
           if (seg.Alpha !== aStr) {
             changed = true
             return { ...seg, Alpha: aStr }
@@ -279,6 +282,14 @@ export default function ArcMeasurementForm({
   ) {
     const seg = values.segments[segIndex]
     const val = seg?.[field] ?? ''
+    //   2026-09-10: α saklamada 4 ondalık (precision için) ama gösterimde 2 ondalık yeter.
+    //   Diğer alanlar (R, ArcLen, L) ham gösterilir — kullanıcı numpad'den ne girdiyse.
+    const displayVal = field === 'Alpha' && val !== ''
+      ? (() => {
+          const n = parseFloat(val)
+          return Number.isFinite(n) ? n.toFixed(2) : val
+        })()
+      : val
     return (
       <div key={field} className={styles.segmentFieldRow}>
         <span className={styles.segmentFieldLabel}>{displayLabel}:</span>
@@ -292,7 +303,7 @@ export default function ArcMeasurementForm({
           }
           aria-label={`Segment ${segIndex + 1} value for ${field}`}
         >
-          {val || <span className={styles.placeholder}>0</span>}
+          {displayVal || <span className={styles.placeholder}>0</span>}
         </div>
         <button
           className={styles.segmentInfoBtn}
