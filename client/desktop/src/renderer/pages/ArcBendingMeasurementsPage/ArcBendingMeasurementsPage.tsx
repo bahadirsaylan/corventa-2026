@@ -8,8 +8,7 @@ import ArcMeasurementForm, {
   ArcInputMode,
   ArcMeasurementValues,
   ArcSegmentValues,
-  MIN_ARC_LENGTH_MM,
-  MIN_ARC_LENGTH_EPSILON,
+  isArcBelowMin,
   mainFieldsValid,
 } from './ArcMeasurementForm'
 import ArcPlanConfirmModal from './ArcPlanConfirmModal'
@@ -58,7 +57,7 @@ function isComplete(v: ArcMeasurementValues, mode: ArcInputMode): boolean {
     const L = parseFloat(seg.L)
     if (!(R > 0 && alpha > 0 && alpha < 180)) return false
     const arc = (2 * Math.PI * R * (180 - alpha)) / 360
-    if (arc < MIN_ARC_LENGTH_MM - MIN_ARC_LENGTH_EPSILON) return false
+    if (isArcBelowMin(arc)) return false
     cumulativeRaw += arc + (Number.isFinite(L) ? L : 0)
   }
   if (cumulativeRaw > ltMm) return false
