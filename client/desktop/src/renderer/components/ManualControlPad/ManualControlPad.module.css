@@ -1,0 +1,377 @@
+/* Manuel tuş takımı — sabit 1040×620 sahne, makine geometrisine göre mutlak yerleşim.
+   Renkler globals.css paleti: --color-primary (ok/vurgu), --color-surface-raised (yüzey),
+   --color-border (kenarlık), --color-success (START). */
+
+.pad {
+  position: relative;
+  width: 1040px;
+  height: 620px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+/* ── Ortak ok ikonu ─────────────────────────── */
+.arrow {
+  width: 36px;
+  height: 36px;
+  color: var(--color-primary);
+  transition: color 0.1s;
+  pointer-events: none;
+}
+
+/* ── Yan dayama butonları (daire) ───────────── */
+.sideWrap {
+  position: absolute;
+  width: 76px;
+  height: 76px;
+}
+
+.sideBtn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--color-surface-raised);
+  border: 3px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  transition: background 0.1s, border-color 0.1s, transform 0.05s;
+  touch-action: none;
+}
+
+.sideBtn[data-pressed] {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  transform: scale(0.96);
+}
+
+.sideBtn[data-pressed] .arrow {
+  color: var(--color-text-light);
+}
+
+.sideLabel {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Çiftleri bağlayan çubuk */
+.link {
+  position: absolute;
+  background: var(--color-primary);
+  opacity: 0.35;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+/* Sol taraf */
+.lReelFwd  { left: 30px;  top: 40px; }
+.lReelBwd  { left: 30px;  top: 230px; }
+.lReelLink { left: 62px;  top: 112px; width: 12px; height: 122px; }
+
+.lJointBwd  { left: 140px; top: 40px; }
+.lJointFwd  { left: 226px; top: 40px; }
+.lJointLink { left: 212px; top: 72px; width: 20px; height: 12px; }
+
+.lBodyFwd  { left: 170px; top: 150px; }
+.lBodyBwd  { left: 110px; top: 310px; }
+.lBodyLink { left: 172px; top: 221px; width: 12px; height: 95px; transform: rotate(20deg); }
+
+/* Sağ taraf (ayna) */
+.rReelFwd  { left: 934px; top: 40px; }
+.rReelBwd  { left: 934px; top: 230px; }
+.rReelLink { left: 966px; top: 112px; width: 12px; height: 122px; }
+
+.rJointFwd  { left: 738px; top: 40px; }
+.rJointBwd  { left: 824px; top: 40px; }
+.rJointLink { left: 808px; top: 72px; width: 20px; height: 12px; }
+
+.rBodyFwd  { left: 794px; top: 150px; }
+.rBodyBwd  { left: 854px; top: 310px; }
+.rBodyLink { left: 856px; top: 221px; width: 12px; height: 95px; transform: rotate(-20deg); }
+
+/* ── Hız − / + ──────────────────────────────── */
+.speed {
+  position: absolute;
+  left: 400px;
+  top: 18px;
+  width: 240px;
+  height: 64px;
+  display: flex;
+  align-items: stretch;
+  background: var(--color-surface-raised);
+  border: 3px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.speedBtn {
+  width: 64px;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-primary);
+  background: transparent;
+  transition: background 0.1s;
+}
+
+.speedBtn:active:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-text-light);
+}
+
+.speedBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.speedValue {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid var(--color-border);
+  border-right: 2px solid var(--color-border);
+  background: #fff;
+}
+
+.speedPct {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.speedLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+/* ── Rotasyon (büyük daire) ─────────────────── */
+.rotBtn {
+  position: absolute;
+  top: 110px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: var(--color-surface-raised);
+  border: 3px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.14);
+  transition: background 0.1s, transform 0.05s;
+  touch-action: none;
+}
+
+.rotCw  { left: 268px; }
+.rotCcw { left: 592px; }
+
+.rotIcon {
+  width: 104px;
+  height: 104px;
+  color: var(--color-primary);
+  pointer-events: none;
+}
+
+.rotLabel {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.rotBtn[data-pressed] {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  transform: scale(0.97);
+}
+
+.rotBtn[data-pressed] .rotIcon,
+.rotBtn[data-pressed] .rotLabel {
+  color: var(--color-text-light);
+}
+
+.rotBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Piston hapları ─────────────────────────── */
+.pill {
+  position: absolute;
+  width: 84px;
+  height: 204px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface-raised);
+  border: 3px solid var(--color-border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.14);
+}
+
+.pUpper { left: 478px; top: 98px; }
+.pLower { left: 478px; top: 330px; }
+.pLeft  { left: 336px; top: 330px; transform: rotate(28deg); }
+.pRight { left: 620px; top: 330px; transform: rotate(-28deg); }
+
+.pillHalf {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  transition: background 0.1s;
+  touch-action: none;
+}
+
+.pillHalf[data-pressed] {
+  background: var(--color-primary);
+}
+
+.pillHalf[data-pressed] .arrow {
+  color: var(--color-text-light);
+}
+
+.pillHalf:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pillMid {
+  flex-shrink: 0;
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-top: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
+  pointer-events: none;
+}
+
+.pillTitle {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  line-height: 1.1;
+}
+
+.pillValue {
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--color-text);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Hidrolik motor START / STOP ───────────── */
+.motorBtn {
+  position: absolute;
+  top: 420px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 5px solid;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  transition: background 0.12s, transform 0.05s, box-shadow 0.12s;
+}
+
+.motorBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.motorText {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.motorSub {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.start {
+  left: 40px;
+  background: #ecfdf3;
+  border-color: var(--color-success);
+  color: #15803d;
+}
+
+.start[data-running] {
+  background: var(--color-success);
+  color: var(--color-text-light);
+  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.25), 0 4px 10px rgba(0, 0, 0, 0.18);
+  opacity: 1;
+}
+
+.start:disabled:not([data-running]) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.start[data-running]:disabled {
+  cursor: default;
+}
+
+.stop {
+  left: 830px;
+  background: #fdecec;
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.stop:active:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-text-light);
+}
+
+.stop:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Kilit uyarısı ──────────────────────────── */
+.lockBadge {
+  position: absolute;
+  left: 50%;
+  top: 562px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  background: #fff7e0;
+  border: 1px solid var(--color-warning);
+  border-left: 4px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  white-space: nowrap;
+  z-index: 2;
+}

@@ -1,69 +1,41 @@
-// Üst panel — 4 vals topu pozisyonu + büküm ilerlemesi.
+// Makine paneli — iki varyant (2026-10-02):
+//   variant="control" (orta alan, her zaman): başlık (BASINÇ / AI / TOLERANS + İPTAL),
+//      Serpantin yan dayama onayı ve manuel tuş takımı (ManualControlPad).
+//   variant="monitor" (üst alan, sadece otomatik büküm aktifken): 4 vals topu pozisyonu
+//      + rotasyon + paso ilerlemesi. Salt-okunur — büküm sırasında manuel jog kilitli.
 // Backend SignalR /machineHub'tan gelen MachineState'i selector ile dinler.
-// Backend kapalıyken default 0 değerleriyle render eder; ConnectionBanner durumu söyler.
 
 import { useEffect, useState } from 'react'
 
 import BendingBall from './BendingBall'
-import SideSupportControls from './SideSupportControls'
-import RotationJogButtons from './RotationJogButtons'
-import JogSpeedControl from './JogSpeedControl'
-import type { PistonName } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
+import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
-export default function BendingBallsPanel() {
-  // Pistonlar — store selector (sadece ilgili slice değişince re-render)
-  const top = usePiston('upperPiston')
-  const bottom = usePiston('lowerPiston')
-  const left = usePiston('leftPiston')
-  const right = usePiston('rightPiston')
+interface Props {
+  variant: 'control' | 'monitor'
+}
 
-  // Büküm ilerlemesi (varsa)
+export default function BendingBallsPanel({ variant }: Props) {
+  return variant === 'control' ? <ControlPanel /> : <MonitorPanel />
+}
+
+// ─────────────────────────────────────────────────────────────
+// Orta alan — başlık + tuş takımı
+// ─────────────────────────────────────────────────────────────
+
+function ControlPanel() {
   const progress = useBendingProgress()
-
-  // 2026-09-05: Manuel jog hızı — piston + rotasyon ortak kullanır.
-  //   Voltaj cevirimi: %20 = 2V. Default %20 makul (yavaş + kontrol edilebilir).
-  const [jogSpeedPercent, setJogSpeedPercent] = useState(20)
-
-  // Büküm bitti tespiti — 2026-09-10: daha sıkı. Sadece "gerçekten aktif" saymalı ki
-  // stale/iptal edilmiş job sonrası jog butonları kilit kalmasın.
-  //   Aktif = progress var VE totalPasos > 0 VE completedPasos < totalPasos VE %<100.
-  //   (Cancel/fail sonrası completedPasos hedefine ulaşmasa da UI kilit kalmayacak
-  //    çünkü kullanıcı jog butonlarına devam edebilmeli — safety backend'in görevi.)
-  const bendingActive =
-    !!progress
-    && progress.totalPasos > 0
-    && progress.completedPasos < progress.totalPasos
-    && progress.percentComplete < 100
-
-  // Piston jog handler (basılı-tut)
-  //   ManuelBendingRunPage pattern'i: + = direction=-1 (ileri, iş parçasına),
-  //   - = direction=+1 (geri, uzağa). Backend polarite kontrolünü yapıyor.
-  //   2026-09-10: UI'da bendingActive check'i KALDIRILDI — safety layer backend'de,
-  //   burada blocking sadece kilit-kalıntısı sorununa yol açıyordu.
-  const jogPistonStart = (piston: PistonName, direction: 1 | -1) => {
-    void window.corventa.machine
-      .pistonJog({ piston, direction, speedPercent: jogSpeedPercent })
-      .catch(() => { /* stop yine denenir */ })
-  }
-  const jogPistonStop = (piston: PistonName) => {
-    void window.corventa.machine.pistonStop(piston).catch(() => {})
-  }
-
-  // Sensörler ve tolerans bilgisi
+  const bendingActive = useBendingActive()
   const s1Pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
 
-  // Aktif job çapı: gelecekte useActiveBendingJob() ile gelecek; şimdilik bendingProgress yoksa "—"
-  const archLabel = progress ? `R ${progress.jobId}` : 'R —'
-
   // ── İptal butonu state'i ────────────────────────
-  // Backend'de henüz dedicated cancel endpoint yok (CLAUDE.md TODO). Bu yüzden
-  // operatöre net uyarı veriyoruz: emergency-stop makineyi durdurur ama job
-  // state otomatik temizlenmeyebilir.
+  // Backend'de dedicated cancel endpoint yok — emergency-stop makineyi durdurur ama
+  // job state otomatik temizlenmeyebilir; operatöre net uyarı verilir.
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelInfo, setCancelInfo] = useState<string | null>(null)
 
@@ -86,8 +58,7 @@ export default function BendingBallsPanel() {
   }
 
   // ── Serpantin yan dayama onayı ──────────────────
-  // Pipeline ilk 3/4 rotasyondan sonra durur, operatör yan dayama ayarını yapıp bu butona basar.
-  // Backend awaitingSideSupportConfirmation=true iken görünür; onay endpoint pipeline'ı uyandırır.
+  // Pipeline ilk 3/4 rotasyondan sonra durur, operatör yan dayama ayarını yapıp onaylar.
   const [confirming, setConfirming] = useState(false)
   async function handleConfirmSideSupport() {
     if (!progress || confirming) return
@@ -123,7 +94,7 @@ export default function BendingBallsPanel() {
         </div>
 
         <div className={styles.headerRight}>
-          {progress && (
+          {bendingActive && (
             <button
               type="button"
               className={styles.cancelBtn}
@@ -174,73 +145,56 @@ export default function BendingBallsPanel() {
         />
       )}
 
-      {/* ── Content grid: yan dayamalar (sol) + top grid + yan dayamalar (sağ) ── */}
-      <div className={styles.contentGrid}>
-        <div className={styles.sideCol}>
-          <SideSupportControls side="left" />
-        </div>
-      <div className={styles.ballGrid}>
-        {/* Left column */}
-        <div className={styles.colLeft}>
-          <BendingBall
-            id="left"
-            value={left.positionMm}
-            active={left.moving || left.inPosition}
-            onJogPlusStart={() => jogPistonStart('left', -1)}
-            onJogMinusStart={() => jogPistonStart('left', 1)}
-            onJogStop={() => jogPistonStop('left')}
-          />
-        </div>
-
-        {/* Center column */}
-        <div className={styles.colCenter}>
-          <BendingBall
-            id="top"
-            value={top.positionMm}
-            active={top.moving || top.inPosition}
-            onJogPlusStart={() => jogPistonStart('upper', -1)}
-            onJogMinusStart={() => jogPistonStart('upper', 1)}
-            onJogStop={() => jogPistonStop('upper')}
-          />
-          <div className={styles.archLabel}>{archLabel}</div>
-          <BendingBall
-            id="bottom"
-            value={bottom.positionMm}
-            active={bottom.moving || bottom.inPosition}
-            onJogPlusStart={() => jogPistonStart('lower', -1)}
-            onJogMinusStart={() => jogPistonStart('lower', 1)}
-            onJogStop={() => jogPistonStop('lower')}
-          />
-        </div>
-
-        {/* Right column */}
-        <div className={styles.colRight}>
-          <BendingBall
-            id="right"
-            value={right.positionMm}
-            active={right.moving || right.inPosition}
-            onJogPlusStart={() => jogPistonStart('right', -1)}
-            onJogMinusStart={() => jogPistonStart('right', 1)}
-            onJogStop={() => jogPistonStop('right')}
-          />
-        </div>
+      {/* ── Manuel tuş takımı ──────────────────────── */}
+      <div className={styles.padArea}>
+        <ManualControlPad />
       </div>
-        <div className={styles.sideCol}>
-          <SideSupportControls side="right" />
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Üst alan (büküm sırasında) — top pozisyonları + ilerleme
+// ─────────────────────────────────────────────────────────────
+
+function MonitorPanel() {
+  const top = usePiston('upperPiston')
+  const bottom = usePiston('lowerPiston')
+  const left = usePiston('leftPiston')
+  const right = usePiston('rightPiston')
+  const rotationMm = useMachineStateStore((s) => s.state.rotation.positionMm)
+  const runningJobId = useBendingActivityStore((s) => s.runningJobId)
+  const rawProgress = useBendingProgress()
+  // Store'da önceki işin son ilerlemesi kalmış olabilir — sadece çalışan job'unkini göster.
+  const progress = rawProgress && rawProgress.jobId === runningJobId ? rawProgress : null
+
+  const archLabel = progress ? `R ${progress.jobId}` : 'R —'
+
+  return (
+    <div className={`${styles.panel} ${styles.monitor}`}>
+      {/* ── 4 vals topu (salt-okunur) ──────────────── */}
+      <div className={styles.monitorGrid}>
+        <div className={styles.ballGrid}>
+          <div className={styles.colLeft}>
+            <BendingBall id="left" value={left.positionMm} active={left.moving || left.inPosition} disabled />
+          </div>
+          <div className={styles.colCenter}>
+            <BendingBall id="top" value={top.positionMm} active={top.moving || top.inPosition} disabled />
+            <div className={styles.archLabel}>{archLabel}</div>
+            <BendingBall id="bottom" value={bottom.positionMm} active={bottom.moving || bottom.inPosition} disabled />
+          </div>
+          <div className={styles.colRight}>
+            <BendingBall id="right" value={right.positionMm} active={right.moving || right.inPosition} disabled />
+          </div>
         </div>
       </div>
 
-      {/* ── Stats footer ───────────────────────────── */}
+      {/* ── İlerleme footer ────────────────────────── */}
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
-          <div className={styles.jogGroup}>
-            <RotationJogButtons speedPercent={jogSpeedPercent} />
-            <JogSpeedControl
-              value={jogSpeedPercent}
-              onChange={setJogSpeedPercent}
-              disabled={bendingActive}
-            />
-          </div>
+          <p className={styles.finishLabel}>ROTASYON</p>
+          <p className={styles.posCurrent}>{rotationMm.toFixed(1)}</p>
+          <p className={styles.posSmall}>mm</p>
         </div>
 
         <div className={`${styles.statsCol} ${styles.statsColCenter}`}>
@@ -260,7 +214,7 @@ export default function BendingBallsPanel() {
               </p>
             </>
           ) : (
-            <p className={styles.posSmall}>BÜKÜM BEKLENİYOR</p>
+            <p className={styles.posSmall}>BÜKÜM BAŞLATILIYOR</p>
           )}
         </div>
 
@@ -287,7 +241,7 @@ export default function BendingBallsPanel() {
               <p className={styles.statusText}>{progress.message}</p>
             </>
           ) : (
-            <p className={styles.statusText}>HAZIR</p>
+            <p className={styles.statusText}>HAZIRLANIYOR…</p>
           )}
         </div>
       </div>

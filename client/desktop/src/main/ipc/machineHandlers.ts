@@ -89,6 +89,11 @@ export function registerMachineHandlers(): void {
     return engineApi.setMode(mode)
   })
 
+  ipcMain.handle(Ipc.IpcInvoke.SetHydraulicMotor, async (_evt, on: boolean) => {
+    log.info('set hydraulic motor', { on })
+    return engineApi.setHydraulicMotor(!!on)
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.SendMachineCommand, async (_evt, command: unknown) => {
     // Generic fallback — gelecekteki yeni komutlar için
     log.warn('Generic SendMachineCommand not implemented', { command })

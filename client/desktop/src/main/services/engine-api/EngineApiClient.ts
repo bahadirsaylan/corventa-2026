@@ -182,6 +182,11 @@ export class EngineApiClient {
   setMode(mode: number): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/machine/mode`, { mode })
   }
+
+  // Hidrolik motor aç/kapat — backend POST /api/machine/motor { value }
+  setHydraulicMotor(on: boolean): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/machine/motor`, { value: on })
+  }
 }
 
 export const engineApi = new EngineApiClient()

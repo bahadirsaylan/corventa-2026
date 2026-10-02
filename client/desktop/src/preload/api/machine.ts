@@ -55,6 +55,10 @@ export const machineApi = {
   setMode: (mode: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SetMachineMode, mode),
 
+  // Hidrolik motor START/STOP (orta panel tuş takımı)
+  setHydraulicMotor: (on: boolean): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SetHydraulicMotor, on),
+
   sendCommand: (command: unknown): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SendMachineCommand, command),
 }

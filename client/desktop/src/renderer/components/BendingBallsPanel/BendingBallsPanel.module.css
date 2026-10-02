@@ -50,7 +50,12 @@
 }
 
 .cancelInfoBar {
-  flex-shrink: 0;
+  /* 2026-10-02: absolute — tuş takımını aşağı itmesin */
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+  z-index: 15;
   padding: 10px 24px;
   background: #fde68a;
   color: #78350f;
@@ -331,4 +336,31 @@
   color: var(--color-primary);
   text-align: center;
   letter-spacing: 0.04em;
+}
+
+/* ── 2026-10-02: orta alan tuş takımı + üst alan monitör ─────────── */
+.padArea {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.monitor {
+  /* Üst alan: başlık yok, toplar + ilerleme */
+}
+
+.monitorGrid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monitorGrid .ballGrid {
+  width: 100%;
+  max-width: 760px;
 }

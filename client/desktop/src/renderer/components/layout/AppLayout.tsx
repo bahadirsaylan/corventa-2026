@@ -1,23 +1,30 @@
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import BendingBallsPanel from '@/components/BendingBallsPanel/BendingBallsPanel'
 import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
+import { startBendingActivityPoller, useBendingActive } from '@/stores/bendingActivityStore'
 import styles from './AppLayout.module.css'
 
 export default function AppLayout() {
+  // "Otomatik büküm aktif mi?" izleyicisi — uygulama boyunca tek örnek.
+  useEffect(() => startBendingActivityPoller(), [])
+  const bendingActive = useBendingActive()
+
   return (
     <div className={styles.root}>
-      {/* Top zone — always visible bending positions (750px) */}
+      {/* Üst alan — normalde sayfalar; otomatik büküm sırasında top pozisyon/ilerleme monitörü.
+          Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez. */}
       <div className={styles.top}>
-        <Outlet />
+        {bendingActive ? <BendingBallsPanel variant="monitor" /> : <Outlet />}
       </div>
 
-      {/* Middle zone — navigable screens (750px) */}
+      {/* Orta alan — başlık + manuel tuş takımı (her zaman sabit) */}
       <main className={styles.middle}>
-        <BendingBallsPanel />
+        <BendingBallsPanel variant="control" />
       </main>
 
-      {/* Bottom zone — always visible machine stats (480px) */}
+      {/* Alt alan — uyarı şeridi + sensör kartları */}
       <div className={styles.bottom}>
         <BottomStatsPanel />
       </div>

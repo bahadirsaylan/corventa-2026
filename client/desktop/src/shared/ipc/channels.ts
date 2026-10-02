@@ -41,6 +41,7 @@ export const IpcInvoke = {
   SideSupportControl: 'side-support:control',
   EmergencyStop: 'machine:emergency-stop',
   SetMachineMode: 'machine:set-mode',
+  SetHydraulicMotor: 'machine:set-hydraulic-motor',
   SendMachineCommand: 'machine:send-command',
 
   // DataApi — Service modülü (Soru/Öneri/Şikayet + Servis Talepleri/Raporları)
