@@ -7,7 +7,9 @@
 
 import { useEffect, useState } from 'react'
 
-import BendingBall from './BendingBall'
+import { BendingMethod, type BendingJob, type BendingProgress } from '@shared/types'
+
+import ProfileArcStage from './ProfileArcStage'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
@@ -168,25 +170,14 @@ function MonitorPanel() {
   // Store'da önceki işin son ilerlemesi kalmış olabilir — sadece çalışan job'unkini göster.
   const progress = rawProgress && rawProgress.jobId === runningJobId ? rawProgress : null
 
-  const archLabel = progress ? `R ${progress.jobId}` : 'R —'
+  const runningJob = useBendingActivityStore((s) => s.runningJob)
+  const radiusLabel = formatRadiusLabel(runningJob, progress)
 
   return (
     <div className={`${styles.panel} ${styles.monitor}`}>
       {/* ── 4 vals topu (salt-okunur) ──────────────── */}
       <div className={styles.monitorGrid}>
-        <div className={styles.ballGrid}>
-          <div className={styles.colLeft}>
-            <BendingBall id="left" value={left.positionMm} active={left.moving || left.inPosition} disabled />
-          </div>
-          <div className={styles.colCenter}>
-            <BendingBall id="top" value={top.positionMm} active={top.moving || top.inPosition} disabled />
-            <div className={styles.archLabel}>{archLabel}</div>
-            <BendingBall id="bottom" value={bottom.positionMm} active={bottom.moving || bottom.inPosition} disabled />
-          </div>
-          <div className={styles.colRight}>
-            <BendingBall id="right" value={right.positionMm} active={right.moving || right.inPosition} disabled />
-          </div>
-        </div>
+        <ProfileArcStage top={top} bottom={bottom} left={left} right={right} radiusLabel={radiusLabel} />
       </div>
 
       {/* ── İlerleme footer ────────────────────────── */}
@@ -247,4 +238,23 @@ function MonitorPanel() {
       </div>
     </div>
   )
+}
+
+// Band üstündeki yarıçap etiketi: Arc'ta o an bükülen segmentin R'si, diğer metotlarda hedef Ø / 2.
+function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | null): string {
+  if (!job) return 'R —'
+  let r: number | null = null
+  if (job.method === BendingMethod.Arc && job.segments && job.segments.length > 0) {
+    const n = job.segments.length
+    const done = progress?.completedSegmentOrder ?? 0
+    const cur = Math.min(Math.max(done, 0), n - 1)
+    // Ters sıralı işte runtime segmentleri sondan başa büker
+    const reversed = (job as { isReversedArcOrder?: boolean }).isReversedArcOrder === true
+    const seg = job.segments[reversed ? n - 1 - cur : cur]
+    r = seg?.radiusMm ?? null
+  } else if (job.targetDiameterMm > 0) {
+    r = job.targetDiameterMm / 2
+  }
+  if (r == null || !Number.isFinite(r) || r <= 0) return 'R —'
+  return `R ${Number.isInteger(r) ? r : r.toFixed(1)}`
 }

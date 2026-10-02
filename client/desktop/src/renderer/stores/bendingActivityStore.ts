@@ -10,6 +10,8 @@
 
 import { create } from 'zustand'
 
+import type { BendingJob } from '@shared/types'
+
 import { useMachineStateStore } from './machineStateStore'
 
 const POLL_JOB_MS = 2000
@@ -20,11 +22,14 @@ const START_GRACE_MS = 15000
 interface BendingActivityStore {
   active: boolean
   runningJobId: number | null
+  /** DataApi'deki çalışan job (monitördeki R etiketi için) */
+  runningJob: BendingJob | null
 }
 
 export const useBendingActivityStore = create<BendingActivityStore>(() => ({
   active: false,
   runningJobId: null,
+  runningJob: null,
 }))
 
 let pollerStarted = false
@@ -36,6 +41,7 @@ export function startBendingActivityPoller(): () => void {
 
   let alive = true
   let runningJobId: number | null = null
+  let runningJob: BendingJob | null = null
   let detectedAt = 0
   let lastJobPoll = 0
 
@@ -44,6 +50,7 @@ export function startBendingActivityPoller(): () => void {
       const job = await window.corventa.bending.getActiveJob()
       if (!alive) return
       const id = job ? job.id : null
+      runningJob = job ?? null
       if (id !== runningJobId) {
         runningJobId = id
         detectedAt = id != null ? Date.now() : 0
@@ -61,8 +68,8 @@ export function startBendingActivityPoller(): () => void {
     const active = runningJobId != null && (progressFresh || inStartGrace)
 
     const cur = useBendingActivityStore.getState()
-    if (cur.active !== active || cur.runningJobId !== runningJobId) {
-      useBendingActivityStore.setState({ active, runningJobId })
+    if (cur.active !== active || cur.runningJobId !== runningJobId || cur.runningJob !== runningJob) {
+      useBendingActivityStore.setState({ active, runningJobId, runningJob })
     }
   }
 
