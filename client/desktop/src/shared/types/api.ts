@@ -85,6 +85,8 @@ export interface ValidateArcPlanRequest {
   partLengthMm: number
   /** |XA1| mutlak (mm). 0 gönderilirse backend default 465 (Stage 2) kullanır. */
   xa1AbsMm: number
+  /** Profil A (mm) — backend ölçülebilirlik için stage seçer (stage |XA1| = ölçüm mesafesi). 0 → xa1AbsMm. */
+  profileAMm?: number
   segments: ValidateArcPlanSegment[]
 }
 

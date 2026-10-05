@@ -142,6 +142,8 @@ export default function ArcBendingMeasurementsPage() {
       const req = {
         partLengthMm: parseFloat(values.LT),
         xa1AbsMm: 0, // Backend default (Stage 2 = 465). Gelecekte stage'e göre doldurulabilir.
+        // Ölçülebilirlik: backend profileA'ya göre stage seçer, |XA1|'ini ölçüm mesafesi olarak kullanır
+        profileAMm: parseFloat(values.A) || 0,
         segments: segmentsToPlannerRequest(),
       }
       const res = await window.corventa.bending.validateArcPlan(req)
