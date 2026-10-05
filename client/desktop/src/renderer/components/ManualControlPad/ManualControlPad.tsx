@@ -125,16 +125,16 @@ export default function ManualControlPad() {
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pLower}
       />
-      {/* Sol piston: ileri = merkeze doğru (yukarı-sağ) */}
+      {/* Sol piston — makinede doğrulandı (2026-10-05): üst tuş = geri (+1), alt tuş = ileri (-1) */}
       <PistonPill
         piston="left" title="SOL" value={left.positionMm} speed={speed} locked={locked}
-        topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
+        topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pLeft}
       />
-      {/* Sağ piston: ileri = merkeze doğru (yukarı-sol) */}
+      {/* Sağ piston — makinede doğrulandı (2026-10-05): üst tuş = geri (+1), alt tuş = ileri (-1) */}
       <PistonPill
         piston="right" title="SAĞ" value={right.positionMm} speed={speed} locked={locked}
-        topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
+        topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pRight}
       />
 

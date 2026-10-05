@@ -172,6 +172,7 @@ function MonitorPanel() {
 
   const runningJob = useBendingActivityStore((s) => s.runningJob)
   const radiusLabel = formatRadiusLabel(runningJob, progress)
+  const pasoView = describePaso(progress)
 
   return (
     <div className={`${styles.panel} ${styles.monitor}`}>
@@ -189,23 +190,14 @@ function MonitorPanel() {
         </div>
 
         <div className={`${styles.statsCol} ${styles.statsColCenter}`}>
-          {progress ? (
+          {pasoView ? (
             <>
-              <p className={styles.posSmall}>
-                {Math.max(0, progress.completedPasos - 1)}
-                &nbsp;&nbsp;&nbsp;Y : —
-              </p>
-              <p className={styles.posCurrent}>
-                {progress.completedPasos}&nbsp;
-                <span className={styles.posX}>X : {right.positionMm.toFixed(1)}</span>
-              </p>
-              <p className={styles.posSmall}>
-                {progress.completedPasos + 1}
-                &nbsp;&nbsp;&nbsp;Y : —
-              </p>
+              <p className={styles.finishLabel}>{pasoView.running ? 'BÜKÜLEN PASO' : 'PASO'}</p>
+              <p className={styles.posCurrent}>{pasoView.current}</p>
+              <p className={styles.posSmall}>TAMAMLANAN: {pasoView.completed}</p>
             </>
           ) : (
-            <p className={styles.posSmall}>BÜKÜM BAŞLATILIYOR</p>
+            <p className={styles.posSmall}>{progress ? progress.message ?? 'HAZIRLANIYOR…' : 'BÜKÜM BAŞLATILIYOR'}</p>
           )}
         </div>
 
@@ -229,7 +221,7 @@ function MonitorPanel() {
                   }}
                 />
               </div>
-              <p className={styles.statusText}>{progress.message}</p>
+              <p className={styles.statusText}>{pasoView?.status ?? progress.message}</p>
             </>
           ) : (
             <p className={styles.statusText}>HAZIRLANIYOR…</p>
@@ -257,4 +249,28 @@ function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | n
   }
   if (r == null || !Number.isFinite(r) || r <= 0) return 'R —'
   return `R ${Number.isInteger(r) ? r : r.toFixed(1)}`
+}
+
+// Backend "Paso N tamamlandı" mesajını paso BİTTİKTEN sonra yazar ve bir sonraki paso bitene kadar
+// değiştirmez — paso 2 bükülürken ekranda hâlâ "Paso 1" görünüyordu. Bükülen paso = tamamlanan + 1.
+interface PasoView {
+  /** Şu an bükülen (ya da bitişte son) paso numarası */
+  current: number
+  completed: number
+  running: boolean
+  /** Durum satırı — backend mesajı paso-bitti ise "PASO X BÜKÜLÜYOR" olarak yeniden yazılır */
+  status: string | null
+}
+
+function describePaso(progress: BendingProgress | null): PasoView | null {
+  if (!progress || progress.totalPasos <= 0) return null
+  const completed = Math.max(0, progress.completedPasos)
+  const total = progress.totalPasos
+  const pasoDone = /^paso\s+\d+\s+tamamland/i.test(progress.message ?? '')
+  const running = completed < total && (pasoDone || completed === 0)
+  const current = running ? completed + 1 : Math.max(1, completed)
+  const status = running && pasoDone
+    ? `PASO ${current} BÜKÜLÜYOR · PASO ${completed} TAMAMLANDI`
+    : progress.message ?? null
+  return { current, completed, running, status }
 }
