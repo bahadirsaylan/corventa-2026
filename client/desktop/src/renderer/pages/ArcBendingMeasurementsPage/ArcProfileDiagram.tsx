@@ -1,7 +1,7 @@
 // Arc özet ekranı — segment kartlarının altında parçanın şematik şeridi.
 // Büküm sırasında soldan sağa: düzlük (düz çizgi) → radyus (yay) → düzlük → … → kalan parça.
 // Ölçekli değil: yaylar sabit genişlikte, düzlükler uzunluklarıyla orantılı paylaşır (min genişlikli).
-// Yay yüksekliği büküm açısıyla (180 − α) artar — operatör hangisi daha çok kıvrılıyor görür.
+// Yaylar AŞAĞI doğru kıvrılır; derinlik büküm açısıyla (180 − α) artar — hangisi daha çok kıvrılıyor görülür.
 
 import styles from './ArcProfileDiagram.module.css'
 
@@ -19,8 +19,8 @@ interface Props {
   trailing: number
 }
 
-const H = 96
-const BASE = 74
+const H = 100
+const BASE = 22
 const ARC_W = 132
 
 type Piece =
@@ -68,13 +68,14 @@ function ArcShape({ order, bendDeg }: { order: number; bendDeg: number }) {
   const h = 14 + (bend / 180) * 38
   const half = ARC_W / 2
   const r = (half * half + h * h) / (2 * h)
-  const topY = BASE - h
+  const bottomY = BASE + h
+  const badgeY = Math.min(H - 13, bottomY + 16)
 
   return (
     <svg className={styles.svgArc} viewBox={`0 0 ${ARC_W} ${H}`} width={ARC_W} height={H} aria-hidden>
-      <path d={`M 0 ${BASE} A ${r} ${r} 0 0 1 ${ARC_W} ${BASE}`} className={styles.lineArc} />
-      <circle cx={half} cy={Math.max(14, topY - 14)} r="12" className={styles.badge} />
-      <text x={half} y={Math.max(14, topY - 14)} className={styles.badgeText} textAnchor="middle" dominantBaseline="central">
+      <path d={`M 0 ${BASE} A ${r} ${r} 0 0 0 ${ARC_W} ${BASE}`} className={styles.lineArc} />
+      <circle cx={half} cy={badgeY} r="12" className={styles.badge} />
+      <text x={half} y={badgeY} className={styles.badgeText} textAnchor="middle" dominantBaseline="central">
         {order}
       </text>
     </svg>
