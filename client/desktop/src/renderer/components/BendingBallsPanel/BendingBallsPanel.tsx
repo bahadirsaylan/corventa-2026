@@ -251,14 +251,15 @@ function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | n
   return `R ${Number.isInteger(r) ? r : r.toFixed(1)}`
 }
 
-// Backend "Paso N tamamlandı" / "Dinamik paso N tamamlandı" mesajını paso BİTTİKTEN sonra yazar ve bir sonraki paso bitene kadar
-// değiştirmez — paso 2 bükülürken ekranda hâlâ "Paso 1" görünüyordu. Bükülen paso = tamamlanan + 1.
+// Backend her paso BAŞLARKEN "Paso N bükülüyor", BİTİNCE "Paso N tamamlandı" yazar
+// (completedPasos = biten sayısı). Ekranda o an bükülen paso gösterilir.
+// Eski backend sadece "tamamlandı" yazıyordu — bu durumda da bükülen = tamamlanan + 1 kabul edilir.
 interface PasoView {
   /** Şu an bükülen (ya da bitişte son) paso numarası */
   current: number
   completed: number
   running: boolean
-  /** Durum satırı — backend mesajı paso-bitti ise "PASO X BÜKÜLÜYOR" olarak yeniden yazılır */
+  /** Durum satırı */
   status: string | null
 }
 
@@ -266,11 +267,13 @@ function describePaso(progress: BendingProgress | null): PasoView | null {
   if (!progress || progress.totalPasos <= 0) return null
   const completed = Math.max(0, progress.completedPasos)
   const total = progress.totalPasos
-  const pasoDone = /^(dinamik\s+)?paso\s+\d+\s+tamamland/i.test(progress.message ?? '')
-  const running = completed < total && (pasoDone || completed === 0)
+  const message = progress.message ?? ''
+  const pasoBending = /^paso\s+\d+\s+bükülüyor/i.test(message)
+  const pasoDone = /^(dinamik\s+)?paso\s+\d+\s+tamamland/i.test(message)
+  const running = pasoBending || (completed < total && (pasoDone || completed === 0))
   const current = running ? completed + 1 : Math.max(1, completed)
-  const status = running && pasoDone
-    ? `PASO ${current} BÜKÜLÜYOR · PASO ${completed} TAMAMLANDI`
-    : progress.message ?? null
+  let status: string | null = progress.message ?? null
+  if (pasoBending) status = `PASO ${current} BÜKÜLÜYOR`
+  else if (running && pasoDone) status = `PASO ${current} BÜKÜLÜYOR · PASO ${completed} TAMAMLANDI`
   return { current, completed, running, status }
 }
