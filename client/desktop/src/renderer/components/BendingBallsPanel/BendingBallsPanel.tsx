@@ -251,7 +251,7 @@ function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | n
   return `R ${Number.isInteger(r) ? r : r.toFixed(1)}`
 }
 
-// Backend "Paso N tamamlandı" mesajını paso BİTTİKTEN sonra yazar ve bir sonraki paso bitene kadar
+// Backend "Paso N tamamlandı" / "Dinamik paso N tamamlandı" mesajını paso BİTTİKTEN sonra yazar ve bir sonraki paso bitene kadar
 // değiştirmez — paso 2 bükülürken ekranda hâlâ "Paso 1" görünüyordu. Bükülen paso = tamamlanan + 1.
 interface PasoView {
   /** Şu an bükülen (ya da bitişte son) paso numarası */
@@ -266,7 +266,7 @@ function describePaso(progress: BendingProgress | null): PasoView | null {
   if (!progress || progress.totalPasos <= 0) return null
   const completed = Math.max(0, progress.completedPasos)
   const total = progress.totalPasos
-  const pasoDone = /^paso\s+\d+\s+tamamland/i.test(progress.message ?? '')
+  const pasoDone = /^(dinamik\s+)?paso\s+\d+\s+tamamland/i.test(progress.message ?? '')
   const running = completed < total && (pasoDone || completed === 0)
   const current = running ? completed + 1 : Math.max(1, completed)
   const status = running && pasoDone
