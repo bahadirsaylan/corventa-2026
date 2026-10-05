@@ -6,6 +6,8 @@ import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
 import MeasurementForm, { MeasurementValues } from './MeasurementForm'
+import CapacityCheckModal from './CapacityCheckModal'
+import { checkCapacity, type CapacityCheck } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
@@ -39,6 +41,11 @@ export default function RingBendingMeasurementsPage() {
   const sensors = useSensors()
   const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)
 
+  // Kapasite kataloğu kontrolü (min. çap / deformasyon / pekleşme) — İLERİ öncesi
+  const profileId = useBendingJobStore((s) => s.params.profileId)
+  const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
+  const [capacityCheck, setCapacityCheck] = useState<CapacityCheck | null>(null)
+
   function handleReset() {
     setValues({ ...EMPTY })
     setParams({ ringBending: null })
@@ -62,6 +69,22 @@ export default function RingBendingMeasurementsPage() {
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
 
   function handleConfirm() {
+    const check = checkCapacity({
+      profileId,
+      direction: bendingDirection,
+      a: parseFloat(values.A),
+      b: parseFloat(values.B),
+      diameterMm: parseFloat(values.R),
+      stepMm: parseFloat(values.G),
+    })
+    if (check.issues.length > 0) {
+      setCapacityCheck(check)
+      return
+    }
+    proceed()
+  }
+
+  function proceed() {
     // Yari oto mod'da AI recipe uygulanmiyor (skipAutoCorrect=true → AutoCorrect
     // adimi atlanir, recipe fetch bloku da orada). Preview modal bilgi amaciyla
     // acilirdi ama gereksiz — direkt PartLoading'e gec.
@@ -108,6 +131,17 @@ export default function RingBendingMeasurementsPage() {
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
       />
+
+      {capacityCheck && (
+        <CapacityCheckModal
+          check={capacityCheck}
+          onFix={() => setCapacityCheck(null)}
+          onProceed={() => {
+            setCapacityCheck(null)
+            proceed()
+          }}
+        />
+      )}
 
       {/* AI RECIPE FAZ 4B UI — parametre onayı sonrası eşleşme preview modali */}
       {aiModalRequest && (
