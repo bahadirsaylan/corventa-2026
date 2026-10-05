@@ -72,7 +72,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding: 8px 4px 12px;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   align-items: flex-start;
 }
 

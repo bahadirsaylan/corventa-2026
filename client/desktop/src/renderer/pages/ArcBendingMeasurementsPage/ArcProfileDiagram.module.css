@@ -1,0 +1,98 @@
+.diagram {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px 8px;
+  background: #fff;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.row {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.endCap {
+  margin-top: 64px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.straight {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.arcPiece {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.svg {
+  width: 100%;
+  height: 96px;
+  display: block;
+}
+
+.svgArc {
+  display: block;
+}
+
+.lineStraight {
+  stroke: #3a3a3a;
+  stroke-width: 6;
+  stroke-linecap: butt;
+}
+
+.lineArc {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 6;
+  stroke-linecap: butt;
+}
+
+.badge {
+  fill: var(--color-primary);
+}
+
+.badgeText {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.label,
+.labelArc {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.label {
+  color: var(--color-text-muted);
+}
+
+.labelArc {
+  color: var(--color-primary);
+}
+
+.value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}

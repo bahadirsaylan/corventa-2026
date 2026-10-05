@@ -1,4 +1,5 @@
 import styles from './ArcPlanSummary.module.css'
+import ArcProfileDiagram from './ArcProfileDiagram'
 import type { ArcMeasurementValues } from './ArcMeasurementForm'
 import type { ValidateArcPlanResponse } from '@shared/types'
 
@@ -85,6 +86,8 @@ export default function ArcPlanSummary({ values, plan }: Props) {
 
   const totalArc = displaySegs.reduce((sum, s) => sum + s.arc, 0)
   const totalStraight = displaySegs.reduce((sum, s) => sum + s.L, 0)
+  // Büküm sırasına göre son yaydan sonra kalan düz parça (ters sırada orijinal baş düzlüğü)
+  const displayTrailing = Math.max(0, ltAdjusted - totalArc - totalStraight)
 
   return (
     <div className={styles.wrapper}>
@@ -144,6 +147,9 @@ export default function ArcPlanSummary({ values, plan }: Props) {
           </div>
         ))}
       </div>
+
+      {/* ── Parça şeridi: düzlük → radyus → düzlük … (büküm sırasında) ── */}
+      <ArcProfileDiagram segments={displaySegs} trailing={displayTrailing} />
     </div>
   )
 }
