@@ -49,6 +49,7 @@ import InstallationPage from '@/pages/ServicePage/InstallationPage'
 import TrainingPage from '@/pages/ServicePage/TrainingPage'
 import TrainingTopicPage from '@/pages/ServicePage/TrainingTopicPage'
 import TrainingQuizPage from '@/pages/ServicePage/TrainingQuizPage'
+import ServiceNetworkPage from '@/pages/ServiceNetworkPage/ServiceNetworkPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
@@ -121,6 +122,7 @@ export default function App() {
 
             {/* Service modülü — SEKIL 31-53 */}
             <Route path="service" element={<ServiceHomePage />} />
+            <Route path="service-network" element={<ServiceNetworkPage />} />
             <Route
               path="service/questions"
               element={<TicketListPage type="question" />}
