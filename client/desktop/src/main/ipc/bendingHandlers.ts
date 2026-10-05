@@ -35,6 +35,11 @@ export function registerBendingHandlers(): void {
     return engineApi.applyStage(req)
   })
 
+  ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
+    log.info('execute-gonye')
+    return engineApi.executeGonye()
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.CreateBendingJob, async (_evt, req: BendingJobCreateRequest) => {
     log.info('create-bending-job', { req })
     // BendingJobCreateRequest → Partial<BendingJob>

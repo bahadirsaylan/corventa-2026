@@ -5,6 +5,7 @@ import { ipcRenderer } from 'electron'
 import {
   Ipc,
   type ApplyStageRequest,
+  type GonyeResult,
   type BendingCalculateRequest,
   type BendingCalculateResponse,
   type BendingJob,
@@ -35,6 +36,9 @@ export const bendingApi = {
 
   applyStage: (req: ApplyStageRequest): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ApplyStage, req),
+
+  executeGonye: (): Promise<GonyeResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ExecuteGonye),
 
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),

@@ -1,9 +1,10 @@
 // Engine API (port 5000) HTTP client — bending pipeline + machine commands.
 
 import { getConfig } from '@main/config/runtime-config'
-import { http } from '@main/lib/http'
+import { http, HttpError } from '@main/lib/http'
 import type {
   ApplyStageRequest,
+  GonyeResult,
   BendingCalculateRequest,
   BendingCalculateResponse,
   BendingPreviewRequest,
@@ -64,6 +65,22 @@ export class EngineApiClient {
     // Stage transition 3 piston paralel hareket — 30-60sn surebilir.
     // Default 10sn timeout yetmediginden manuel override.
     return http.post(`${this.baseUrl}/api/preparation/stage`, req, { timeoutMs: 120_000 })
+  }
+
+  // Ayarlar > Cetvel Sıfırlama — Web'deki "Gönye Al" ile aynı çağrı (boş body → backend varsayılanları).
+  // Pistonlar mekanik limite çekilir, cetveller sıfırlanır, gönye ofsetlerine gidilir — uzun sürer.
+  // Backend başarısızlıkta 400 + PreparationResult döner; mesajı kaybetmemek için body'yi döndürüyoruz.
+  async executeGonye(): Promise<GonyeResult> {
+    try {
+      const res = await http.post<GonyeResult>(`${this.baseUrl}/api/preparation/gonye`, {}, { timeoutMs: 180_000 })
+      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
+        const body = err.body as { errorMessage?: string | null }
+        return { success: false, errorMessage: body.errorMessage ?? err.message }
+      }
+      throw err
+    }
   }
 
   startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {

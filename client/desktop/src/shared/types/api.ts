@@ -71,6 +71,12 @@ export interface ApplyStageRequest {
   speedPercent: number
 }
 
+// POST /api/preparation/gonye — backend PreparationResult (başarısızlıkta 400 + aynı gövde)
+export interface GonyeResult {
+  success: boolean
+  errorMessage: string | null
+}
+
 // POST /api/bending/arc/validate-plan — 2026-09-08
 // Operatör segmentleri girip ONAYLA'ya basınca backend ArcExtensionPlanner çağrılır.
 // Bükülebilirlik (XA1) + ölçülebilirlik (850mm) kontrolü + gerekiyorsa parça uzatma

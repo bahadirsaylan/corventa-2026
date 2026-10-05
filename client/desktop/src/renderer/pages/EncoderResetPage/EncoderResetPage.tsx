@@ -1,135 +1,138 @@
-// Ayarlar > Cetvel Sıfırlama — encoder gruplarını manuel sıfırlama paneli.
-// Backend: POST /api/machine/reset-encoders?bitmask=X (bit0=R/L, bit1=U/L, bit2=Pnö, bit3=Rot, bit4=SolRadius, bit5=SağRadius)
-// UI: her grup için son sıfırlama zamanı + checkbox + "Seçilenleri Sıfırla" büyük buton.
+// Ayarlar > Cetvel Sıfırlama — gönye alma (makine referans pozisyonu).
+// Backend: POST /api/preparation/gonye (Web projesindeki "Gönye Al" ile aynı çağrı, boş body).
+// Akış (backend): pistonlar mekanik limite çekilir → tüm cetveller sıfırlanır → gönye ofsetlerine gidilir
+// → cetveller tekrar sıfırlanır → fiziksel pozisyon takibi "gönye yapıldı" olarak işaretlenir.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import { useMachineStateStore } from '@/stores/machineStateStore'
+import { useBendingActive } from '@/stores/bendingActivityStore'
 import styles from './EncoderResetPage.module.css'
 
-interface EncoderGroup {
-  key: string
-  label: string
-  bitmask: number
-  desc: string
-}
-
-const GROUPS: EncoderGroup[] = [
-  { key: 'rightLeft', label: 'SAĞ / SOL PİSTON',   bitmask: 0x01, desc: 'Sağ + sol büyük piston cetvelleri (Renishaw 5112)' },
-  { key: 'upperLower',label: 'ÜST / ALT PİSTON',   bitmask: 0x02, desc: 'Üst + alt piston cetvelleri' },
-  { key: 'pneumatic', label: 'PNÖMATİK',           bitmask: 0x04, desc: 'Pnömatik silindir encoder (springback prop)' },
-  { key: 'rotation',  label: 'ROTASYON',           bitmask: 0x08, desc: 'RV3100 rotasyon encoder' },
-  { key: 'leftRadius',label: 'SOL RADIUS SENSÖRÜ', bitmask: 0x10, desc: 'GT-5102 Ch#0 Keyence GT2 sol radius' },
-  { key: 'rightRadius',label: 'SAĞ RADIUS SENSÖRÜ',bitmask: 0x20, desc: 'GT-5102 Ch#1 Keyence GT2 sağ radius' },
+const STEPS = [
+  'TÜM PİSTONLAR MEKANİK LİMİTE GERİ ÇEKİLİR (S1 + S2 HEDEF BASINCA ULAŞANA KADAR)',
+  'TÜM CETVELLER SIFIRLANIR — REFERANS NOKTASI',
+  'PİSTONLAR GÖNYE OFSET POZİSYONLARINA GİDER',
+  'CETVELLER GÖNYE POZİSYONUNDA TEKRAR SIFIRLANIR',
 ]
 
-// Mock son sıfırlama zamanları — gerçek zamanlar orchestrator PhysicalState'ten gelecek
-const MOCK_LAST_RESET: Record<string, string | null> = {
-  rightLeft: '2026-08-14 09:12', upperLower: '2026-08-14 09:12',
-  pneumatic: '2026-08-10 15:34', rotation: '2026-08-14 09:14',
-  leftRadius: null, rightRadius: null,
-}
+type Status = { kind: 'ok' | 'error'; text: string } | null
 
 export default function EncoderResetPage() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [resetting, setResetting] = useState(false)
+  const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
+  const physical = useMachineStateStore((s) => s.state.physicalInfo)
+  const bendingActive = useBendingActive()
 
-  function toggle(k: string) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(k)) next.delete(k)
-      else next.add(k)
-      return next
-    })
-  }
+  const [confirming, setConfirming] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [status, setStatus] = useState<Status>(null)
 
-  function selectAll() { setSelected(new Set(GROUPS.map((g) => g.key))) }
-  function clearAll()  { setSelected(new Set()) }
+  const motorReady = motorState === 2
+  const blockedReason = bendingActive
+    ? 'OTOMATİK BÜKÜM DEVAM EDİYOR — GÖNYE ALINAMAZ.'
+    : !motorReady
+      ? 'HİDROLİK MOTOR ÇALIŞMIYOR — ÖNCE MOTORU START EDİN.'
+      : null
 
-  const combinedBitmask = GROUPS
-    .filter((g) => selected.has(g.key))
-    .reduce((sum, g) => sum + g.bitmask, 0)
-
-  async function handleReset() {
-    if (selected.size === 0) return
-    setResetting(true)
-    // Gerçek çağrı: window.corventa.machine.resetEncodersByMask(combinedBitmask)
-    setTimeout(() => {
-      alert(`Bitmask 0x${combinedBitmask.toString(16).toUpperCase()} (${selected.size} grup) sıfırlandı (mock)`)
-      setResetting(false)
-      setSelected(new Set())
-    }, 1200)
+  async function runGonye() {
+    setConfirming(false)
+    setRunning(true)
+    setStatus(null)
+    try {
+      const res = await window.corventa.bending.executeGonye()
+      setStatus(
+        res.success
+          ? { kind: 'ok', text: 'GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.' }
+          : { kind: 'error', text: `GÖNYE BAŞARISIZ: ${res.errorMessage ?? 'BİLİNMEYEN HATA'}` },
+      )
+    } catch (e) {
+      setStatus({ kind: 'error', text: `GÖNYE ÇAĞRISI BAŞARISIZ: ${e instanceof Error ? e.message : String(e)}` })
+    } finally {
+      setRunning(false)
+    }
   }
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>CETVEL SIFIRLAMA</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri" disabled={running}>
+          ←
+        </button>
+        <h1 className={styles.title}>CETVEL SIFIRLAMA — GÖNYE ALMA</h1>
       </div>
 
       <div className={styles.body}>
         <div className={styles.warnBar}>
-          ⚠ CETVEL SIFIRLAMA MAKİNE FİZİKSEL POZİSYON REFERANSINI DEĞİŞTİRİR.
-          &nbsp;GÖNYE İŞLEMİ SIRASINDA VEYA HİDROLİK MOTOR KAPALIYKEN YAPINIZ.
+          ⚠ GÖNYE TÜM PİSTONLARI HAREKET ETTİRİR VE MAKİNENİN POZİSYON REFERANSINI YENİDEN BELİRLER.
+          &nbsp;BAŞLATMADAN ÖNCE MAKİNEDE PARÇA OLMADIĞINDAN VE ÇEVRENİN GÜVENLİ OLDUĞUNDAN EMİN OLUN.
         </div>
 
         <div className={styles.card}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>ENCODER GRUPLARI</span>
-            <div className={styles.selectActions}>
-              <button className={styles.smallBtn} onClick={selectAll}>TÜMÜNÜ SEÇ</button>
-              <button className={styles.smallBtn} onClick={clearAll}>TEMİZLE</button>
-            </div>
+            <span className={styles.sectionTitle}>MEVCUT DURUM</span>
           </div>
-
-          <div className={styles.groupList}>
-            {GROUPS.map((g) => {
-              const isSelected = selected.has(g.key)
-              const lastReset = MOCK_LAST_RESET[g.key]
-              return (
-                <label key={g.key} className={`${styles.groupRow} ${isSelected ? styles.rowSelected : ''}`}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={isSelected}
-                    onChange={() => toggle(g.key)}
-                  />
-                  <div className={styles.groupInfo}>
-                    <span className={styles.groupLabel}>{g.label}</span>
-                    <span className={styles.groupDesc}>{g.desc}</span>
-                  </div>
-                  <div className={styles.lastResetCol}>
-                    <span className={styles.lastResetLabel}>SON SIFIRLAMA</span>
-                    <span className={styles.lastResetValue}>
-                      {lastReset ?? 'HİÇ YAPILMADI'}
-                    </span>
-                  </div>
-                  <span className={styles.bitmask}>bit 0x{g.bitmask.toString(16).toUpperCase()}</span>
-                </label>
-              )
-            })}
+          <div className={styles.stateRow}>
+            <span className={styles.stateLabel}>GÖNYE</span>
+            <span className={physical.isGonyeCompleted ? styles.stateOk : styles.stateNo}>
+              {physical.isGonyeCompleted ? 'YAPILDI' : 'YAPILMADI'}
+            </span>
+          </div>
+          <div className={styles.stateRow}>
+            <span className={styles.stateLabel}>STAGE</span>
+            <span className={styles.stateValue}>
+              {physical.currentStageName ?? (physical.currentStage > 0 ? `STAGE ${physical.currentStage}` : '—')}
+            </span>
+          </div>
+          <div className={styles.stateRow}>
+            <span className={styles.stateLabel}>HİDROLİK MOTOR</span>
+            <span className={motorReady ? styles.stateOk : styles.stateNo}>
+              {motorReady ? 'HAZIR' : motorState === 1 ? 'BAŞLIYOR' : 'KAPALI'}
+            </span>
           </div>
         </div>
 
-        {/* Bitmask ön izleme + reset butonu */}
-        <div className={styles.actionRow}>
-          <div className={styles.bitmaskPreview}>
-            <span className={styles.bitmaskLabel}>SEÇİLEN</span>
-            <span className={styles.bitmaskValue}>
-              {selected.size === 0 ? '—' : `0x${combinedBitmask.toString(16).toUpperCase()} (${selected.size} grup)`}
-            </span>
+        <div className={styles.card}>
+          <div className={styles.sectionTitleRow}>
+            <span className={styles.sectionTitle}>İŞLEM ADIMLARI</span>
           </div>
+          <ol className={styles.stepList}>
+            {STEPS.map((s) => (
+              <li key={s} className={styles.step}>{s}</li>
+            ))}
+          </ol>
+        </div>
+
+        {status && (
+          <div className={status.kind === 'ok' ? styles.statusOk : styles.statusError}>{status.text}</div>
+        )}
+
+        <div className={styles.actionRow}>
+          <span className={styles.actionHint}>
+            {running ? 'GÖNYE ALINIYOR — İŞLEM BİTENE KADAR BEKLEYİN…' : blockedReason ?? 'MAKİNE HAZIR.'}
+          </span>
           <button
             type="button"
             className={styles.resetBtn}
-            onClick={handleReset}
-            disabled={selected.size === 0 || resetting}
+            onClick={() => setConfirming(true)}
+            disabled={running || blockedReason != null}
           >
-            {resetting ? 'SIFIRLANIYOR...' : '↻ SEÇİLENLERİ SIFIRLA'}
+            {running ? 'GÖNYE ALINIYOR…' : '↻ GÖNYE AL'}
           </button>
         </div>
       </div>
+
+      {confirming && (
+        <ConfirmModal
+          message="TÜM PİSTONLAR HAREKET EDECEK VE CETVELLER SIFIRLANACAK. GÖNYE ALINSIN MI"
+          variant="danger"
+          confirmLabel="GÖNYE AL"
+          cancelLabel="VAZGEÇ"
+          onCancel={() => setConfirming(false)}
+          onConfirm={runGonye}
+        />
+      )}
     </div>
   )
 }

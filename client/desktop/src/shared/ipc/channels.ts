@@ -13,6 +13,7 @@ export const IpcInvoke = {
   BendingArcValidatePlan: 'bending:arc-validate-plan',
   RecommendStage: 'preparation:recommend-stage',
   ApplyStage: 'preparation:apply-stage',
+  ExecuteGonye: 'preparation:execute-gonye',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   ConfirmSideSupport: 'bending-job:confirm-side-support',

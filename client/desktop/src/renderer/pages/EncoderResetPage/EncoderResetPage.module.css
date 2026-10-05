@@ -43,56 +43,6 @@
   color: var(--color-primary);
 }
 
-.selectActions { display: flex; gap: 6px; }
-
-.smallBtn {
-  background: #f4ecdc; border: 1.5px solid #d07070; border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
-  cursor: pointer; color: var(--color-text);
-}
-
-.smallBtn:hover { filter: brightness(0.95); }
-
-/* Group list */
-.groupList { display: flex; flex-direction: column; gap: 6px; }
-
-.groupRow {
-  display: grid;
-  grid-template-columns: 32px 1fr 180px 90px;
-  align-items: center; gap: 16px;
-  padding: 12px 16px;
-  background: #fafafa;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
-}
-
-.groupRow:hover { background: #f4ecdc; }
-
-.rowSelected {
-  background: #fee2e2;
-  border-color: var(--color-primary);
-}
-
-.checkbox { width: 20px; height: 20px; cursor: pointer; }
-
-.groupInfo { display: flex; flex-direction: column; gap: 2px; }
-.groupLabel { font-size: 14px; font-weight: 800; letter-spacing: 0.05em; color: var(--color-text); }
-.groupDesc { font-size: 11px; color: var(--color-text-muted); }
-
-.lastResetCol { display: flex; flex-direction: column; gap: 2px; }
-.lastResetLabel { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--color-text-muted); }
-.lastResetValue { font-size: 13px; font-weight: 700; font-family: var(--font-mono); color: var(--color-text); }
-
-.bitmask {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-text-muted);
-  text-align: right;
-}
-
 /* Action row */
 .actionRow {
   display: flex; align-items: center; gap: 20px;
@@ -102,12 +52,7 @@
   border-radius: 12px;
 }
 
-.bitmaskPreview {
-  display: flex; flex-direction: column; gap: 2px;
-}
-
-.bitmaskLabel { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--color-text-muted); }
-.bitmaskValue { font-size: 20px; font-weight: 800; font-family: var(--font-mono); color: var(--color-text); }
+.actionHint { font-size: 14px; font-weight: 800; letter-spacing: 0.05em; color: var(--color-text); }
 
 .resetBtn {
   margin-left: auto;
@@ -121,3 +66,27 @@
 
 .resetBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .resetBtn:hover:not(:disabled) { filter: brightness(1.05); }
+
+.backBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Mevcut durum */
+.stateRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #fafafa; border: 1.5px solid #e5e7eb; border-radius: 8px;
+}
+.stateLabel { font-size: 14px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.stateValue { font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: var(--color-text); }
+.stateOk { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; color: #15803d; }
+.stateNo { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-primary); }
+
+/* İşlem adımları */
+.stepList { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.step { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.4; color: var(--color-text); }
+
+/* Sonuç */
+.statusOk, .statusError {
+  padding: 14px 18px; border-radius: 8px;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.4;
+}
+.statusOk { background: #dcfce7; border: 2px solid #16a34a; color: #14532d; }
+.statusError { background: #fee2e2; border: 2px solid #dc2626; color: #7f1d1d; }
