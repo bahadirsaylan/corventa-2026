@@ -1,4 +1,5 @@
 .root {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 1080px;
@@ -33,4 +34,39 @@
   height: 418px;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+/* ── Odak modu (otomatik büküm kurulumu) ─────────────────────────
+   Üst alan (750px) + kenarlık (2px) altını karartır. */
+.focusShade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 752px;
+  bottom: 0;
+  z-index: 50;
+  background: rgba(40, 40, 40, 0.62);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 40px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.focusShade[data-on] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.focusHint {
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }

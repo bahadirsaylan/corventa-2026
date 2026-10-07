@@ -7,7 +7,7 @@ import SpiralMeasurementForm, { SpiralMeasurementValues } from './SpiralMeasurem
 import styles from './SpiralBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
-const EMPTY: SpiralMeasurementValues = { A: '', B: '', S: '', R: '', H: '', Y: '' }
+const EMPTY: SpiralMeasurementValues = { A: '', B: '', S: '', R: '', L: '', H: '', Y: '' }
 
 function isComplete(v: SpiralMeasurementValues) {
   return (
@@ -15,6 +15,7 @@ function isComplete(v: SpiralMeasurementValues) {
     v.B.trim() !== '' &&
     v.S.trim() !== '' &&
     v.R.trim() !== '' &&
+    v.L.trim() !== '' &&
     v.H.trim() !== '' &&
     v.Y !== ''
   )
@@ -29,6 +30,7 @@ function fromStore(
     B: stored.B != null ? String(stored.B) : '',
     S: stored.S != null ? String(stored.S) : '',
     R: stored.R != null ? String(stored.R) : '',
+    L: stored.L != null ? String(stored.L) : '',
     H: stored.H != null ? String(stored.H) : '',
     Y: stored.Y ?? '',
   }
@@ -52,6 +54,7 @@ export default function SpiralBendingMeasurementsPage() {
         B: parseFloat(values.B),
         S: parseFloat(values.S),
         R: parseFloat(values.R),
+        L: parseFloat(values.L),
         H: parseFloat(values.H),
         Y: values.Y as 'left' | 'right',
       },

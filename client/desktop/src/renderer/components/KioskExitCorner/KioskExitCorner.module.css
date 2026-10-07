@@ -1,0 +1,36 @@
+/* Sag ust kose'de gorunmez hot-spot (60x60px).
+   Ust katmanda z-index yuksek. Icerideki tikanabilir alanlari ortmesin diye kose. */
+
+.hotspot {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  z-index: 9999;
+  background: transparent;
+  cursor: default;
+  /* Debug icin borderı acabilirsin:
+     border: 1px dashed rgba(255,0,0,0.3); */
+}
+
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translate(-50%, -30px); opacity: 0; }
+  to   { transform: translate(-50%, 0);     opacity: 1; }
+}

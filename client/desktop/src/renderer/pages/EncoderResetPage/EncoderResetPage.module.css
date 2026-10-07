@@ -1,0 +1,92 @@
+.page { width: 100%; height: 750px; display: flex; flex-direction: column; background-color: #e8e0d0; overflow: hidden; }
+
+.header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 24px; background: #2a2a2a; color: #fff; flex-shrink: 0;
+}
+
+.backBtn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #fff; color: #2a2a2a;
+  font-size: 22px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none;
+}
+
+.title { font-size: 20px; font-weight: 800; letter-spacing: 0.08em; }
+
+.body { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 24px; overflow-y: auto; }
+
+.warnBar {
+  padding: 12px 18px;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  color: #78350f;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+.card {
+  background: #fff; border: 1.5px solid #d07070; border-radius: 12px;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.sectionTitleRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px; border-bottom: 2px solid #d07070;
+}
+
+.sectionTitle {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.1em;
+  color: var(--color-primary);
+}
+
+/* Action row */
+.actionRow {
+  display: flex; align-items: center; gap: 20px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1.5px solid #d07070;
+  border-radius: 12px;
+}
+
+.actionHint { font-size: 14px; font-weight: 800; letter-spacing: 0.05em; color: var(--color-text); }
+
+.resetBtn {
+  margin-left: auto;
+  background: var(--color-primary); color: #fff;
+  border: 2px solid var(--color-primary-dark, #b91c1c);
+  border-radius: 8px;
+  padding: 16px 32px;
+  font-size: 16px; font-weight: 800; letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.resetBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.resetBtn:hover:not(:disabled) { filter: brightness(1.05); }
+
+.backBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Mevcut durum */
+.stateRow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #fafafa; border: 1.5px solid #e5e7eb; border-radius: 8px;
+}
+.stateLabel { font-size: 14px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.stateValue { font-size: 16px; font-weight: 800; letter-spacing: 0.04em; color: var(--color-text); }
+.stateOk { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; color: #15803d; }
+.stateNo { font-size: 16px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-primary); }
+
+/* İşlem adımları */
+.stepList { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.step { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; line-height: 1.4; color: var(--color-text); }
+
+/* Sonuç */
+.statusOk, .statusError {
+  padding: 14px 18px; border-radius: 8px;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.04em; line-height: 1.4;
+}
+.statusOk { background: #dcfce7; border: 2px solid #16a34a; color: #14532d; }
+.statusError { background: #fee2e2; border: 2px solid #dc2626; color: #7f1d1d; }

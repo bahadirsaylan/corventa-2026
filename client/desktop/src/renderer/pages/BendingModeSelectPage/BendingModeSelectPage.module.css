@@ -1,0 +1,70 @@
+.page {
+  position: relative;
+  width: 100%;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+.title {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--color-primary);
+  padding: 18px 0 12px;
+  margin: 0;
+}
+
+.cardGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding: 24px 40px 40px;
+  min-height: 0;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface-raised);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+  font-family: inherit;
+  text-align: center;
+  user-select: none;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--color-primary);
+}
+
+.card:active {
+  transform: translateY(-1px);
+}
+
+.cardAi:hover {
+  background: rgba(192, 57, 43, 0.06);
+}
+
+.cardSemi:hover {
+  background: rgba(39, 174, 96, 0.06);
+}
+
+.cardTitle {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--color-text);
+  line-height: 1.15;
+}

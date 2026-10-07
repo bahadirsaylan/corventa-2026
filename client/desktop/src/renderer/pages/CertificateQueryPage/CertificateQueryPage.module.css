@@ -1,0 +1,130 @@
+.page { width: 100%; height: 750px; display: flex; flex-direction: column; background-color: #e8e0d0; overflow: hidden; }
+
+.header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 24px; background: #2a2a2a; color: #fff; flex-shrink: 0;
+}
+
+.backBtn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #fff; color: #2a2a2a;
+  font-size: 22px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none;
+}
+
+.title { font-size: 20px; font-weight: 800; letter-spacing: 0.08em; }
+
+.body { flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 24px; overflow-y: auto; }
+
+/* Search */
+.searchCard {
+  background: #fff; border: 1.5px solid #d07070; border-radius: 12px;
+  padding: 22px 28px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.sectionTitle {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.1em;
+  color: var(--color-primary);
+  padding-bottom: 8px; border-bottom: 2px solid #d07070;
+}
+
+.searchRow { display: flex; gap: 10px; align-items: stretch; }
+
+.codeInput {
+  flex: 1;
+  border: 2px solid #cbd5e1; border-radius: 8px;
+  padding: 14px 20px;
+  font-size: 22px; font-weight: 800;
+  font-family: var(--font-mono);
+  letter-spacing: 0.15em;
+  text-align: center;
+  color: var(--color-text);
+  background: #f9fafb;
+}
+
+.codeInput:focus { outline: 2px solid var(--color-primary); border-color: var(--color-primary); }
+
+.searchBtn {
+  background: var(--color-primary); color: #fff;
+  border: 2px solid var(--color-primary-dark, #b91c1c);
+  border-radius: 8px;
+  padding: 0 28px;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.searchBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.searchBtn:hover:not(:disabled) { filter: brightness(1.05); }
+
+.clearBtn {
+  background: #f4ecdc; color: var(--color-text);
+  border: 2px solid #d07070; border-radius: 8px;
+  padding: 0 22px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.clearBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.hint { font-size: 12px; color: var(--color-text-muted); margin: 0; }
+
+/* Result */
+.resultCard {
+  display: flex; gap: 20px; align-items: flex-start;
+  padding: 24px 28px;
+  border-radius: 12px;
+  border: 2px solid;
+  background: #fff;
+}
+
+.resultFound    { border-color: #16a34a; background: #f0fdf4; }
+.resultExpired  { border-color: #f59e0b; background: #fffbeb; }
+.resultNotFound { border-color: #dc2626; background: #fef2f2; }
+
+.resultIcon {
+  font-size: 42px; font-weight: 900; line-height: 1;
+  width: 60px; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.resultFound   .resultIcon { background: #16a34a; }
+.resultExpired .resultIcon { background: #f59e0b; }
+.resultNotFound .resultIcon { background: #dc2626; }
+
+.resultBody { flex: 1; }
+
+.resultTitle {
+  font-size: 22px; font-weight: 900; letter-spacing: 0.06em;
+  margin: 0 0 14px;
+  color: var(--color-text);
+}
+
+.resultText { font-size: 14px; line-height: 1.5; color: var(--color-text); margin: 0; }
+
+.resultGrid { display: flex; flex-direction: column; gap: 8px; }
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dotted #d1d5db;
+}
+
+.resultRow:last-child { border-bottom: none; }
+
+.resultLabel {
+  font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.resultValue { font-size: 15px; font-weight: 700; color: var(--color-text); }
+.mono { font-family: var(--font-mono); letter-spacing: 0.05em; }
+.highlightRed   { color: #dc2626; font-weight: 900; }
+.highlightGreen { color: #15803d; font-weight: 900; }

@@ -84,6 +84,14 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-surface);
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.logoWrapper:active {
+  filter: brightness(0.95);
 }
 
 .clockBox {

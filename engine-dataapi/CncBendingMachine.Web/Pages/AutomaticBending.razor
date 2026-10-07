@@ -1,0 +1,641 @@
+@page "/automatic-bending"
+@using CncBendingMachine.Web.Models
+@using CncBendingMachine.Web.Services
+@inject MachineStateService StateService
+@inject MachineApiClient ApiClient
+@implements IDisposable
+
+<PageTitle>Otomatik Bukum</PageTitle>
+
+<h3 class="mb-4">Otomatik Bukum</h3>
+
+<!-- Preparation Panel -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Hazirlik Islemleri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Gönye -->
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">1. Gonye</h6>
+                                <p class="card-text small text-muted">Pistonlari referans pozisyonuna getir</p>
+                                <button class="btn btn-warning w-100" @onclick="ExecuteGonyeAsync" disabled="@_isPreparationRunning">
+                                    @if (_preparationStep == "gonye")
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    Gonye Al
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stage -->
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">2. Stage Sec</h6>
+                                <p class="card-text small text-muted">Bukum kapasitesini ayarla</p>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn @(_selectedStage == 1 ? "btn-primary" : "btn-outline-primary")"
+                                            @onclick="() => ChangeStageAsync(1)" disabled="@_isPreparationRunning">S1</button>
+                                    <button class="btn @(_selectedStage == 2 ? "btn-primary" : "btn-outline-primary")"
+                                            @onclick="() => ChangeStageAsync(2)" disabled="@_isPreparationRunning">S2</button>
+                                    <button class="btn @(_selectedStage == 3 ? "btn-primary" : "btn-outline-primary")"
+                                            @onclick="() => ChangeStageAsync(3)" disabled="@_isPreparationRunning">S3</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clamp -->
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">3. Parca sıkıştır</h6>
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Basınç</span>
+                                    <input type="number" class="form-control" @bind="_clampingPressure" min="10" max="250" />
+                                    <span class="input-group-text">bar</span>
+                                </div>
+                                <div class="btn-group w-100" role="group">
+                                    <button class="btn btn-success" @onclick="ClampPartAsync" disabled="@_isPreparationRunning">
+                                        @if (_preparationStep == "clamp")
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                        }
+                                        sıkıştır
+                                    </button>
+                                    <button class="btn btn-outline-danger" @onclick="ReleasePartAsync" disabled="@_isPreparationRunning">
+                                        Birak
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zero -->
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">4. Parca Sifirla</h6>
+                                <div class="mb-2">
+                                    <select class="form-select form-select-sm" @bind="_zeroSensorSide">
+                                        <option value="Left">Sol Sensor</option>
+                                        <option value="Right">Sag Sensor</option>
+                                    </select>
+                                </div>
+                                <div class="input-group input-group-sm mb-1">
+                                    <span class="input-group-text">Mesafe</span>
+                                    <input type="number" class="form-control" @bind="_zeroResetDistance" min="100" max="1000" />
+                                    <span class="input-group-text">mm</span>
+                                </div>
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">Guvenlik</span>
+                                    <input type="number" class="form-control" @bind="_zeroSafetyDistance" min="10" max="200" />
+                                    <span class="input-group-text">mm</span>
+                                </div>
+                                <button class="btn btn-info w-100" @onclick="ZeroPartAsync" disabled="@_isPreparationRunning">
+                                    @if (_preparationStep == "zero")
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    Sifirla
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preparation Status -->
+                @if (!string.IsNullOrEmpty(_preparationStatus))
+                {
+                    <div class="alert @(_preparationSuccess ? "alert-success" : "alert-danger") mt-3 mb-0">
+                        @_preparationStatus
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Calculation Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Bukum Hesaplama</h5>
+            </div>
+            <div class="card-body">
+                <!-- Machine Parameters (Collapsible) -->
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-secondary w-100" type="button"
+                            @onclick="() => _showAdvancedParams = !_showAdvancedParams">
+                        @(_showAdvancedParams ? "Makine Parametrelerini Gizle" : "Makine Parametrelerini Goster")
+                    </button>
+                </div>
+
+                @if (_showAdvancedParams)
+                {
+                    <div class="row mb-3 p-2 bg-light rounded">
+                        <div class="col-6 mb-2">
+                            <label class="form-label small">Top Capi (mm)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="_ballDiameter" step="0.1" />
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label class="form-label small">Eksen Mesafesi (mm)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="_centerDistance" step="0.01" />
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label class="form-label small">XA1 (mm)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="_xa1" step="1" />
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label class="form-label small">YA1 (mm)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="_ya1" step="1" />
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label class="form-label small">Theta (derece)</label>
+                            <input type="number" class="form-control form-control-sm" @bind="_theta" step="0.1" />
+                        </div>
+                    </div>
+                }
+
+                <!-- Main Parameters -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Et Kalinligi (mm)</label>
+                        <input type="number" class="form-control" @bind="_thickness" step="0.1" min="1" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold">Hedef Bukum Capi (mm)</label>
+                        <input type="number" class="form-control" @bind="_targetDiameter" step="1" min="100" />
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg" @onclick="CalculateAsync" disabled="@_isCalculating">
+                        @if (_isCalculating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Hesapla
+                    </button>
+                </div>
+
+                <!-- Error Message -->
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-danger mt-3 mb-0">
+                        @_errorMessage
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Hesaplama Sonuclari</h5>
+            </div>
+            <div class="card-body">
+                @if (_calculationResult != null && _calculationResult.Success)
+                {
+                    <!-- Main Result -->
+                    <div class="text-center mb-4 p-3 bg-light rounded">
+                        <h6 class="text-muted mb-1">Piston Pozisyonu</h6>
+                        <h2 class="text-primary mb-0">@_calculationResult.PistonPosition.ToString("F2") mm</h2>
+                    </div>
+
+                    <!-- Details -->
+                    <table class="table table-sm">
+                        <tr>
+                            <td>Hedef Bukum Capi:</td>
+                            <td class="text-end fw-bold">@_targetDiameter mm</td>
+                        </tr>
+                        <tr>
+                            <td>Hedef Yaricap (Rarc):</td>
+                            <td class="text-end">@_calculationResult.ArcRadius.ToString("F2") mm</td>
+                        </tr>
+                        <tr>
+                            <td>Top Yaricapi (Rk):</td>
+                            <td class="text-end">@_calculationResult.BallRadius.ToString("F2") mm</td>
+                        </tr>
+                        <tr>
+                            <td>K Degeri:</td>
+                            <td class="text-end">@_calculationResult.K.ToString("F2") mm</td>
+                        </tr>
+                        <tr>
+                            <td>R2 Degeri:</td>
+                            <td class="text-end">@_calculationResult.R2.ToString("F2") mm</td>
+                        </tr>
+                        <tr>
+                            <td>X Merkez (xarc):</td>
+                            <td class="text-end">@_calculationResult.XArc.ToString("F2") mm</td>
+                        </tr>
+                        <tr>
+                            <td>Y Merkez (yarc):</td>
+                            <td class="text-end">@_calculationResult.YArc.ToString("F2") mm</td>
+                        </tr>
+                    </table>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-success" @onclick="ApplyToUpperPiston">
+                            Ust Pistona Uygula (@_calculationResult.PistonPosition.ToString("F2") mm)
+                        </button>
+                        <button class="btn btn-success" @onclick="ApplyToLowerPiston">
+                            Alt Pistona Uygula (@_calculationResult.PistonPosition.ToString("F2") mm)
+                        </button>
+                        <button class="btn btn-outline-success" @onclick="ApplyToBothPistons">
+                            Her Iki Pistona Uygula
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <h4>Hesaplama Bekleniyor</h4>
+                        <p>Parametreleri girin ve "Hesapla" butonuna basin</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Machine State -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Makine Durumu</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Ust Piston</small>
+                            <h4 class="mb-0">@_state.UpperPiston.PositionText</h4>
+                            <span class="badge @(_state.UpperPiston.InPosition ? "bg-success" : "bg-secondary")">
+                                @(_state.UpperPiston.InPosition ? "Konumda" : "Beklemede")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Alt Piston</small>
+                            <h4 class="mb-0">@_state.LowerPiston.PositionText</h4>
+                            <span class="badge @(_state.LowerPiston.InPosition ? "bg-success" : "bg-secondary")">
+                                @(_state.LowerPiston.InPosition ? "Konumda" : "Beklemede")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Sag Piston</small>
+                            <h4 class="mb-0">@_state.RightPiston.PositionText</h4>
+                            <span class="badge @(_state.RightPiston.InPosition ? "bg-success" : "bg-secondary")">
+                                @(_state.RightPiston.InPosition ? "Konumda" : "Beklemede")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Sol Piston</small>
+                            <h4 class="mb-0">@_state.LeftPiston.PositionText</h4>
+                            <span class="badge @(_state.LeftPiston.InPosition ? "bg-success" : "bg-secondary")">
+                                @(_state.LeftPiston.InPosition ? "Konumda" : "Beklemede")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Rotasyon</small>
+                            <h4 class="mb-0">@_state.Rotation.PositionMm.ToString("F1") mm</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Sistem</small>
+                            <h4 class="mb-0">
+                                <span class="badge @(_state.SystemReady ? "bg-success" : "bg-danger")">
+                                    @(_state.SystemReady ? "Hazir" : "Hazir Degil")
+                                </span>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <small class="text-muted">Motor</small>
+                            <h4 class="mb-0">
+                                <span class="badge @GetMotorBadgeClass()">@_state.HydraulicMotorStateText</span>
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private MachineStateDto _state = new();
+    private BendingCalculationResult? _calculationResult;
+    private string? _errorMessage;
+    private bool _isCalculating = false;
+    private bool _showAdvancedParams = false;
+
+    // Machine parameters (defaults)
+    private double _ballDiameter = 220;
+    private double _centerDistance = 300.82;
+    private double _xa1 = -493;
+    private double _ya1 = 0;
+    private double _theta = 63;
+
+    // Main parameters
+    private double _thickness = 80;
+    private double _targetDiameter = 2000;
+
+    // Default speed for movements
+    private int _defaultSpeed = 50;
+
+    // Preparation state
+    private bool _isPreparationRunning = false;
+    private string? _preparationStep = null;
+    private string? _preparationStatus = null;
+    private bool _preparationSuccess = false;
+    private int _selectedStage = 1;
+    private int _clampingPressure = 155;
+
+    // Zero operation parameters
+    private string _zeroSensorSide = "Left";
+    private double _zeroResetDistance = 690;
+    private double _zeroSafetyDistance = 50;
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateService.OnStateChanged += OnStateChanged;
+        await StateService.StartAsync();
+    }
+
+    private void OnStateChanged(MachineStateDto state)
+    {
+        _state = state;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetMotorBadgeClass() => _state.HydraulicMotorState switch
+    {
+        0 => "bg-secondary",
+        1 => "bg-warning",
+        2 => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    // ==================== PREPARATION METHODS ====================
+
+    private async Task ExecuteGonyeAsync()
+    {
+        _isPreparationRunning = true;
+        _preparationStep = "gonye";
+        _preparationStatus = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ExecuteGonyeAsync();
+            if (result?.Success == true)
+            {
+                _preparationSuccess = true;
+                _preparationStatus = "Gonye islemi basariyla tamamlandi";
+            }
+            else
+            {
+                _preparationSuccess = false;
+                _preparationStatus = result?.ErrorMessage ?? "Gonye islemi basarisiz";
+            }
+        }
+        catch (Exception ex)
+        {
+            _preparationSuccess = false;
+            _preparationStatus = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isPreparationRunning = false;
+            _preparationStep = null;
+        }
+    }
+
+    private async Task ChangeStageAsync(int stage)
+    {
+        _isPreparationRunning = true;
+        _preparationStep = "stage";
+        _preparationStatus = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ChangeStageAsync(stage, _defaultSpeed);
+            if (result?.Success == true)
+            {
+                _selectedStage = stage;
+                _preparationSuccess = true;
+                _preparationStatus = $"Stage {stage} secildi";
+            }
+            else
+            {
+                _preparationSuccess = false;
+                _preparationStatus = result?.ErrorMessage ?? "Stage degisimi basarisiz";
+            }
+        }
+        catch (Exception ex)
+        {
+            _preparationSuccess = false;
+            _preparationStatus = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isPreparationRunning = false;
+            _preparationStep = null;
+        }
+    }
+
+    private async Task ClampPartAsync()
+    {
+        _isPreparationRunning = true;
+        _preparationStep = "clamp";
+        _preparationStatus = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ClampPartAsync(_clampingPressure, 25);
+            if (result?.Success == true)
+            {
+                _preparationSuccess = true;
+                _preparationStatus = $"Parca {_clampingPressure} bar ile sikistirildi";
+            }
+            else
+            {
+                _preparationSuccess = false;
+                _preparationStatus = result?.ErrorMessage ?? "Sikistirma basarisiz";
+            }
+        }
+        catch (Exception ex)
+        {
+            _preparationSuccess = false;
+            _preparationStatus = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isPreparationRunning = false;
+            _preparationStep = null;
+        }
+    }
+
+    private async Task ReleasePartAsync()
+    {
+        _isPreparationRunning = true;
+        _preparationStep = "release";
+        _preparationStatus = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ReleasePartAsync(_defaultSpeed);
+            if (result?.Success == true)
+            {
+                _preparationSuccess = true;
+                _preparationStatus = "Parca birakildi";
+            }
+            else
+            {
+                _preparationSuccess = false;
+                _preparationStatus = result?.ErrorMessage ?? "Birakma basarisiz";
+            }
+        }
+        catch (Exception ex)
+        {
+            _preparationSuccess = false;
+            _preparationStatus = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isPreparationRunning = false;
+            _preparationStep = null;
+        }
+    }
+
+    private async Task ZeroPartAsync()
+    {
+        _isPreparationRunning = true;
+        _preparationStep = "zero";
+        _preparationStatus = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ApiClient.ZeroPartAsync(_zeroSensorSide, _zeroResetDistance, _zeroSafetyDistance);
+            if (result?.Success == true)
+            {
+                _preparationSuccess = true;
+                _preparationStatus = $"Parca sifirlandi ({_zeroSensorSide} sensore {_zeroResetDistance}mm mesafe)";
+            }
+            else
+            {
+                _preparationSuccess = false;
+                _preparationStatus = result?.ErrorMessage ?? "Sifirlama basarisiz";
+            }
+        }
+        catch (Exception ex)
+        {
+            _preparationSuccess = false;
+            _preparationStatus = $"Hata: {ex.Message}";
+        }
+        finally
+        {
+            _isPreparationRunning = false;
+            _preparationStep = null;
+        }
+    }
+
+    // ==================== CALCULATION METHODS ====================
+
+    private async Task CalculateAsync()
+    {
+        _isCalculating = true;
+        _errorMessage = null;
+
+        try
+        {
+            var request = new BendingCalculationRequest
+            {
+                BallDiameter = _ballDiameter,
+                Thickness = _thickness,
+                CenterDistance = _centerDistance,
+                TargetBendingDiameter = _targetDiameter,
+                XA1 = _xa1,
+                YA1 = _ya1,
+                Theta = _theta
+            };
+
+            var result = await ApiClient.CalculateBendingAsync(request);
+
+            if (result != null && result.Success)
+            {
+                _calculationResult = result;
+            }
+            else
+            {
+                _errorMessage = result?.Error ?? "Hesaplama basarisiz";
+                _calculationResult = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Hata: {ex.Message}";
+            _calculationResult = null;
+        }
+        finally
+        {
+            _isCalculating = false;
+        }
+    }
+
+    private async Task ApplyToUpperPiston()
+    {
+        if (_calculationResult == null) return;
+        await ApiClient.PistonMoveToPositionAsync("Upper", _calculationResult.PistonPosition, _defaultSpeed);
+    }
+
+    private async Task ApplyToLowerPiston()
+    {
+        if (_calculationResult == null) return;
+        await ApiClient.PistonMoveToPositionAsync("Lower", _calculationResult.PistonPosition, _defaultSpeed);
+    }
+
+    private async Task ApplyToBothPistons()
+    {
+        if (_calculationResult == null) return;
+        // Move both pistons to calculated position
+        await ApiClient.PistonMoveToPositionAsync("Upper", _calculationResult.PistonPosition, _defaultSpeed);
+        await ApiClient.PistonMoveToPositionAsync("Lower", _calculationResult.PistonPosition, _defaultSpeed);
+    }
+
+    public void Dispose()
+    {
+        StateService.OnStateChanged -= OnStateChanged;
+    }
+}

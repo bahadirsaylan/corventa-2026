@@ -14,11 +14,11 @@ export default function DashboardPage() {
       <div className={styles.colLeft}>
         <button
           className={`${styles.navBtn} ${styles.navBtnPrimary}`}
-          onClick={() => navigate('/bending/ai')}
+          onClick={() => navigate('/bending/mode')}
         >
-          <span className={styles.navBtnLabel}>ARTIFICIAL<br />INTELLIGENCE</span>
+          <span className={styles.navBtnLabel}>OTOMATIK<br />BUKUM</span>
           <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
-          <span className={styles.navBtnSub}>BENDING</span>
+          <span className={styles.navBtnSub}>AI / YARI OTO</span>
         </button>
 
         <button
@@ -34,9 +34,15 @@ export default function DashboardPage() {
         <div className={styles.clockBox}>
           <LiveClock />
         </div>
-        <div className={styles.logoWrapper}>
+        {/* Logo → servis ağı haritası (SEKIL-6) */}
+        <button
+          type="button"
+          className={styles.logoWrapper}
+          onClick={() => navigate('/service-network')}
+          aria-label="Servis ağı"
+        >
           <CorventaLogo size="dashboard" />
-        </div>
+        </button>
         <div className={styles.dateBox}>
           <LiveClock dateOnly />
         </div>

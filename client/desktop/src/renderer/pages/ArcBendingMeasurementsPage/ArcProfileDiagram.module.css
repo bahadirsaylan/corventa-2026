@@ -1,0 +1,123 @@
+.diagram {
+  --piece-color: #2a2a2a;
+  --piece-active: #16a34a;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px 8px;
+  background: #fff;
+  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.row {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.endCap {
+  margin-top: 13px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Her parça kendi rengini --c'den alır: siyah, aktifse yeşil */
+.straight,
+.arcPiece {
+  --c: var(--piece-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.straight[data-active],
+.arcPiece[data-active] {
+  --c: var(--piece-active);
+}
+
+.straight {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-width: 64px;
+}
+
+.arcPiece {
+  flex: 0 0 auto;
+}
+
+.straightDraw {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  width: 100%;
+  height: 100px;
+  display: block;
+}
+
+.svgArc {
+  display: block;
+}
+
+.line {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 6;
+  stroke-linecap: butt;
+}
+
+.badge {
+  fill: var(--c);
+}
+
+.badgeText {
+  fill: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+/* Düzlük numarası — SVG preserveAspectRatio=none olduğu için HTML daire */
+.badgeHtml {
+  position: absolute;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+  color: var(--c);
+  white-space: nowrap;
+}
+
+.value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.arcPiece[data-active] .value,
+.straight[data-active] .value {
+  color: var(--piece-active);
+}

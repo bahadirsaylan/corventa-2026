@@ -1,0 +1,178 @@
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.card {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.cardHeader {
+  background: #f5d76e;
+  border-bottom: 1.5px solid #c5c1b6;
+  padding: 14px 18px;
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.cardHeaderLabel {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.cardHeaderValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.cardBody {
+  padding: 22px;
+  min-height: 200px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.55;
+}
+
+/* ── Evet/Hayır ───────────────────────────────── */
+.yesNoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.yesNoBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 14px;
+  padding: 30px 20px;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--color-text);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  min-height: 130px;
+  touch-action: manipulation;
+  transition: filter 0.12s, transform 0.08s;
+}
+
+.yesNoBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}
+
+/* ── A/B/C/D ──────────────────────────────────── */
+.multiGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.multiBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 12px;
+  padding: 22px 24px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-align: left;
+  min-height: 80px;
+  touch-action: manipulation;
+  transition: filter 0.12s, transform 0.08s;
+}
+
+.multiBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}
+
+/* ── Sonuç ekranı ─────────────────────────────── */
+.resultRoot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 40px 20px;
+}
+
+.resultBadge {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  padding: 18px 32px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.resultPass {
+  background: #d4f0dc;
+  color: #166534;
+  border: 2px solid #166534;
+}
+
+.resultFail {
+  background: #fae0e0;
+  color: #c93235;
+  border: 2px solid #c93235;
+}
+
+.resultScore {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+}
+
+.resultScoreNum {
+  font-size: 100px;
+  font-weight: 900;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.resultScoreOf {
+  font-size: 50px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.resultActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.resultBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-transform: uppercase;
+  min-height: 70px;
+  touch-action: manipulation;
+  transition: filter 0.12s, transform 0.08s;
+}
+
+.resultBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}

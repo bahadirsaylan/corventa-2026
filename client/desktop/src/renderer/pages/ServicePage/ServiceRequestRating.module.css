@@ -1,0 +1,169 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.intro {
+  background: #fcefd4;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.ratingBox {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  display: grid;
+  grid-template-columns: 80px auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.spinnerBtn {
+  width: 80px;
+  height: 70px;
+  background: #cfeaff;
+  border: 2px solid #1a6fd4;
+  border-radius: 12px;
+  font-size: 30px;
+  font-weight: 800;
+  color: #1a6fd4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.1s, transform 0.08s;
+}
+
+.spinner > .spinnerBtn:nth-of-type(1) {
+  grid-row: 1;
+}
+
+.spinner > .spinnerBtn:nth-of-type(2) {
+  grid-row: 3;
+}
+
+.spinnerBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.95);
+}
+
+.spinnerNumbers {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+}
+
+.spinnerSide {
+  font-size: 36px;
+  color: var(--color-text-muted);
+  min-width: 32px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.spinnerMain {
+  font-size: 96px;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.spinnerOutOf {
+  font-size: 56px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.noteBox {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noteLabel {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.noteHint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.noteInput {
+  width: 100%;
+  min-height: 110px;
+  border: 1px solid #d9d4c4;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.errorBox {
+  padding: 10px 16px;
+  background: #fae0e0;
+  border: 1.5px solid #c93235;
+  border-radius: 8px;
+  color: #c93235;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.saveBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: filter 0.12s, transform 0.08s;
+  min-height: 80px;
+  touch-action: manipulation;
+}
+
+.saveBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

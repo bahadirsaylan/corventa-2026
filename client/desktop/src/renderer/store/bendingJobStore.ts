@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 
+// ── Bending mode (2026-09-05) — Otomatik akış varyantı ─────────────────────
+// 'ai'   = tam otomatik + geri esneme + AI recipe hızlandırma
+// 'semi' = büküm otomatik, geri esneme ölçümü/düzeltme USTAYA (skipAutoCorrect=true)
+export type BendingModeId = 'ai' | 'semi'
+
 // ── Bending direction selectable on the direction screen ────────────────────
 export type BendingDirectionId = 'left' | 'right' | 'other'
 
@@ -20,6 +25,21 @@ export interface RingBendingParams {
   H: number | null
   /** Step increment value */
   G: number | null
+  /** Part length — profile total length (mm) */
+  L: number | null
+}
+
+// ── Arc bending — tek segment parametreleri ────────────────────────────────
+// 2026-08-24 refactor: eski akışta operatör sadece ilk segmenti veriyordu, gerisi
+// interactive modal ile geliyordu. Yeni akışta TÜM P segment baştan ana ekranda
+// alınır. Her segment kendi R/α/L değerlerine sahip.
+export interface ArcSegmentParams {
+  /** Bending radius (mm) — yarıçap (mapper backend'e ×2 = çap gönderir; hayır — Arc'ta segment yarıçap direkt gider) */
+  R: number | null
+  /** Bending angle α (degrees) — 0 < α < 180 */
+  Alpha: number | null
+  /** Flatness to next radius (mm) — ≥ 0 */
+  L: number | null
 }
 
 // ── Arc bending measurements ──────────────────────────────────────────────────
@@ -30,16 +50,25 @@ export interface ArcBendingParams {
   B: number | null
   /** Profile wall thickness (mm) */
   S: number | null
-  /** Bending radius (mm) */
-  R: number | null
-  /** Number of arc bends (count) */
+  /** Number of arc bends (count) — segments.length ile eşleşir */
   P: number | null
-  /** Flatness to next radius (mm) */
-  L: number | null
+  /** Total part length (mm) — operatörün fiziksel profil uzunluğu, güvenlik payı kontrolü için */
+  LTotal: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Step increment value */
   G: number | null
+  /**
+   * P adet segment (2026-08-24 yeni akış). Operatör baştan hepsini ana ekranda girer,
+   * mapper backend'e segments: [{ segmentOrder: 1, R, α, L }, ...] olarak gönderir.
+   */
+  segments: ArcSegmentParams[]
+  /**
+   * 2026-09-08: Arc planner (ONAYLA) sonucu. Segmentler backend'e orijinal sırada
+   * gider ama true ise runtime handler ters iterasyon yapar (SegN önce). Null =
+   * planner hiç çağrılmadı (eski akış — backward compat).
+   */
+  isReversedOrder?: boolean | null
 }
 
 // ── Spiral bending measurements ───────────────────────────────────────────────
@@ -54,6 +83,8 @@ export interface SpiralBendingParams {
   S: number | null
   /** Bending radius (mm) */
   R: number | null
+  /** Part total length (mm) */
+  L: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Spiral winding direction */
@@ -68,8 +99,12 @@ export interface SivamaBendingParams {
   B: number | null
   /** Profile wall thickness (mm) */
   S: number | null
+  /** Target bending radius (mm) — backend'e ×2 = çap gider */
+  R: number | null
   /** Bending angle (degrees) */
   X: number | null
+  /** Part total length (mm) */
+  L: number | null
   /** Machine speed (m/min) */
   H: number | null
   /** Sivama winding direction */
@@ -136,7 +171,8 @@ export function prepareBendingJobPayload(
       ringBending.S === null ||
       ringBending.R === null ||
       ringBending.H === null ||
-      ringBending.G === null
+      ringBending.G === null ||
+      ringBending.L === null
     ) {
       return null
     }
@@ -149,14 +185,20 @@ export function prepareBendingJobPayload(
       arcBending.A === null ||
       arcBending.B === null ||
       arcBending.S === null ||
-      arcBending.R === null ||
       arcBending.P === null ||
-      arcBending.L === null ||
+      arcBending.LTotal === null ||
       arcBending.H === null ||
-      arcBending.G === null
+      arcBending.G === null ||
+      !arcBending.segments ||
+      arcBending.segments.length !== arcBending.P
     ) {
       return null
     }
+    // Her segment R/α/L dolu olmalı
+    const allSegmentsValid = arcBending.segments.every(
+      (s) => s.R !== null && s.Alpha !== null && s.L !== null,
+    )
+    if (!allSegmentsValid) return null
     return { profileId, bendingDirection, bendingMethod, arcBending }
   }
 
@@ -167,6 +209,7 @@ export function prepareBendingJobPayload(
       spiralBending.B === null ||
       spiralBending.S === null ||
       spiralBending.R === null ||
+      spiralBending.L === null ||
       spiralBending.H === null ||
       spiralBending.Y === null
     ) {
@@ -181,7 +224,9 @@ export function prepareBendingJobPayload(
       sivamaBending.A === null ||
       sivamaBending.B === null ||
       sivamaBending.S === null ||
+      sivamaBending.R === null ||
       sivamaBending.X === null ||
+      sivamaBending.L === null ||
       sivamaBending.H === null ||
       sivamaBending.Y === null
     ) {
@@ -198,6 +243,9 @@ export function prepareBendingJobPayload(
 export interface BendingJobParams {
   /** Profile shape selected on the AI Bending profile screen */
   profileId: BendingProfileId | null
+
+  /** Bending mode — Otomatik/AI vs Yarı Otomatik (2026-09-05) */
+  bendingMode: BendingModeId | null
 
   /** Bending direction selected on the direction screen */
   bendingDirection: BendingDirectionId | null
@@ -273,6 +321,7 @@ interface BendingJobState {
 
 const INITIAL_PARAMS: BendingJobParams = {
   profileId:        null,
+  bendingMode:      null,
   bendingDirection: null,
   bendingMethod:    null,
   ringBending:      null,
