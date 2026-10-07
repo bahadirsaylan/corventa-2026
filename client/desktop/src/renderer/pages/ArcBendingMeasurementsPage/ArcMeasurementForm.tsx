@@ -3,7 +3,8 @@ import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
-import methodImage from '@/assets/images/blend4-3-buyuk.png'
+import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
@@ -194,6 +195,7 @@ export default function ArcMeasurementForm({
   stage,
 }: Props) {
   const profileImage = useProfileDimensionImage()
+  const methodImage = useMethodTileImage('arc', defaultMethodImage)
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
 
