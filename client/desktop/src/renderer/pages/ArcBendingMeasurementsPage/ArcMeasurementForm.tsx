@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import methodImage from '@/assets/images/blend4-3-buyuk.png'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
@@ -193,6 +193,7 @@ export default function ArcMeasurementForm({
   onInputModeChange,
   stage,
 }: Props) {
+  const profileImage = useProfileDimensionImage()
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
 

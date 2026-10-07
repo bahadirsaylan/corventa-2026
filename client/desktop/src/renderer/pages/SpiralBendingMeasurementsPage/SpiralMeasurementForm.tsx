@@ -3,7 +3,7 @@ import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { SpiralDirection } from '@/store/bendingJobStore'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import methodImage from '@/assets/images/blend4-4-buyuk.png'
 
 export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'L' | 'H'
@@ -72,6 +72,7 @@ interface Props {
 }
 
 export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
+  const profileImage = useProfileDimensionImage()
   const [openInfo, setOpenInfo]       = useState<SpiralFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SpiralNumericKey | null>(null)
 

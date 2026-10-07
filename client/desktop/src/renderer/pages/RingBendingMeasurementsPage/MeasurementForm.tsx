@@ -2,7 +2,7 @@ import { useState } from 'react'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import methodImage from '@/assets/images/blend4-2-buyuk.png'
 
 export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
@@ -69,6 +69,7 @@ interface Props {
 }
 
 export default function MeasurementForm({ values, onChange, onReset }: Props) {
+  const profileImage = useProfileDimensionImage()
   const [openInfo, setOpenInfo]     = useState<FieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
 

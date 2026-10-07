@@ -3,7 +3,7 @@ import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { SpiralDirection } from '@/store/bendingJobStore'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import methodImage from '@/assets/images/blend3-4-buyuk.png'
 
 export type SivamaNumericKey = 'A' | 'B' | 'S' | 'R' | 'X' | 'L' | 'H'
@@ -78,6 +78,7 @@ interface Props {
 }
 
 export default function SivamaMeasurementForm({ values, onChange, onReset }: Props) {
+  const profileImage = useProfileDimensionImage()
   const [openInfo, setOpenInfo]       = useState<SivamaFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SivamaNumericKey | null>(null)
 
