@@ -8,7 +8,10 @@
 import { useMemo, useState } from 'react'
 import OilStatsList from '@/pages/DashboardPage/OilStatsList'
 import ErrorLogsModal from './ErrorLogsModal'
-import { useSafety, useSensors } from '@/hooks/useMachineState'
+import ArcBendingStrip from './ArcBendingStrip'
+import { BendingMethod } from '@shared/types'
+import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
+import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import styles from './BottomStatsPanel.module.css'
 
 type WarningLevel = 'none' | 'warning' | 'error'
@@ -22,6 +25,18 @@ export default function BottomStatsPanel() {
   const [showLogs, setShowLogs] = useState(false)
   const sensors = useSensors()
   const safety = useSafety()
+
+  //   Çok açılı (Arc) büküm sürerken sensör kartlarının yerine parça şeridi gösterilir.
+  //   Uyarı şeridi ve Hata Kayıtları her durumda yerinde kalır (alarmlar görünür olmalı).
+  const bendingActive = useBendingActive()
+  const runningJob = useBendingActivityStore((s) => s.runningJob)
+  const runningJobId = useBendingActivityStore((s) => s.runningJobId)
+  const rawProgress = useBendingProgress()
+  const arcJob =
+    bendingActive && runningJob && runningJob.method === BendingMethod.Arc && (runningJob.segments?.length ?? 0) > 0
+      ? runningJob
+      : null
+  const arcProgress = rawProgress && rawProgress.jobId === runningJobId ? rawProgress : null
 
   //   Aktif uyarı: sensor/safety state'inden ilk kritik durumu bul.
   //   Öncelik: acil stop > termal > yağ basınç > yağ sıcaklık > yağ seviye > yağ nemi.
@@ -84,8 +99,8 @@ export default function BottomStatsPanel() {
         </button>
       </div>
 
-      {/* ── Alt sensör kartları ────────────────────── */}
-      <OilStatsList />
+      {/* ── Alt: sensör kartları / Arc büküm sırasında parça şeridi ── */}
+      {arcJob ? <ArcBendingStrip job={arcJob} progress={arcProgress} /> : <OilStatsList />}
 
       {/* ── Hata kayıtları modalı ──────────────────── */}
       {showLogs && <ErrorLogsModal onClose={() => setShowLogs(false)} />}

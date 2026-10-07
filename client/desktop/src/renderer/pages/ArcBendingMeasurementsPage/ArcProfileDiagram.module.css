@@ -1,4 +1,6 @@
 .diagram {
+  --piece-color: #2a2a2a;
+  --piece-active: #16a34a;
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -25,20 +27,33 @@
   flex-shrink: 0;
 }
 
-.straight {
-  flex-basis: 0;
-  flex-shrink: 1;
-  min-width: 64px;
+/* Her parça kendi rengini --c'den alır: siyah, aktifse yeşil */
+.straight,
+.arcPiece {
+  --c: var(--piece-color);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+.straight[data-active],
+.arcPiece[data-active] {
+  --c: var(--piece-active);
+}
+
+.straight {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-width: 64px;
+}
+
 .arcPiece {
   flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+}
+
+.straightDraw {
+  position: relative;
+  width: 100%;
 }
 
 .svg {
@@ -51,21 +66,15 @@
   display: block;
 }
 
-.lineStraight {
-  stroke: #3a3a3a;
-  stroke-width: 6;
-  stroke-linecap: butt;
-}
-
-.lineArc {
+.line {
   fill: none;
-  stroke: var(--color-primary);
+  stroke: var(--c);
   stroke-width: 6;
   stroke-linecap: butt;
 }
 
 .badge {
-  fill: var(--color-primary);
+  fill: var(--c);
 }
 
 .badgeText {
@@ -74,20 +83,31 @@
   font-weight: 900;
 }
 
-.label,
-.labelArc {
+/* Düzlük numarası — SVG preserveAspectRatio=none olduğu için HTML daire */
+.badgeHtml {
+  position: absolute;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: var(--c);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label {
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
   margin-top: 2px;
-}
-
-.label {
-  color: var(--color-text-muted);
-}
-
-.labelArc {
-  color: var(--color-primary);
+  color: var(--c);
+  white-space: nowrap;
 }
 
 .value {
@@ -95,4 +115,9 @@
   font-weight: 700;
   color: var(--color-text);
   white-space: nowrap;
+}
+
+.arcPiece[data-active] .value,
+.straight[data-active] .value {
+  color: var(--piece-active);
 }
