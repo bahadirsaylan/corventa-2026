@@ -4,6 +4,7 @@
 import { EventEmitter } from 'node:events'
 
 import { childLogger } from '@main/lib/logger'
+import { IS_DEMO, demoMachine } from '@main/demo/DemoMachine'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { CorventaHubConnection } from '@main/services/data-api/CorventaHubConnection'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
@@ -56,6 +57,24 @@ export class ConnectionManager extends EventEmitter {
   }
 
   async start(): Promise<void> {
+    if (IS_DEMO) {
+      // DEMO: SignalR yok — sahte makinenin yayınlarını aynı event'lere aktar, her şey "bağlı"
+      log.info('DEMO modu — sahte makine bağlanıyor')
+      this.engineHttpState = 'connected'
+      this.dataApiHttpState = 'connected'
+      demoMachine.on('stateUpdated', (state: MachineState) => {
+        this.latestState = state
+        this.emit('stateUpdated', state)
+      })
+      demoMachine.on('bendingProgress', (p: BendingProgress) => this.emit('bendingProgress', p))
+      demoMachine.on('eventReceived', (evt: MachineEvent) => {
+        this.cachedEvents.set(evt.eventType, evt)
+        this.emit('eventReceived', evt)
+      })
+      demoMachine.start()
+      this.emitStatus()
+      return
+    }
     log.info('starting connection manager')
 
     this.machineHub.on('stateUpdated', (state) => {
@@ -96,6 +115,10 @@ export class ConnectionManager extends EventEmitter {
 
   async stop(): Promise<void> {
     log.info('stopping connection manager')
+    if (IS_DEMO) {
+      demoMachine.stop()
+      return
+    }
     if (this.healthCheckTimer) {
       clearInterval(this.healthCheckTimer)
       this.healthCheckTimer = null
@@ -104,6 +127,15 @@ export class ConnectionManager extends EventEmitter {
   }
 
   getStatus(): ConnectionStatus {
+    if (IS_DEMO) {
+      return {
+        engineHttp: 'connected',
+        machineHub: 'connected',
+        dataApiHttp: 'connected',
+        corventaHub: 'connected',
+        lastStateUpdateAt: new Date().toISOString(),
+      }
+    }
     const lastTs = this.machineHub.getLastStateTimestamp()
     return {
       engineHttp: this.engineHttpState,

@@ -31,12 +31,20 @@ export interface HttpRequestOptions {
   headers?: Record<string, string>
 }
 
+// DEMO MODU (CORVENTA_DEMO=1) — istekler gerçek backend yerine sahte makineye gider.
+type HttpInterceptor = (method: string, url: string, body: unknown) => Promise<unknown>
+let interceptor: HttpInterceptor | null = null
+export function setHttpInterceptor(fn: HttpInterceptor | null): void {
+  interceptor = fn
+}
+
 async function request<T>(
   method: string,
   url: string,
   body: unknown | undefined,
   opts: HttpRequestOptions = {},
 ): Promise<T> {
+  if (interceptor) return (await interceptor(method, url, body)) as T
   const cfg = getConfig()
   const timeoutMs = opts.timeoutMs ?? cfg.http.defaultTimeoutMs
 

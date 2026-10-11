@@ -7,6 +7,8 @@ import { connectionManager } from '@main/services/ConnectionManager'
 import { dumpInitialState, startEventsBroadcaster } from '@main/ipc/eventsBroadcaster'
 import { registerIpcHandlers } from '@main/ipc/registerHandlers'
 import { backendSupervisor, SupervisorStatus } from '@main/services/backend-supervisor/BackendSupervisor'
+import { setHttpInterceptor } from '@main/lib/http'
+import { IS_DEMO, demoMachine } from '@main/demo/DemoMachine'
 
 const log = childLogger('app')
 
@@ -235,7 +237,14 @@ app.whenReady().then(async () => {
     updateSplashStatus(label)
   })
 
-  const backendOk = await backendSupervisor.start()
+  // DEMO MODU: backend başlatılmaz, tüm REST istekleri sahte makineye gider (ekran kaydı için)
+  if (IS_DEMO) {
+    log.warn('DEMO MODU — backend başlatılmıyor, makine simüle ediliyor')
+    setHttpInterceptor((method, url, body) => demoMachine.handle(method, url, body))
+    globalShortcut.register('F8', () => demoMachine.togglePartSensor())
+    globalShortcut.register('F9', () => demoMachine.cycleSpeed())
+  }
+  const backendOk = IS_DEMO ? true : await backendSupervisor.start()
   if (!backendOk) {
     log.error('Backend baslatilamadi — UI acilmayacak')
     updateSplashStatus('Backend baslatilamadi. Log dosyasina bakin.')
