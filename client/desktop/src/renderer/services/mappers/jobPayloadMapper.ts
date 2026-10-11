@@ -121,10 +121,18 @@ export function mapToCreateRequest(
     H = params.sivamaBending.H
   }
 
-  const required = { A, B, S, R }
+  // A (hesaptaki tek ölçü) ve R zorunlu. B / S profilde yoksa 0 gelir (constants/profileFields.ts,
+  // 2026-10-11) — 0 kabul, sadece negatif / sayı olmayan reddedilir. Backend de B,S ≥ 0 bekler.
+  const required = { A, R }
   for (const [name, value] of Object.entries(required)) {
     if (!Number.isFinite(value) || value <= 0) {
       throw new JobMappingError(name, `${name} değeri geçersiz veya girilmemiş`)
+    }
+  }
+  const optional = { B, S }
+  for (const [name, value] of Object.entries(optional)) {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new JobMappingError(name, `${name} değeri geçersiz`)
     }
   }
 
