@@ -37,7 +37,13 @@ const DRAWINGS: Record<BendingProfileId, { left: string; right: string }> = {
 export function useMethodTileImage(method: MethodTileKind, fallback: string): string {
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const direction = useBendingJobStore((s) => s.params.bendingDirection)
+  const subType = useBendingJobStore((s) => s.params.profileSubType)
   if (!profileId) return fallback
+  // Boş boru: seçilen alt tipe göre çizim (etli / dikişli)
+  if (profileId === 'circle') {
+    const drawing = subType === 'ETLI' ? 'etli_boru_1' : 'dikisli_boru_1'
+    return byName[`${drawing}__${method}`] ?? fallback
+  }
   const d = DRAWINGS[profileId]
   const drawing = direction === 'right' ? d.right : d.left
   return byName[`${drawing}__${method}`] ?? fallback

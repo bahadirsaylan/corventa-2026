@@ -211,6 +211,8 @@ export function mapToCreateRequest(
 
   return {
     profileType,
+    // Boş boru alt tipi (dikişli/etli) — sadece 'circle' profilinde
+    profileSubType: params.profileId === 'circle' ? params.profileSubType : null,
     direction,
     method,
     profileA: A,

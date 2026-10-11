@@ -19,6 +19,7 @@ export interface BendingJob {
 
   // Profile
   profileType: ProfileType
+  profileSubType?: string | null
   direction: BendingDirection
   method: BendingMethod
 
@@ -94,6 +95,8 @@ export interface BendingSegmentInput {
 // Şu an için backend tüm alanları kabul ediyor; mapper bu interface'i full BendingJob'a çevirir.
 export interface BendingJobCreateRequest {
   profileType: ProfileType
+  /** Profil alt tipi — boş boru: 'DIKISLI' | 'ETLI'; diğerlerinde null */
+  profileSubType?: string | null
   direction: BendingDirection
   method: BendingMethod
 

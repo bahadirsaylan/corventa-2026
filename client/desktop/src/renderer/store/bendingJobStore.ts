@@ -5,6 +5,9 @@ import { create } from 'zustand'
 // 'semi' = büküm otomatik, geri esneme ölçümü/düzeltme USTAYA (skipAutoCorrect=true)
 export type BendingModeId = 'ai' | 'semi'
 
+// Boş boru alt tipi — profil seçiminde 'circle' için sorulur, DB'ye ProfileSubType olarak gider
+export type PipeTypeId = 'DIKISLI' | 'ETLI'
+
 // ── Bending direction selectable on the direction screen ────────────────────
 export type BendingDirectionId = 'left' | 'right' | 'other'
 
@@ -244,6 +247,9 @@ export interface BendingJobParams {
   /** Profile shape selected on the AI Bending profile screen */
   profileId: BendingProfileId | null
 
+  /** Boş boru (profileId 'circle') alt tipi; diğer profillerde null (2026-10-11) */
+  profileSubType: PipeTypeId | null
+
   /** Bending mode — Otomatik/AI vs Yarı Otomatik (2026-09-05) */
   bendingMode: BendingModeId | null
 
@@ -327,6 +333,7 @@ interface BendingJobState {
 
 const INITIAL_PARAMS: BendingJobParams = {
   profileId:        null,
+  profileSubType:   null,
   bendingMode:      null,
   bendingDirection: null,
   bendingMethod:    null,

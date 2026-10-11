@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
+import PipeTypeModal from './PipeTypeModal'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './AiBendingPage.module.css'
@@ -13,6 +15,10 @@ export default function AiBendingPage() {
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
   const setParams = useBendingJobStore((s) => s.setParams)
   const resetJob = useBendingJobStore((s) => s.resetJob)
+  const profileSubType = useBendingJobStore((s) => s.params.profileSubType)
+  // Boş boru → dikişli / etli seçimi (dolu boru ve diğer profiller sormaz)
+  const [pipeModalOpen, setPipeModalOpen] = useState(false)
+  const needsPipeType = profileId === 'circle' && !profileSubType
 
   return (
     <div className={styles.page}>
@@ -26,12 +32,18 @@ export default function AiBendingPage() {
 
       {/* ── Title ───────────────────────────────── */}
       <h2 className={styles.title}>KIVIRIM PROFİLİNİ SEÇİNİZ</h2>
+      {profileId === 'circle' && profileSubType && (
+        <p className={styles.subtitle}>{profileSubType === 'ETLI' ? 'ETLİ BORU' : 'DİKİŞLİ BORU'}</p>
+      )}
 
       {/* ── Content row ─────────────────────────── */}
       <div className={styles.content}>
         <BendingProfileGrid
           selected={profileId}
-          onSelect={(id) => setParams({ profileId: id })}
+          onSelect={(id) => {
+            if (id === 'circle') setPipeModalOpen(true)
+            else setParams({ profileId: id, profileSubType: null })
+          }}
         />
         <ProfileInfoPanel />
       </div>
@@ -44,10 +56,20 @@ export default function AiBendingPage() {
           resetJob()
           navigate(backTo)
         }}
-        confirmDisabled={!profileId}
+        confirmDisabled={!profileId || needsPipeType}
         onConfirm={() => navigate('/bending/ai/direction')}
       />
 
+      {pipeModalOpen && (
+        <PipeTypeModal
+          selected={profileId === 'circle' ? profileSubType : null}
+          onSelect={(type) => {
+            setParams({ profileId: 'circle', profileSubType: type })
+            setPipeModalOpen(false)
+          }}
+          onClose={() => setPipeModalOpen(false)}
+        />
+      )}
     </div>
   )
 }
