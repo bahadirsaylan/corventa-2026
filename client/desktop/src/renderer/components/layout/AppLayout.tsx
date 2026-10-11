@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import BendingBallsPanel from '@/components/BendingBallsPanel/BendingBallsPanel'
 import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
+import SideMenu from '@/components/SideMenu/SideMenu'
 import { startBendingActivityPoller, useBendingActive } from '@/stores/bendingActivityStore'
 import styles from './AppLayout.module.css'
 
@@ -26,6 +27,8 @@ export default function AppLayout() {
           Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez. */}
       <div className={styles.top}>
         {bendingActive ? <BendingBallsPanel variant="monitor" /> : <Outlet />}
+        {/* Sağ kenar hızlı menü (SEKIL-19) */}
+        <SideMenu />
       </div>
 
       {/* Orta alan — başlık + manuel tuş takımı (her zaman sabit) */}

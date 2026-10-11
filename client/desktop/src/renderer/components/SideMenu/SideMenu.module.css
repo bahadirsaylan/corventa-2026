@@ -1,0 +1,169 @@
+/* SEKIL-19 — üst alanın sağ kenarında açılan menü şeridi.
+   Üst alan (.top) position: relative; menü bu alanı kaplar. */
+
+.handle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 120px;
+  border: 1.5px solid var(--color-border);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: var(--color-surface-raised, #f4f4f4);
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 60;
+  transition: opacity 0.15s;
+}
+
+.handle[data-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.handle:active {
+  filter: brightness(0.92);
+}
+
+.handleDots {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.handleDots i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 40, 40, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 61;
+}
+
+.shade[data-open] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 156px;
+  background: #d8d8d8;
+  border-left: 2px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transform: translateX(100%);
+  transition: transform 0.22s ease-out;
+  z-index: 62;
+}
+
+.rail[data-open] {
+  transform: translateX(0);
+}
+
+.logo {
+  padding: 10px 12px;
+  border-bottom: 2px solid #2a2a2a;
+  display: flex;
+  justify-content: center;
+}
+
+/* Login 'compact' logosu ~520px — şeride sığdır */
+.logo > * {
+  zoom: 0.25;
+}
+
+.items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px 14px;
+  border: none;
+  border-bottom: 2px solid #2a2a2a;
+  background: transparent;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.item:active:not(:disabled) {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.item:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.icon svg {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.lockNote {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--color-primary);
+}
+
+.close {
+  margin: 12px auto 16px;
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.close svg {
+  width: 100%;
+  height: 100%;
+}
+
+.close circle {
+  fill: #fff;
+  stroke: #e31e24;
+  stroke-width: 3.5;
+}
+
+.close path {
+  stroke: #e31e24;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
