@@ -13,7 +13,6 @@
 
 /* Top zone — bending balls, fixed height */
 .top {
-  position: relative;
   height: 750px;
   flex-shrink: 0;
   overflow: hidden;

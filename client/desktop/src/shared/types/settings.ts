@@ -48,3 +48,12 @@ export const MAINTENANCE_PERIODS: readonly MaintenancePeriodInfo[] = [
   { key: 'six-monthly',    label: '6 Aylık',  intervalDays: 180 },
   { key: 'twelve-monthly', label: '12 Aylık', intervalDays: 365 },
 ] as const
+
+// Kullanıcıya özel UI tercihi — DataApi /api/user-preferences/{userKey}/{prefKey}
+export interface UserPreference {
+  userKey: string
+  prefKey: string
+  /** Tercih içeriği (JSON metni) — şeklini tercihi kullanan ekran tanımlar */
+  valueJson: string
+  updatedAt: string
+}

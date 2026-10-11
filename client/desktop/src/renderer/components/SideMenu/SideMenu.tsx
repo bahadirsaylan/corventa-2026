@@ -1,22 +1,22 @@
-// Sağ kenar hızlı menü (SEKIL-19) — üst alanın sağında tutamak, dokununca sağdan şerit açılır.
-// Seçenekler: yeni büküm, ana ekran, servis, oturumu kapat. Arka plan karartılır; dışarı dokununca kapanır.
-// Otomatik büküm sürerken "yeni büküm" ve "oturumu kapat" pasif.
-// Oturum: gerçek kimlik doğrulama henüz yok — "oturumu kapat" büküm seçimlerini temizleyip giriş ekranına döner.
+// Sağ kenar hızlı menü (SEKIL-19) — sağdan tüm ekran yüksekliğinde şerit.
+// Açma: sağ kenardaki ince şeritten parmakla sola çekme (dokunmatik) veya fare sağ kenara
+// yaklaşınca beliren kare tuş. Kapatma: sağa çekme, X, karartılmış alana dokunma.
+// Kenar şeridi 28 px — tuş takımının sağ tuşlarından (REEL) daha sağda, onları engellemez.
+// Seçenekler kullanıcıya özel: katalog constants/sideMenuCatalog.ts, düzen DataApi'de (Ayarlar > Hızlı Menü).
+// Otomatik büküm sürerken lockWhileBending seçenekleri (yeni büküm, oturumu kapat) pasif.
+// Oturum: gerçek kimlik doğrulama henüz yok — "oturumu kapat" büküm seçimlerini ve oturum kullanıcısını
+// temizleyip giriş ekranına döner.
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { catalogItem, type SideMenuCatalogItem } from '@/constants/sideMenuCatalog'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { useSessionStore, useUserKey } from '@/stores/sessionStore'
+import { useSideMenuStore } from '@/stores/sideMenuStore'
+import { SideMenuIcon, GearIcon } from './SideMenuIcons'
 import styles from './SideMenu.module.css'
-
-interface Item {
-  key: string
-  label: string
-  icon: ReactNode
-  onSelect: () => void
-  disabled?: boolean
-}
 
 export default function SideMenu() {
   const [open, setOpen] = useState(false)
@@ -24,58 +24,108 @@ export default function SideMenu() {
   const { pathname } = useLocation()
   const bendingActive = useBendingActive()
   const resetJob = useBendingJobStore((s) => s.resetJob)
+  const clearSession = useSessionStore((s) => s.clear)
+  const userKey = useUserKey()
+  const itemIds = useSideMenuStore((s) => s.items)
+  const loadMenu = useSideMenuStore((s) => s.load)
+
+  // Kullanıcı değişince o kullanıcının menü düzeni yüklenir
+  useEffect(() => {
+    void loadMenu(userKey)
+  }, [userKey, loadMenu])
+
+  const [peek, setPeek] = useState(false)   // fare kenara yaklaştı → kare tuş görünür
+  const swipe = useRef<{ x: number; y: number; id: number } | null>(null)
 
   // Sayfa değişince menü kapanır
   useEffect(() => setOpen(false), [pathname])
+  useEffect(() => {
+    if (open) setPeek(false)
+  }, [open])
 
-  const go = (to: string) => () => {
-    setOpen(false)
-    navigate(to)
+  // Kenardan sola çekme → aç
+  function edgeDown(e: PointerEvent<HTMLDivElement>) {
+    swipe.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+  }
+  function edgeMove(e: PointerEvent<HTMLDivElement>) {
+    const s = swipe.current
+    if (!s || s.id !== e.pointerId) return
+    if (s.x - e.clientX > 40 && Math.abs(e.clientY - s.y) < 120) {
+      swipe.current = null
+      setOpen(true)
+    }
+  }
+  // Açık şeritte sağa çekme → kapat
+  const railSwipe = useRef<{ x: number; id: number } | null>(null)
+  function railDown(e: PointerEvent<HTMLElement>) {
+    railSwipe.current = { x: e.clientX, id: e.pointerId }
+  }
+  function railMove(e: PointerEvent<HTMLElement>) {
+    const s = railSwipe.current
+    if (!s || s.id !== e.pointerId) return
+    if (e.clientX - s.x > 60) {
+      railSwipe.current = null
+      setOpen(false)
+    }
+  }
+  const endSwipe = () => {
+    swipe.current = null
+    railSwipe.current = null
   }
 
-  const items: Item[] = [
-    {
-      key: 'new',
-      label: 'YENİ BÜKÜM',
-      icon: <PlusIcon />,
-      disabled: bendingActive,
-      onSelect: () => {
-        resetJob()
-        go('/bending/mode')()
-      },
-    },
-    { key: 'home', label: 'ANA EKRAN', icon: <HomeIcon />, onSelect: go('/dashboard') },
-    { key: 'service', label: 'SERVİS', icon: <ServiceIcon />, onSelect: go('/service') },
-    {
-      key: 'logout',
-      label: 'OTURUMU KAPAT',
-      icon: <LogoutIcon />,
-      disabled: bendingActive,
-      onSelect: () => {
-        setOpen(false)
-        resetJob()
-        navigate('/login', { replace: true })
-      },
-    },
-  ]
+  function select(item: SideMenuCatalogItem) {
+    setOpen(false)
+    const a = item.action
+    if (a.type === 'route') navigate(a.to)
+    else if (a.type === 'new-bending') {
+      resetJob()
+      navigate('/bending/mode')
+    } else if (a.type === 'logout') {
+      resetJob()
+      clearSession()
+      navigate('/login', { replace: true })
+    }
+  }
+
+  const items = itemIds.map(catalogItem).filter((i): i is SideMenuCatalogItem => !!i)
 
   return (
     <>
-      <button
-        type="button"
-        className={styles.handle}
+      {/* Sağ kenar şeridi: çekme alanı + (fare için) beliren kare tuş + ipucu çizgisi */}
+      <div
+        className={styles.edge}
         data-hidden={open || undefined}
-        onClick={() => setOpen(true)}
-        aria-label="Menüyü aç"
+        onPointerDown={edgeDown}
+        onPointerMove={edgeMove}
+        onPointerUp={endSwipe}
+        onPointerCancel={endSwipe}
+        onPointerEnter={(e) => e.pointerType === 'mouse' && setPeek(true)}
+        onPointerLeave={() => setPeek(false)}
       >
-        <span className={styles.handleDots} aria-hidden>
-          <i /><i /><i />
-        </span>
-      </button>
+        <span className={styles.grip} aria-hidden />
+        <button
+          type="button"
+          className={styles.handle}
+          data-visible={(peek && !open) || undefined}
+          onClick={() => setOpen(true)}
+          aria-label="Menüyü aç"
+        >
+          <GearIcon />
+        </button>
+      </div>
 
       <div className={styles.shade} data-open={open || undefined} onClick={() => setOpen(false)} aria-hidden />
 
-      <nav className={styles.rail} data-open={open || undefined} aria-label="Hızlı menü" aria-hidden={!open}>
+      <nav
+        className={styles.rail}
+        data-open={open || undefined}
+        aria-label="Hızlı menü"
+        aria-hidden={!open}
+        onPointerDown={railDown}
+        onPointerMove={railMove}
+        onPointerUp={endSwipe}
+        onPointerCancel={endSwipe}
+      >
         <div className={styles.logo}>
           <CorventaLogo size="compact" />
         </div>
@@ -83,14 +133,14 @@ export default function SideMenu() {
         <div className={styles.items}>
           {items.map((it) => (
             <button
-              key={it.key}
+              key={it.id}
               type="button"
               className={styles.item}
-              onClick={it.onSelect}
-              disabled={it.disabled}
+              onClick={() => select(it)}
+              disabled={bendingActive && it.lockWhileBending}
               tabIndex={open ? 0 : -1}
             >
-              <span className={styles.icon}>{it.icon}</span>
+              <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
               <span className={styles.label}>{it.label}</span>
             </button>
           ))}
@@ -111,46 +161,5 @@ export default function SideMenu() {
         </button>
       </nav>
     </>
-  )
-}
-
-/* ── İkonlar (SEKIL-19 çizgi stili) ─────────────── */
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
-      <path d="M26 8h12v18h18v12H38v18H26V38H8V26h18z" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
-      <path d="M6 31 L32 8 L58 31" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" strokeLinecap="round" />
-      <path d="M13 26v30h14V40h10v16h14V26" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" />
-      <path d="M44 15V8h7v13" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function ServiceIcon() {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
-      <path d="M10 30C10 18.95 19.4 10 31 10s21 8.95 21 20" stroke="currentColor" strokeWidth="3.5" />
-      <rect x="6" y="30" width="10" height="18" rx="4" stroke="currentColor" strokeWidth="3.5" />
-      <rect x="46" y="30" width="10" height="18" rx="4" stroke="currentColor" strokeWidth="3.5" />
-      <path d="M51 48c0 6-4 9-10 9H36" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
-      <circle cx="32" cy="57" r="4" stroke="currentColor" strokeWidth="3" />
-    </svg>
-  )
-}
-
-function LogoutIcon() {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
-      <path d="M36 10H12v44h24" stroke="currentColor" strokeWidth="3.5" strokeLinejoin="round" />
-      <path d="M26 32h30M46 21l11 11-11 11" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
   )
 }

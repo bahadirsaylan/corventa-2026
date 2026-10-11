@@ -5,6 +5,7 @@ import { http } from '@main/lib/http'
 import type {
   BendingJob,
   MachineIdentity,
+  UserPreference,
   MaintenancePeriodKey,
   MaintenanceState,
   ServiceRequest,
@@ -166,6 +167,21 @@ export class DataApiClient {
 
   updateMachineIdentity(identity: MachineIdentity): Promise<MachineIdentity> {
     return http.put<MachineIdentity>(`${this.baseUrl}/api/machine-identity`, identity)
+  }
+
+  // ---------- Kullanıcı tercihleri (ör. sağ hızlı menü) ----------
+
+  async getUserPreference(userKey: string, prefKey: string): Promise<UserPreference | null> {
+    const u = encodeURIComponent(userKey)
+    const k = encodeURIComponent(prefKey)
+    // 204 (kayıt yok) → http helper undefined döner
+    return (await http.get<UserPreference>(`${this.baseUrl}/api/user-preferences/${u}/${k}`)) ?? null
+  }
+
+  putUserPreference(userKey: string, prefKey: string, valueJson: string): Promise<UserPreference> {
+    const u = encodeURIComponent(userKey)
+    const k = encodeURIComponent(prefKey)
+    return http.put<UserPreference>(`${this.baseUrl}/api/user-preferences/${u}/${k}`, { valueJson })
   }
 
   // ---------- Maintenance State (bakım periyot takibi) ----------

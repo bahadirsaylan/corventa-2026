@@ -8,6 +8,7 @@ import {
   type MachineIdentity,
   type MaintenancePeriodKey,
   type MaintenanceState,
+  type UserPreference,
 } from '@shared'
 
 export const settingsApi = {
@@ -27,6 +28,13 @@ export const settingsApi = {
 
   setMaintenanceMode: (on: boolean): Promise<MaintenanceState> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsSetMaintenanceMode, on),
+
+  // Kullanıcı tercihleri — kayıt yoksa null
+  getUserPreference: (userKey: string, prefKey: string): Promise<UserPreference | null> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetUserPreference, userKey, prefKey),
+
+  putUserPreference: (userKey: string, prefKey: string, valueJson: string): Promise<UserPreference> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsPutUserPreference, userKey, prefKey, valueJson),
 }
 
 export type SettingsApi = typeof settingsApi

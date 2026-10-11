@@ -21,6 +21,7 @@ import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnecti
 import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
 import DefaultSpeedsPage from '@/pages/DefaultSpeedsPage/DefaultSpeedsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
+import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
 import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
 import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountReportPage'
@@ -92,6 +93,7 @@ export default function App() {
             <Route path="settings/users" element={<UserManagementPage />} />
             <Route path="settings/default-speeds" element={<DefaultSpeedsPage />} />
             <Route path="settings/encoder-reset" element={<EncoderResetPage />} />
+            <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />
             <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
             <Route path="settings/bending-count" element={<BendingCountReportPage />} />

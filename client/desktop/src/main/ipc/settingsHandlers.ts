@@ -15,6 +15,20 @@ import {
 const log = childLogger('ipc:settings')
 
 export function registerSettingsHandlers(): void {
+  // ---------- USER PREFERENCES ----------
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetUserPreference, async (_evt, userKey: string, prefKey: string) => {
+    return dataApi.getUserPreference(userKey, prefKey)
+  })
+
+  ipcMain.handle(
+    Ipc.IpcInvoke.SettingsPutUserPreference,
+    async (_evt, userKey: string, prefKey: string, valueJson: string) => {
+      log.info('put-user-preference', { userKey, prefKey })
+      return dataApi.putUserPreference(userKey, prefKey, valueJson)
+    },
+  )
+
   // ---------- MACHINE IDENTITY ----------
 
   ipcMain.handle(Ipc.IpcInvoke.SettingsGetIdentity, async () => {

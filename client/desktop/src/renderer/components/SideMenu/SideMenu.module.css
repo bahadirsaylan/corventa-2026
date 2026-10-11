@@ -1,47 +1,71 @@
-/* SEKIL-19 — üst alanın sağ kenarında açılan menü şeridi.
-   Üst alan (.top) position: relative; menü bu alanı kaplar. */
+/* SEKIL-19 — ekranın sağ kenarında, tüm yüksekliği kaplayan menü şeridi.
+   AppLayout .root (position: relative, 1080x1920) içinde konumlanır; odak modu karartmasının (z 50)
+   üstünde, modal/klavyelerin (z ≥ 180) altında. */
 
-.handle {
+.edge {
   position: absolute;
+  top: 0;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 120px;
-  border: 1.5px solid var(--color-border);
-  border-right: none;
-  border-radius: 12px 0 0 12px;
-  background: var(--color-surface-raised, #f4f4f4);
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 60;
-  transition: opacity 0.15s;
+  bottom: 0;
+  width: 28px;
+  z-index: 170;
+  touch-action: none;
 }
 
-.handle[data-hidden] {
-  opacity: 0;
+.edge[data-hidden] {
   pointer-events: none;
 }
 
-.handle:active {
-  filter: brightness(0.92);
+/* İpucu: sağ kenarın ortasında ince soluk çizgi */
+.grip {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  width: 5px;
+  height: 72px;
+  margin-top: -36px;
+  border-radius: 3px;
+  background: var(--color-border);
 }
 
-.handleDots {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+.edge[data-hidden] .grip {
+  opacity: 0;
 }
 
-.handleDots i {
+/* Fare kenara yaklaşınca beliren kare tuş */
+.handle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translate(12px, -50%);
+  width: 56px;
+  height: 56px;
+  padding: 9px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-light);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.handle[data-visible] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+
+.handle svg {
+  width: 100%;
+  height: 100%;
   display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-text);
+}
+
+.handle:active {
+  background: var(--color-primary-dark);
 }
 
 .shade {
@@ -51,7 +75,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
-  z-index: 61;
+  z-index: 171;
 }
 
 .shade[data-open] {
@@ -64,15 +88,17 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 156px;
-  background: #d8d8d8;
-  border-left: 2px solid #2a2a2a;
+  width: 180px;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: -6px 0 24px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   align-items: stretch;
   transform: translateX(100%);
   transition: transform 0.22s ease-out;
-  z-index: 62;
+  z-index: 172;
+  touch-action: pan-y;
 }
 
 .rail[data-open] {
@@ -80,8 +106,8 @@
 }
 
 .logo {
-  padding: 10px 12px;
-  border-bottom: 2px solid #2a2a2a;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: center;
 }
@@ -104,14 +130,15 @@
   gap: 6px;
   padding: 16px 8px 14px;
   border: none;
-  border-bottom: 2px solid #2a2a2a;
+  border-bottom: 1px solid var(--color-border);
   background: transparent;
-  color: #1a1a1a;
+  color: var(--color-text);
   cursor: pointer;
 }
 
 .item:active:not(:disabled) {
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--color-surface-raised);
+  color: var(--color-primary);
 }
 
 .item:disabled {
@@ -157,13 +184,13 @@
 }
 
 .close circle {
-  fill: #fff;
-  stroke: #e31e24;
+  fill: var(--color-surface);
+  stroke: var(--color-primary);
   stroke-width: 3.5;
 }
 
 .close path {
-  stroke: #e31e24;
+  stroke: var(--color-primary);
   stroke-width: 3.5;
   stroke-linecap: round;
 }

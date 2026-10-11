@@ -44,6 +44,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="SERTİFİKA SORGULA" onClick={() => navigate('/settings/certificate')} />
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" onClick={() => navigate('/settings/customer-change')} />
         <SettingsBtn label="SATIŞ / TAKAS / HİBE" onClick={() => navigate('/settings/machine-transfer')} />
+        <SettingsBtn label="HIZLI MENÜ" onClick={() => navigate('/settings/side-menu')} />
       </div>
     </div>
   )

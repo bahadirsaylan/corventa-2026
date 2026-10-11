@@ -27,8 +27,6 @@ export default function AppLayout() {
           Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez. */}
       <div className={styles.top}>
         {bendingActive ? <BendingBallsPanel variant="monitor" /> : <Outlet />}
-        {/* Sağ kenar hızlı menü (SEKIL-19) */}
-        <SideMenu />
       </div>
 
       {/* Orta alan — başlık + manuel tuş takımı (her zaman sabit) */}
@@ -49,6 +47,9 @@ export default function AppLayout() {
       {/* Kiosk moddan cikis: sag ust kose gizli hot-spot (5-tap veya 5sn basili tut).
           Klavye Ctrl+Alt+Shift+X global shortcut main process'te — bu component'ten bagimsiz. */}
       <KioskExitCorner />
+
+      {/* Sağ kenar hızlı menü (SEKIL-19) — tüm ekranı boydan boya kaplar */}
+      <SideMenu />
     </div>
   )
 }

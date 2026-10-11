@@ -67,6 +67,8 @@ export const IpcInvoke = {
   SettingsGetMaintenance: 'settings:get-maintenance',
   SettingsMarkMaintenanceCompleted: 'settings:mark-maintenance-completed',
   SettingsSetMaintenanceMode: 'settings:set-maintenance-mode',
+  SettingsGetUserPreference: 'settings:get-user-preference',
+  SettingsPutUserPreference: 'settings:put-user-preference',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

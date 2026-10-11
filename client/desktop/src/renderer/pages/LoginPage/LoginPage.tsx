@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { useSessionStore } from '@/stores/sessionStore'
 import styles from './LoginPage.module.css'
 
 export default function LoginPage() {
@@ -8,6 +9,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
+  const setSessionUser = useSessionStore((s) => s.setUsername)
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -15,6 +17,8 @@ export default function LoginPage() {
 
     // TODO: replace with real auth call to WebAPI
     //if (username.trim() && password.trim()) {
+      // Oturum kullanıcısı — kullanıcıya özel tercihler (ör. sağ hızlı menü) bu adla saklanır
+      setSessionUser(username)
       navigate('/dashboard', { replace: true })
     //} else {
     //  setError(true)
