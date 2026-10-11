@@ -1,6 +1,7 @@
 // Ayarlar > Dil Seçimi — sade liste: bayrak + dilin kendi adı + Türkçe adı.
-// Tüm diller seçilebilir. Gerçek çeviri sistemi henüz yok — seçim görsel olarak işaretlenir ve
-// bu cihazda hatırlanır (localStorage). i18n gelince aynı seçim oradan okunur.
+// Tüm diller seçilebilir. Karta dokunmak seçer, KAYDET ile kalıcı olur.
+// Gerçek çeviri sistemi henüz yok — kaydedilen dil bu cihazda hatırlanır (localStorage);
+// i18n gelince aynı kayıt oradan okunur.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -36,15 +37,25 @@ function readStored(): string {
 
 export default function LanguagePage() {
   const navigate = useNavigate()
-  const [selected, setSelected] = useState<string>(readStored)
+  const [saved, setSaved] = useState<string>(readStored)
+  const [selected, setSelected] = useState<string>(saved)
+  const [justSaved, setJustSaved] = useState(false)
+  const dirty = selected !== saved
+  const savedLang = LANGS.find((l) => l.code === saved)!
 
   function choose(code: string) {
     setSelected(code)
+    setJustSaved(false)
+  }
+
+  function save() {
     try {
-      localStorage.setItem(STORAGE_KEY, code)
+      localStorage.setItem(STORAGE_KEY, selected)
     } catch {
-      /* depolama kapalıysa sadece ekranda işaretli kalır */
+      /* depolama kapalıysa bu oturumda geçerli kalır */
     }
+    setSaved(selected)
+    setJustSaved(true)
   }
 
   return (
@@ -69,6 +80,19 @@ export default function LanguagePage() {
             {selected === l.code && <span className={styles.check} aria-hidden>✓</span>}
           </button>
         ))}
+      </div>
+
+      <div className={styles.footer}>
+        <span className={styles.status} data-ok={justSaved || undefined}>
+          {justSaved
+            ? `KAYDEDİLDİ — ${savedLang.name}`
+            : dirty
+              ? "SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN"
+              : `KAYITLI DİL: ${savedLang.name}`}
+        </span>
+        <button type="button" className={styles.saveBtn} onClick={save} disabled={!dirty}>
+          KAYDET
+        </button>
       </div>
     </div>
   )
