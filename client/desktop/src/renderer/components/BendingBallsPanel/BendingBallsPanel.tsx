@@ -232,9 +232,13 @@ function MonitorPanel() {
   )
 }
 
-// Band üstündeki yarıçap etiketi: Arc'ta o an bükülen segmentin R'si, diğer metotlarda hedef Ø / 2.
+// Band üstündeki yarıçap etiketi.
+// Büküm sırasında backend piston konumundan canlı R gönderir (currentRadiusMm) — varsa o gösterilir.
+// Yoksa (düzlük, temas öncesi, ölçüm/düzeltme) statik: Arc'ta o anki segmentin R'si, diğerlerinde hedef Ø / 2.
 function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | null): string {
   if (!job) return 'R —'
+  const live = progress?.currentRadiusMm
+  if (typeof live === 'number' && Number.isFinite(live) && live > 0) return `R ${Math.round(live)}`
   let r: number | null = null
   if (job.method === BendingMethod.Arc && job.segments && job.segments.length > 0) {
     const n = job.segments.length

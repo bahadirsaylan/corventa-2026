@@ -215,4 +215,9 @@ export interface BendingProgress {
   targetRadiusMm?: number | null
   measurementRetrySegmentOrder?: number | null
   measurementRetryIteration?: number | null
+
+  // Canlı yarıçap (mm, 2026-10-11) — backend aktif piston konumundan, metodun kendi
+  // hesap girdileriyle (eksen mesafesi, stage XA1/offset) ters hesaplar. Sadece gösterim.
+  // null/undefined → hesap yok (düzlük, temas öncesi, eski backend) → statik etiket.
+  currentRadiusMm?: number | null
 }
