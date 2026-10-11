@@ -28,16 +28,24 @@
   min-height: 0;
 }
 
-.card {
+.cardWrap {
+  position: relative;
   display: flex;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   padding: 40px 24px;
   border: 2px solid var(--color-border);
   border-radius: 16px;
   background: var(--color-surface-raised);
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background-color 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   font-family: inherit;
   text-align: center;
   user-select: none;
@@ -53,18 +61,42 @@
   transform: translateY(-1px);
 }
 
-.cardAi:hover {
-  background: rgba(192, 57, 43, 0.06);
-}
-
-.cardSemi:hover {
-  background: rgba(39, 174, 96, 0.06);
-}
-
 .cardTitle {
   font-size: 32px;
   font-weight: 900;
   letter-spacing: 0.1em;
   color: var(--color-text);
   line-height: 1.15;
+}
+
+.cardSub {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+/* Ölçü ekranlarındaki "?" ile aynı stil, biraz büyük (dokunmatik) */
+.infoBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #4a90d9;
+  background: #4a90d9;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.infoBtn:hover {
+  background-color: #2d6fb8;
+  border-color: #2d6fb8;
 }

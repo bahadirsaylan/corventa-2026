@@ -51,7 +51,7 @@ export default function PartLoadingPage() {
   //   mode='ai'   → true  (tam otomatik + geri esneme)
   //   mode='semi' → false (yari oto, geri esneme USTAYA)
   //   mode=null   → false (backward compat: mevcut default)
-  // Kullanici modu BendingModeSelectPage'de setti, PartLoading burada saygi gosterir.
+  // Mod: ana ekran OTOMATİK BÜKÜM → 'ai', Manuel > Yarı Oto → 'semi' (ManualModeSelectPage).
   const isSemiAuto = params.bendingMode === 'semi'
   const [useAutoCorrect, setUseAutoCorrect] = useState(params.bendingMode === 'ai')
 

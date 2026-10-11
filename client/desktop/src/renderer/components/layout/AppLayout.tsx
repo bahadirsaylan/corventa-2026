@@ -13,12 +13,12 @@ export default function AppLayout() {
   const bendingActive = useBendingActive()
   const { pathname } = useLocation()
 
-  // Otomatik büküm kurulum ekranlarında (mod, profil, yön, metot, ölçü girişi) odak üst alanda:
+  // Otomatik / yarı oto büküm kurulum ekranlarında (profil, yön, metot, ölçü girişi) odak üst alanda:
   // orta + alt alan karartılır ve etkileşime kapanır (inert). Parça yükleme adımı hariç —
   // operatör orada makineye müdahale edebilmeli. Büküm başlayınca odak modu kapanır.
   const focusTop =
     !bendingActive &&
-    (pathname === '/bending/mode' || pathname.startsWith('/bending/ai')) &&
+    pathname.startsWith('/bending/ai') &&
     pathname !== '/bending/ai/part-loading'
 
   return (

@@ -24,6 +24,7 @@ export default function SideMenu() {
   const { pathname } = useLocation()
   const bendingActive = useBendingActive()
   const resetJob = useBendingJobStore((s) => s.resetJob)
+  const setJobParams = useBendingJobStore((s) => s.setParams)
   const clearSession = useSessionStore((s) => s.clear)
   const userKey = useUserKey()
   const itemIds = useSideMenuStore((s) => s.items)
@@ -79,7 +80,8 @@ export default function SideMenu() {
     if (a.type === 'route') navigate(a.to)
     else if (a.type === 'new-bending') {
       resetJob()
-      navigate('/bending/mode')
+      setJobParams({ bendingMode: 'ai' })
+      navigate('/bending/ai')
     } else if (a.type === 'logout') {
       resetJob()
       clearSession()

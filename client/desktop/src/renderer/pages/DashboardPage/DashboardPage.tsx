@@ -1,11 +1,21 @@
 import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { useBendingJobStore } from '@/store/bendingJobStore'
 import LiveClock from './LiveClock'
 import styles from './DashboardPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const resetJob = useBendingJobStore((s) => s.resetJob)
+  const setParams = useBendingJobStore((s) => s.setParams)
+
+  // Otomatik büküm = AI (tam otomatik). Yarı oto artık Manuel altında seçiliyor.
+  function startAiBending() {
+    resetJob()
+    setParams({ bendingMode: 'ai' })
+    navigate('/bending/ai')
+  }
 
   return (
     <div className={styles.page}>
@@ -14,18 +24,19 @@ export default function DashboardPage() {
       <div className={styles.colLeft}>
         <button
           className={`${styles.navBtn} ${styles.navBtnPrimary}`}
-          onClick={() => navigate('/bending/mode')}
+          onClick={startAiBending}
         >
           <span className={styles.navBtnLabel}>OTOMATIK<br />BUKUM</span>
           <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
-          <span className={styles.navBtnSub}>AI / YARI OTO</span>
+          <span className={styles.navBtnSub}>AI</span>
         </button>
 
         <button
           className={`${styles.navBtn} ${styles.navBtnSecondary}`}
-          onClick={() => navigate('/bending/manual')}
+          onClick={() => navigate('/bending/manual-mode')}
         >
           <span className={styles.navBtnLabel}>MANUEL<br />BENDING</span>
+          <span className={styles.navBtnSub}>MANUEL / YARI OTO</span>
         </button>
       </div>
 

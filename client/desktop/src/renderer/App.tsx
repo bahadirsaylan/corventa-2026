@@ -30,7 +30,7 @@ import CertificateQueryPage from '@/pages/CertificateQueryPage/CertificateQueryP
 import CustomerChangePage from '@/pages/CustomerChangePage/CustomerChangePage'
 import MachineTransferPage from '@/pages/MachineTransferPage/MachineTransferPage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
-import BendingModeSelectPage from '@/pages/BendingModeSelectPage/BendingModeSelectPage'
+import ManualModeSelectPage from '@/pages/ManualModeSelectPage/ManualModeSelectPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
 import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
 import RingBendingMeasurementsPage from '@/pages/RingBendingMeasurementsPage/RingBendingMeasurementsPage'
@@ -101,7 +101,7 @@ export default function App() {
             <Route path="settings/certificate" element={<CertificateQueryPage />} />
             <Route path="settings/customer-change" element={<CustomerChangePage />} />
             <Route path="settings/machine-transfer" element={<MachineTransferPage />} />
-            <Route path="bending/mode" element={<BendingModeSelectPage />} />
+            <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
             <Route path="bending/ai/method" element={<BendingMethodPage />} />
