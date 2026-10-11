@@ -9,6 +9,8 @@ interface BendingBallProps {
   id: string
   value: number
   active?: boolean
+  /** O an çalışan (hareket eden / büken) top — yeşil çerçeve */
+  working?: boolean
   disabled?: boolean
   /** + tıklanınca — ileri yönde jog başlat (parca-tarafi, direction=-1 backend'de) */
   onJogPlusStart?: () => void
@@ -21,13 +23,14 @@ interface BendingBallProps {
 export default function BendingBall({
   value,
   active = true,
+  working = false,
   disabled = false,
   onJogPlusStart,
   onJogMinusStart,
   onJogStop,
 }: BendingBallProps) {
   return (
-    <div className={`${styles.ball} ${active ? styles.active : styles.inactive}`}>
+    <div className={`${styles.ball} ${working ? styles.working : active ? styles.active : styles.inactive}`}>
       <HoldButton
         label="+"
         disabled={disabled}

@@ -49,7 +49,8 @@ const CLAMP_UPPER_MM = 96 // üst top sıkıştırma konumu (görsel)
 const MAX_PISTON_MM = Number(process.env.CORVENTA_DEMO_MAX_PISTON) || 165
 
 const PISTON_SPEED = 28 // mm/s (hız %100 iken, demo çarpanı ile)
-const ROTATION_SPEED = 320 // mm/s
+const ROTATION_SPEED = 320 // mm/s (hız %100)
+const ROTATION_ACCEL = 110 // mm/s² — yumuşak kalkış / duruş (gerçek motor gibi)
 const TICK_MS = 100
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
@@ -148,6 +149,7 @@ export class DemoMachine extends EventEmitter {
   private pistonSpeedPct: Record<PistonKey, number> = { leftPiston: 100, rightPiston: 100, upperPiston: 100, lowerPiston: 100 }
   private rotationTarget = 0
   private rotationSpeedPct = 100
+  private rotationVel = 0 // mm/s, işaretli
   private timer: NodeJS.Timeout | null = null
   private sensorTimer: NodeJS.Timeout | null = null
 
@@ -169,8 +171,8 @@ export class DemoMachine extends EventEmitter {
     s.systemReady = true
     s.fanActive = true
     s.sensors = {
-      s1PressureBar: 42,
-      s2PressureBar: 38,
+      s1PressureBar: 6,
+      s2PressureBar: 6,
       s1FlowCms: 12,
       s2FlowCms: 11,
       oilTempC: 41,
@@ -255,23 +257,45 @@ export class DemoMachine extends EventEmitter {
       p.encoderRaw = Math.round(p.positionMm * 50)
       p.physicalPositionMm = p.positionMm
     }
+    // Rotasyon: rampa ile hızlanır, hedefe yaklaşırken v ≤ √(2·a·mesafe) ile yavaşlar
     const rdiff = this.rotationTarget - s.rotation.positionMm
-    const rstep = ROTATION_SPEED * (this.rotationSpeedPct / 100) * dt
-    if (Math.abs(rdiff) <= Math.max(rstep, 0.05)) {
+    const vMax = ROTATION_SPEED * (this.rotationSpeedPct / 100)
+    const dist = Math.abs(rdiff)
+    if (dist <= 0.05 && Math.abs(this.rotationVel) < 5) {
       s.rotation.positionMm = this.rotationTarget
+      this.rotationVel = 0
       s.rotation.activeDirection = 0
       s.rotation.inPosition = true
     } else {
-      s.rotation.positionMm += Math.sign(rdiff) * rstep
-      s.rotation.activeDirection = rdiff > 0 ? 1 : -1
+      const dir = Math.sign(rdiff)
+      const vStop = Math.sqrt(2 * ROTATION_ACCEL * dist)
+      const want = dir * Math.min(vMax, vStop)
+      const dv = ROTATION_ACCEL * dt
+      this.rotationVel += Math.max(-dv, Math.min(dv, want - this.rotationVel))
+      let move = this.rotationVel * dt
+      if (Math.sign(move) === dir && Math.abs(move) >= dist) {
+        move = rdiff // hedefi aşma — hedefte dur
+        this.rotationVel = 0
+      }
+      if (Math.abs(move) < 0.02 && dist > 0.05) move = dir * Math.min(dist, 0.5) // son milimetreler
+      s.rotation.positionMm += move
+      s.rotation.activeDirection = this.rotationVel > 0 ? 1 : this.rotationVel < 0 ? -1 : 0
       s.rotation.inPosition = false
     }
     s.rotation.encoderRaw = Math.round(s.rotation.positionMm)
 
     // Basınç: hareket varken yükselir, dururken bekleme basıncına iner (görsel canlılık)
     const anyMoving = (Object.keys(this.targets) as PistonKey[]).some((k) => s[k].moving) || !s.rotation.inPosition
+    // Boşta (büküm yokken) hat basıncı 6-7 bar; büküm sırasında hareketsizken ~40, harekette ~120
+    const idle = this.activeJobId == null && !anyMoving
     const wantS1 = anyMoving ? 118 + Math.random() * 14 : 42 + Math.random() * 3
-    s.sensors.s1PressureBar = Math.round(s.sensors.s1PressureBar + (wantS1 - s.sensors.s1PressureBar) * 0.3)
+    if (idle) {
+      // ~1sn'de bir 6 ↔ 7 bar arası oynar (her tick değişip titremesin)
+      const cur = s.sensors.s1PressureBar
+      if ((cur !== 6 && cur !== 7) || Math.random() < 0.1) s.sensors.s1PressureBar = Math.random() < 0.5 ? 6 : 7
+    } else {
+      s.sensors.s1PressureBar = Math.round(s.sensors.s1PressureBar + (wantS1 - s.sensors.s1PressureBar) * 0.3)
+    }
     s.sensors.s2PressureBar = Math.round(s.sensors.s1PressureBar * 0.9)
     s.sensors.s1FlowCms = anyMoving ? 34 + Math.round(Math.random() * 4) : 12
     s.sensors.s2FlowCms = anyMoving ? 31 + Math.round(Math.random() * 4) : 11
@@ -405,6 +429,7 @@ export class DemoMachine extends EventEmitter {
     await this.sleep(500, token)
     this.state.rotation.positionMm = 0
     this.rotationTarget = 0
+    this.rotationVel = 0
   }
 
   /** Gerçek push derinliği → ekranda gösterilecek encoder konumu (son hedef = MAX_PISTON_MM) */
@@ -665,14 +690,14 @@ export class DemoMachine extends EventEmitter {
       const r = this.state.rotation
       if (m[1] === 'jog') {
         const dir = Number(b.direction) || 0
-        this.rotationTarget = dir === 0 ? r.positionMm : r.positionMm + dir * 100_000
+        this.rotationTarget = dir === 0 ? this.glideStop() : r.positionMm + dir * 100_000
         this.rotationSpeedPct = Number(b.speedPercent) || 30
       } else if (m[1] === 'position') {
         this.rotationTarget = Number(b.position) || 0
       } else if (m[1] === 'distance') {
         this.rotationTarget = r.positionMm + (Number(b.distance) || 0)
       } else {
-        this.rotationTarget = r.positionMm
+        this.rotationTarget = this.glideStop()
       }
       return ok
     }
@@ -705,10 +730,16 @@ export class DemoMachine extends EventEmitter {
     throw new HttpError(404, rawUrl, 'Demo modunda desteklenmiyor')
   }
 
+  /** Durdurma: mevcut hızdan rampa ile duracağı nokta */
+  private glideStop(): number {
+    const v = this.rotationVel
+    return this.state.rotation.positionMm + (Math.sign(v) * v * v) / (2 * ROTATION_ACCEL)
+  }
+
   private abort(): void {
     this.runToken++
     for (const k of Object.keys(this.targets) as PistonKey[]) this.targets[k] = this.state[k].positionMm
-    this.rotationTarget = this.state.rotation.positionMm
+    this.rotationTarget = this.glideStop()
     if (this.activeJobId != null) {
       const id = this.activeJobId
       this.setProgress(id, this.progress?.completedPasos ?? 0, this.progress?.totalPasos ?? 0, 'İptal edildi')
