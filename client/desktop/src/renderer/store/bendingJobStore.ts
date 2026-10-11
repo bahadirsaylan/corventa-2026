@@ -306,6 +306,12 @@ export interface BendingJobParams {
    * Set on the quantity screen (future).
    */
   repeatCount: number | null
+
+  /**
+   * Vals topu (kalıp) dizilimi ekranında operatör onay verdi mi.
+   * Parça yükleme sayfası bu onay olmadan açılmaz (dizilim ekranına yönlendirir).
+   */
+  rollArrangementConfirmed: boolean
 }
 
 // ── Store state + actions ────────────────────────────────────────────────────
@@ -335,6 +341,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   heightMm:     null,
   thicknessMm:  null,
   repeatCount:  null,
+  rollArrangementConfirmed: false,
 }
 
 export const useBendingJobStore = create<BendingJobState>((set) => ({

@@ -205,7 +205,7 @@ export default function ArcBendingMeasurementsPage() {
   }
 
   function handleSummaryProceed() {
-    navigate('/bending/ai/part-loading')
+    navigate('/bending/ai/roll-arrangement') // önce vals topu dizilimi onayı
   }
 
   function handleSummaryBack() {

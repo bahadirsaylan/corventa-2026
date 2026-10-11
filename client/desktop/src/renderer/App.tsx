@@ -38,6 +38,7 @@ import ArcBendingMeasurementsPage from '@/pages/ArcBendingMeasurementsPage/ArcBe
 import SpiralBendingMeasurementsPage from '@/pages/SpiralBendingMeasurementsPage/SpiralBendingMeasurementsPage'
 import SivamaBendingMeasurementsPage from '@/pages/SivamaBendingMeasurementsPage/SivamaBendingMeasurementsPage'
 import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
+import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage'
 import ManuelBendingPage from '@/pages/ManuelBendingPage/ManuelBendingPage'
 import ManuelProgramEditorPage from '@/pages/ManuelProgramEditorPage/ManuelProgramEditorPage'
 import ManuelBendingRunPage from '@/pages/ManuelBendingRunPage/ManuelBendingRunPage'
@@ -109,6 +110,7 @@ export default function App() {
             <Route path="bending/ai/measurements/arc" element={<ArcBendingMeasurementsPage />} />
             <Route path="bending/ai/measurements/spiral" element={<SpiralBendingMeasurementsPage />} />
             <Route path="bending/ai/measurements/sivama" element={<SivamaBendingMeasurementsPage />} />
+            <Route path="bending/ai/roll-arrangement" element={<RollArrangementPage />} />
             <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
 
             {/* Manuel Bending */}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
@@ -30,18 +30,20 @@ const STEP_LABELS: Record<OrchestrationStep, string> = {
   start: '6/6 PIPELINE BAŞLATILIYOR',
 }
 
+// Vals topu dizilimi onaylanmadan parça yükleme açılmaz (SEKIL-13-H ekranına yönlendir)
 export default function PartLoadingPage() {
+  const confirmed = useBendingJobStore((s) => s.params.rollArrangementConfirmed)
+  if (!confirmed) return <Navigate to="/bending/ai/roll-arrangement" replace />
+  return <PartLoadingContent />
+}
+
+function PartLoadingContent() {
   const navigate = useNavigate()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
 
-  // 2026-09-03: geri butonu bende geldiğim büküm yöntemi sayfasına dönmeli
-  // (eskiden sabit /ring idi → arc'tan geldiysem yanlış yere gidiyordu).
-  const backTo =
-    params.bendingMethod === 'arc'    ? '/bending/ai/measurements/arc'    :
-    params.bendingMethod === 'spiral' ? '/bending/ai/measurements/spiral' :
-    params.bendingMethod === 'sivama' ? '/bending/ai/measurements/sivama' :
-                                        '/bending/ai/measurements/ring'
+  // Geri → vals topu dizilimi ekranı (oradan ölçü ekranına dönülür)
+  const backTo = '/bending/ai/roll-arrangement'
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)

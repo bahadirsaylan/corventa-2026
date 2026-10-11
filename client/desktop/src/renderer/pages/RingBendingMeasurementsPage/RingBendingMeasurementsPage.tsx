@@ -63,7 +63,7 @@ export default function RingBendingMeasurementsPage() {
         L: parseFloat(values.L),
       },
     })
-    navigate('/bending/ai/part-loading')
+    navigate('/bending/ai/roll-arrangement') // önce vals topu dizilimi onayı
   }
 
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)

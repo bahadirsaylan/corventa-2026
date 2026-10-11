@@ -59,7 +59,7 @@ export default function SpiralBendingMeasurementsPage() {
         Y: values.Y as 'left' | 'right',
       },
     })
-    navigate('/bending/ai/part-loading')
+    navigate('/bending/ai/roll-arrangement') // önce vals topu dizilimi onayı
   }
 
   return (
