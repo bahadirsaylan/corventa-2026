@@ -19,7 +19,7 @@ for (const [path, url] of Object.entries(TILES)) {
   byName[file] = url
 }
 
-const DRAWINGS: Record<BendingProfileId, { left: string; right: string }> = {
+const DRAWINGS: Record<BendingProfileId, { left: string; right: string; reverse?: string }> = {
   'i-single': { left: 'lama_kivrim_2', right: 'lama_kivrim_1' },
   'square-in': { left: 'dikdortgen_profil_2', right: 'dikdortgen_profil_1' },
   'square-out': { left: 'kare_profil_1', right: 'kare_profil_1' },
@@ -30,8 +30,8 @@ const DRAWINGS: Record<BendingProfileId, { left: string; right: string }> = {
   'l-left': { left: 'kosebent_2', right: 'kosebent_2' },
   'i-bar': { left: 'ipn_kivrim_2', right: 'ipn_kivrim_1' },
   'h-bar': { left: 'heb_kivrim_1', right: 'heb_kivrim_2' },
-  'c-channel': { left: 'upn_kivrim_1', right: 'upn_kivrim_2' },
-  't-bar': { left: 't_kiris_3', right: 't_kiris_1' },
+  'c-channel': { left: 'upn_kivrim_1', right: 'upn_kivrim_2', reverse: 'upn_kivrim_3' }, // dik / yan / ters
+  't-bar': { left: 't_kiris_3', right: 't_kiris_1', reverse: 't_kiris_2' }, // dik / yan / ters
 }
 
 export function useMethodTileImage(method: MethodTileKind, fallback: string): string {
@@ -45,6 +45,6 @@ export function useMethodTileImage(method: MethodTileKind, fallback: string): st
     return byName[`${drawing}__${method}`] ?? fallback
   }
   const d = DRAWINGS[profileId]
-  const drawing = direction === 'right' ? d.right : d.left
+  const drawing = direction === 'right' ? d.right : direction === 'reverse' ? d.reverse ?? d.left : d.left
   return byName[`${drawing}__${method}`] ?? fallback
 }

@@ -9,7 +9,8 @@ export type BendingModeId = 'ai' | 'semi'
 export type PipeTypeId = 'DIKISLI' | 'ETLI'
 
 // ── Bending direction selectable on the direction screen ────────────────────
-export type BendingDirectionId = 'left' | 'right' | 'other'
+// 'reverse' = C (UPN) ve T profillerin üçüncü yönü (TERS)
+export type BendingDirectionId = 'left' | 'right' | 'other' | 'reverse'
 
 // ── Bending method selectable on the method screen ──────────────────────────
 export type BendingMethodId = 'ring' | 'arc' | 'spiral' | 'sivama'

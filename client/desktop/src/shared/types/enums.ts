@@ -45,6 +45,7 @@ export const BendingDirection = {
   Inward: 0,
   Outward: 1,
   Other: 2,
+  Reverse: 3, // C / T profillerde TERS yön (2026-10-11)
 } as const
 export type BendingDirection = (typeof BendingDirection)[keyof typeof BendingDirection]
 

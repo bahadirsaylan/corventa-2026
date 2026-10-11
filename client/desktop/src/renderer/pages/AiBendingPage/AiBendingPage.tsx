@@ -4,6 +4,7 @@ import { useBendingJobStore } from '@/store/bendingJobStore'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
 import PipeTypeModal from './PipeTypeModal'
+import { NO_DIRECTION_DEFAULT, directionOptionsFor } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './AiBendingPage.module.css'
@@ -57,7 +58,13 @@ export default function AiBendingPage() {
           navigate(backTo)
         }}
         confirmDisabled={!profileId || needsPipeType}
-        onConfirm={() => navigate('/bending/ai/direction')}
+        onConfirm={() => {
+          // Yön seçimi olmayan profil (boş boru) → yön sayfası atlanır
+          if (profileId && directionOptionsFor(profileId) === null) {
+            setParams({ bendingDirection: NO_DIRECTION_DEFAULT })
+            navigate('/bending/ai/method')
+          } else navigate('/bending/ai/direction')
+        }}
       />
 
       {pipeModalOpen && (

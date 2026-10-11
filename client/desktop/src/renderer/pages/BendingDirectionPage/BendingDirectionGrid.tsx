@@ -1,36 +1,30 @@
+// Kıvrım yönü kutuları — seçenekler profile göre (constants/profileDirections).
+// Görselli kutuda altta yön adı (YATAY / DİKİNE / DİK / YAN / TERS); görselsiz kutu sadece etiket.
+
 import { BendingDirectionId } from '@/store/bendingJobStore'
+import type { DirectionOption } from '@/constants/profileDirections'
 import styles from './BendingDirectionGrid.module.css'
-import blend1 from '@/assets/images/blend2-1.png'
-import blend2 from '@/assets/images/blend2-2.png'
-
-interface Direction {
-  id: BendingDirectionId
-  image?: string
-  label?: string
-}
-
-const directions: Direction[] = [
-  { id: 'left',  image: blend1 },
-  { id: 'right', image: blend2 },
-  { id: 'other', label: 'DİĞER\nKIVRIM YÖNLERİ' },
-]
 
 interface Props {
+  options: DirectionOption[]
   selected: BendingDirectionId | null
   onSelect: (id: BendingDirectionId) => void
 }
 
-export default function BendingDirectionGrid({ selected, onSelect }: Props) {
+export default function BendingDirectionGrid({ options, selected, onSelect }: Props) {
   return (
-    <div className={styles.grid}>
-      {directions.map((d) => (
+    <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${Math.max(options.length, 2)}, 1fr)` }}>
+      {options.map((d) => (
         <button
           key={d.id}
           className={`${styles.tile} ${selected === d.id ? styles.tileSelected : ''}`}
           onClick={() => onSelect(d.id)}
         >
           {d.image ? (
-            <img src={d.image} alt={d.id} className={styles.image} />
+            <>
+              <img src={d.image} alt={d.label} className={styles.image} />
+              <span className={styles.caption}>{d.label}</span>
+            </>
           ) : (
             <span className={styles.label}>{d.label}</span>
           )}

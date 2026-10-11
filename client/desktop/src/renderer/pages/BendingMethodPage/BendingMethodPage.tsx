@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { directionOptionsFor } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import BendingMethodGrid from './BendingMethodGrid'
@@ -10,6 +11,9 @@ export default function BendingMethodPage() {
   const navigate = useNavigate()
   const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
   const setParams = useBendingJobStore((s) => s.setParams)
+  const profileId = useBendingJobStore((s) => s.params.profileId)
+  // Yön seçimi olmayan profilde (boş boru) geri → profil seçimi
+  const backTo = directionOptionsFor(profileId) === null ? '/bending/ai' : '/bending/ai/direction'
 
   return (
     <div className={styles.page}>
@@ -34,7 +38,7 @@ export default function BendingMethodPage() {
 
       {/* ── Bottom status bar ───────────────────── */}
       <StatusBar
-        backTo="/bending/ai/direction"
+        backTo={backTo}
         confirmDisabled={!bendingMethod}
         onConfirm={() => {
           if (bendingMethod === 'ring') navigate('/bending/ai/measurements/ring')

@@ -39,6 +39,7 @@ const DIRECTION_MAP = {
   left: BendingDirection.Inward,
   right: BendingDirection.Outward,
   other: BendingDirection.Other,
+  reverse: BendingDirection.Reverse,
 } as const
 
 const METHOD_MAP = {
