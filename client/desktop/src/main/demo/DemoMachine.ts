@@ -16,6 +16,8 @@
 
 import { EventEmitter } from 'node:events'
 
+import { app, type BrowserWindow } from 'electron'
+
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -50,7 +52,10 @@ const MAX_PISTON_MM = Number(process.env.CORVENTA_DEMO_MAX_PISTON) || 165
 
 const PISTON_SPEED = 28 // mm/s (hız %100 iken, demo çarpanı ile)
 const ROTATION_SPEED = 320 // mm/s (hız %100)
-const ROTATION_ACCEL = 110 // mm/s² — yumuşak kalkış / duruş (gerçek motor gibi)
+const ROTATION_ACCEL = 55 // mm/s² — yumuşak kalkış / duruş (gerçek motor gibi)
+// Pasif top güvenli geri limiti (encoder): −gönyeOffset(3.75) + safetyMargin(1.0) — PistonPhysicalTracker
+const SAFE_BACKWARD_MM = -2.75
+const SLACK_UPPER_MM = 3 // paso 1 öncesi üst top boşluk alma
 const TICK_MS = 100
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
@@ -199,6 +204,12 @@ export class DemoMachine extends EventEmitter {
     }
     s.rotation.inPosition = true
 
+    // Parça varlık sensörü: parça yükleme ekranı açılınca 2.5sn sonra parça "algılanır"
+    // (operatör parçayı koymuş gibi). Ekrandan çıkıp büküm başlamazsa sensör kapanır.
+    app.on('browser-window-created', (_e, win: BrowserWindow) => {
+      win.webContents.on('did-navigate-in-page', (_ev, url) => this.onNavigate(url))
+    })
+
     this.timer = setInterval(() => this.tick(), TICK_MS)
     this.sensorTimer = setInterval(() => this.emitPartSensor(), 1000)
     log.info('DEMO makine başladı', { speed: this.speed })
@@ -212,6 +223,20 @@ export class DemoMachine extends EventEmitter {
 
   getState(): MachineState {
     return this.state
+  }
+
+  private sensorTimeout: NodeJS.Timeout | null = null
+  private onNavigate(url: string): void {
+    if (this.sensorTimeout) clearTimeout(this.sensorTimeout)
+    this.sensorTimeout = null
+    if (url.includes('/part-loading')) {
+      if (this.partSensor) this.togglePartSensor() // ekrana girişte boş başla
+      this.sensorTimeout = setTimeout(() => {
+        if (!this.partSensor) this.togglePartSensor()
+      }, 2500 / this.speed)
+    } else if (this.activeJobId == null && this.partSensor && !url.includes('/dashboard')) {
+      this.togglePartSensor() // büküm başlamadan ekrandan çıkıldı → parça yok
+    }
   }
 
   togglePartSensor(): void {
@@ -438,45 +463,73 @@ export class DemoMachine extends EventEmitter {
     return (push: number) => Math.max(restOffset + 5, top - (pushMax - push))
   }
 
+  /**
+   * Çember — projedeki ExecuteGeometricBendingHandler akışı:
+   *   Paso 1 (adaptif): üst top boşluk alır, pasif top güvenli geriye, aktif top yavaşça
+   *     ilerler → parçaya temas eder → +adım basar.
+   *   Her paso sonu VALS SWAP + BÖLÜNMÜŞ ROT: kısa rot (|XA1|+A) → büken top güvenli geriye →
+   *     diğer top AYNI bükme konumuna → uzun rot (sol aktif → uzak uç, sağ aktif → 0).
+   *   Paso 2+: aktif top zaten bükme konumunda, +adım ilerler, sonra yine swap + rot.
+   */
   private async runCircle(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
     const base = { ball: BALL, thickness: job.profileA, center: CENTER_NORMAL, xa1: st.xa1, ya1: 0, theta: THETA }
     const push = calcPush({ ...base, diameter: job.targetDiameterMm }) ?? 280
     const contact = calcPush({ ...base, diameter: 200_000 }) ?? push - 40
     const step = job.stepDistanceMm > 0 ? job.stepDistanceMm : 10
-    const pasoTargets: number[] = []
-    let g = Math.min(push, contact + step * 0.5)
-    pasoTargets.push(g)
-    while (g < push - 0.01) {
+    // Bükme konumları (gerçek push): temas + adım, sonra +adım ... hedefe kadar (hedefi aşmaz)
+    const bends: number[] = []
+    let g = Math.min(push, contact + step)
+    bends.push(g)
+    while (g < push - 0.5) {
       g = Math.min(push, g + step)
-      pasoTargets.push(g)
+      bends.push(g)
     }
-    const total = pasoTargets.length
+    const total = bends.length
     job.totalPasos = total
-    const rotFar = Math.max(300, job.partLengthMm - 2 * (job.safetyMarginMm || 50))
     const disp = this.displayMapper(push, Math.max(st.left, st.right))
-    const approach = disp(contact) - 25
+    const home = 0
+    const far = Math.max(300, Math.round(job.partLengthMm - 2 * (job.safetyMarginMm || 50)))
+    const shortDelta = Math.abs(st.xa1) + job.profileA
 
     this.setProgress(job.id, 0, total, 'Büküm başlıyor...')
     await this.clampAndZero(job.id, total, token)
-    // Yan toplar parçaya yaklaşır (temas öncesi)
-    await this.movePistons({ leftPiston: approach, rightPiston: approach }, token, 80)
 
-    let leftActive = true
-    let rotAtFar = false
+    let active: PistonKey = 'leftPiston' // sensör sol → ilk aktif sol
     for (let i = 0; i < total; i++) {
-      const active: PistonKey = leftActive ? 'leftPiston' : 'rightPiston'
-      const passive: PistonKey = leftActive ? 'rightPiston' : 'leftPiston'
-      this.setProgress(job.id, i, total, `Paso ${i + 1} bükülüyor`)
-      await this.movePistons({ [passive]: approach, [active]: disp(pasoTargets[i]) }, token, 60)
-      const r = radiusFromPush(pasoTargets[i], base)
-      this.setProgress(job.id, i, total, `Paso ${i + 1} bükülüyor`, { currentRadiusMm: r })
-      await this.rotateTo(rotAtFar ? 0 : rotFar, token, 80)
-      rotAtFar = !rotAtFar
-      this.setProgress(job.id, i + 1, total, `Paso ${i + 1} tamamlandı`, { currentRadiusMm: r })
-      await this.sleep(900, token)
-      leftActive = !leftActive
+      const passive: PistonKey = active === 'leftPiston' ? 'rightPiston' : 'leftPiston'
+      if (i === 0) {
+        this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)')
+        // Boşluk alma (üst top) + pasif top güvenli geriye
+        await this.movePistons({ upperPiston: this.state.upperPiston.positionMm + SLACK_UPPER_MM }, token, 30)
+        await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
+        // Temasa kadar normal hız, temas bölgesinde yavaş (encoder durana kadar)
+        await this.movePistons({ [active]: disp(contact) - 12 }, token, 70)
+        await this.movePistons({ [active]: disp(contact) }, token, 20)
+        await this.sleep(600, token)
+        await this.movePistons({ [active]: disp(bends[0]) }, token, 35)
+      } else {
+        this.setProgress(job.id, i, total, `Paso ${i + 1} bükülüyor`)
+        await this.movePistons({ [active]: disp(bends[i]) }, token, 50)
+      }
+      const r = radiusFromPush(bends[i], base)
+      this.setProgress(job.id, i, total, i === 0 ? 'Paso 1 bükülüyor (adaptif temas)' : `Paso ${i + 1} bükülüyor`, { currentRadiusMm: r })
+
+      // VALS SWAP + BÖLÜNMÜŞ ROT
+      const target = active === 'leftPiston' ? far : home
+      const cur = this.state.rotation.positionMm
+      const dir = target > cur ? 1 : -1
+      let mid = cur + dir * shortDelta
+      if ((dir > 0 && mid > target) || (dir < 0 && mid < target)) mid = target
+      await this.rotateTo(mid, token, 60)
+      await this.movePistons({ [active]: SAFE_BACKWARD_MM }, token, 100)
+      await this.movePistons({ [passive]: disp(bends[i]) }, token, 70)
+      if (mid !== target) await this.rotateTo(target, token, 80)
+
+      this.setProgress(job.id, i + 1, total, i === 0 ? 'Paso 1 tamamlandı (adaptif temas)' : `Paso ${i + 1} tamamlandı`, { currentRadiusMm: r })
+      await this.sleep(500, token)
+      active = passive
     }
-    this.setProgress(job.id, total, total, 'Geri esneme ölçülüyor...')
+    this.setProgress(job.id, total, total, 'Geri esneme düzeltmesi başlıyor...')
     await this.sleep(2500, token)
     this.setProgress(job.id, total, total, 'Büküm tamamlandı!')
     await this.movePistons({ upperPiston: 0, leftPiston: st.left, rightPiston: st.right }, token, 60)
@@ -590,8 +643,8 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/bending/geometric/preview') {
       const target = Number(b.targetPositionMm) || 0
       const step = Number(b.stepDistanceMm) || 10
-      const contact = Math.max(0, target - 45)
-      const totalPasos = Math.max(1, Math.ceil((target - contact) / step) + 1)
+      const contact = Math.max(0, target - 60)
+      const totalPasos = Math.max(1, Math.ceil((target - contact) / step))
       return { success: true, totalPasos, pasoSteps: [] }
     }
     if (path === '/api/bending/arc/validate-plan') {
