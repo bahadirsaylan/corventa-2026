@@ -55,7 +55,14 @@ const ROTATION_SPEED = 320 // mm/s (hız %100)
 const ROTATION_ACCEL = 55 // mm/s² — yumuşak kalkış / duruş (gerçek motor gibi)
 // Pasif top güvenli geri limiti (encoder): −gönyeOffset(3.75) + safetyMargin(1.0) — PistonPhysicalTracker
 const SAFE_BACKWARD_MM = -2.75
-const SLACK_UPPER_MM = 3 // paso 1 öncesi üst top boşluk alma
+// Gerçek DB (MachineSettings) değerleri
+const SLACK_UPPER_MM = 0.1 // CircularSlackDistanceMm — her paso / ölçüm öncesi üst top boşluk alma
+const ZERO_RESET_MM = 810 // ZeroResetDistanceMm
+const CLAMP_PRESSURE_BAR = 150 // DefaultClampPressureBar (clamp hedefi strok dışı → basınç modu)
+const ADAPTIVE_JOG_PCT = 20 // BendingHandlers.AdaptiveJogSpeedPercent
+const ADAPTIVE_WINDOW_MM = 10 // RollingWindowSampleCount × PistonSampleIntervalMm
+const CORRECTION_COEF = 0.25 // SpringbackCalculator.CorrectionCoefficient
+const ROTATION_ONLY_MAX_OVERRUN = 50 // SpringbackAutoCorrectHandler.RotationOnlyMaxOverrunMm
 const TICK_MS = 100
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
@@ -155,6 +162,7 @@ export class DemoMachine extends EventEmitter {
   private rotationTarget = 0
   private rotationSpeedPct = 100
   private rotationVel = 0 // mm/s, işaretli
+  private pressureHold: number | null = null // sıkıştırma basıncı (bar) — üst top basınçla tutuyorken
   private timer: NodeJS.Timeout | null = null
   private sensorTimer: NodeJS.Timeout | null = null
 
@@ -314,7 +322,9 @@ export class DemoMachine extends EventEmitter {
     // Boşta (büküm yokken) hat basıncı 6-7 bar; büküm sırasında hareketsizken ~40, harekette ~120
     const idle = this.activeJobId == null && !anyMoving
     const wantS1 = anyMoving ? 118 + Math.random() * 14 : 42 + Math.random() * 3
-    if (idle) {
+    if (this.pressureHold != null && !anyMoving) {
+      s.sensors.s1PressureBar = Math.round(this.pressureHold + (Math.random() * 3 - 1.5))
+    } else if (idle) {
       // ~1sn'de bir 6 ↔ 7 bar arası oynar (her tick değişip titremesin)
       const cur = s.sensors.s1PressureBar
       if ((cur !== 6 && cur !== 7) || Math.random() < 0.1) s.sensors.s1PressureBar = Math.random() < 0.5 ? 6 : 7
@@ -403,7 +413,8 @@ export class DemoMachine extends EventEmitter {
   private async applyStage(n: number, speedPct: number): Promise<void> {
     const st = STAGES.find((s) => s.stageNumber === n) ?? STAGES[0]
     const token = this.runToken
-    await this.movePistons({ leftPiston: st.left, rightPiston: st.right, lowerPiston: st.lower, upperPiston: 0 }, token, Math.max(30, speedPct))
+    // Gerçek ChangeStageHandler: Sol + Alt + Sağ paralel (üst top oynamaz)
+    await this.movePistons({ leftPiston: st.left, rightPiston: st.right, lowerPiston: st.lower }, token, Math.max(30, speedPct))
     ;(this.state as unknown as { physicalInfo: Record<string, unknown> }).physicalInfo = {
       isGonyeCompleted: true,
       currentStage: st.stageNumber,
@@ -463,76 +474,230 @@ export class DemoMachine extends EventEmitter {
     return (push: number) => Math.max(restOffset + 5, top - (pushMax - push))
   }
 
+  /** Ekran konumu → gerçek push (displayMapper'ın tersi) */
+  private pushFromDisplay(dispPos: number, pushMax: number): number {
+    return pushMax - (MAX_PISTON_MM - dispPos)
+  }
+
   /**
-   * Çember — projedeki ExecuteGeometricBendingHandler akışı:
-   *   Paso 1 (adaptif): üst top boşluk alır, pasif top güvenli geriye, aktif top yavaşça
-   *     ilerler → parçaya temas eder → +adım basar.
-   *   Her paso sonu VALS SWAP + BÖLÜNMÜŞ ROT: kısa rot (|XA1|+A) → büken top güvenli geriye →
-   *     diğer top AYNI bükme konumuna → uzun rot (sol aktif → uzak uç, sağ aktif → 0).
-   *   Paso 2+: aktif top zaten bükme konumunda, +adım ilerler, sonra yine swap + rot.
+   * ClampPartCircularHandler: parça sensörü beklenir → üst top %30 ile basınç modunda iner
+   * (DB pozisyon hedefi 488−220−10.5−A+0.1 üst strok 161'i aştığı için basınç moduna düşer).
+   */
+  private async clampCircle(jobId: number, total: number, token: number): Promise<void> {
+    this.setProgress(jobId, 0, total, 'Parça sıkıştırılıyor...')
+    await this.waitUntil(() => this.partSensor, token)
+    await this.movePistons({ upperPiston: CLAMP_UPPER_MM }, token, 30)
+    this.pressureHold = CLAMP_PRESSURE_BAR
+    await this.sleep(1200, token)
+  }
+
+  /**
+   * ZeroPartCircularHandler: (1) %80 sensörden uzaklaş → sensör kapanır, (2) %10 geri yaklaş →
+   * sensör açılır, (3) %50 ile (ResetDistance − Safety) uzaklaş, (4) rotasyon enkoderi = 0.
+   */
+  private async zeroCircle(jobId: number, total: number, safety: number, token: number): Promise<void> {
+    this.setProgress(jobId, 0, total, 'Parça sıfırlanıyor...')
+    const p0 = this.state.rotation.positionMm
+    await this.rotateTo(p0 + 140, token, 80)
+    if (this.partSensor) this.togglePartSensor()
+    await this.sleep(300, token)
+    await this.rotateTo(p0 + 12, token, 10)
+    if (!this.partSensor) this.togglePartSensor()
+    await this.sleep(300, token)
+    await this.rotateTo(this.state.rotation.positionMm + (ZERO_RESET_MM - safety), token, 50)
+    await this.sleep(400, token)
+    this.state.rotation.positionMm = 0
+    this.rotationTarget = 0
+    this.rotationVel = 0
+  }
+
+  /**
+   * Çember — ExecuteGeometricBendingHandler + SpringbackAutoCorrectHandler ile adım adım aynı:
+   *   Paso 1 ADAPTİF: üst top boşluk (0.1) → pasif güvenli geri (−2.75) → aktif %20 jog; temasta
+   *     parça yuvarlanır (rotasyon enkoderi oynar), enkoder 10mm piston boyunca durunca dur →
+   *     ölçekli adım (temas <130: 1, <140: 2/3, ≥140: 1/3) − 10mm pencere gecikmesi kadar ilerle.
+   *   Her paso sonu SWAP + BÖLÜNMÜŞ ROT: kısa rot (|XA1|+A) → büken top güvenli geri → diğer top
+   *     AYNI bükme konumuna → uzun rot (sol büktüyse → LT−2·safety, sağ büktüyse → 0).
+   *   Paso 2+: üst boşluk → pasif (zaten geride) → aktif +adım (hedefi aşmaz) → swap + rot.
+   *   GERİ ESNEME: üst boşluk → ölçüm pnömatiği (parçanın olduğu taraf) uzat → oku → geri çek →
+   *     tolerans içi: bitti · hedef altı: bitti · fark ≤50mm: sadece swap+rot karşıya, tekrar ölç ·
+   *     fark >50mm: düzeltme çapı = önceki − (ölçülen−hedef)×0.25 → parça tarafı top düzeltmeye →
+   *     swap + rot karşıya → tekrar ölç.
    */
   private async runCircle(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
     const base = { ball: BALL, thickness: job.profileA, center: CENTER_NORMAL, xa1: st.xa1, ya1: 0, theta: THETA }
-    const push = calcPush({ ...base, diameter: job.targetDiameterMm }) ?? 280
+    const T = job.targetDiameterMm
+    const push = calcPush({ ...base, diameter: T }) ?? 280
     const contact = calcPush({ ...base, diameter: 200_000 }) ?? push - 40
     const step = job.stepDistanceMm > 0 ? job.stepDistanceMm : 10
-    // Bükme konumları (gerçek push): temas + adım, sonra +adım ... hedefe kadar (hedefi aşmaz)
-    const bends: number[] = []
-    let g = Math.min(push, contact + step)
-    bends.push(g)
-    while (g < push - 0.5) {
-      g = Math.min(push, g + step)
-      bends.push(g)
-    }
-    const total = bends.length
-    job.totalPasos = total
-    const disp = this.displayMapper(push, Math.max(st.left, st.right))
+    const safety = job.safetyMarginMm || 50
+    const tol = Number(job.toleranceMm) > 0 ? Number(job.toleranceMm) : 5
+    const doSpringback = !job.skipAutoCorrect
+
+    // Geri esneme senaryosu (görsel): ölçüm 1 hedefin ~%4 üstü (>50mm → düzeltme bükümü),
+    // ölçüm 2 hedefin 10-25mm üstü (≤50mm → sadece rotasyon), ölçüm 3 tolerans içinde.
+    const m1 = T + Math.max(ROTATION_ONLY_MAX_OVERRUN + 15, T * (0.035 + Math.random() * 0.01))
+    const c1 = T - (m1 - T) * CORRECTION_COEF
+    const m2 = T + 10 + Math.random() * 15
+    const m3 = T + (Math.random() * 1.2 - 0.6) * tol
+    const pc1 = calcPush({ ...base, diameter: c1 }) ?? push
+    const pushMax = doSpringback ? Math.max(push, pc1) : push // ekranda en derin konum = 165
+    const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
+    const targetDisp = disp(push)
+    const contactDisp = disp(contact)
+    const radiusAt = (dispPos: number) => radiusFromPush(this.pushFromDisplay(dispPos, pushMax), base)
+
     const home = 0
-    const far = Math.max(300, Math.round(job.partLengthMm - 2 * (job.safetyMarginMm || 50)))
+    const far = Math.max(300, Math.round(job.partLengthMm - 2 * safety))
     const shortDelta = Math.abs(st.xa1) + job.profileA
 
-    this.setProgress(job.id, 0, total, 'Büküm başlıyor...')
-    await this.clampAndZero(job.id, total, token)
+    // Toplam paso tahmini (EstimateTotalPasos gibi — paso 1 sonrası güncellenir)
+    let total = Math.max(1, 1 + Math.ceil((targetDisp - (contactDisp + 18)) / step))
+    job.totalPasos = total
 
-    let active: PistonKey = 'leftPiston' // sensör sol → ilk aktif sol
-    for (let i = 0; i < total; i++) {
-      const passive: PistonKey = active === 'leftPiston' ? 'rightPiston' : 'leftPiston'
-      if (i === 0) {
-        this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)')
-        // Boşluk alma (üst top) + pasif top güvenli geriye
-        await this.movePistons({ upperPiston: this.state.upperPiston.positionMm + SLACK_UPPER_MM }, token, 30)
-        await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
-        // Temasa kadar normal hız, temas bölgesinde yavaş (encoder durana kadar)
-        await this.movePistons({ [active]: disp(contact) - 12 }, token, 70)
-        await this.movePistons({ [active]: disp(contact) }, token, 20)
-        await this.sleep(600, token)
-        await this.movePistons({ [active]: disp(bends[0]) }, token, 35)
-      } else {
-        this.setProgress(job.id, i, total, `Paso ${i + 1} bükülüyor`)
-        await this.movePistons({ [active]: disp(bends[i]) }, token, 50)
-      }
-      const r = radiusFromPush(bends[i], base)
-      this.setProgress(job.id, i, total, i === 0 ? 'Paso 1 bükülüyor (adaptif temas)' : `Paso ${i + 1} bükülüyor`, { currentRadiusMm: r })
-
-      // VALS SWAP + BÖLÜNMÜŞ ROT
-      const target = active === 'leftPiston' ? far : home
+    // Kısa rot (|XA1|+A) → büken top güvenli geriye → diğer top bükme konumuna → uzun rot
+    const swapSplit = async (act: PistonKey, pas: PistonKey, bendPos: number, target: number) => {
       const cur = this.state.rotation.positionMm
       const dir = target > cur ? 1 : -1
       let mid = cur + dir * shortDelta
       if ((dir > 0 && mid > target) || (dir < 0 && mid < target)) mid = target
-      await this.rotateTo(mid, token, 60)
-      await this.movePistons({ [active]: SAFE_BACKWARD_MM }, token, 100)
-      await this.movePistons({ [passive]: disp(bends[i]) }, token, 70)
-      if (mid !== target) await this.rotateTo(target, token, 80)
-
-      this.setProgress(job.id, i + 1, total, i === 0 ? 'Paso 1 tamamlandı (adaptif temas)' : `Paso ${i + 1} tamamlandı`, { currentRadiusMm: r })
-      await this.sleep(500, token)
-      active = passive
+      if (Math.abs(mid - cur) > 0.5) await this.rotateTo(mid, token, 100)
+      await this.movePistons({ [act]: SAFE_BACKWARD_MM }, token, 100)
+      await this.movePistons({ [pas]: bendPos }, token, 100)
+      if (Math.abs(mid - target) > 0.5) await this.rotateTo(target, token, 100)
     }
-    this.setProgress(job.id, total, total, 'Geri esneme düzeltmesi başlıyor...')
-    await this.sleep(2500, token)
-    this.setProgress(job.id, total, total, 'Büküm tamamlandı!')
-    await this.movePistons({ upperPiston: 0, leftPiston: st.left, rightPiston: st.right }, token, 60)
+    const slack = async () => {
+      this.pressureHold = null
+      await this.movePistons({ upperPiston: this.state.upperPiston.positionMm + SLACK_UPPER_MM }, token, 30)
+    }
+
+    this.setProgress(job.id, 0, total, 'Büküm başlıyor...')
+    await this.clampCircle(job.id, total, token)
+    await this.zeroCircle(job.id, total, safety, token)
+
+    // ── PASO 1 (ADAPTİF) ──
+    let active: PistonKey = 'leftPiston' // ActiveSensorSide = Left → ilk aktif sol
+    let passive: PistonKey = 'rightPiston'
+    this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)')
+    await slack()
+    await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
+    // Temasa kadar %20 jog
+    await this.movePistons({ [active]: contactDisp }, token, ADAPTIVE_JOG_PCT)
+    // Temas: parça itilir → rotasyon enkoderi oynar (~6mm), sonra durur; 10mm pencere boyunca durgun → dur
+    const rot0 = this.state.rotation.positionMm
+    await Promise.all([
+      this.movePistons({ [active]: contactDisp + 8 }, token, ADAPTIVE_JOG_PCT),
+      this.rotateTo(rot0 + 6, token, 1.2),
+    ])
+    const contactAt = contactDisp + 8
+    await this.movePistons({ [active]: contactAt + ADAPTIVE_WINDOW_MM }, token, ADAPTIVE_JOG_PCT)
+    await this.sleep(200, token)
+    const scale = contactAt < 130 ? 1 : contactAt < 140 ? 2 / 3 : 1 / 3
+    const netStep = Math.max(0, step * scale - ADAPTIVE_WINDOW_MM)
+    let bend = Math.min(this.state[active].positionMm + netStep, targetDisp)
+    if (bend > this.state[active].positionMm + 0.05) await this.movePistons({ [active]: bend }, token, 100)
+    bend = this.state[active].positionMm
+    total = Math.max(1, 1 + Math.ceil((targetDisp - bend - 0.5) / step))
+    job.totalPasos = total
+    let r = radiusAt(bend)
+    this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)', { currentRadiusMm: r })
+    await swapSplit(active, passive, bend, active === 'leftPiston' ? far : home)
+    let done = 1
+    this.setProgress(job.id, done, total, 'Paso 1 tamamlandı (adaptif temas)', { currentRadiusMm: r })
+    ;[active, passive] = [passive, active]
+
+    // ── PASO 2+ ──
+    while (bend < targetDisp - 0.5) {
+      this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`)
+      await slack()
+      await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
+      bend = Math.min(bend + step, targetDisp)
+      await this.movePistons({ [active]: bend }, token, 100)
+      r = radiusAt(bend)
+      this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`, { currentRadiusMm: r })
+      await swapSplit(active, passive, bend, active === 'leftPiston' ? far : home)
+      done++
+      this.setProgress(job.id, done, total, `Paso ${done} tamamlandı`, { currentRadiusMm: r })
+      ;[active, passive] = [passive, active]
+      await this.sleep(300, token)
+    }
+
+    if (doSpringback) {
+      // ── GERİ ESNEME ÖLÇÜM + DÜZELTME (SpringbackAutoCorrectHandler) ──
+      this.setProgress(job.id, done, done, 'Geri esneme düzeltmesi başlıyor...')
+      await this.sleep(1000, token)
+      const fmt = (d: number) => `Ø${d.toFixed(1)}`
+      const measures = [m1, m2, m3]
+      let partOnRight = this.state.rotation.positionMm > far / 2
+      let prevDiameter = T
+      for (let it = 1; it <= 20; it++) {
+        const sideKey = partOnRight ? 'right' : 'left'
+        const sideTr = partOnRight ? 'SAĞ' : 'SOL'
+        const msg = (t: string, extra: Partial<BendingProgress> = {}) =>
+          this.setProgress(job.id, done, done, `Geri esneme ${it}: ${t}`, extra)
+        // ADIM 1: üst boşluk alma
+        msg('üst top boşluk alıyor')
+        await slack()
+        // ADIM 2: pnömatik uzat + oku + geri çek
+        msg(`ölçüm pnömatiği uzatılıyor (${sideTr})`)
+        await this.movePneumatic(sideKey, true, token)
+        msg('sensör okunuyor...')
+        await this.sleep(2000, token)
+        const m = measures[Math.min(it - 1, measures.length - 1)]
+        const err = Math.abs(m - T)
+        await this.movePneumatic(sideKey, false, token)
+        if (err <= tol) {
+          msg(`${fmt(m)} ölçüldü ✓ tolerans içinde`, { currentRadiusMm: m / 2 })
+          await this.sleep(2500, token)
+          break
+        }
+        if (m <= T) {
+          msg(`${fmt(m)} ölçüldü — düzeltme gerekmiyor`, { currentRadiusMm: m / 2 })
+          await this.sleep(2500, token)
+          break
+        }
+        const act: PistonKey = partOnRight ? 'rightPiston' : 'leftPiston'
+        const pas: PistonKey = partOnRight ? 'leftPiston' : 'rightPiston'
+        const overrun = m - T
+        if (overrun <= ROTATION_ONLY_MAX_OVERRUN) {
+          msg(`${fmt(m)} ölçüldü → düzeltmesiz, karşıdan ölçülecek`, { currentRadiusMm: m / 2 })
+          await this.sleep(1800, token)
+          await swapSplit(act, pas, this.state[act].positionMm, partOnRight ? home : far)
+        } else {
+          const corr = Math.round((prevDiameter - overrun * CORRECTION_COEF) * 100) / 100
+          prevDiameter = corr
+          const pos = disp(calcPush({ ...base, diameter: corr }) ?? pushMax)
+          msg(`${fmt(m)} ölçüldü → düzeltme ${fmt(corr)}`, { currentRadiusMm: m / 2 })
+          await this.sleep(1800, token)
+          msg(`düzeltme bükümü (${sideTr} top ${pos.toFixed(1)})`, { currentRadiusMm: m / 2 })
+          await slack()
+          await this.movePistons({ [act]: pos }, token, 100)
+          await swapSplit(act, pas, pos, partOnRight ? home : far)
+        }
+        partOnRight = !partOnRight
+        await this.sleep(500, token)
+      }
+    }
+    this.pressureHold = null
+    this.setProgress(job.id, done, done, 'Büküm tamamlandı!')
+  }
+
+  /** Ölçüm pnömatiği (SLPIS/GT2 sensör kolu) uzat / geri çek — ~1.2sn */
+  private async movePneumatic(side: 'left' | 'right', extend: boolean, token: number): Promise<void> {
+    const pn = side === 'left' ? this.state.leftPneumatic : this.state.rightPneumatic
+    pn.activeDirection = extend ? 1 : -1
+    pn.extended = false
+    pn.retracted = false
+    const from = pn.encoderPosition
+    const to = extend ? 120 : 0
+    const steps = 12
+    for (let k = 1; k <= steps; k++) {
+      await this.sleep(100, token)
+      pn.encoderPosition = Math.round(from + ((to - from) * k) / steps)
+    }
+    pn.activeDirection = 0
+    pn.extended = extend
+    pn.retracted = !extend
   }
 
   private async runArc(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
@@ -707,6 +872,7 @@ export class DemoMachine extends EventEmitter {
     if ((m = /^\/api\/bending-job\/(\d+)\/start$/.exec(path))) {
       const job = this.jobs.get(Number(m[1]))
       if (!job) return { success: false, error: 'Job bulunamadı' }
+      job.skipAutoCorrect = u.searchParams.get('skipAutoCorrect') === 'true'
       if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3)
         return { success: false, error: 'Zaten çalışan bir büküm var' }
       void this.runJob(job)
