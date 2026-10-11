@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useSensors } from '@/hooks/useMachineState'
@@ -35,7 +36,10 @@ export default function RingBendingMeasurementsPage() {
   const navigate = useNavigate()
   const ringBending = useBendingJobStore((s) => s.params.ringBending)
   const setParams = useBendingJobStore((s) => s.setParams)
-  const [values, setValues] = useState<MeasurementValues>(() => fromStore(ringBending))
+  // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
+  const visibleFields = useVisibleProfileFields()
+  const [values, setRawValues] = useState<MeasurementValues>(() => fillHiddenProfileFields(fromStore(ringBending), visibleFields))
+  const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
   const sensors = useSensors()

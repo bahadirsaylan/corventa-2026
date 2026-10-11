@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -74,6 +75,7 @@ interface Props {
 
 export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
   const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('spiral', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SpiralFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SpiralNumericKey | null>(null)
@@ -166,7 +168,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderNumericField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -71,6 +72,7 @@ interface Props {
 
 export default function MeasurementForm({ values, onChange, onReset }: Props) {
   const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('ring', defaultMethodImage)
   const [openInfo, setOpenInfo]     = useState<FieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
@@ -124,7 +126,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}

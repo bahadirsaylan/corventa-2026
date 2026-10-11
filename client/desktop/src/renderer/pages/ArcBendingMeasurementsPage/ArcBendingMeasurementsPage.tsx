@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
@@ -102,7 +103,10 @@ export default function ArcBendingMeasurementsPage() {
   const navigate = useNavigate()
   const arcBending = useBendingJobStore((s) => s.params.arcBending)
   const setParams = useBendingJobStore((s) => s.setParams)
-  const [values, setValues] = useState<ArcMeasurementValues>(() => fromStore(arcBending))
+  // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
+  const visibleFields = useVisibleProfileFields()
+  const [values, setRawValues] = useState<ArcMeasurementValues>(() => fillHiddenProfileFields(fromStore(arcBending), visibleFields))
+  const setValues = (v: ArcMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
   const [stage, setStage] = useState<ArcFormStage>('main')
 

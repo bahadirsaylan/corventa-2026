@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -195,6 +196,7 @@ export default function ArcMeasurementForm({
   stage,
 }: Props) {
   const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('arc', defaultMethodImage)
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
@@ -395,7 +397,7 @@ export default function ArcMeasurementForm({
           <>
             {/* AŞAMA 1: A/B/S/H + P/G/LT (2-col grid) */}
             <div className={styles.inputGrid}>
-              <div className={styles.inputCol}>{MAIN_LEFT.map(renderMainField)}</div>
+              <div className={styles.inputCol}>{filterProfileFieldList(MAIN_LEFT, visibleFields).map(renderMainField)}</div>
               <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
             </div>
 
@@ -408,8 +410,8 @@ export default function ArcMeasurementForm({
             {/* AŞAMA 2: Kompakt özet bant */}
             <div className={styles.summaryBar}>
               <span><b>A</b>={values.A || '—'}</span>
-              <span><b>B</b>={values.B || '—'}</span>
-              <span><b>S</b>={values.S || '—'}</span>
+              {visibleFields.includes('B') && <span><b>B</b>={values.B || '—'}</span>}
+              {visibleFields.includes('S') && <span><b>S</b>={values.S || '—'}</span>}
               <span><b>H</b>={values.H || '—'}</span>
               <span><b>P</b>={values.P || '—'}</span>
               <span><b>G</b>={values.G || '—'}</span>

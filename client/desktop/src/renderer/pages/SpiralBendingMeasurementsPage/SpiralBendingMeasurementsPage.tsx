@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
@@ -40,7 +41,10 @@ export default function SpiralBendingMeasurementsPage() {
   const navigate     = useNavigate()
   const spiralBending = useBendingJobStore((s) => s.params.spiralBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
-  const [values, setValues] = useState<SpiralMeasurementValues>(() => fromStore(spiralBending))
+  // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
+  const visibleFields = useVisibleProfileFields()
+  const [values, setRawValues] = useState<SpiralMeasurementValues>(() => fillHiddenProfileFields(fromStore(spiralBending), visibleFields))
+  const setValues = (v: SpiralMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {
     setValues({ ...EMPTY })

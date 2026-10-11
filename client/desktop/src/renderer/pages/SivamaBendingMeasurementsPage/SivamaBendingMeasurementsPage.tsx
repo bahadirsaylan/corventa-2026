@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
@@ -42,7 +43,10 @@ export default function SivamaBendingMeasurementsPage() {
   const navigate      = useNavigate()
   const sivamaBending = useBendingJobStore((s) => s.params.sivamaBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
-  const [values, setValues] = useState<SivamaMeasurementValues>(() => fromStore(sivamaBending))
+  // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
+  const visibleFields = useVisibleProfileFields()
+  const [values, setRawValues] = useState<SivamaMeasurementValues>(() => fillHiddenProfileFields(fromStore(sivamaBending), visibleFields))
+  const setValues = (v: SivamaMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {
     setValues({ ...EMPTY })

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -80,6 +81,7 @@ interface Props {
 
 export default function SivamaMeasurementForm({ values, onChange, onReset }: Props) {
   const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('sivama', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SivamaFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SivamaNumericKey | null>(null)
@@ -172,7 +174,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderNumericField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}
