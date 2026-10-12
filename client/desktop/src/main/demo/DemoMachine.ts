@@ -63,6 +63,9 @@ const ADAPTIVE_JOG_PCT = 20 // BendingHandlers.AdaptiveJogSpeedPercent
 const ADAPTIVE_WINDOW_MM = 10 // RollingWindowSampleCount × PistonSampleIntervalMm
 const CORRECTION_COEF = 0.25 // SpringbackCalculator.CorrectionCoefficient
 const ROTATION_ONLY_MAX_OVERRUN = 50 // SpringbackAutoCorrectHandler.RotationOnlyMaxOverrunMm
+// Demo senaryosu (kullanıcı isteği): çemberde adaptif temas piston 120mm'de tespit edilir,
+// büküm 2 pasoda biter (paso 1 = temas konumu, paso 2 = son hedef).
+const DEMO_CONTACT_MM = Number(process.env.CORVENTA_DEMO_CONTACT) || 120
 const TICK_MS = 100
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
@@ -515,8 +518,6 @@ export class DemoMachine extends EventEmitter {
     const base = { ball: BALL, thickness: job.profileA, center: CENTER_NORMAL, xa1: st.xa1, ya1: 0, theta: THETA }
     const T = job.targetDiameterMm
     const push = calcPush({ ...base, diameter: T }) ?? 280
-    const contact = calcPush({ ...base, diameter: 200_000 }) ?? push - 40
-    const step = job.stepDistanceMm > 0 ? job.stepDistanceMm : 10
     const safety = job.safetyMarginMm || 50
     const tol = Number(job.toleranceMm) > 0 ? Number(job.toleranceMm) : 5
     const doSpringback = !job.skipAutoCorrect
@@ -531,7 +532,6 @@ export class DemoMachine extends EventEmitter {
     const pushMax = doSpringback ? Math.max(push, pc1) : push // ekranda en derin konum = 165
     const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
     const targetDisp = disp(push)
-    const contactDisp = disp(contact)
     const radiusAt = (dispPos: number) => radiusFromPush(this.pushFromDisplay(dispPos, pushMax), base)
 
     const home = 0
@@ -539,7 +539,7 @@ export class DemoMachine extends EventEmitter {
     const shortDelta = Math.abs(st.xa1) + job.profileA
 
     // Toplam paso tahmini (EstimateTotalPasos gibi — paso 1 sonrası güncellenir)
-    let total = Math.max(1, 1 + Math.ceil((targetDisp - (contactDisp + 18)) / step))
+    let total = 2
     job.totalPasos = total
 
     // Kısa rot (|XA1|+A) → büken top güvenli geriye → diğer top bükme konumuna → uzun rot
@@ -568,23 +568,20 @@ export class DemoMachine extends EventEmitter {
     this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)')
     await slack()
     await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
-    // Temasa kadar %20 jog
-    await this.movePistons({ [active]: contactDisp }, token, ADAPTIVE_JOG_PCT)
-    // Temas: parça itilir → rotasyon enkoderi oynar (~6mm), sonra durur; 10mm pencere boyunca durgun → dur
+    // %20 jog → temasta parça itilir, rotasyon enkoderi oynar (~6mm), sonra durur;
+    // 10mm pencere boyunca enkoder durgun → piston DEMO_CONTACT_MM'de durur (temas tespiti)
+    const stopAt = Math.min(DEMO_CONTACT_MM, targetDisp)
+    const encStart = stopAt - ADAPTIVE_WINDOW_MM - 8
+    if (encStart > this.state[active].positionMm) await this.movePistons({ [active]: encStart }, token, ADAPTIVE_JOG_PCT)
     const rot0 = this.state.rotation.positionMm
     await Promise.all([
-      this.movePistons({ [active]: contactDisp + 8 }, token, ADAPTIVE_JOG_PCT),
+      this.movePistons({ [active]: stopAt - ADAPTIVE_WINDOW_MM }, token, ADAPTIVE_JOG_PCT),
       this.rotateTo(rot0 + 6, token, 1.2),
     ])
-    const contactAt = contactDisp + 8
-    await this.movePistons({ [active]: contactAt + ADAPTIVE_WINDOW_MM }, token, ADAPTIVE_JOG_PCT)
+    await this.movePistons({ [active]: stopAt }, token, ADAPTIVE_JOG_PCT)
     await this.sleep(200, token)
-    const scale = contactAt < 130 ? 1 : contactAt < 140 ? 2 / 3 : 1 / 3
-    const netStep = Math.max(0, step * scale - ADAPTIVE_WINDOW_MM)
-    let bend = Math.min(this.state[active].positionMm + netStep, targetDisp)
-    if (bend > this.state[active].positionMm + 0.05) await this.movePistons({ [active]: bend }, token, 100)
-    bend = this.state[active].positionMm
-    total = Math.max(1, 1 + Math.ceil((targetDisp - bend - 0.5) / step))
+    let bend = this.state[active].positionMm
+    total = bend >= targetDisp - 0.5 ? 1 : 2
     job.totalPasos = total
     let r = radiusAt(bend)
     this.setProgress(job.id, 0, total, 'Paso 1 bükülüyor (adaptif temas)', { currentRadiusMm: r })
@@ -598,7 +595,7 @@ export class DemoMachine extends EventEmitter {
       this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`)
       await slack()
       await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
-      bend = Math.min(bend + step, targetDisp)
+      bend = targetDisp // demo: paso 2 doğrudan son hedef
       await this.movePistons({ [active]: bend }, token, 100)
       r = radiusAt(bend)
       this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`, { currentRadiusMm: r })
