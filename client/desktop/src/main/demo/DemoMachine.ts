@@ -522,14 +522,19 @@ export class DemoMachine extends EventEmitter {
     const tol = Number(job.toleranceMm) > 0 ? Number(job.toleranceMm) : 5
     const doSpringback = !job.skipAutoCorrect
 
-    // Geri esneme senaryosu (görsel): ölçüm 1 hedefin ~%4 üstü (>50mm → düzeltme bükümü),
-    // ölçüm 2 hedefin 10-25mm üstü (≤50mm → sadece rotasyon), ölçüm 3 tolerans içinde.
-    const m1 = T + Math.max(ROTATION_ONLY_MAX_OVERRUN + 15, T * (0.035 + Math.random() * 0.01))
-    const c1 = T - (m1 - T) * CORRECTION_COEF
-    const m2 = T + 10 + Math.random() * 15
-    const m3 = T + (Math.random() * 1.2 - 0.6) * tol
-    const pc1 = calcPush({ ...base, diameter: c1 }) ?? push
-    const pushMax = doSpringback ? Math.max(push, pc1) : push // ekranda en derin konum = 165
+    // Geri esneme senaryosu (kullanıcı isteği): 6 ölçüm, hedefe oranla iner, 6.'sı tolerans içinde.
+    // Ø2000 için: 2800 → 2400 → 2200 → 2100 → 2040 → ~2000. Gerçek kurallarla: fark >50mm →
+    // düzeltme bükümü (çap = önceki − fark×0.25), fark ≤50mm → düzeltmesiz karşıya geç, tolerans → bitti.
+    const measures = [0.4, 0.2, 0.1, 0.05, 0.02].map((f) => T * (1 + f))
+    measures.push(T + (Math.random() * 1.2 - 0.6) * tol)
+    let cPlan = T
+    let deepest = push
+    for (const m of measures) {
+      if (Math.abs(m - T) <= tol || m - T <= ROTATION_ONLY_MAX_OVERRUN) continue
+      cPlan = cPlan - (m - T) * CORRECTION_COEF
+      deepest = Math.max(deepest, calcPush({ ...base, diameter: cPlan }) ?? deepest)
+    }
+    const pushMax = doSpringback ? deepest : push // ekranda en derin konum (son düzeltme) = 165
     const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
     const targetDisp = disp(push)
     const radiusAt = (dispPos: number) => radiusFromPush(this.pushFromDisplay(dispPos, pushMax), base)
@@ -611,7 +616,6 @@ export class DemoMachine extends EventEmitter {
       this.setProgress(job.id, done, done, 'Geri esneme düzeltmesi başlıyor...')
       await this.sleep(1000, token)
       const fmt = (d: number) => `Ø${d.toFixed(1)}`
-      const measures = [m1, m2, m3]
       let partOnRight = this.state.rotation.positionMm > far / 2
       let prevDiameter = T
       for (let it = 1; it <= 20; it++) {
