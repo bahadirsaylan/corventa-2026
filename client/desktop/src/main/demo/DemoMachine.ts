@@ -743,7 +743,7 @@ export class DemoMachine extends EventEmitter {
       const corrPush = calcPush({ ...corrBase, diameter: corrD }) ?? push
       return { seg, order, arcLen, duzlukEf, arcEf, mode, base, push, contact, measured1, corrPush }
     })
-    const pushMax = Math.max(1, ...plans.map((p) => Math.max(p.push, p.corrPush)))
+    const pushMax = Math.max(1, ...plans.map((p) => p.push))
     const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
 
     this.setProgress(job.id, 0, approx, 'Arc büküm başlatıldı', { completedSegmentOrder: 0, totalSegmentCount: P })
@@ -838,16 +838,17 @@ export class DemoMachine extends EventEmitter {
         await slack()
         let moved: PistonKey = active
         if ((p.mode === 'Normal' || rev) && k === 1 && pushDist > 0.5) {
-          // Adaptif temas: %20 jog, temasta rotasyon enkoderi oynar, 10mm pencere durgun → dur
-          const contactDisp = Math.min(disp(p.contact), target)
-          if (contactDisp > this.state[active].positionMm) await this.movePistons({ [active]: contactDisp }, token, ADAPTIVE_JOG_PCT)
+          // Adaptif ön büküm (demo senaryosu): %20 jog, temasta rotasyon enkoderi oynar, sonra
+          // 10mm pencere durgun → piston DOĞRUDAN HEDEFTE durur → kalan pasolar atlanır (tek paso).
+          const encStart = Math.max(this.state[active].positionMm, target - ADAPTIVE_WINDOW_MM - 8)
+          if (encStart > this.state[active].positionMm) await this.movePistons({ [active]: encStart }, token, ADAPTIVE_JOG_PCT)
           const r0 = this.state.rotation.positionMm
           await Promise.all([
-            this.movePistons({ [active]: Math.min(contactDisp + 8, target) }, token, ADAPTIVE_JOG_PCT),
+            this.movePistons({ [active]: Math.max(encStart, target - ADAPTIVE_WINDOW_MM) }, token, ADAPTIVE_JOG_PCT),
             this.rotateTo(r0 + fwd * 5, token, 1.2),
           ])
-          const stopPos = Math.min(contactDisp + 8, target)
-          await this.movePistons({ [active]: Math.min(stopPos + ADAPTIVE_WINDOW_MM, target) }, token, ADAPTIVE_JOG_PCT)
+          await this.movePistons({ [active]: target }, token, ADAPTIVE_JOG_PCT)
+          const stopPos = target
           await this.sleep(200, token)
           const now = this.state[active].positionMm
           const finalT = Math.max(stopPos, Math.min(now + Math.max(0, actualStep - ADAPTIVE_WINDOW_MM), target))
@@ -895,7 +896,8 @@ export class DemoMachine extends EventEmitter {
           await this.movePneumatic(measSide, true, token)
           await this.sleep(5000, token) // PneumaticWaitMs
           await this.sleep(5000, token) // örnekleme
-          const measuredR = it === 1 ? p.measured1 : p.seg.radiusMm + (Math.random() * 1.2 - 0.6) * tol
+          // Demo senaryosu: ilk ölçüm tolerans içinde → düzeltmesiz devam
+          const measuredR = p.seg.radiusMm + (Math.random() * 1.0 - 0.5) * tol
           this.setProgress(job.id, completed, approx, lastMsg, { ...segExtra, currentRadiusMm: measuredR })
           await this.movePneumatic(measSide, false, token)
           await this.sleep(3800, token) // geri çekme bekleme (toplam 5sn)
