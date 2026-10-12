@@ -455,19 +455,6 @@ export class DemoMachine extends EventEmitter {
     }, 4000)
   }
 
-  private async clampAndZero(jobId: number, total: number, token: number): Promise<void> {
-    this.setProgress(jobId, 0, total, 'Parça sıkıştırılıyor...')
-    await this.movePistons({ upperPiston: CLAMP_UPPER_MM }, token, 60)
-    await this.sleep(700, token)
-    this.setProgress(jobId, 0, total, 'Parça sıfırlanıyor...')
-    await this.rotateTo(this.state.rotation.positionMm - 260, token, 40)
-    await this.rotateTo(this.state.rotation.positionMm + 120, token, 15)
-    await this.sleep(500, token)
-    this.state.rotation.positionMm = 0
-    this.rotationTarget = 0
-    this.rotationVel = 0
-  }
-
   /** Gerçek push derinliği → ekranda gösterilecek encoder konumu (son hedef = MAX_PISTON_MM) */
   private displayMapper(pushMax: number, restOffset: number): (push: number) => number {
     const top = Math.max(MAX_PISTON_MM, restOffset + 20)
@@ -700,80 +687,250 @@ export class DemoMachine extends EventEmitter {
     pn.retracted = !extend
   }
 
+  /**
+   * Çok açılı — ExecuteArcBendingHandler + ArcMeasureAndCorrectHandler ile adım adım aynı
+   * (sensör Sol varsayımı, segmentler baştan girilmiş):
+   *   Sıkıştır → Sıfırla (başlangıç = Reset − safety − max(0, L1 − safety)) →
+   *   her segment: mod kararı (L > |XA1| ve kalan > |XA1| → Middle · sadece kalan → Normal ·
+   *   sadece L → ReverseNormal) → "SegN düzlük" rotasyonu → pasif (Normal: güvenli geri, Middle: stage'de) →
+   *   nOdd paso (her paso: üst boşluk → piston → rotasyon ileri/geri → mesaj) → aktif sonra pasif
+   *   stage'e → ölçüm (rot = yay başı + max(yay, 800), karşı taraf pnömatik 5+5+5 sn) →
+   *   tolerans dışıysa SPLIT (yarım + tam) düzeltme → tekrar ölç.
+   *   Ölçüm/düzeltme sırasında ekrana yeni mesaj YOK (gerçekteki gibi son paso mesajı kalır).
+   *   Son segmentten sonra rotasyon / üst top kalkma YOK.
+   */
   private async runArc(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
     const segs = [...(job.segments ?? [])].sort((a, b) => a.segmentOrder - b.segmentOrder)
+    const P = segs.length
     const G = (job.arcStepDistanceMm ?? job.stepDistanceMm) || 15
-    const plans = segs.map((seg, idx) => {
-      const middle = idx === 0
-      const center = middle ? CENTER_MIDDLE : CENTER_NORMAL
+    const LT = job.partLengthMm
+    const safety = job.safetyMarginMm || 50
+    const tol = Number(job.toleranceMm) > 0 ? Number(job.toleranceMm) : 5
+    const xA1Abs = Math.abs(st.xa1)
+    const maxRot = LT - safety
+    const fwd = 1 // sensör Sol → parça hep sağa sürülür
+    const T_TRAVEL = 800 // DefaultMeasurementDistanceMm (850) − 50
+    const approx = P * 6
+    const f1 = (v: number) => v.toFixed(1).replace('.', ',') // Türkçe Windows kültürü
+
+    const arcLenOf = (s: (typeof segs)[number]) => (2 * Math.PI * s.radiusMm * (180 - s.angleDeg)) / 360
+    const decideMode = (L: number, kalan: number): 'Normal' | 'Middle' | 'ReverseNormal' =>
+      L > xA1Abs && kalan > xA1Abs ? 'Middle' : !(L > xA1Abs) && kalan > xA1Abs ? 'Normal' : L > xA1Abs ? 'ReverseNormal' : 'Normal'
+
+    // ── Ön plan: her segmentin modu, hedefi (ekran ölçeği için en derin push) ──
+    let adv = 0
+    const plans = segs.map((seg, i) => {
+      const order = i + 1
+      const arcLen = arcLenOf(seg)
+      const duzlukEf = order === 1 ? Math.max(seg.straightAfterMm, safety) : seg.straightAfterMm
+      let arcEf = arcLen
+      if (order === P) {
+        const physRem = LT - (adv + duzlukEf) - arcLen
+        if (physRem < safety) arcEf = Math.max(0, arcLen - (safety - physRem))
+      }
+      const kalan = LT - (adv + duzlukEf + arcEf)
+      adv += duzlukEf + arcEf
+      const mode = decideMode(seg.straightAfterMm, kalan)
+      const center = mode === 'Middle' ? CENTER_MIDDLE : CENTER_NORMAL
       const base = { ball: BALL, thickness: job.profileA, center, xa1: st.xa1, ya1: 0, theta: THETA }
       const push = calcPush({ ...base, diameter: seg.radiusMm * 2 }) ?? 250
-      const contact = calcPush({ ...base, diameter: 200_000 }) ?? push - 30
-      const steps = Math.max(1, Math.ceil((push - contact) / G))
-      const nOdd = steps * 2 - 1
-      // Backend ile aynı: L_yay = 2·π·R·(180−α)/360
-      const arcLen = (2 * Math.PI * seg.radiusMm * (180 - seg.angleDeg)) / 360
-      return { seg, middle, base, push, contact, steps, nOdd, arcLen }
+      const contact = calcPush({ ...base, diameter: 200_000 }) ?? push - 40
+      // Düzeltme (iterasyon 1 ölçümü hedefin %3 üstü → SPLIT) — hesap job.CenterDistanceMm ile (gerçek kodda böyle)
+      const measured1 = seg.radiusMm * 1.03 + tol
+      const corrD = 2 * seg.radiusMm - (2 * measured1 - 2 * seg.radiusMm) * CORRECTION_COEF
+      const corrBase = { ...base, center: CENTER_NORMAL }
+      const corrPush = calcPush({ ...corrBase, diameter: corrD }) ?? push
+      return { seg, order, arcLen, duzlukEf, arcEf, mode, base, push, contact, measured1, corrPush }
     })
-    const total = plans.reduce((a, p) => a + p.nOdd, 0)
-    job.totalPasos = total
-    const n = plans.length
-    const pushMax = Math.max(...plans.map((p) => p.push), 1)
+    const pushMax = Math.max(1, ...plans.map((p) => Math.max(p.push, p.corrPush)))
     const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
-    const approachArc = disp(Math.min(...plans.map((p) => p.contact))) - 25
 
-    this.setProgress(job.id, 0, total, 'Arc büküm başlatıldı', { completedSegmentOrder: 0, totalSegmentCount: n })
-    await this.clampAndZero(job.id, total, token)
+    this.setProgress(job.id, 0, approx, 'Arc büküm başlatıldı', { completedSegmentOrder: 0, totalSegmentCount: P })
 
-    let done = 0
-    let rot = 0
-    // Rotasyon parça boyunu aşmasın (backend safety guard: LT − safety)
-    const maxRot = Math.max(300, job.partLengthMm - (job.safetyMarginMm || 50))
-    const rotArc = (mm: number) => this.rotateTo(Math.min(maxRot, Math.max(-maxRot, mm)), token, 70)
-    for (let i = 0; i < n; i++) {
-      const p = plans[i]
-      const order = i + 1
-      const segExtra = { completedSegmentOrder: order - 1, totalSegmentCount: n }
-      // Düzlük (Seg1'de leading straight)
-      const straight = i === 0 ? p.seg.straightAfterMm : plans[i - 1].seg.straightAfterMm
-      this.setProgress(job.id, done, total, `Seg${order} düzlük`, { ...segExtra, currentRadiusMm: null })
-      if (straight > 0) {
-        rot += straight
-        await rotArc(rot)
+    // ── Sıkıştır ──
+    this.setProgress(job.id, 0, approx, 'Parça sıkıştırılıyor...', { completedSegmentOrder: 0, totalSegmentCount: P })
+    await this.waitUntil(() => this.partSensor, token)
+    await this.movePistons({ upperPiston: CLAMP_UPPER_MM }, token, 30)
+    this.pressureHold = CLAMP_PRESSURE_BAR
+    await this.sleep(800, token)
+
+    // ── Sıfırla (ZeroPartArc) ──
+    this.setProgress(job.id, 0, approx, 'Parça sıfırlanıyor...', { completedSegmentOrder: 0, totalSegmentCount: P })
+    const p0 = this.state.rotation.positionMm
+    await this.rotateTo(p0 + 140, token, 80)
+    if (this.partSensor) this.togglePartSensor()
+    await this.sleep(200, token)
+    await this.rotateTo(p0 + 12, token, 10)
+    if (!this.partSensor) this.togglePartSensor()
+    await this.sleep(200, token)
+    const L1 = plans[0]?.seg.straightAfterMm ?? 0
+    const startPos = ZERO_RESET_MM - safety - Math.max(0, L1 - safety)
+    if (startPos > 0) await this.rotateTo(this.state.rotation.positionMm + fwd * startPos, token, 50)
+    await this.sleep(200, token)
+    this.state.rotation.positionMm = 0
+    this.rotationTarget = 0
+    this.rotationVel = 0
+
+    let rotAcc = 0
+    let completed = 0
+    const slack = async () => {
+      this.pressureHold = null
+      await this.movePistons({ upperPiston: this.state.upperPiston.positionMm + SLACK_UPPER_MM }, token, 30)
+    }
+    const rotGuard = async (target: number) => {
+      if (Math.abs(target) > maxRot) throw new Error(`rotasyon ${target.toFixed(0)} > ${maxRot}`)
+      await this.rotateTo(target, token, 100)
+    }
+
+    for (const p of plans) {
+      const n = p.order
+      const segExtra = { completedSegmentOrder: n - 1, totalSegmentCount: P }
+      const rev = p.mode === 'ReverseNormal'
+      const rs = rev ? -1 : 1
+      // Aktif: Normal → sensör tarafı (sol), Middle / ReverseNormal → karşı (sağ)
+      const active: PistonKey = p.mode === 'Normal' ? 'leftPiston' : 'rightPiston'
+      const passive: PistonKey = active === 'leftPiston' ? 'rightPiston' : 'leftPiston'
+      const actRest = active === 'leftPiston' ? st.left : st.right
+      const pasRest = passive === 'leftPiston' ? st.left : st.right
+      const target = disp(p.push)
+      let segMaxPos = -Infinity
+      const updR = (extra: Partial<BendingProgress>) => {
+        const pos = Math.max(this.state[active].positionMm, p.mode === 'Middle' ? this.state[passive].positionMm : -Infinity)
+        if (pos > segMaxPos) segMaxPos = pos
+        const push = this.pushFromDisplay(segMaxPos, pushMax)
+        return { ...extra, currentRadiusMm: radiusFromPush(push, p.base) }
       }
-      // Aktif top: ilk segment Middle (sağ, iki top), diğerleri Normal (sol)
-      const active: PistonKey = p.middle ? 'rightPiston' : 'leftPiston'
-      const other: PistonKey = p.middle ? 'leftPiston' : 'rightPiston'
-      await this.movePistons(p.middle ? { [active]: approachArc, [other]: approachArc } : { [active]: approachArc, [other]: approachArc - 15 }, token, 70)
-      const legStart = rot
-      let depth = p.contact
-      for (let k = 1; k <= p.nOdd; k++) {
-        const fwd = k % 2 === 1
-        if (fwd) depth = Math.min(p.push, p.contact + G * ((k + 1) / 2))
-        const label = `Seg${order} paso${k}/${p.nOdd} (${fwd ? 'fwd' : 'rew'}) [${active === 'leftPiston' ? 'Left' : 'Right'}] piston ${disp(depth).toFixed(1)}mm`
-        this.setProgress(job.id, done, total, label, segExtra)
-        if (fwd) {
-          const t: Partial<Record<PistonKey, number>> = { [active]: disp(depth) }
-          if (p.middle) t[other] = disp(Math.max(p.contact, depth - G / 2))
-          await this.movePistons(t, token, 70)
-          this.setProgress(job.id, done, total, label, { ...segExtra, currentRadiusMm: radiusFromPush(depth, p.base) })
+
+      // 4b) Düzlük rotasyonu
+      const delta = (n === 1 ? 0 : p.seg.straightAfterMm) + (rev ? p.arcEf : 0)
+      this.setProgress(job.id, completed, approx, `Seg${n} düzlük`, { ...segExtra, currentRadiusMm: null })
+      const sbTarget = rotAcc + fwd * delta
+      await rotGuard(sbTarget)
+      rotAcc = sbTarget
+
+      // 4d) Pasif top
+      if (p.mode !== 'Middle') await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
+
+      // 4e) Paso planı
+      const pistonStart = this.state[active].positionMm
+      const pushDist = target - pistonStart
+      let nOdd = 1
+      let actualStep = 0
+      let activeCount = 1
+      if (pushDist > 0.5) {
+        if (p.mode === 'Middle') {
+          const naive = Math.max(1, Math.ceil(pushDist / G))
+          const rem = pushDist - (naive - 1) * G
+          activeCount = naive > 1 && rem <= G / 3 + 0.001 ? naive - 1 : naive
+          nOdd = 2 * activeCount - 1
+        } else {
+          const nRaw = Math.max(1, Math.ceil(pushDist / G))
+          nOdd = nRaw % 2 === 0 ? Math.max(1, nRaw - 1) : nRaw
+          actualStep = pushDist / nOdd
         }
-        await rotArc(fwd ? legStart + p.arcLen : legStart)
-        done++
-        this.setProgress(job.id, done, total, label, segExtra)
       }
-      rot = legStart + p.arcLen
-      await this.movePistons({ [active]: approachArc, [other]: approachArc }, token, 70)
-      await this.sleep(400, token)
+
+      // 4f) Paso döngüsü
+      let skipRest = false
+      for (let k = 1; k <= nOdd; k++) {
+        const isFwd = k % 2 === 1
+        await slack()
+        let moved: PistonKey = active
+        if ((p.mode === 'Normal' || rev) && k === 1 && pushDist > 0.5) {
+          // Adaptif temas: %20 jog, temasta rotasyon enkoderi oynar, 10mm pencere durgun → dur
+          const contactDisp = Math.min(disp(p.contact), target)
+          if (contactDisp > this.state[active].positionMm) await this.movePistons({ [active]: contactDisp }, token, ADAPTIVE_JOG_PCT)
+          const r0 = this.state.rotation.positionMm
+          await Promise.all([
+            this.movePistons({ [active]: Math.min(contactDisp + 8, target) }, token, ADAPTIVE_JOG_PCT),
+            this.rotateTo(r0 + fwd * 5, token, 1.2),
+          ])
+          const stopPos = Math.min(contactDisp + 8, target)
+          await this.movePistons({ [active]: Math.min(stopPos + ADAPTIVE_WINDOW_MM, target) }, token, ADAPTIVE_JOG_PCT)
+          await this.sleep(200, token)
+          const now = this.state[active].positionMm
+          const finalT = Math.max(stopPos, Math.min(now + Math.max(0, actualStep - ADAPTIVE_WINDOW_MM), target))
+          if (Math.abs(finalT - now) > 0.05) await this.movePistons({ [active]: finalT }, token, 100)
+          if (nOdd > 1) {
+            const remaining = target - this.state[active].positionMm
+            if (remaining < 0.5) skipRest = true
+            else actualStep = remaining / (nOdd - 1)
+          }
+        } else if (p.mode === 'Middle') {
+          if (isFwd) {
+            const m = (k + 1) / 2
+            const t = m === activeCount ? target : Math.min(pistonStart + m * G, target)
+            await this.movePistons({ [active]: t }, token, 100)
+          } else {
+            moved = passive
+            const t = Math.min(this.state[active].positionMm + G / 2, target)
+            if (t > this.state[passive].positionMm + 0.05) await this.movePistons({ [passive]: t }, token, 100)
+          }
+        } else if (pushDist > 0.5) {
+          const t = Math.min(this.state[active].positionMm + actualStep, target)
+          await this.movePistons({ [active]: t }, token, 100)
+        }
+        const rotT = isFwd ? rotAcc + fwd * rs * p.arcEf : rotAcc
+        await rotGuard(rotT)
+        completed++
+        const label = `Seg${n} paso${k}/${nOdd} (${isFwd ? 'fwd' : 'rew'}) [${moved === 'leftPiston' ? 'Left' : 'Right'}] piston ${f1(this.state[moved].positionMm)}mm`
+        this.setProgress(job.id, completed, approx, label, updR(segExtra))
+        if (skipRest) break
+      }
+      const lastMsg = this.progress?.message ?? ''
+
+      // 4g) Ölçüm öncesi: aktif → stage, sonra pasif → stage
+      await this.movePistons({ [active]: actRest }, token, 100)
+      await this.movePistons({ [passive]: pasRest }, token, 100)
+
+      // 4h) Ölçüm + düzeltme (mesaj yok — son paso mesajı kalır)
+      const rotMeas = rotAcc + rs * fwd * Math.max(p.arcEf, T_TRAVEL)
+      const rotYay = rotAcc + rs * fwd * p.arcEf
+      if (Math.abs(rotMeas) <= maxRot) {
+        await this.rotateTo(rotMeas, token, 100)
+        const measSide: 'left' | 'right' = rev ? 'left' : 'right' // Normal/Middle: sensörün tersi
+        let curPos = target
+        for (let it = 1; it <= 2; it++) {
+          await this.movePneumatic(measSide, true, token)
+          await this.sleep(5000, token) // PneumaticWaitMs
+          await this.sleep(5000, token) // örnekleme
+          const measuredR = it === 1 ? p.measured1 : p.seg.radiusMm + (Math.random() * 1.2 - 0.6) * tol
+          this.setProgress(job.id, completed, approx, lastMsg, { ...segExtra, currentRadiusMm: measuredR })
+          await this.movePneumatic(measSide, false, token)
+          await this.sleep(3800, token) // geri çekme bekleme (toplam 5sn)
+          if (Math.abs(p.seg.radiusMm - measuredR) <= tol) break
+          // SPLIT düzeltme
+          const newPos = disp(p.corrPush)
+          const push = newPos - curPos
+          if (push <= 0) break // fazla bükülmüş — açılamaz
+          await this.rotateTo(rotYay, token, 100) // a
+          if (p.mode === 'Middle') {
+            await this.movePistons({ [active]: curPos }, token, 100) // b.1
+            await this.movePistons({ [passive]: curPos + push / 2 }, token, 100) // b.2
+            await this.rotateTo(rotAcc, token, 100) // c — büküm 1
+            await this.movePistons({ [active]: newPos }, token, 100) // d
+            await this.rotateTo(rotYay, token, 100) // e — büküm 2
+          } else {
+            await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100) // a.2
+            await this.movePistons({ [active]: curPos + push / 2 }, token, 100) // b
+            await this.rotateTo(rotAcc, token, 100) // c — büküm 1
+            await this.movePistons({ [active]: newPos }, token, 100) // d
+            await this.rotateTo(rotYay, token, 100) // e — büküm 2
+          }
+          this.setProgress(job.id, completed, approx, lastMsg, updR(segExtra))
+          await this.movePistons({ [active]: actRest }, token, 100) // f
+          await this.movePistons({ [passive]: pasRest }, token, 100) // f.2
+          await this.rotateTo(rotMeas, token, 100) // g
+          curPos = newPos
+        }
+      }
+
+      // 4i) Segment sonu (mantıksal yay sonu)
+      rotAcc = rotAcc + fwd * (rev ? -p.arcEf : p.arcEf)
     }
-    // Kalan düz kısım
-    const tail = n > 0 ? plans[n - 1].seg.straightAfterMm : 0
-    if (tail > 0) {
-      this.setProgress(job.id, done, total, `Seg${n + 1} düzlük`, { completedSegmentOrder: n, totalSegmentCount: n, currentRadiusMm: null })
-      await rotArc(rot + tail)
-    }
-    this.setProgress(job.id, total, total, 'Arc büküm tamamlandı', { completedSegmentOrder: n, totalSegmentCount: n })
-    await this.movePistons({ upperPiston: 0, leftPiston: st.left, rightPiston: st.right }, token, 60)
+
+    this.pressureHold = null
+    this.setProgress(job.id, completed, approx, 'Arc büküm tamamlandı', { completedSegmentOrder: P, totalSegmentCount: P })
   }
 
   // ─────────────────────────────────────────────────────────────
