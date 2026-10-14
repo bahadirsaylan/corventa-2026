@@ -710,7 +710,6 @@ export class DemoMachine extends EventEmitter {
     const xA1Abs = Math.abs(st.xa1)
     const maxRot = LT - safety
     const fwd = 1 // sensör Sol → parça hep sağa sürülür
-    const T_TRAVEL = 800 // DefaultMeasurementDistanceMm (850) − 50
     const approx = P * 6
     const f1 = (v: number) => v.toFixed(1).replace('.', ',') // Türkçe Windows kültürü
 
@@ -886,7 +885,8 @@ export class DemoMachine extends EventEmitter {
       await this.movePistons({ [passive]: pasRest }, token, 100)
 
       // 4h) Ölçüm + düzeltme (mesaj yok — son paso mesajı kalır)
-      const rotMeas = rotAcc + rs * fwd * Math.max(p.arcEf, T_TRAVEL)
+      // Ölçüm: yay sonundan stage |XA1| kadar daha (backend daf4989, yay boyundan bağımsız)
+      const rotMeas = rotAcc + rs * fwd * (p.arcEf + xA1Abs)
       const rotYay = rotAcc + rs * fwd * p.arcEf
       if (Math.abs(rotMeas) <= maxRot) {
         await this.rotateTo(rotMeas, token, 100)
