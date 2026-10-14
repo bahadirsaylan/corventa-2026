@@ -8,6 +8,7 @@ import type {
   UserPreference,
   MaintenancePeriodKey,
   MaintenanceState,
+  StageInfo,
   ServiceRequest,
   ServiceRequestCreateRequest,
   ServiceTicket,
@@ -185,6 +186,11 @@ export class DataApiClient {
   }
 
   // ---------- Maintenance State (bakım periyot takibi) ----------
+
+  // Stage tanımları (gönye ekranında stage seçimi)
+  getStages(): Promise<StageInfo[]> {
+    return http.get<StageInfo[]>(`${this.baseUrl}/api/settings/stages`)
+  }
 
   getMaintenanceState(): Promise<MaintenanceState> {
     return http.get<MaintenanceState>(`${this.baseUrl}/api/maintenance`)

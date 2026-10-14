@@ -29,6 +29,12 @@ export function registerSettingsHandlers(): void {
     },
   )
 
+  // ---------- STAGES ----------
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetStages, async () => {
+    return dataApi.getStages()
+  })
+
   // ---------- MACHINE IDENTITY ----------
 
   ipcMain.handle(Ipc.IpcInvoke.SettingsGetIdentity, async () => {

@@ -8,6 +8,7 @@ import {
   type MachineIdentity,
   type MaintenancePeriodKey,
   type MaintenanceState,
+  type StageInfo,
   type UserPreference,
 } from '@shared'
 
@@ -35,6 +36,9 @@ export const settingsApi = {
 
   putUserPreference: (userKey: string, prefKey: string, valueJson: string): Promise<UserPreference> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsPutUserPreference, userKey, prefKey, valueJson),
+
+  // Stage tanımları (DataApi) — gönye ekranında stage seçimi
+  getStages: (): Promise<StageInfo[]> => ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetStages),
 }
 
 export type SettingsApi = typeof settingsApi

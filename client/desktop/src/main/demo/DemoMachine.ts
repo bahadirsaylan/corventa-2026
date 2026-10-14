@@ -1096,6 +1096,13 @@ export class DemoMachine extends EventEmitter {
       }
       return this.prefs.get(key) ?? undefined
     }
+    if (path === '/api/settings/stages' && method === 'GET') {
+      return STAGES.map((s) => ({
+        id: s.stageId, stageNumber: s.stageNumber, name: s.name,
+        leftOffsetMm: s.left, rightOffsetMm: s.right, lowerOffsetMm: s.lower,
+        xA1Mm: s.xa1, yA1Mm: 0, maxProfileAMm: s.maxProfileAMm,
+      }))
+    }
     if (path === '/api/machine-identity') {
       return { id: 1, serialNo: 'CRV-DEMO-001', customerName: 'Corventa', warrantyStartDate: '2026-01-01T00:00:00Z', warrantyEndDate: '2028-01-01T00:00:00Z', ownershipType: 'SATIS', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }
     }

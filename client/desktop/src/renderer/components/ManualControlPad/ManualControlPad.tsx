@@ -22,8 +22,13 @@ const SPEED_STEP = 5
 const SPEED_MIN = 5
 const SPEED_MAX = 100
 
+// GEÇİCİ (2026-10-14, kullanıcı isteği): büküm sırasında tuş takımı KİLİTLENMİYOR.
+// Tekrar kilitlemek için true yap — kilit rozeti + disabled davranışı geri gelir.
+const LOCK_DURING_BENDING = false
+
 export default function ManualControlPad() {
-  const locked = useBendingActive()
+  const bendingActive = useBendingActive()
+  const locked = LOCK_DURING_BENDING && bendingActive
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const [speed, setSpeed] = useState(20)
   const [motorBusy, setMotorBusy] = useState(false)

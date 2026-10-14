@@ -57,3 +57,17 @@ export interface UserPreference {
   valueJson: string
   updatedAt: string
 }
+
+/** DataApi Stage (GET /api/settings/stages) — gönye ekranında stage seçimi için. */
+export interface StageInfo {
+  id: number
+  stageNumber: number
+  name: string
+  description?: string | null
+  leftOffsetMm: number
+  rightOffsetMm: number
+  lowerOffsetMm: number
+  xA1Mm?: number | null
+  yA1Mm?: number | null
+  maxProfileAMm?: number | null
+}
