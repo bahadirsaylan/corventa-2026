@@ -78,6 +78,8 @@ export const IpcInvoke = {
   SettingsGetGonye: 'settings:get-gonye',
   SettingsUpdateGonye: 'settings:update-gonye',
   SettingsUpdateStage: 'settings:update-stage',
+  SettingsGetAllStages: 'settings:get-all-stages',
+  SettingsCreateStage: 'settings:create-stage',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

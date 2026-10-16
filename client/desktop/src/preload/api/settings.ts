@@ -51,6 +51,10 @@ export const settingsApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateGonye, patch),
   updateStage: (id: number, patch: Partial<StageInfo>): Promise<StageInfo> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateStage, id, patch),
+  // Admin Ayarları — pasifler dahil tüm stage'ler + yeni stage
+  getAllStages: (): Promise<StageInfo[]> => ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetAllStages),
+  createStage: (body: Partial<StageInfo>): Promise<StageInfo> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsCreateStage, body),
 }
 
 export type SettingsApi = typeof settingsApi

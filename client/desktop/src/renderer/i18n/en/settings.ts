@@ -167,6 +167,17 @@ const en: Record<string, string> = {
   'Boş = varsayılan YA1.': 'Empty = default YA1.',
   'MAKSİMUM PROFİL A': 'MAXIMUM PROFILE A',
   'Otomatik stage önerisi. Boş = öneride kullanılmaz.': 'Automatic stage recommendation. Empty = not used for recommendation.',
+  'Pasif stage gönye ekranında ve otomatik stage önerisinde kullanılmaz.': 'An inactive stage is not used on the squaring screen or in automatic stage recommendation.',
+  'Makinede en fazla {n} stage tanımlanır. Pasif stage gönye ekranında ve otomatik stage önerisinde kullanılmaz. Stage 1 (gönye konumu) her zaman aktiftir.':
+    'Up to {n} stages can be defined. An inactive stage is not used on the squaring screen or in automatic stage recommendation. Stage 1 (squaring position) is always active.',
+  'Stage merkezi (üst top referansı). Ölçüm sürüşü de bu değeri kullanır.': 'Stage center (upper roll reference). The measurement travel also uses this value.',
+  'Üst top yürüme basıncını izleyerek iner, temas basınç artışında durur. Hedef konum bu değerlerle hesaplanır.':
+    'The upper roll moves down while monitoring the travel pressure and stops at the contact pressure rise. The target position is calculated from these values.',
+  'OFSETLER': 'OFFSETS',
+  'Stage 1-3 geçiş konumları makine yazılımında sabittir; ofsetler burada sadece gösterilir.':
+    'Stage 1-3 positions are fixed in the machine software; offsets are shown here for reference only.',
+  'Ofsetler gönye konumundan MUTLAK değerlerdir; stage geçişinde pistonlar bu konumlara gider.':
+    'Offsets are ABSOLUTE values from the squaring position; pistons move to these positions on stage change.',
 }
 
 export default en

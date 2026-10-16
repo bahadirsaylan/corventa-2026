@@ -18,6 +18,14 @@ import {
 
 const log = childLogger('ipc:settings')
 
+async function reloadEngineQuietly(): Promise<void> {
+  try {
+    await engineApi.reloadSettings()
+  } catch (err) {
+    log.warn('engine settings reload failed', { error: (err as Error).message })
+  }
+}
+
 export function registerSettingsHandlers(): void {
   // ---------- USER PREFERENCES ----------
 
@@ -59,11 +67,23 @@ export function registerSettingsHandlers(): void {
     return engineApi.updateGonyeSettings({ ...current, ...patch })
   })
 
+  // Stage'ler: pasifler dahil DataApi'ye yazılır, ardından Bending API orchestrator'ı yenilenir
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetAllStages, async () => dataApi.getStages(true))
+
   ipcMain.handle(Ipc.IpcInvoke.SettingsUpdateStage, async (_evt, id: number, patch: Partial<StageInfo>) => {
     log.info('update-stage', { id, fields: Object.keys(patch ?? {}) })
-    const current = (await dataApi.getStages()).find((s) => s.id === id)
+    const current = (await dataApi.getStages(true)).find((s) => s.id === id)
     if (!current) throw new Error(`Stage id=${id} bulunamadı`)
-    return engineApi.updateStage(id, { ...current, ...patch })
+    const saved = await dataApi.updateStage(id, { ...current, ...patch })
+    await reloadEngineQuietly()
+    return saved
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsCreateStage, async (_evt, body: Partial<StageInfo>) => {
+    log.info('create-stage', { stageNumber: body?.stageNumber })
+    const saved = await dataApi.createStage(body)
+    await reloadEngineQuietly()
+    return saved
   })
 
   // ---------- MACHINE IDENTITY ----------

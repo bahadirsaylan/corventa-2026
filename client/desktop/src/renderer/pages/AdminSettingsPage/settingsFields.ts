@@ -1,14 +1,13 @@
 // Ayar ekranlarının alan tanımları. Anahtarlar Bending API MachineSettings / GonyeSettings / Stage
 // JSON alanlarıyla (camelCase) birebir aynı. Aralıklar backend doğrulamasıyla uyumlu tutuldu
 // (SettingsController.Validate*) — ekran daha dar sınır koyabilir, daha geniş koyamaz.
+// Sadece makinede GERÇEKTEN kullanılan ayarlar listelenir (kayıt amaçlı / eski alanlar gösterilmez).
 
 import type { FieldDef, SectionDef } from '@/components/SettingsForm/SettingsForm'
 
-const UNUSED = 'Kayıt amaçlı — şu an hesapta kullanılmıyor.'
-
 export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
   {
-    tab: 'PİSTON & EKSEN',
+    tab: 'MAKİNE',
     sections: [
       {
         title: 'PİSTON STROKLARI',
@@ -21,22 +20,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         ],
       },
       {
-        title: 'ENCODER MAKSİMUM DEĞERLERİ',
-        note: 'Kayıt amaçlı — PLC pozisyon ölçeklemesini kendi parametreleriyle yapar.',
+        title: 'GÜVENLİK VE HAZIRLIK',
         fields: [
-          { key: 'leftPistonMaxReg', label: 'SOL PİSTON MAX REGISTER', min: 1, max: 65535, integer: true },
-          { key: 'rightPistonMaxReg', label: 'SAĞ PİSTON MAX REGISTER', min: 1, max: 65535, integer: true },
-          { key: 'upperPistonMaxReg', label: 'ÜST PİSTON MAX REGISTER', min: 1, max: 65535, integer: true },
-          { key: 'lowerPistonMaxReg', label: 'ALT PİSTON MAX REGISTER', min: 1, max: 65535, integer: true },
+          { key: 'safetyMarginMm', label: 'PİSTON GÜVENLİK PAYI', unit: 'mm', min: 0, max: 50, desc: 'Pasif piston geri çekilme limiti için.' },
+          { key: 'zeroResetDistanceMm', label: 'PARÇA SIFIRLAMA MESAFESİ', unit: 'mm', min: 0, max: 5000, desc: 'Sensörden "0" noktasına olan mesafe.' },
+          { key: 'defaultSafetyMarginMm', label: 'PARÇA UÇ GÜVENLİK PAYI', unit: 'mm', min: 0, max: 1000, desc: 'İş kaydında güvenlik payı girilmezse kullanılır.' },
         ],
       },
       {
-        title: 'PNÖMATİK VE ROTASYON',
+        title: 'SİSTEM',
         fields: [
-          { key: 'pneumaticStrokeMm', label: 'PNÖMATİK STROK', unit: 'mm', min: 1, max: 1000, desc: UNUSED },
-          { key: 'pneumaticMaxReg', label: 'PNÖMATİK MAX REGISTER', min: 1, max: 65535, integer: true, desc: UNUSED },
-          { key: 'rollerDiameterMm', label: 'VALS ÇAPI', unit: 'mm', min: 1, max: 1000, desc: UNUSED },
-          { key: 'rotationEncoderPpr', label: 'ROTASYON ENCODER PPR', min: 1, max: 100000, integer: true, desc: UNUSED },
+          { key: 'stateSnapshotIntervalSec', label: 'DURUM KAYIT ARALIĞI', unit: 'sn', min: 0, max: 3600, integer: true, desc: '0 = kayıt kapalı.' },
         ],
       },
     ],
@@ -52,25 +46,6 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'defaultCenterDistanceMm', label: 'EKSEN MESAFESİ (NORMAL)', unit: 'mm', min: 1, max: 2000, desc: 'Sol-sağ top arası. Arc Normal / Ters Normal segmentler.' },
           { key: 'centerDistanceMiddleRadiusMm', label: 'EKSEN MESAFESİ (RADIUS ORTADA)', unit: 'mm', min: 1, max: 2000, nullable: true, desc: 'Arc Middle segmentler. Boş = normal eksen mesafesi kullanılır.' },
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },
-          { key: 'defaultXA1', label: 'VARSAYILAN XA1', unit: 'mm', min: -5000, max: 5000, negative: true, desc: 'Stage\'de XA1 tanımlı değilse kullanılır.' },
-          { key: 'defaultYA1', label: 'VARSAYILAN YA1', unit: 'mm', min: -5000, max: 5000, negative: true, desc: 'Stage\'de YA1 tanımlı değilse kullanılır.' },
-        ],
-      },
-      {
-        title: 'İŞ VARSAYILANLARI',
-        fields: [
-          { key: 'defaultSafetyMarginMm', label: 'PARÇA UÇ GÜVENLİK PAYI', unit: 'mm', min: 0, max: 1000, desc: 'İş kaydında güvenlik payı girilmezse kullanılır.' },
-          { key: 'defaultPistonSpeedPercent', label: 'PİSTON HIZI', unit: '%', min: 1, max: 100, integer: true },
-          { key: 'defaultRotationSpeedPercent', label: 'ROTASYON HIZI', unit: '%', min: 1, max: 100, integer: true },
-          {
-            type: 'select',
-            key: 'defaultActiveSensorSide',
-            label: 'VARSAYILAN SENSÖR TARAFI',
-            options: [
-              { value: 'Left', label: 'SOL' },
-              { value: 'Right', label: 'SAĞ' },
-            ],
-          },
         ],
       },
     ],
@@ -80,9 +55,9 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
     sections: [
       {
         title: 'PARÇA SIKIŞTIRMA',
+        note: 'Üst top yürüme basıncını izleyerek iner, temas basınç artışında durur. Hedef konum bu değerlerle hesaplanır.',
         fields: [
-          { key: 'defaultClampPressureBar', label: 'SIKIŞTIRMA BASINCI', unit: 'bar', min: 0, max: 300, integer: true, desc: 'Hedef üst top kursunun dışına düşen işlerde basınç modu hedefi.' },
-          { key: 'upperLowerCenterDistanceMm', label: 'ÜST-ALT TOP MERKEZ MESAFESİ', unit: 'mm', min: 1, max: 2000, desc: 'Sıkıştırma pozisyon hesabı (üst piston en üstte, alt mekanik limitte).' },
+          { key: 'upperLowerCenterDistanceMm', label: 'ÜST-ALT TOP MERKEZ MESAFESİ', unit: 'mm', min: 1, max: 2000, desc: 'Sıkıştırma konum hesabı (üst piston en üstte, alt mekanik limitte).' },
           { key: 'clampOverpressMm', label: 'SIKIŞTIRMA EKSTRA BASKI', unit: 'mm', min: 0, max: 10 },
         ],
       },
@@ -120,42 +95,14 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         fields: [
           { key: 'defaultToleranceMm', label: 'GERİ ESNEME TOLERANSI', unit: 'mm', min: 0.01, max: 500 },
           { key: 'minMeasurableArcLengthMm', label: 'ÖLÇÜLEBİLİR EN KISA YAY', unit: 'mm', min: 0, max: 10000, nullable: true, desc: 'Boş = eşik yok.' },
-          { key: 'defaultMeasurementDistanceMm', label: 'ÖLÇÜM MESAFESİ (T)', unit: 'mm', min: 1, max: 10000, desc: UNUSED },
         ],
       },
       {
         title: 'YARIÇAP SENSÖRLERİ (GT2)',
         fields: [
           { key: 'radiusSensorMmPerPulse', label: 'PULSE BAŞINA MM', unit: 'mm', min: 0.000001, max: 1 },
-          { key: 'radiusSensorStrokeMm', label: 'SENSÖR STROK', unit: 'mm', min: 0.1, max: 100, desc: UNUSED },
           { key: 'leftRadiusSensorZeroOffsetMm', label: 'SOL SENSÖR SIFIR OFSETİ', unit: 'mm', min: -1000, max: 1000, negative: true },
           { key: 'rightRadiusSensorZeroOffsetMm', label: 'SAĞ SENSÖR SIFIR OFSETİ', unit: 'mm', min: -1000, max: 1000, negative: true },
-        ],
-      },
-      {
-        title: 'SLPIS (ESKİ SENSÖR)',
-        fields: [
-          { key: 'slpisZeroOffsetMm', label: 'SLPIS SIFIR OFSETİ', unit: 'mm', min: -1000, max: 1000, negative: true },
-          { key: 'slpisLMm', label: 'SLPIS L', unit: 'mm', min: 0.01, max: 1000 },
-          { key: 'slpisRulmanCapMm', label: 'SLPIS RULMAN ÇAPI', unit: 'mm', min: 0.01, max: 1000 },
-        ],
-      },
-    ],
-  },
-  {
-    tab: 'GÜVENLİK & SİSTEM',
-    sections: [
-      {
-        title: 'GÜVENLİK VE HAZIRLIK',
-        fields: [
-          { key: 'safetyMarginMm', label: 'PİSTON GÜVENLİK PAYI', unit: 'mm', min: 0, max: 50, desc: 'Pasif piston geri çekilme limiti için.' },
-          { key: 'zeroResetDistanceMm', label: 'PARÇA SIFIRLAMA MESAFESİ', unit: 'mm', min: 0, max: 5000, desc: 'Sensörden "0" noktasına olan mesafe.' },
-        ],
-      },
-      {
-        title: 'SİSTEM',
-        fields: [
-          { key: 'stateSnapshotIntervalSec', label: 'DURUM KAYIT ARALIĞI', unit: 'sn', min: 0, max: 3600, integer: true, desc: '0 = kayıt kapalı.' },
         ],
       },
     ],
@@ -176,11 +123,26 @@ export const GONYE_SECTION: SectionDef = {
   ],
 }
 
+/** Makinede tanımlanabilecek stage sayısı (aktif / pasif yapılarak yönetilir). */
+export const STAGE_SLOTS = 5
+
+export const STAGE_ACTIVE_FIELD: FieldDef = {
+  type: 'select',
+  key: 'active',
+  label: 'DURUM',
+  desc: 'Pasif stage gönye ekranında ve otomatik stage önerisinde kullanılmaz.',
+  options: [
+    { value: 'on', label: 'AKTİF' },
+    { value: 'off', label: 'PASİF' },
+  ],
+}
+
 export const STAGE_FIELDS: FieldDef[] = [
-  { key: 'leftOffsetMm', label: 'SOL OFSET', unit: 'mm', min: 0, max: 500 },
-  { key: 'rightOffsetMm', label: 'SAĞ OFSET', unit: 'mm', min: 0, max: 500 },
-  { key: 'lowerOffsetMm', label: 'ALT OFSET', unit: 'mm', min: 0, max: 500 },
-  { key: 'xA1Mm', label: 'XA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true, desc: 'Boş = varsayılan XA1.' },
-  { key: 'yA1Mm', label: 'YA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true, desc: 'Boş = varsayılan YA1.' },
+  // Üst sınırlar piston stroklarından (sol/sağ 422, alt 195) gönye payı düşülerek
+  { key: 'leftOffsetMm', label: 'SOL OFSET', unit: 'mm', min: 0, max: 415 },
+  { key: 'rightOffsetMm', label: 'SAĞ OFSET', unit: 'mm', min: 0, max: 415 },
+  { key: 'lowerOffsetMm', label: 'ALT OFSET', unit: 'mm', min: 0, max: 180 },
+  { key: 'xA1Mm', label: 'XA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true, desc: 'Stage merkezi (üst top referansı). Ölçüm sürüşü de bu değeri kullanır.' },
+  { key: 'yA1Mm', label: 'YA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true },
   { key: 'maxProfileAMm', label: 'MAKSİMUM PROFİL A', unit: 'mm', min: 0, max: 1000, nullable: true, desc: 'Otomatik stage önerisi. Boş = öneride kullanılmaz.' },
 ]

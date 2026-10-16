@@ -206,6 +206,7 @@ export class DemoMachine extends EventEmitter {
   private machineSettings: Record<string, unknown> = { ...DEMO_MACHINE_SETTINGS }
   private gonyeSettings: Record<string, unknown> = { id: 1, leftOffsetMm: 3.75, rightOffsetMm: 3.75, upperOffsetMm: 0, lowerOffsetMm: 10.5, referencePressureBar: 70 }
   private stageEdits = new Map<number, Record<string, unknown>>()
+  private extraStages: (Record<string, unknown> & { id: number; isActive?: boolean })[] = []
 
   // ── yaşam döngüsü ──
 
@@ -434,13 +435,28 @@ export class DemoMachine extends EventEmitter {
     } as BendingProgress
   }
 
+  /** Stage 1-3 demo sabitleri; 4-5 Admin Ayarları'nda eklenen (aktif) kayıtlardan */
+  private stageDef(n: number): (typeof STAGES)[number] | undefined {
+    const fixed = STAGES.find((s) => s.stageNumber === n)
+    if (fixed) return fixed
+    const rec = this.extraStages
+      .map((x) => ({ ...x, ...this.stageEdits.get(x.id) }))
+      .find((x) => Number(x.stageNumber) === n && x.isActive !== false)
+    if (!rec) return undefined
+    return {
+      stageNumber: n, stageId: rec.id, name: `Stage ${n}`,
+      maxProfileAMm: Number(rec.maxProfileAMm ?? 0), left: Number(rec.leftOffsetMm ?? 0),
+      right: Number(rec.rightOffsetMm ?? 0), lower: Number(rec.lowerOffsetMm ?? 0), xa1: Number(rec.xA1Mm ?? -465),
+    }
+  }
+
   private currentStage() {
     const pi = (this.state as unknown as { physicalInfo?: { currentStage?: number } }).physicalInfo
-    return STAGES.find((s) => s.stageNumber === (pi?.currentStage ?? 1)) ?? STAGES[0]
+    return this.stageDef(pi?.currentStage ?? 1) ?? STAGES[0]
   }
 
   private async applyStage(n: number, speedPct: number): Promise<void> {
-    const st = STAGES.find((s) => s.stageNumber === n) ?? STAGES[0]
+    const st = this.stageDef(n) ?? STAGES[0]
     const token = this.runToken
     // Gerçek ChangeStageHandler: Sol + Alt + Sağ paralel (üst top oynamaz)
     await this.movePistons({ leftPiston: st.left, rightPiston: st.right, lowerPiston: st.lower }, token, Math.max(30, speedPct))
@@ -1141,18 +1157,27 @@ export class DemoMachine extends EventEmitter {
       return this.prefs.get(key) ?? undefined
     }
     if (path === '/api/settings/stages' && method === 'GET') {
-      return STAGES.map((s) => ({
+      // Ekranda görünen stage kayıtları (demo hesabı STAGES sabitini kullanmaya devam eder)
+      const base = STAGES.map((s) => ({
         id: s.stageId, stageNumber: s.stageNumber, name: s.name,
         leftOffsetMm: s.left, rightOffsetMm: s.right, lowerOffsetMm: s.lower,
         xA1Mm: s.xa1, yA1Mm: 0, maxProfileAMm: s.maxProfileAMm, displayOrder: s.stageNumber, isActive: true,
-        ...this.stageEdits.get(s.stageId),
       }))
+      const all = [...base, ...this.extraStages].map((s) => ({ ...s, ...this.stageEdits.get(s.id) }))
+      return u.searchParams.get('includeInactive') === 'true' ? all : all.filter((s) => s.isActive !== false)
+    }
+    if (path === '/api/settings/stages' && method === 'POST') {
+      const id = 100 + this.extraStages.length
+      const st = { ...b, id, isActive: true } as (typeof this.extraStages)[number]
+      this.extraStages.push(st)
+      return st
     }
     if ((m = /^\/api\/settings\/stages\/(\d+)$/.exec(path)) && method === 'PUT') {
       const id = Number(m[1])
       this.stageEdits.set(id, { ...this.stageEdits.get(id), ...b, id })
       return { ...b, id }
     }
+    if (path === '/api/settings/reload') return ok
     if (path === '/api/settings/machine') {
       if (method === 'PUT') this.machineSettings = { ...this.machineSettings, ...b, updatedAt: new Date().toISOString() }
       return this.machineSettings

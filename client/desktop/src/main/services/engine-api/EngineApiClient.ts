@@ -8,7 +8,6 @@ import type {
   BendingCalculateRequest,
   GonyeSettingsDto,
   MachineSettingsDto,
-  StageInfo,
   BendingCalculateResponse,
   BendingPreviewRequest,
   BendingPreviewResponse,
@@ -61,8 +60,9 @@ export class EngineApiClient {
     return http.put<GonyeSettingsDto>(`${this.baseUrl}/api/settings/gonye`, body)
   }
 
-  updateStage(id: number, body: StageInfo): Promise<StageInfo> {
-    return http.put<StageInfo>(`${this.baseUrl}/api/settings/stages/${id}`, body)
+  /** DataApi'ye doğrudan yazılan ayarlardan sonra orchestrator cache'ini yeniler. */
+  reloadSettings(): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/settings/reload`, {})
   }
 
   // ---------- Bending pipeline ----------

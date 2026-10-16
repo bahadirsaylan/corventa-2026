@@ -12,9 +12,10 @@ import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
 import styles from './EncoderResetPage.module.css'
 
-// Backend POST /api/preparation/stage sadece 1-3 kabul ediyor (PreparationController).
-const VALID_STAGES = [1, 2, 3]
-const FALLBACK_STAGES: StageInfo[] = VALID_STAGES.map((n) => ({
+// Backend POST /api/preparation/stage 1-5 kabul eder (4-5 Admin Ayarları'nda aktif edilirse).
+// Liste DataApi'den sadece AKTİF stage'lerle gelir; yedek liste 1-3.
+const VALID_STAGES = [1, 2, 3, 4, 5]
+const FALLBACK_STAGES: StageInfo[] = [1, 2, 3].map((n) => ({
   id: n, stageNumber: n, name: `Stage ${n}`, leftOffsetMm: 0, rightOffsetMm: 0, lowerOffsetMm: 0,
 }))
 

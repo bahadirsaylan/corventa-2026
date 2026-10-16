@@ -188,8 +188,18 @@ export class DataApiClient {
   // ---------- Maintenance State (bakım periyot takibi) ----------
 
   // Stage tanımları (gönye ekranında stage seçimi)
-  getStages(): Promise<StageInfo[]> {
-    return http.get<StageInfo[]>(`${this.baseUrl}/api/settings/stages`)
+  getStages(includeInactive = false): Promise<StageInfo[]> {
+    const q = includeInactive ? '?includeInactive=true' : ''
+    return http.get<StageInfo[]>(`${this.baseUrl}/api/settings/stages${q}`)
+  }
+
+  // Admin Ayarları — stage ekle / güncelle (pasif dahil). Sonrasında Bending API reload çağrılmalı.
+  createStage(body: Partial<StageInfo>): Promise<StageInfo> {
+    return http.post<StageInfo>(`${this.baseUrl}/api/settings/stages`, body)
+  }
+
+  updateStage(id: number, body: StageInfo): Promise<StageInfo> {
+    return http.put<StageInfo>(`${this.baseUrl}/api/settings/stages/${id}`, body)
   }
 
   getMaintenanceState(): Promise<MaintenanceState> {
