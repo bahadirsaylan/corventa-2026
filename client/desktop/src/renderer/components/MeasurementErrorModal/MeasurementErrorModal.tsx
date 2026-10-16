@@ -17,8 +17,10 @@ import { useEffect, useState } from 'react'
 
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import styles from './MeasurementErrorModal.module.css'
+import { useT } from '@/i18n'
 
 export default function MeasurementErrorModal() {
+  const t = useT()
   const progress = useMachineStateStore((s) => s.bendingProgress)
 
   const modal1Open = !!progress?.awaitingMeasurementRetry
@@ -54,7 +56,7 @@ export default function MeasurementErrorModal() {
       // Backend BendingProgress'i günceller → bir sonraki SignalR push ile modal state değişir
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      setErrorMsg(`İşlem başarısız: ${msg}`)
+      setErrorMsg(t('İşlem başarısız: {msg}', { msg }))
     } finally {
       //   BUG FIX 2026-08-19: HTTP başarılı olduğunda da submitting reset edilmeli.
       //   Aksi halde "Gönderiliyor…" yazısı silinmez, buton disabled kalır — kullanıcı
@@ -68,33 +70,37 @@ export default function MeasurementErrorModal() {
       <div className={styles.modal}>
         {modal1Open && (
           <>
-            <h2 className={styles.title}>⚠ ÖLÇÜM HATASI</h2>
+            <h2 className={styles.title}>⚠ {t('ÖLÇÜM HATASI')}</h2>
             <p className={styles.subtitle}>
-              Segment {segNo}, iterasyon {iter}: sensör beklenmedik değer okudu (kötüleşme)
+              {t('Segment {seg}, iterasyon {iter}: sensör beklenmedik değer okudu (kötüleşme)', { seg: String(segNo ?? ''), iter: String(iter ?? '') })}
             </p>
 
             <div className={styles.info}>
               <div className={styles.infoRow}>
-                <span>Hedef radyüs:</span>
+                <span>{t('Hedef radyüs:')}</span>
                 <strong>{target != null ? `${target.toFixed(2)} mm` : '—'}</strong>
               </div>
               <div className={styles.infoRow}>
-                <span>Önceki ölçüm:</span>
+                <span>{t('Önceki ölçüm:')}</span>
                 <strong>{prev != null ? `${prev.toFixed(2)} mm` : '—'}</strong>
               </div>
               <div className={`${styles.infoRow} ${styles.infoBad}`}>
-                <span>Şimdi ölçülen:</span>
+                <span>{t('Şimdi ölçülen:')}</span>
                 <strong>
                   {last != null ? `${last.toFixed(2)} mm` : '—'}{' '}
-                  {prev != null && last != null && last >= prev ? '(arttı ▲)' : ''}
+                  {prev != null && last != null && last >= prev ? t('(arttı ▲)') : ''}
                 </strong>
               </div>
             </div>
 
             <p className={styles.instruction}>
-              1) Önce <b>Pnömatiği Geri Çek</b> ile SLPIS'i güvenli konuma çekin.
+              {t("1) Önce <b>Pnömatiği Geri Çek</b> ile SLPIS'i güvenli konuma çekin.")
+                .split(/<\/?b>/)
+                .map((part, i) => (i % 2 === 1 ? <b key={i}>{part}</b> : part))}
               <br />
-              2) Sonra <b>Tekrar Ölç</b> ile yeniden ölçüm yapın.
+              {t('2) Sonra <b>Tekrar Ölç</b> ile yeniden ölçüm yapın.')
+                .split(/<\/?b>/)
+                .map((part, i) => (i % 2 === 1 ? <b key={i}>{part}</b> : part))}
             </p>
 
             <div className={styles.actions}>
@@ -105,10 +111,10 @@ export default function MeasurementErrorModal() {
                 onClick={() => sendAction('retract')}
               >
                 {submitting === 'retract'
-                  ? 'Gönderiliyor…'
+                  ? t('Gönderiliyor…')
                   : retracted
-                    ? '✓ Pnömatik Geri Çekildi'
-                    : '① Pnömatiği Geri Çek'}
+                    ? t('✓ Pnömatik Geri Çekildi')
+                    : t('① Pnömatiği Geri Çek')}
               </button>
               <button
                 type="button"
@@ -116,7 +122,7 @@ export default function MeasurementErrorModal() {
                 disabled={submitting !== null || !retracted}
                 onClick={() => sendAction('remeasure')}
               >
-                {submitting === 'remeasure' ? 'Ölçülüyor…' : '② Tekrar Ölç'}
+                {submitting === 'remeasure' ? t('Ölçülüyor…') : t('② Tekrar Ölç')}
               </button>
             </div>
           </>
@@ -124,29 +130,28 @@ export default function MeasurementErrorModal() {
 
         {modal2Open && (
           <>
-            <h2 className={styles.title}>⚠ ÖLÇÜM TEKRARLANAMIYOR</h2>
+            <h2 className={styles.title}>⚠ {t('ÖLÇÜM TEKRARLANAMIYOR')}</h2>
             <p className={styles.subtitle}>
-              Segment {segNo}, iterasyon {iter}: tekrar ölçümde de sonuç önceki'den yüksek.
-              Fiziksel bir sorun olabilir (parça kayması, sensör hatası, vb.)
+              {t("Segment {seg}, iterasyon {iter}: tekrar ölçümde de sonuç önceki'den yüksek. Fiziksel bir sorun olabilir (parça kayması, sensör hatası, vb.)", { seg: String(segNo ?? ''), iter: String(iter ?? '') })}
             </p>
 
             <div className={styles.info}>
               <div className={styles.infoRow}>
-                <span>Hedef radyüs:</span>
+                <span>{t('Hedef radyüs:')}</span>
                 <strong>{target != null ? `${target.toFixed(2)} mm` : '—'}</strong>
               </div>
               <div className={styles.infoRow}>
-                <span>Önceki ölçüm:</span>
+                <span>{t('Önceki ölçüm:')}</span>
                 <strong>{prev != null ? `${prev.toFixed(2)} mm` : '—'}</strong>
               </div>
               <div className={`${styles.infoRow} ${styles.infoBad}`}>
-                <span>Son ölçüm:</span>
+                <span>{t('Son ölçüm:')}</span>
                 <strong>{last != null ? `${last.toFixed(2)} mm` : '—'}</strong>
               </div>
             </div>
 
             <p className={styles.instruction}>
-              Bu segment için düzeltme başarısız. Aşağıdaki iki seçenekten birini seçin:
+              {t('Bu segment için düzeltme başarısız. Aşağıdaki iki seçenekten birini seçin:')}
             </p>
 
             <div className={styles.actions}>
@@ -156,7 +161,7 @@ export default function MeasurementErrorModal() {
                 disabled={submitting !== null}
                 onClick={() => sendAction('finish_all')}
               >
-                {submitting === 'finish_all' ? 'Gönderiliyor…' : '⏹ Tüm Bükümü Bitir'}
+                {submitting === 'finish_all' ? t('Gönderiliyor…') : t('⏹ Tüm Bükümü Bitir')}
               </button>
               <button
                 type="button"
@@ -164,7 +169,7 @@ export default function MeasurementErrorModal() {
                 disabled={submitting !== null}
                 onClick={() => sendAction('skip_segment')}
               >
-                {submitting === 'skip_segment' ? 'Gönderiliyor…' : '⏭ Bu Segmenti Atla'}
+                {submitting === 'skip_segment' ? t('Gönderiliyor…') : t('⏭ Bu Segmenti Atla')}
               </button>
             </div>
           </>

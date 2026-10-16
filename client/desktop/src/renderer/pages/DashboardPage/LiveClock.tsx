@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useLang } from '@/i18n'
 import styles from './LiveClock.module.css'
 
 const DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 const MONTHS = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN',
                 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK']
+const MONTHS_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                   'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
 
 interface LiveClockProps {
   dateOnly?: boolean
@@ -11,6 +14,7 @@ interface LiveClockProps {
 
 export default function LiveClock({ dateOnly = false }: LiveClockProps) {
   const [now, setNow] = useState(new Date())
+  const months = useLang() === 'en' ? MONTHS_EN : MONTHS
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -20,7 +24,7 @@ export default function LiveClock({ dateOnly = false }: LiveClockProps) {
   if (dateOnly) {
     return (
       <div className={styles.date}>
-        <span className={styles.dateDay}>{now.getDate()} {MONTHS[now.getMonth()]}</span>
+        <span className={styles.dateDay}>{now.getDate()} {months[now.getMonth()]}</span>
         <span className={styles.dateYear}>{now.getFullYear()}</span>
       </div>
     )

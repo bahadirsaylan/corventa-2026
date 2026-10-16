@@ -15,6 +15,7 @@ import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
+import { t as tr, translateProgress, useLang, useT, type LangCode } from '@/i18n'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
@@ -34,6 +35,7 @@ function ControlPanel() {
   const progress = useBendingProgress()
   const bendingActive = useBendingActive()
   const s1Pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
+  const t = useT()
 
   // ── İptal butonu state'i ────────────────────────
   // Backend'de dedicated cancel endpoint yok — emergency-stop makineyi durdurur ama
@@ -43,8 +45,8 @@ function ControlPanel() {
 
   useEffect(() => {
     if (!cancelInfo) return
-    const t = setTimeout(() => setCancelInfo(null), 8000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setCancelInfo(null), 8000)
+    return () => clearTimeout(timer)
   }, [cancelInfo])
 
   async function confirmCancel() {
@@ -52,10 +54,10 @@ function ControlPanel() {
     try {
       await window.corventa.machine.emergencyStop()
       setCancelInfo(
-        'BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.',
+        t('BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.'),
       )
     } catch (e) {
-      setCancelInfo('İPTAL ÇAĞRISI BAŞARISIZ: ' + (e instanceof Error ? e.message : String(e)))
+      setCancelInfo(t('İPTAL ÇAĞRISI BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }))
     }
   }
 
@@ -68,7 +70,7 @@ function ControlPanel() {
     try {
       await window.corventa.bending.confirmSideSupport(progress.jobId)
     } catch (e) {
-      setCancelInfo('ONAY BAŞARISIZ: ' + (e instanceof Error ? e.message : String(e)))
+      setCancelInfo(t('ONAY BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }))
     } finally {
       setConfirming(false)
     }
@@ -101,9 +103,9 @@ function ControlPanel() {
               type="button"
               className={styles.cancelBtn}
               onClick={() => setShowCancelModal(true)}
-              aria-label="Bukumu iptal et"
+              aria-label={t('Bukumu iptal et')}
             >
-              ■ İPTAL
+              {t('■ İPTAL')}
             </button>
           )}
           <span className={styles.headerLabel}>TOLERANCE</span>
@@ -116,14 +118,14 @@ function ControlPanel() {
 
       {progress?.awaitingSideSupportConfirmation && (
         <div className={styles.confirmBar}>
-          <span className={styles.confirmText}>YAN DAYAMA HAZIR MI?</span>
+          <span className={styles.confirmText}>{t('YAN DAYAMA HAZIR MI?')}</span>
           <button
             type="button"
             className={styles.confirmBtn}
             onClick={handleConfirmSideSupport}
             disabled={confirming}
           >
-            {confirming ? '...' : '▶ DEVAM'}
+            {confirming ? '...' : t('▶ DEVAM')}
           </button>
         </div>
       )}
@@ -132,16 +134,16 @@ function ControlPanel() {
         <ConfirmModal
           message={
             <>
-              BÜKÜM İPTAL EDİLECEK — TÜM HAREKET ANINDA DURDURULACAK
+              {t('BÜKÜM İPTAL EDİLECEK — TÜM HAREKET ANINDA DURDURULACAK')}
               <br />
               <span style={{ fontSize: 14, fontWeight: 500 }}>
-                (Hidrolik motor + valfler kapatılacak, job state Failed olarak işaretlenmeyebilir)
+                {t('(Hidrolik motor + valfler kapatılacak, job state Failed olarak işaretlenmeyebilir)')}
               </span>
             </>
           }
           variant="danger"
-          confirmLabel="İPTAL ET"
-          cancelLabel="VAZGEÇ"
+          confirmLabel={t('İPTAL ET')}
+          cancelLabel={t('VAZGEÇ')}
           onCancel={() => setShowCancelModal(false)}
           onConfirm={confirmCancel}
         />
@@ -165,6 +167,8 @@ function MonitorPanel() {
   const left = usePiston('leftPiston')
   const right = usePiston('rightPiston')
   const rotationMm = useMachineStateStore((s) => s.state.rotation.positionMm)
+  const t = useT()
+  const lang = useLang()
   const runningJobId = useBendingActivityStore((s) => s.runningJobId)
   const rawProgress = useBendingProgress()
   // Store'da önceki işin son ilerlemesi kalmış olabilir — sadece çalışan job'unkini göster.
@@ -172,7 +176,7 @@ function MonitorPanel() {
 
   const runningJob = useBendingActivityStore((s) => s.runningJob)
   const radiusLabel = formatRadiusLabel(runningJob, progress)
-  const pasoView = describePaso(progress)
+  const pasoView = describePaso(progress, lang)
 
   return (
     <div className={`${styles.panel} ${styles.monitor}`}>
@@ -184,7 +188,7 @@ function MonitorPanel() {
       {/* ── İlerleme footer ────────────────────────── */}
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
-          <p className={styles.finishLabel}>ROTASYON</p>
+          <p className={styles.finishLabel}>{t('ROTASYON')}</p>
           <p className={styles.posCurrent}>{rotationMm.toFixed(1)}</p>
           <p className={styles.posSmall}>mm</p>
         </div>
@@ -192,12 +196,14 @@ function MonitorPanel() {
         <div className={`${styles.statsCol} ${styles.statsColCenter}`}>
           {pasoView ? (
             <>
-              <p className={styles.finishLabel}>{pasoView.running ? 'BÜKÜLEN PASO' : 'PASO'}</p>
+              <p className={styles.finishLabel}>{pasoView.running ? t('BÜKÜLEN PASO') : t('PASO')}</p>
               <p className={styles.posCurrent}>{pasoView.current}</p>
-              <p className={styles.posSmall}>TAMAMLANAN: {pasoView.completed}</p>
+              <p className={styles.posSmall}>{t('TAMAMLANAN: {n}', { n: pasoView.completed })}</p>
             </>
           ) : (
-            <p className={styles.posSmall}>{progress ? progress.message ?? 'HAZIRLANIYOR…' : 'BÜKÜM BAŞLATILIYOR'}</p>
+            <p className={styles.posSmall}>{progress
+                ? progress.message != null ? translateProgress(progress.message, lang) : t('HAZIRLANIYOR…')
+                : t('BÜKÜM BAŞLATILIYOR')}</p>
           )}
         </div>
 
@@ -205,7 +211,7 @@ function MonitorPanel() {
           {progress ? (
             <>
               <p className={styles.finishLabel}>
-                PASO{' '}
+                {t('PASO')}{' '}
                 <span className={styles.finishValue}>
                   {progress.completedPasos} / {progress.totalPasos}
                 </span>{' '}
@@ -221,10 +227,10 @@ function MonitorPanel() {
                   }}
                 />
               </div>
-              <p className={styles.statusText}>{pasoView?.status ?? progress.message}</p>
+              <p className={styles.statusText}>{pasoView?.status ?? translateProgress(progress.message, lang)}</p>
             </>
           ) : (
-            <p className={styles.statusText}>HAZIRLANIYOR…</p>
+            <p className={styles.statusText}>{t('HAZIRLANIYOR…')}</p>
           )}
         </div>
       </div>
@@ -263,11 +269,11 @@ interface PasoView {
   current: number
   completed: number
   running: boolean
-  /** Durum satırı */
+  /** Durum satırı (ekran dilinde — ayrıştırma ham mesajla yapılır) */
   status: string | null
 }
 
-function describePaso(progress: BendingProgress | null): PasoView | null {
+function describePaso(progress: BendingProgress | null, lang: LangCode): PasoView | null {
   if (!progress || progress.totalPasos <= 0) return null
   const completed = Math.max(0, progress.completedPasos)
   const total = progress.totalPasos
@@ -276,8 +282,8 @@ function describePaso(progress: BendingProgress | null): PasoView | null {
   const pasoDone = /^(dinamik\s+)?paso\s+\d+\s+tamamland/i.test(message)
   const running = pasoBending || (completed < total && (pasoDone || completed === 0))
   const current = running ? completed + 1 : Math.max(1, completed)
-  let status: string | null = progress.message ?? null
-  if (pasoBending) status = `PASO ${current} BÜKÜLÜYOR`
-  else if (running && pasoDone) status = `PASO ${current} BÜKÜLÜYOR · PASO ${completed} TAMAMLANDI`
+  let status: string | null = progress.message != null ? translateProgress(progress.message, lang) : null
+  if (pasoBending) status = tr('PASO {n} BÜKÜLÜYOR', { n: current })
+  else if (running && pasoDone) status = tr('PASO {n} BÜKÜLÜYOR · PASO {done} TAMAMLANDI', { n: current, done: completed })
   return { current, completed, running, status }
 }

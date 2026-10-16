@@ -5,6 +5,7 @@
 
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './ErrorLogsModal.module.css'
 
 type Severity = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO'
@@ -41,6 +42,7 @@ interface Props {
 
 export default function ErrorLogsModal({ onClose }: Props) {
   const navigate = useNavigate()
+  const t = useT()
 
   //   ESC ile kapat + modal açıkken body scroll'ü kilitle
   useEffect(() => {
@@ -70,7 +72,7 @@ export default function ErrorLogsModal({ onClose }: Props) {
       className={styles.overlay}
       role="dialog"
       aria-modal="true"
-      aria-label="Hata Kayıtları"
+      aria-label={t('Hata Kayıtları')}
       onClick={(e) => {
         //   Overlay'e tıklanınca kapat (içerik dışında)
         if (e.target === e.currentTarget) onClose()
@@ -80,14 +82,14 @@ export default function ErrorLogsModal({ onClose }: Props) {
         {/* Header */}
         <div className={styles.header}>
           <div>
-            <h2 className={styles.title}>HATA KAYITLARI</h2>
-            <div className={styles.subtitle}>Son {MOCK_LOGS.length} kayıt gösteriliyor</div>
+            <h2 className={styles.title}>{t('HATA KAYITLARI')}</h2>
+            <div className={styles.subtitle}>{t('Son {n} kayıt gösteriliyor', { n: MOCK_LOGS.length })}</div>
           </div>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t('Kapat')}
           >
             ✕
           </button>
@@ -95,29 +97,29 @@ export default function ErrorLogsModal({ onClose }: Props) {
 
         {/* Özet chip'ler */}
         <div className={styles.counters}>
-          <span className={`${styles.chip} ${styles.chipCritical}`}>KRİTİK {counts.CRITICAL}</span>
-          <span className={`${styles.chip} ${styles.chipError}`}>HATA {counts.ERROR}</span>
-          <span className={`${styles.chip} ${styles.chipWarning}`}>UYARI {counts.WARNING}</span>
-          <span className={`${styles.chip} ${styles.chipInfo}`}>BİLGİ {counts.INFO}</span>
+          <span className={`${styles.chip} ${styles.chipCritical}`}>{t('KRİTİK')} {counts.CRITICAL}</span>
+          <span className={`${styles.chip} ${styles.chipError}`}>{t('HATA')} {counts.ERROR}</span>
+          <span className={`${styles.chip} ${styles.chipWarning}`}>{t('UYARI')} {counts.WARNING}</span>
+          <span className={`${styles.chip} ${styles.chipInfo}`}>{t('BİLGİ')} {counts.INFO}</span>
         </div>
 
         {/* Liste */}
         <div className={styles.listWrap}>
           {MOCK_LOGS.length === 0 ? (
-            <div className={styles.empty}>Kayıt yok</div>
+            <div className={styles.empty}>{t('Kayıt yok')}</div>
           ) : (
             <ul className={styles.list}>
               {MOCK_LOGS.map((row) => (
                 <li key={row.id} className={styles.row}>
                   <span className={`${styles.sev} ${styles['sev' + row.severity]}`}>
-                    {SEV_LABEL[row.severity]}
+                    {t(SEV_LABEL[row.severity])}
                   </span>
                   <div className={styles.rowBody}>
                     <div className={styles.rowLine1}>
-                      <span className={styles.category}>{row.category}</span>
+                      <span className={styles.category}>{t(row.category)}</span>
                       <span className={styles.timestamp}>{row.timestamp}</span>
                     </div>
-                    <div className={styles.message}>{row.message}</div>
+                    <div className={styles.message}>{t(row.message)}</div>
                   </div>
                 </li>
               ))}
@@ -132,14 +134,14 @@ export default function ErrorLogsModal({ onClose }: Props) {
             className={styles.secondaryBtn}
             onClick={handleOpenFullPage}
           >
-            TÜM RAPORLAR →
+            {t('TÜM RAPORLAR →')}
           </button>
           <button
             type="button"
             className={styles.primaryBtn}
             onClick={onClose}
           >
-            KAPAT
+            {t('KAPAT')}
           </button>
         </div>
       </div>

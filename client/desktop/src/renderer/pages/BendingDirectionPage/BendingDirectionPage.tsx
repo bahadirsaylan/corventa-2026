@@ -7,9 +7,11 @@ import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { directionOptionsFor } from '@/constants/profileDirections'
+import { useT } from '@/i18n'
 
 export default function BendingDirectionPage() {
   const navigate = useNavigate()
+  const t = useT()
   const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
@@ -32,7 +34,7 @@ export default function BendingDirectionPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVIRIM YÖNÜNÜ SEÇİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVIRIM YÖNÜNÜ SEÇİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>

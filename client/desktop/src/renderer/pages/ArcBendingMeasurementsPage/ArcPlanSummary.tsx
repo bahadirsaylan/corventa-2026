@@ -2,6 +2,7 @@ import styles from './ArcPlanSummary.module.css'
 import ArcProfileDiagram from './ArcProfileDiagram'
 import type { ArcMeasurementValues } from './ArcMeasurementForm'
 import type { ValidateArcPlanResponse } from '@shared/types'
+import { useT } from '@/i18n'
 
 interface Props {
   values: ArcMeasurementValues
@@ -22,6 +23,7 @@ function computeArcLength(radiusMm: number, angleDeg: number): number {
 // Reversal veya uzatma varsa üstte info banner. Segmentler orijinal user-input
 // sırasında; reversal bilgisi banner'da.
 export default function ArcPlanSummary({ values, plan }: Props) {
+  const t = useT()
   const p = parseInt(values.P, 10) || values.segments.length
   const ltAdjusted = plan.adjustedPartLengthMm ?? parseFloat(values.LT)
   const extension = plan.extensionMm ?? 0
@@ -96,8 +98,7 @@ export default function ArcPlanSummary({ values, plan }: Props) {
         <div className={styles.banner + ' ' + styles.bannerReverse}>
           <span className={styles.bannerIcon}>🔄</span>
           <span>
-            <b>TERS SIRA</b> — Bükümler parça sonundan başlayıp parça başına doğru yapılacak
-            (Seg{p} → Seg1).
+            <b>{t('TERS SIRA')}</b> — {t('Bükümler parça sonundan başlayıp parça başına doğru yapılacak (Seg{p} → Seg1).', { p })}
           </span>
         </div>
       )}
@@ -105,21 +106,21 @@ export default function ArcPlanSummary({ values, plan }: Props) {
         <div className={styles.banner + ' ' + styles.bannerExtend}>
           <span className={styles.bannerIcon}>⚠</span>
           <span>
-            <b>PARÇA UZATILDI</b> — {plan.side === 'Leading' ? 'PARÇA BAŞINA' : 'PARÇA SONUNA'}{' '}
-            <b>+{extension.toFixed(0)}mm</b> eklendi ({plan.isMeasurementOnly ? 'ölçüm için' : 'büküm için'}).
+            <b>{t('PARÇA UZATILDI')}</b> — {plan.side === 'Leading' ? t('PARÇA BAŞINA') : t('PARÇA SONUNA')}{' '}
+            <b>+{extension.toFixed(0)}mm</b> {t('eklendi')} ({plan.isMeasurementOnly ? t('ölçüm için') : t('büküm için')}).
           </span>
         </div>
       )}
 
       {/* ── Toplam özet ───────────────────────────────── */}
       <div className={styles.stats}>
-        <span><b>Parça</b> {ltAdjusted.toFixed(0)}mm</span>
+        <span><b>{t('Parça')}</b> {ltAdjusted.toFixed(0)}mm</span>
         <span className={styles.sep}>·</span>
-        <span><b>Toplam yay</b> {totalArc.toFixed(0)}mm</span>
+        <span><b>{t('Toplam yay')}</b> {totalArc.toFixed(0)}mm</span>
         <span className={styles.sep}>·</span>
-        <span><b>Toplam düz</b> {totalStraight.toFixed(0)}mm</span>
+        <span><b>{t('Toplam düz')}</b> {totalStraight.toFixed(0)}mm</span>
         <span className={styles.sep}>·</span>
-        <span><b>Kalan</b> {trailing.toFixed(0)}mm</span>
+        <span><b>{t('Kalan')}</b> {trailing.toFixed(0)}mm</span>
       </div>
 
       {/* ── Segment strip (2×2 mini kartlar yan yana, büküm sırasında) ── */}
@@ -141,7 +142,7 @@ export default function ArcPlanSummary({ values, plan }: Props) {
               <span className={styles.value}>{s.R.toFixed(0)}<span className={styles.unit}>mm</span></span>
             </div>
             <div className={styles.cell + ' ' + styles.cellRightBot}>
-              <span className={styles.label}>Y</span>
+              <span className={styles.label}>{t('Y')}</span>
               <span className={styles.value}>{s.arc.toFixed(0)}<span className={styles.unit}>mm</span></span>
             </div>
           </div>

@@ -2,6 +2,7 @@
 // Backend MachineState selector'larından beslenir; bağlantı kapalıyken 0 değerleriyle render eder.
 
 import { useSafety, useSensors } from '@/hooks/useMachineState'
+import { useT } from '@/i18n'
 import styles from './OilStatsList.module.css'
 
 interface StatRow {
@@ -17,48 +18,49 @@ const OIL_LEVEL_OK_PERCENT = 30
 export default function OilStatsList() {
   const sensors = useSensors()
   const safety = useSafety()
+  const t = useT()
 
   const partSensorActive = safety.leftPartSensor || safety.rightPartSensor
 
   const rows: StatRow[] = [
     {
-      label: 'YAĞ SICAKLIĞI',
+      label: t('YAĞ SICAKLIĞI'),
       value: `${sensors.oilTempC}°C`,
       ok: sensors.oilTempC > 0 && sensors.oilTempC < OIL_TEMP_OK_C,
     },
     {
-      label: 'YAĞ SEVİYESİ',
-      value: sensors.oilLevelPercent >= OIL_LEVEL_OK_PERCENT ? 'NORMAL' : 'DÜŞÜK',
+      label: t('YAĞ SEVİYESİ'),
+      value: sensors.oilLevelPercent >= OIL_LEVEL_OK_PERCENT ? t('NORMAL') : t('DÜŞÜK'),
       ok: sensors.oilLevelPercent >= OIL_LEVEL_OK_PERCENT,
     },
     {
-      label: 'YAĞ NEMİ',
+      label: t('YAĞ NEMİ'),
       value: `%${sensors.oilHumidityPercent}`,
       ok: sensors.oilHumidityPercent < 50,
     },
     {
-      label: 'YAĞ BASINCI',
+      label: t('YAĞ BASINCI'),
       value: `${sensors.s1PressureBar} bar`,
       ok: sensors.s1PressureBar > 0,
     },
     {
-      label: 'AKIŞ S1 / S2',
+      label: t('AKIŞ S1 / S2'),
       value: `${sensors.s1FlowCms} / ${sensors.s2FlowCms}`,
       ok: true,
     },
     {
-      label: 'TEMAS SENSÖRÜ',
-      value: partSensorActive ? 'AKTİF' : 'PASİF',
+      label: t('TEMAS SENSÖRÜ'),
+      value: partSensorActive ? t('AKTİF') : t('PASİF'),
       ok: partSensorActive,
     },
     {
-      label: 'ACİL DURDURMA',
-      value: safety.emergencyStopOK ? 'OK' : 'BASILI',
+      label: t('ACİL DURDURMA'),
+      value: safety.emergencyStopOK ? 'OK' : t('BASILI'),
       ok: safety.emergencyStopOK,
     },
     {
       label: 'MOTOR / FAN',
-      value: safety.motorThermalOK && safety.fanThermalOK ? 'FAAL' : 'TERMAL',
+      value: safety.motorThermalOK && safety.fanThermalOK ? t('FAAL') : t('TERMAL'),
       ok: safety.motorThermalOK && safety.fanThermalOK,
     },
   ]

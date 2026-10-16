@@ -8,6 +8,7 @@ import {
   type MapOptions,
 } from '@/services/mappers/jobPayloadMapper'
 import type { BendingJob } from '@shared/types'
+import { t } from '@/i18n'
 
 export class BendingOrchestratorError extends Error {
   constructor(
@@ -94,7 +95,7 @@ export async function executeBendingFlow(
     if (!calc.success) {
       throw new BendingOrchestratorError(
         'calculate',
-        calc.error ?? 'Hesaplama başarısız',
+        calc.error ?? t('Hesaplama başarısız'),
       )
     }
     pistonPosition = calc.pistonPosition
@@ -118,7 +119,7 @@ export async function executeBendingFlow(
     if (!preview.success) {
       throw new BendingOrchestratorError(
         'preview',
-        preview.error ?? 'Paso önizlemesi başarısız',
+        preview.error ?? t('Paso önizlemesi başarısız'),
       )
     }
     totalPasos = preview.totalPasos
@@ -171,7 +172,7 @@ export async function executeBendingFlow(
     if (!r.success) {
       throw new BendingOrchestratorError(
         'start',
-        r.error ?? 'Job başlatılamadı',
+        r.error ?? t('Job başlatılamadı'),
       )
     }
   } catch (err) {

@@ -4,6 +4,7 @@
 
 import { useCallback, useRef } from 'react'
 import { useBendingProgress } from '@/hooks/useMachineState'
+import { useT } from '@/i18n'
 import styles from './RotationJogButtons.module.css'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export default function RotationJogButtons({ speedPercent }: Props) {
   const progress = useBendingProgress()
+  const t = useT()
 
   // BendingProgress store'da son mesaj kalır (backend job Completed olunca
   // artık push atmıyor ama store'daki son değer null'a düşmüyor). Bu yüzden
@@ -25,8 +27,8 @@ export default function RotationJogButtons({ speedPercent }: Props) {
   return (
     <div className={styles.wrap}>
       <div className={styles.label}>
-        ROTASYON
-        {bendingActive && <span className={styles.disabledHint}> (BÜKÜM AKTİF)</span>}
+        {t('ROTASYON')}
+        {bendingActive && <span className={styles.disabledHint}> {t('(BÜKÜM AKTİF)')}</span>}
       </div>
       <div className={styles.btnRow}>
         <JogButton direction={-1} label="CCW" arrow="◀" disabled={bendingActive} speedPercent={speedPercent} />
@@ -46,6 +48,7 @@ interface JogButtonProps {
 
 function JogButton({ direction, label, arrow, disabled, speedPercent }: JogButtonProps) {
   const activeRef = useRef(false)
+  const t = useT()
 
   const start = useCallback(() => {
     if (disabled || activeRef.current) return
@@ -67,7 +70,7 @@ function JogButton({ direction, label, arrow, disabled, speedPercent }: JogButto
       className={styles.jogBtn}
       data-direction={direction === 1 ? 'cw' : 'ccw'}
       disabled={disabled}
-      title={disabled ? 'Büküm sürerken manuel rotasyon yasak' : `Rotasyon ${label} (basılı tut)`}
+      title={disabled ? t('Büküm sürerken manuel rotasyon yasak') : t('Rotasyon {label} (basılı tut)', { label })}
       onPointerDown={(e) => {
         e.preventDefault()
         e.currentTarget.setPointerCapture(e.pointerId)

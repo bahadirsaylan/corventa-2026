@@ -17,6 +17,7 @@ import ArcPlanSummary from './ArcPlanSummary'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
+import { useT } from '@/i18n'
 
 const EMPTY: ArcMeasurementValues = {
   A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
@@ -100,6 +101,7 @@ function fromStore(
 }
 
 export default function ArcBendingMeasurementsPage() {
+  const t = useT()
   const navigate = useNavigate()
   const arcBending = useBendingJobStore((s) => s.params.arcBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -152,7 +154,7 @@ export default function ArcBendingMeasurementsPage() {
       }
       const res = await window.corventa.bending.validateArcPlan(req)
       if (!res || res.success === false) {
-        setValidationError(res?.error || 'Backend hesaplama başarısız')
+        setValidationError(res?.error || t('Backend hesaplama başarısız'))
         setValidating(false)
         return
       }
@@ -226,7 +228,7 @@ export default function ArcBendingMeasurementsPage() {
         iconAlt="Artificial Intelligence"
         label="ARTIFICIAL INTELLIGENCE MODE"
       />
-      <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 
       <div className={styles.content}>
         {stage === 'summary' && acceptedPlan ? (
@@ -270,7 +272,7 @@ export default function ArcBendingMeasurementsPage() {
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingBox}>
             <div className={styles.spinner} />
-            <div>KIVRIM PLANI HESAPLANIYOR...</div>
+            <div>{t('KIVRIM PLANI HESAPLANIYOR...')}</div>
           </div>
         </div>
       )}
@@ -279,10 +281,10 @@ export default function ArcBendingMeasurementsPage() {
       {validationError && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingBox}>
-            <div className={styles.errorHead}>⚠ HESAPLAMA HATASI</div>
+            <div className={styles.errorHead}>⚠ {t('HESAPLAMA HATASI')}</div>
             <div className={styles.errorBody}>{validationError}</div>
             <button className={styles.errorBtn} onClick={() => setValidationError(null)}>
-              TAMAM
+              {t('TAMAM')}
             </button>
           </div>
         </div>

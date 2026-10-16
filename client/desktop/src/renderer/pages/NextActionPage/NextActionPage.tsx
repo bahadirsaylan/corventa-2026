@@ -4,10 +4,12 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import styles from './NextActionPage.module.css'
 
 export default function NextActionPage() {
   const navigate = useNavigate()
+  const t = useT()
   const params = useBendingJobStore((s) => s.params)
   const setParams = useBendingJobStore((s) => s.setParams)
   const resetJob = useBendingJobStore((s) => s.resetJob)
@@ -29,7 +31,7 @@ export default function NextActionPage() {
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>
-        NE YAPMAK İSTİYORSUNUZ<span className={styles.q}>?</span>
+        {t('NE YAPMAK İSTİYORSUNUZ')}<span className={styles.q}>?</span>
       </h1>
       <div className={styles.grid}>
         <button type="button" className={styles.card} onClick={newBend}>

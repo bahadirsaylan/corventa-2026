@@ -2,6 +2,7 @@
 // Seçim job'a ProfileSubType olarak gider. Dolu boru bu pencereyi açmaz.
 
 import type { PipeTypeId } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import styles from './PipeTypeModal.module.css'
 import dikisliImage from '@/assets/images/pipe-dikisli.png'
 import etliImage from '@/assets/images/pipe-etli.png'
@@ -18,10 +19,11 @@ const OPTIONS: { id: PipeTypeId; label: string; image: string }[] = [
 ]
 
 export default function PipeTypeModal({ selected, onSelect, onClose }: Props) {
+  const t = useT()
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.title}>BORU TİPİNİ SEÇİNİZ</h3>
+        <h3 className={styles.title}>{t('BORU TİPİNİ SEÇİNİZ')}</h3>
         <div className={styles.options}>
           {OPTIONS.map((o) => (
             <button
@@ -32,12 +34,12 @@ export default function PipeTypeModal({ selected, onSelect, onClose }: Props) {
               onClick={() => onSelect(o.id)}
             >
               <img src={o.image} alt="" className={styles.image} />
-              <span className={styles.label}>{o.label}</span>
+              <span className={styles.label}>{t(o.label)}</span>
             </button>
           ))}
         </div>
         <button type="button" className={styles.cancel} onClick={onClose}>
-          VAZGEÇ
+          {t('VAZGEÇ')}
         </button>
       </div>
     </div>

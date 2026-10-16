@@ -10,6 +10,7 @@ import {
   type OrchestrationStep,
 } from '@/services/bendingOrchestrator'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import styles from './PartLoadingPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import readyBanner from '@/assets/images/itsready.png'
@@ -39,6 +40,7 @@ export default function PartLoadingPage() {
 
 function PartLoadingContent() {
   const navigate = useNavigate()
+  const t = useT()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
 
@@ -106,25 +108,25 @@ function PartLoadingContent() {
       </div>
 
       {phase === 'loaded' && (
-        <div className={styles.loadedBar}>PARÇA BAŞARIYLA YÜKLENDİ</div>
+        <div className={styles.loadedBar}>{t('PARÇA BAŞARIYLA YÜKLENDİ')}</div>
       )}
 
       {phase === 'starting' && (
         <div className={styles.loadedBar}>
-          {activeStep ? STEP_LABELS[activeStep] : 'BÜKÜM BAŞLATILIYOR…'}
+          {activeStep ? t(STEP_LABELS[activeStep]) : t('BÜKÜM BAŞLATILIYOR…')}
         </div>
       )}
 
       {phase === 'error' && errorMessage && (
         <div className={styles.loadedBar} style={{ color: '#ff6b6b' }}>
           {errorStep ? `[${errorStep.toUpperCase()}] ` : ''}
-          {errorMessage}
+          {t(errorMessage)}
         </div>
       )}
 
       {phase !== 'starting' && phase !== 'started' && isSemiAuto && (
         <div className={styles.loadedBar} style={{ background: '#27ae60', color: '#fff' }}>
-          🧑‍🔧 YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak
+          🧑‍🔧 {t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
         </div>
       )}
       {phase !== 'starting' && phase !== 'started' && !isSemiAuto && (
@@ -136,10 +138,10 @@ function PartLoadingContent() {
           onClick={() => setUseAutoCorrect((v) => !v)}
           aria-pressed={useAutoCorrect}
         >
-          {useAutoCorrect ? '☑' : '☐'} OTOMATİK GERİ ESNEME DÜZELTMESİ
+          {useAutoCorrect ? '☑' : '☐'} {t('OTOMATİK GERİ ESNEME DÜZELTMESİ')}
           {!useAutoCorrect && (
             <span className={styles.autoCorrectHint}>
-              &nbsp;— SLPIS KAPALI (3 ADIM PIPELINE)
+              &nbsp;— {t('SLPIS KAPALI (3 ADIM PIPELINE)')}
             </span>
           )}
         </button>
@@ -152,23 +154,21 @@ function PartLoadingContent() {
             disabled={isBusy || !params.profileId}
             onClick={handleStart}
           >
-            <span className={styles.startLabel}>KIVRIMI</span>
+            <span className={styles.startLabel}>{t('KIVRIMI')}</span>
             <img src={touchIcon} alt="touch" className={styles.startIcon} />
-            <span className={styles.startLabel}>BAŞLAT</span>
+            <span className={styles.startLabel}>{t('BAŞLAT')}</span>
           </button>
         ) : (
           <>
             <div className={styles.description}>
               <div className={styles.descriptionText}>
                 <p>
-                  MAKİNA KIVIRIM İÇİN HAZIRLANMIŞTIR. LÜTFEN KIVIRIM PARÇASINI SENSÖRÜN
-                  GÖRECEĞİ ŞEKİLDE YÜKLEYİNİZ.
+                  {t('MAKİNA KIVIRIM İÇİN HAZIRLANMIŞTIR. LÜTFEN KIVIRIM PARÇASINI SENSÖRÜN GÖRECEĞİ ŞEKİLDE YÜKLEYİNİZ.')}
                 </p>
                 <div className={styles.warningRow}>
                   <img src={alertIcon} alt="Warning" className={styles.warningIcon} />
                   <p>
-                    SENSÖR ARIZALIYSA YÜKLEMEYİ YAPTIKTAN SONRA TOUCH İLE
-                    ONAYLAMALISINİZ.
+                    {t('SENSÖR ARIZALIYSA YÜKLEMEYİ YAPTIKTAN SONRA TOUCH İLE ONAYLAMALISINİZ.')}
                   </p>
                 </div>
               </div>

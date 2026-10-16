@@ -6,6 +6,7 @@ import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
 import SideMenu from '@/components/SideMenu/SideMenu'
 import { startBendingActivityPoller, useBendingActive } from '@/stores/bendingActivityStore'
+import { useT } from '@/i18n'
 import styles from './AppLayout.module.css'
 
 export default function AppLayout() {
@@ -14,6 +15,7 @@ export default function AppLayout() {
   const bendingActive = useBendingActive()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const t = useT()
 
   // Tahliye ekranı (SEKIL-18): büküm HATASIZ bitince (son mesaj "...tamamlandı") açılır.
   // Şimdilik sadece DEMO modunda — gerçek backend'de tahliye komutu henüz yok.
@@ -58,7 +60,7 @@ export default function AppLayout() {
 
       {/* Odak modu karartması — orta + alt alanı kaplar; modal/klavyeler (z ≥ 180) üstte kalır */}
       <div className={styles.focusShade} data-on={focusTop || undefined} aria-hidden>
-        <span className={styles.focusHint}>OTOMATİK BÜKÜM AYARLARI — ÜST EKRANDAN DEVAM EDİN</span>
+        <span className={styles.focusHint}>{t('OTOMATİK BÜKÜM AYARLARI — ÜST EKRANDAN DEVAM EDİN')}</span>
       </div>
 
       {/* Kiosk moddan cikis: sag ust kose gizli hot-spot (5-tap veya 5sn basili tut).

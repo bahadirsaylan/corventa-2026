@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
+import { useT } from '@/i18n'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
@@ -71,6 +72,7 @@ interface Props {
 }
 
 export default function MeasurementForm({ values, onChange, onReset }: Props) {
+  const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('ring', defaultMethodImage)
@@ -134,7 +136,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
+          ↺ {t('SIFIRLA')}
         </button>
       </div>
 
@@ -142,7 +144,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
       {openInfo && (
         <InfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

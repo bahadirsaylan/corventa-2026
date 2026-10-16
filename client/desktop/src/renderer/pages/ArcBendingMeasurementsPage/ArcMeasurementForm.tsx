@@ -6,6 +6,7 @@ import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
 import { useMethodTileImage } from '@/hooks/useMethodTileImage'
+import { useT } from '@/i18n'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
@@ -195,6 +196,7 @@ export default function ArcMeasurementForm({
   onInputModeChange,
   stage,
 }: Props) {
+  const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('arc', defaultMethodImage)
@@ -369,7 +371,7 @@ export default function ArcMeasurementForm({
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return numpadTarget.field
     const disp =
-      numpadTarget.field === 'Alpha' ? 'α' : numpadTarget.field === 'ArcLen' ? 'Yay' : numpadTarget.field
+      numpadTarget.field === 'Alpha' ? 'α' : numpadTarget.field === 'ArcLen' ? t('Yay') : numpadTarget.field
     return `Seg ${numpadTarget.index + 1} · ${disp}`
   })()
 
@@ -402,7 +404,7 @@ export default function ArcMeasurementForm({
             </div>
 
             <button className={styles.resetBtn} onClick={onReset}>
-              ↺ SIFIRLA
+              ↺ {t('SIFIRLA')}
             </button>
           </>
         ) : (
@@ -425,14 +427,14 @@ export default function ArcMeasurementForm({
                 className={inputMode === 'angle' ? styles.modeActive : styles.modeInactive}
                 onClick={() => onInputModeChange('angle')}
               >
-                R + α (Açı)
+                {t('R + α (Açı)')}
               </button>
               <button
                 type="button"
                 className={inputMode === 'arcLen' ? styles.modeActive : styles.modeInactive}
                 onClick={() => onInputModeChange('arcLen')}
               >
-                R + Yay (mm)
+                {t('R + Yay (mm)')}
               </button>
             </div>
 
@@ -440,7 +442,7 @@ export default function ArcMeasurementForm({
             <div className={styles.segmentsList}>
               {values.segments.length === 0 && (
                 <div className={styles.segmentsHint}>
-                  ⚠ Önce P (segment sayısı) giriniz — kartlar otomatik açılır.
+                  ⚠ {t('Önce P (segment sayısı) giriniz — kartlar otomatik açılır.')}
                 </div>
               )}
               {values.segments.map((_, i) => {
@@ -453,26 +455,26 @@ export default function ArcMeasurementForm({
                       minArcViolation ? styles.segmentCardInfeasible : ''
                     }`}
                   >
-                    <div className={styles.segmentHeader}>SEGMENT {i + 1}</div>
+                    <div className={styles.segmentHeader}>{t('SEGMENT {n}', { n: i + 1 })}</div>
                     <div className={styles.segmentFields}>
                       {renderSegmentField(i, 'L', 'L')}
                       {inputMode === 'angle'
                         ? renderSegmentField(i, 'Alpha', 'α')
-                        : renderSegmentField(i, 'ArcLen', 'Yay')}
+                        : renderSegmentField(i, 'ArcLen', t('Yay'))}
                       {renderSegmentField(i, 'R', 'R')}
                     </div>
                     {b?.valid && (
                       <div className={styles.segmentBudgetInfo}>
-                        Yay: <b>{b.arc.toFixed(1)}mm</b>
-                        {' · '}Bütçe: <b>{b.total.toFixed(1)}mm</b>
+                        {t('Yay')}: <b>{b.arc.toFixed(1)}mm</b>
+                        {' · '}{t('Bütçe')}: <b>{b.total.toFixed(1)}mm</b>
                         {i + 1 === totalP && b.effArc !== b.arc && (
                           <span className={styles.budgetNote}>
-                            {' '}(son seg yay −{DEFAULT_SAFETY_MM}mm safety)
+                            {' '}{t('(son seg yay −{n}mm safety)', { n: DEFAULT_SAFETY_MM })}
                           </span>
                         )}
                         {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
                           <span className={styles.budgetNote}>
-                            {' '}(seg1 düzlük min={DEFAULT_SAFETY_MM}mm safety)
+                            {' '}{t('(seg1 düzlük min={n}mm safety)', { n: DEFAULT_SAFETY_MM })}
                           </span>
                         )}
                       </div>
@@ -480,9 +482,9 @@ export default function ArcMeasurementForm({
                     {minArcViolation && (
                       <div className={styles.segmentInfeasibleWarn}>
                         <div className={styles.warnHead}>
-                          ⚠ Yay uzunluğu minimum sınırın altında ({b.arc.toFixed(1)}mm &lt; {MIN_ARC_LENGTH_MM}mm)
+                          ⚠ {t('Yay uzunluğu minimum sınırın altında ({arc}mm < {min}mm)', { arc: b.arc.toFixed(1), min: MIN_ARC_LENGTH_MM })}
                         </div>
-                        <div className={styles.warnDetail}>Yay uzunluğunu veya Açı değerini arttırın</div>
+                        <div className={styles.warnDetail}>{t('Yay uzunluğunu veya Açı değerini arttırın')}</div>
                       </div>
                     )}
                   </div>
@@ -498,7 +500,7 @@ export default function ArcMeasurementForm({
                 }`}
               >
                 <span>
-                  Toplam mesafe: <b>{cumulativeRaw.toFixed(1)}mm</b>
+                  {t('Toplam mesafe')}: <b>{cumulativeRaw.toFixed(1)}mm</b>
                   {ltValid && (
                     <>
                       {' '}/ LT <b>{ltMm.toFixed(1)}mm</b>
@@ -507,12 +509,12 @@ export default function ArcMeasurementForm({
                 </span>
                 {ltValid && (
                   <span>
-                    Kalan: <b>{remaining.toFixed(1)}mm</b>
-                    {remainingOverflow && ' ⚠ AŞIM'}
-                    {!remainingOverflow && anyMinArcViolation && ' ⚠ YAY MİNİMUM ALTINDA'}
+                    {t('Kalan')}: <b>{remaining.toFixed(1)}mm</b>
+                    {remainingOverflow && ` ⚠ ${t('AŞIM')}`}
+                    {!remainingOverflow && anyMinArcViolation && ` ⚠ ${t('YAY MİNİMUM ALTINDA')}`}
                   </span>
                 )}
-                {!ltValid && <span className={styles.budgetNote}>LT giriniz</span>}
+                {!ltValid && <span className={styles.budgetNote}>{t('LT giriniz')}</span>}
               </div>
             )}
           </>
@@ -522,8 +524,8 @@ export default function ArcMeasurementForm({
       {/* ── Info modal ──────────────────────────── */}
       {openInfo && (
         <ArcInfoModal
-          title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          title={t(FIELD_INFO[openInfo].title)}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

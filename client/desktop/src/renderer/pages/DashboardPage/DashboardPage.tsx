@@ -2,11 +2,13 @@ import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import LiveClock from './LiveClock'
+import { useT } from '@/i18n'
 import styles from './DashboardPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const t = useT()
   const resetJob = useBendingJobStore((s) => s.resetJob)
   const setParams = useBendingJobStore((s) => s.setParams)
 
@@ -26,7 +28,7 @@ export default function DashboardPage() {
           className={`${styles.navBtn} ${styles.navBtnPrimary}`}
           onClick={startAiBending}
         >
-          <span className={styles.navBtnLabel}>OTOMATIK<br />BUKUM</span>
+          <span className={styles.navBtnLabel}>{t('OTOMATIK')}<br />{t('BUKUM')}</span>
           <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
           <span className={styles.navBtnSub}>AI</span>
         </button>
@@ -35,8 +37,8 @@ export default function DashboardPage() {
           className={`${styles.navBtn} ${styles.navBtnSecondary}`}
           onClick={() => navigate('/bending/manual-mode')}
         >
-          <span className={styles.navBtnLabel}>MANUEL<br />BENDING</span>
-          <span className={styles.navBtnSub}>MANUEL / YARI OTO</span>
+          <span className={styles.navBtnLabel}>{t('MANUEL')}<br />BENDING</span>
+          <span className={styles.navBtnSub}>{t('MANUEL / YARI OTO')}</span>
         </button>
       </div>
 
@@ -50,7 +52,7 @@ export default function DashboardPage() {
           type="button"
           className={styles.logoWrapper}
           onClick={() => navigate('/service-network')}
-          aria-label="Servis ağı"
+          aria-label={t('Servis ağı')}
         >
           <CorventaLogo size="dashboard" />
         </button>

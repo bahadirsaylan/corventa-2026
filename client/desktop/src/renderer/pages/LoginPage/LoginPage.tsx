@@ -2,10 +2,12 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useT } from '@/i18n'
 import styles from './LoginPage.module.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
@@ -33,7 +35,7 @@ export default function LoginPage() {
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.field}>
             <label className={styles.label} htmlFor="username">
-              KULLANICI ADI :
+              {t('KULLANICI ADI :')}
             </label>
             <input
               id="username"
@@ -49,11 +51,11 @@ export default function LoginPage() {
           <div className={styles.field}>
             <div className={styles.labelRow}>
               <label className={styles.label} htmlFor="password">
-                ŞİFRE :
+                {t('ŞİFRE :')}
               </label>
               {error && (
                 <span className={styles.errorInline}>
-                  ( × KULLANICI ADI VEYA ŞİFRE HATALI )
+                  {t('( × KULLANICI ADI VEYA ŞİFRE HATALI )')}
                 </span>
               )}
             </div>
@@ -68,7 +70,7 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className={styles.submitBtn}>
-            GİRİŞ
+            {t('GİRİŞ')}
           </button>
         </form>
 

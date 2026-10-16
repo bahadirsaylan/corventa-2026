@@ -12,6 +12,7 @@ import { checkCapacity, type CapacityCheck } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
+import { useT } from '@/i18n'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
@@ -33,6 +34,7 @@ function fromStore(stored: ReturnType<typeof useBendingJobStore.getState>['param
 }
 
 export default function RingBendingMeasurementsPage() {
+  const t = useT()
   const navigate = useNavigate()
   const ringBending = useBendingJobStore((s) => s.params.ringBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -122,7 +124,7 @@ export default function RingBendingMeasurementsPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>

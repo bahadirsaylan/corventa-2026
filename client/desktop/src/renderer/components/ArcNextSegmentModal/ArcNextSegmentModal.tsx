@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import type { BendingJob } from '@shared/types'
+import { useT } from '@/i18n'
 import styles from './ArcNextSegmentModal.module.css'
 
 type InputMode = 'angle' | 'arcLen'
@@ -81,6 +82,7 @@ function computeBudget(job: BendingJob | null, totalP: number | null | undefined
 }
 
 export default function ArcNextSegmentModal() {
+  const t = useT()
   const progress = useMachineStateStore((s) => s.bendingProgress)
 
   const [inputMode, setInputMode] = useState<InputMode>('angle')
@@ -198,7 +200,7 @@ export default function ArcNextSegmentModal() {
       // bir sonraki SignalR push ile modal kapanır.
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      setErrorMsg(`Segment reddedildi: ${msg}`)
+      setErrorMsg(t('Segment reddedildi: {msg}', { msg }))
       setSubmitting(false)
     }
   }
@@ -213,11 +215,11 @@ export default function ArcNextSegmentModal() {
         <div className={styles.modal}>
           <h2 className={styles.title}>
             {nextOrder && total
-              ? `${nextOrder}. SEGMENT — ${nextOrder}/${total}${isSonSegment ? ' (SON)' : ''}`
-              : 'SIRADAKİ SEGMENT'}
+              ? `${t('{n}. SEGMENT', { n: nextOrder })} — ${nextOrder}/${total}${isSonSegment ? ` (${t('SON')})` : ''}`
+              : t('SIRADAKİ SEGMENT')}
           </h2>
           <p className={styles.subtitle}>
-            {inputMode === 'angle' ? 'R + α ile' : 'R + Yay uzunluğu ile'} girin
+            {inputMode === 'angle' ? t('R + α ile girin') : t('R + Yay uzunluğu ile girin')}
           </p>
 
           {/* Toggle: R+α / R+Yay */}
@@ -228,7 +230,7 @@ export default function ArcNextSegmentModal() {
               onClick={() => setInputMode('angle')}
               disabled={submitting}
             >
-              R + α (Açı)
+              {t('R + α (Açı)')}
             </button>
             <button
               type="button"
@@ -236,30 +238,30 @@ export default function ArcNextSegmentModal() {
               onClick={() => setInputMode('arcLen')}
               disabled={submitting}
             >
-              R + Yay (mm)
+              {t('R + Yay (mm)')}
             </button>
           </div>
 
           {budget && (
             <div className={styles.budget}>
               <div className={styles.budgetRow}>
-                <span>Kullanılabilir parça:</span>
+                <span>{t('Kullanılabilir parça:')}</span>
                 <strong>{budget.available.toFixed(1)} mm</strong>
               </div>
               <div className={styles.budgetRow}>
-                <span>Önceki segment(ler):</span>
+                <span>{t('Önceki segment(ler):')}</span>
                 <strong>{budget.used.toFixed(1)} mm</strong>
               </div>
               <div className={styles.budgetRow}>
                 <span>
-                  Bu segment (yay {arcRaw.toFixed(1)}
+                  {t('Bu segment (yay')} {arcRaw.toFixed(1)}
                   {isSonSegment && arcRaw > newArcBudget
-                    ? ` → efektif ${newArcBudget.toFixed(1)}, -${safety.toFixed(0)} safety`
+                    ? ` → ${t('efektif')} ${newArcBudget.toFixed(1)}, -${safety.toFixed(0)} safety`
                     : ''}
-                  {' + düz '}
+                  {` + ${t('düz')} `}
                   {newStraight.toFixed(1)}
                   {nextOrder === 1 && newStraight < safety
-                    ? ` → efektif ${newStraightBudget.toFixed(1)}, min ${safety.toFixed(0)} safety`
+                    ? ` → ${t('efektif')} ${newStraightBudget.toFixed(1)}, min ${safety.toFixed(0)} safety`
                     : ''}
                   ):
                 </span>
@@ -272,17 +274,17 @@ export default function ArcNextSegmentModal() {
                     : `${styles.budgetRow} ${styles.budgetRemaining}`
                 }
               >
-                <span>Kalan (bu segment dahil):</span>
+                <span>{t('Kalan (bu segment dahil):')}</span>
                 <strong>{(budget.remaining - newTotal).toFixed(1)} mm</strong>
               </div>
               {wouldExceed && (
                 <div className={styles.budgetWarning}>
-                  ⚠ Parça boyu yetersiz — R, α/Yay veya L değerini küçültün
+                  ⚠ {t('Parça boyu yetersiz — R, α/Yay veya L değerini küçültün')}
                 </div>
               )}
               {isSonSegment && arcRaw > 0 && (
                 <div className={styles.budgetInfo}>
-                  ℹ SON SEGMENT: yay uzunluğu {safety.toFixed(0)}mm kısaltılacak (parça sonu güvenlik payı)
+                  ℹ {t('SON SEGMENT: yay uzunluğu {n}mm kısaltılacak (parça sonu güvenlik payı)', { n: safety.toFixed(0) })}
                 </div>
               )}
             </div>
@@ -294,16 +296,16 @@ export default function ArcNextSegmentModal() {
               const value = values[field]
               return (
                 <div key={field} className={styles.row}>
-                  <span className={styles.label}>{info.label}</span>
+                  <span className={styles.label}>{t(info.label)}</span>
                   <button
                     type="button"
                     className={`${styles.input} ${value ? styles.inputFilled : ''}`}
                     onClick={() => setNumpadField(field)}
                     disabled={submitting}
                   >
-                    {value || <span className={styles.placeholder}>{info.placeholder}</span>}
+                    {value || <span className={styles.placeholder}>{t(info.placeholder)}</span>}
                   </button>
-                  <span className={styles.hint}>{info.hint}</span>
+                  <span className={styles.hint}>{t(info.hint)}</span>
                 </div>
               )
             })}
@@ -317,14 +319,14 @@ export default function ArcNextSegmentModal() {
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
-            {submitting ? 'Gönderiliyor...' : 'ONAYLA VE DEVAM'}
+            {submitting ? t('Gönderiliyor...') : t('ONAYLA VE DEVAM')}
           </button>
         </div>
       </div>
 
       {numpadField && (
         <NumpadModal
-          fieldLabel={FIELD_INFO[numpadField].label}
+          fieldLabel={t(FIELD_INFO[numpadField].label)}
           initialValue={values[numpadField]}
           onConfirm={(v) => setValues((prev) => ({ ...prev, [numpadField]: v }))}
           onClose={() => setNumpadField(null)}

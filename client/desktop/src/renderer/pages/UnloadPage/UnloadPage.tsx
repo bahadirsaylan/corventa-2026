@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './UnloadPage.module.css'
 
 const DEFAULT_PRESETS = [3, 5, 8, 10, 15]
@@ -64,6 +65,7 @@ function readSelected(): number {
 
 export default function UnloadPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
   const [editing, setEditing] = useState(false)
@@ -116,7 +118,7 @@ export default function UnloadPage() {
         upperRetractMm: motion.upperRetractMm,
         rotationMm: motion.rotationDir * motion.rotationMm,
       })
-      if (r && r.success === false) throw new Error(r.errorMessage ?? 'Tahliye başarısız')
+      if (r && r.success === false) throw new Error(r.errorMessage ?? t('Tahliye başarısız'))
       setPhase('ready')
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -161,12 +163,12 @@ export default function UnloadPage() {
 
       <div className={styles.hint}>
         {phase === 'select' && (editing
-          ? 'DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN'
-          : 'PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ')}
-        {phase === 'countdown' && 'PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK'}
-        {phase === 'opening' && 'TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON'}
-        {phase === 'ready' && 'TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ'}
-        {phase === 'error' && `TAHLİYE YAPILAMADI: ${error ?? ''}`}
+          ? t('DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN')
+          : t('PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ'))}
+        {phase === 'countdown' && t('PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK')}
+        {phase === 'opening' && t('TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON')}
+        {phase === 'ready' && t('TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ')}
+        {phase === 'error' && t('TAHLİYE YAPILAMADI: {error}', { error: error ?? '' })}
       </div>
 
       <div className={styles.presetRow}>
@@ -189,10 +191,10 @@ export default function UnloadPage() {
           data-editing={editing || undefined}
           disabled={phase !== 'select'}
           onClick={() => setEditing((v) => !v)}
-          aria-label="Süreyi değiştir"
+          aria-label={t('Süreyi değiştir')}
         >
           <EditIcon />
-          <span className={styles.presetUnit}>{editing ? 'TAMAM' : 'DEĞİŞTİR'}</span>
+          <span className={styles.presetUnit}>{editing ? t('TAMAM') : t('DEĞİŞTİR')}</span>
         </button>
       </div>
 
@@ -201,7 +203,7 @@ export default function UnloadPage() {
           <button type="button" className={styles.stepBtn} onClick={() => adjust(-1)} disabled={presets[selected] <= MIN_S}>
             −
           </button>
-          <span className={styles.editValue}>{presets[selected]} SN</span>
+          <span className={styles.editValue}>{t('{n} SN', { n: presets[selected] })}</span>
           <button type="button" className={styles.stepBtn} onClick={() => adjust(+1)} disabled={presets[selected] >= MAX_S}>
             +
           </button>
@@ -211,7 +213,7 @@ export default function UnloadPage() {
       {/* Tahliye hareketi — üst top geri çekilme + rotasyon */}
       <div className={styles.motionRow}>
         <div className={styles.motionBox}>
-          <span className={styles.motionLabel}>ÜST TOP GERİ</span>
+          <span className={styles.motionLabel}>{t('ÜST TOP GERİ')}</span>
           <div className={styles.motionCtl}>
             <button
               type="button"
@@ -234,7 +236,7 @@ export default function UnloadPage() {
         </div>
 
         <div className={styles.motionBox}>
-          <span className={styles.motionLabel}>ROTASYON</span>
+          <span className={styles.motionLabel}>{t('ROTASYON')}</span>
           <div className={styles.motionCtl}>
             <button
               type="button"
@@ -242,7 +244,7 @@ export default function UnloadPage() {
               data-on={motion.rotationDir === -1 || undefined}
               disabled={phase !== 'select'}
               onClick={() => updateMotion({ rotationDir: -1 })}
-              aria-label="Rotasyon geri yön"
+              aria-label={t('Rotasyon geri yön')}
             >
               ◀
             </button>
@@ -269,7 +271,7 @@ export default function UnloadPage() {
               data-on={motion.rotationDir === 1 || undefined}
               disabled={phase !== 'select'}
               onClick={() => updateMotion({ rotationDir: 1 })}
-              aria-label="Rotasyon ileri yön"
+              aria-label={t('Rotasyon ileri yön')}
             >
               ▶
             </button>
@@ -279,34 +281,34 @@ export default function UnloadPage() {
 
       {phase === 'select' && !editing && (
         <button type="button" className={styles.bigBtn} onClick={start}>
-          <span>PARÇAYI</span>
+          <span>{t('PARÇAYI')}</span>
           <HandIcon />
-          <span>ÇIKART</span>
+          <span>{t('ÇIKART')}</span>
         </button>
       )}
 
       {phase === 'countdown' && (
         <button type="button" className={`${styles.bigBtn} ${styles.countdown}`} onClick={cancelCountdown}>
           <span className={styles.countNum}>{remaining}</span>
-          <span className={styles.countSub}>İPTAL İÇİN DOKUNUN</span>
+          <span className={styles.countSub}>{t('İPTAL İÇİN DOKUNUN')}</span>
         </button>
       )}
 
       {phase === 'opening' && (
         <div className={`${styles.bigBtn} ${styles.opening}`}>
-          <span>TAHLİYE YAPILIYOR…</span>
+          <span>{t('TAHLİYE YAPILIYOR…')}</span>
         </div>
       )}
 
       {phase === 'ready' && (
         <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
-          <span>✓ PARÇAYI ALDIM</span>
+          <span>✓ {t('PARÇAYI ALDIM')}</span>
         </button>
       )}
 
       {phase === 'error' && (
         <button type="button" className={styles.bigBtn} onClick={() => setPhase('select')}>
-          <span>TEKRAR DENE</span>
+          <span>{t('TEKRAR DENE')}</span>
         </button>
       )}
     </div>

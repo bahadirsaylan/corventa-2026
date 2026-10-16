@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import styles from './KeyboardModal.module.css'
+import { useT } from '@/i18n'
 
 interface Props {
   initialValue: string
@@ -58,6 +59,7 @@ export default function KeyboardModal({
   onConfirm,
   onClose,
 }: Props) {
+  const t = useT()
   const [value, setValue] = useState(initialValue ?? '')
   const [mode, setMode] = useState<Mode>('tr')
   const [shift, setShift] = useState<ShiftState>('off')
@@ -133,14 +135,14 @@ export default function KeyboardModal({
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label="Sanal klavye"
+        aria-label={t('Sanal klavye')}
       >
         {/* ── Başlık + Değer ekranı ─────────────────────────── */}
         <div className={styles.headerRow}>
-          <span className={styles.label}>{label}</span>
+          <span className={styles.label}>{t(label)}</span>
           <div className={styles.display}>
             <span className={styles.displayValue}>
-              {value || <span className={styles.placeholder}>Yazmak için tuşlara basın…</span>}
+              {value || <span className={styles.placeholder}>{t('Yazmak için tuşlara basın…')}</span>}
             </span>
             <span className={styles.caret} />
           </div>
@@ -152,10 +154,10 @@ export default function KeyboardModal({
           <button
             className={styles.clearBtn}
             onClick={clearAll}
-            aria-label="Tümünü sil"
+            aria-label={t('Tümünü sil')}
             type="button"
           >
-            TEMİZLE
+            {t('TEMİZLE')}
           </button>
         </div>
 
@@ -171,7 +173,7 @@ export default function KeyboardModal({
                   onClick={toggleShift}
                   type="button"
                   aria-label={
-                    shift === 'caps' ? 'Caps Lock aktif' : shift === 'shift' ? 'Shift aktif' : 'Shift'
+                    shift === 'caps' ? t('Caps Lock aktif') : shift === 'shift' ? t('Shift aktif') : 'Shift'
                   }
                 >
                   {shiftLabel}
@@ -192,7 +194,7 @@ export default function KeyboardModal({
                   className={`${styles.key} ${styles.special} ${styles.backspaceKey}`}
                   onClick={backspace}
                   type="button"
-                  aria-label="Sil"
+                  aria-label={t('Sil')}
                 >
                   ⌫
                 </button>
@@ -216,7 +218,7 @@ export default function KeyboardModal({
             className={`${styles.key} ${styles.special} ${styles.langKey}`}
             onClick={toggleMode}
             type="button"
-            aria-label="Dil değiştir"
+            aria-label={t('Dil değiştir')}
           >
             🌐 {modeToggleLabel}
           </button>
@@ -224,23 +226,23 @@ export default function KeyboardModal({
             className={`${styles.key} ${styles.spaceKey}`}
             onClick={space}
             type="button"
-            aria-label="Boşluk"
+            aria-label={t('Boşluk')}
           >
-            {mode === 'tr' ? 'BOŞLUK' : mode === 'en' ? 'SPACE' : ' '}
+            {mode === 'tr' ? t('BOŞLUK') : mode === 'en' ? 'SPACE' : ' '}
           </button>
           <button
             className={`${styles.key} ${styles.cancelKey}`}
             onClick={onClose}
             type="button"
           >
-            VAZGEÇ
+            {t('VAZGEÇ')}
           </button>
           <button
             className={`${styles.key} ${styles.confirmKey}`}
             onClick={() => onConfirm(value)}
             type="button"
           >
-            ✓ ONAYLA
+            ✓ {t('ONAYLA')}
           </button>
         </div>
       </div>

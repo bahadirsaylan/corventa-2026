@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import ManuelHeader from '@/pages/ManuelBendingPage/ManuelHeader'
 import InfoModal from '@/pages/RingBendingMeasurementsPage/InfoModal'
 import StatusBar from '@/components/StatusBar/StatusBar'
@@ -30,6 +31,7 @@ const INFO: Record<ModeKey, { title: string; description: string }> = {
 
 export default function ManualModeSelectPage() {
   const navigate = useNavigate()
+  const t = useT()
   const setParams = useBendingJobStore((s) => s.setParams)
   const [info, setInfo] = useState<ModeKey | null>(null)
 
@@ -46,16 +48,16 @@ export default function ManualModeSelectPage() {
     <div className={styles.page}>
       <ManuelHeader onUp={() => navigate('/dashboard')} onDown={() => navigate('/dashboard')} />
 
-      <h2 className={styles.title}>BÜKÜM TÜRÜ SEÇİNİZ</h2>
+      <h2 className={styles.title}>{t('BÜKÜM TÜRÜ SEÇİNİZ')}</h2>
 
       <div className={styles.cardGrid}>
-        <ModeCard title="MANUEL BÜKÜM" subtitle="KAYITLI PROGRAMLAR" onSelect={selectManual} onInfo={() => setInfo('manual')} />
-        <ModeCard title="YARI OTO BÜKÜM" subtitle="GERİ ESNEME USTADA" onSelect={selectSemi} onInfo={() => setInfo('semi')} />
+        <ModeCard title={t('MANUEL BÜKÜM')} subtitle={t('KAYITLI PROGRAMLAR')} onSelect={selectManual} onInfo={() => setInfo('manual')} />
+        <ModeCard title={t('YARI OTO BÜKÜM')} subtitle={t('GERİ ESNEME USTADA')} onSelect={selectSemi} onInfo={() => setInfo('semi')} />
       </div>
 
       <StatusBar backTo="/dashboard" confirmDisabled />
 
-      {info && <InfoModal title={INFO[info].title} description={INFO[info].description} onClose={() => setInfo(null)} />}
+      {info && <InfoModal title={t(INFO[info].title)} description={t(INFO[info].description)} onClose={() => setInfo(null)} />}
     </div>
   )
 }
@@ -71,13 +73,14 @@ function ModeCard({
   onSelect: () => void
   onInfo: () => void
 }) {
+  const t = useT()
   return (
     <div className={styles.cardWrap}>
       <button type="button" className={styles.card} onClick={onSelect}>
         <span className={styles.cardTitle}>{title}</span>
         <span className={styles.cardSub}>{subtitle}</span>
       </button>
-      <button type="button" className={styles.infoBtn} onClick={onInfo} aria-label={`${title} açıklaması`}>
+      <button type="button" className={styles.infoBtn} onClick={onInfo} aria-label={t('{title} açıklaması', { title })}>
         ?
       </button>
     </div>

@@ -5,6 +5,7 @@
 import { useCallback, useRef } from 'react'
 
 import type { SideSupportSide, SideSupportType } from '@shared/types'
+import { useT } from '@/i18n'
 import styles from './SideSupportControls.module.css'
 
 interface SideSupportControlsProps {
@@ -40,12 +41,13 @@ interface SideSupportRowProps {
 
 function SideSupportRow({ side, type, label }: SideSupportRowProps) {
   // "İleri" hep iş parçasına doğru — sol panelde ok sağa, sağ panelde ok sola.
+  const t = useT()
   const forwardArrow = side === 'left' ? '▶' : '◀'
   const backwardArrow = side === 'left' ? '◀' : '▶'
 
   // İleri buton sol panelde sağda, sağ panelde solda (ok yönüne uygun).
-  const forwardBtn = <HoldButton side={side} type={type} direction={1} label="İLERİ" arrow={forwardArrow} arrowSide="right" />
-  const backwardBtn = <HoldButton side={side} type={type} direction={-1} label="GERİ" arrow={backwardArrow} arrowSide="left" />
+  const forwardBtn = <HoldButton side={side} type={type} direction={1} label={t('İLERİ')} arrow={forwardArrow} arrowSide="right" />
+  const backwardBtn = <HoldButton side={side} type={type} direction={-1} label={t('GERİ')} arrow={backwardArrow} arrowSide="left" />
 
   return (
     <div className={styles.row}>

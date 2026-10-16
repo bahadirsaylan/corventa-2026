@@ -12,6 +12,7 @@ import ArcBendingStrip from './ArcBendingStrip'
 import { BendingMethod } from '@shared/types'
 import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
+import { useT } from '@/i18n'
 import styles from './BottomStatsPanel.module.css'
 
 type WarningLevel = 'none' | 'warning' | 'error'
@@ -25,6 +26,7 @@ export default function BottomStatsPanel() {
   const [showLogs, setShowLogs] = useState(false)
   const sensors = useSensors()
   const safety = useSafety()
+  const t = useT()
 
   //   Çok açılı (Arc) büküm sürerken sensör kartlarının yerine parça şeridi gösterilir.
   //   Uyarı şeridi ve Hata Kayıtları her durumda yerinde kalır (alarmlar görünür olmalı).
@@ -42,28 +44,28 @@ export default function BottomStatsPanel() {
   //   Öncelik: acil stop > termal > yağ basınç > yağ sıcaklık > yağ seviye > yağ nemi.
   const warning: ActiveWarning = useMemo(() => {
     if (!safety.emergencyStopOK) {
-      return { level: 'error', text: 'ACİL DURDURMA BASILI — MAKİNE KİLİTLİ' }
+      return { level: 'error', text: t('ACİL DURDURMA BASILI — MAKİNE KİLİTLİ') }
     }
     if (!safety.motorThermalOK) {
-      return { level: 'error', text: 'MOTOR TERMAL KORUMA AKTİF' }
+      return { level: 'error', text: t('MOTOR TERMAL KORUMA AKTİF') }
     }
     if (!safety.fanThermalOK) {
-      return { level: 'error', text: 'FAN TERMAL KORUMA AKTİF' }
+      return { level: 'error', text: t('FAN TERMAL KORUMA AKTİF') }
     }
     if (sensors.oilTempC >= 75) {
-      return { level: 'error', text: `YAĞ SICAKLIĞI YÜKSEK (${sensors.oilTempC}°C)` }
+      return { level: 'error', text: t('YAĞ SICAKLIĞI YÜKSEK ({v}°C)', { v: sensors.oilTempC }) }
     }
     if (sensors.s1PressureBar === 0) {
-      return { level: 'warning', text: 'YAĞ BASINCI OKUMASI YOK' }
+      return { level: 'warning', text: t('YAĞ BASINCI OKUMASI YOK') }
     }
     if (sensors.oilLevelPercent < 30) {
-      return { level: 'warning', text: `YAĞ SEVİYESİ DÜŞÜK (%${sensors.oilLevelPercent})` }
+      return { level: 'warning', text: t('YAĞ SEVİYESİ DÜŞÜK (%{v})', { v: sensors.oilLevelPercent }) }
     }
     if (sensors.oilHumidityPercent >= 50) {
-      return { level: 'warning', text: `YAĞ NEMİ YÜKSEK (%${sensors.oilHumidityPercent})` }
+      return { level: 'warning', text: t('YAĞ NEMİ YÜKSEK (%{v})', { v: sensors.oilHumidityPercent }) }
     }
     return { level: 'none', text: '' }
-  }, [safety, sensors])
+  }, [safety, sensors, t])
 
   const stripeClass = [
     styles.stripe,
@@ -77,7 +79,7 @@ export default function BottomStatsPanel() {
       <div className={stripeClass}>
         <div className={styles.warnArea}>
           {warning.level === 'none' ? (
-            <span className={styles.noWarn}>SİSTEM NORMAL — AKTİF UYARI YOK</span>
+            <span className={styles.noWarn}>{t('SİSTEM NORMAL — AKTİF UYARI YOK')}</span>
           ) : (
             <>
               <span className={styles.warnIcon}>
@@ -92,10 +94,10 @@ export default function BottomStatsPanel() {
           type="button"
           className={styles.logsBtn}
           onClick={() => setShowLogs(true)}
-          aria-label="Hata kayıtlarını aç"
+          aria-label={t('Hata kayıtlarını aç')}
         >
           <span className={styles.logsIcon}>📋</span>
-          HATA KAYITLARI
+          {t('HATA KAYITLARI')}
         </button>
       </div>
 

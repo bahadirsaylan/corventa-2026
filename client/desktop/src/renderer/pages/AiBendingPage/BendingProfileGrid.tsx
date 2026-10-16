@@ -1,4 +1,5 @@
 import { BendingProfileId } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import styles from './BendingProfileGrid.module.css'
 
 // Re-export so existing consumers (AiBendingPage) don't need to change imports
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export default function BendingProfileGrid({ selected, onSelect }: Props) {
+  const t = useT()
   return (
     <div className={styles.wrapper}>
       {/* 4×3 profile tiles */}
@@ -47,7 +49,7 @@ export default function BendingProfileGrid({ selected, onSelect }: Props) {
 
       {/* Special profiles vertical label tile */}
       <div className={styles.specialTile}>
-        <span className={styles.specialText}>ÖZEL KIVIRIM PROFİLLERİ</span>
+        <span className={styles.specialText}>{t('ÖZEL KIVIRIM PROFİLLERİ')}</span>
       </div>
     </div>
   )

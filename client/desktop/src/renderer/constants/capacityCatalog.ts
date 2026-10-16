@@ -7,6 +7,7 @@
 // Katalogda 200 kN'da ✗ olan satırlar (kapasite yetersiz) doğrudan engellenir.
 // Yön: yön ekranındaki yatay seçim (left) = KOLAY, dikine/kılıcına seçim (right) = ZOR.
 
+import { t } from '@/i18n'
 import type { BendingDirectionId, BendingProfileId } from '@/store/bendingJobStore'
 
 export type CapacityAxis = 'kolay' | 'zor'
@@ -113,13 +114,13 @@ export function checkCapacity(input: CapacityInput): CapacityCheck {
   const row = findRow(input)
   if (!row) return { label: null, issues: [] }
 
-  const label = `LAMA ${row.width}×${row.thickness} ${row.axis === 'kolay' ? 'KOLAY (YATAY)' : 'ZOR (DİKİNE)'}`
+  const label = `${t('LAMA')} ${row.width}×${row.thickness} ${row.axis === 'kolay' ? t('KOLAY (YATAY)') : t('ZOR (DİKİNE)')}`
   const issues: CapacityIssue[] = []
 
   if (!row.capable) {
     issues.push({
       severity: 'block',
-      message: 'BU PROFİL BU YÖNDE MAKİNE KAPASİTESİNİ (200 kN) AŞIYOR. BÜKÜLEMEZ.',
+      message: t('BU PROFİL BU YÖNDE MAKİNE KAPASİTESİNİ (200 kN) AŞIYOR. BÜKÜLEMEZ.'),
     })
     return { label, issues }
   }
@@ -128,14 +129,14 @@ export function checkCapacity(input: CapacityInput): CapacityCheck {
   if (row.machineMinDiameter != null && d < row.machineMinDiameter) {
     issues.push({
       severity: 'block',
-      message: `MİNİMUM ÇAP Ø${row.machineMinDiameter}. GİRİLEN Ø${d} BU PROFİL İÇİN ÇOK KÜÇÜK.`,
+      message: t('MİNİMUM ÇAP Ø{min}. GİRİLEN Ø{d} BU PROFİL İÇİN ÇOK KÜÇÜK.', { min: row.machineMinDiameter, d }),
     })
   }
 
   if (d < row.sectionMinDiameter) {
     issues.push({
       severity: 'warn',
-      message: `Ø${row.sectionMinDiameter} ALTINDA PROFİLDE DEFORMASYON OLUŞABİLİR. GİRİLEN Ø${d}.`,
+      message: t('Ø{min} ALTINDA PROFİLDE DEFORMASYON OLUŞABİLİR. GİRİLEN Ø{d}.', { min: row.sectionMinDiameter, d }),
     })
   }
 
@@ -143,7 +144,12 @@ export function checkCapacity(input: CapacityInput): CapacityCheck {
   if (mph > HARDENING_LIMIT_KNM && input.stepMm > HARDENING_MAX_STEP_MM) {
     issues.push({
       severity: 'block',
-      message: `PEKLEŞME ${mph.toFixed(1)} kNm (> ${HARDENING_LIMIT_KNM}). ADIM (G) EN FAZLA ${HARDENING_MAX_STEP_MM} mm OLABİLİR, GİRİLEN ${input.stepMm} mm.`,
+      message: t('PEKLEŞME {mph} kNm (> {limit}). ADIM (G) EN FAZLA {max} mm OLABİLİR, GİRİLEN {step} mm.', {
+        mph: mph.toFixed(1),
+        limit: HARDENING_LIMIT_KNM,
+        max: HARDENING_MAX_STEP_MM,
+        step: input.stepMm,
+      }),
     })
   }
 

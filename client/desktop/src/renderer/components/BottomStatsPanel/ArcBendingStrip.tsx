@@ -13,6 +13,7 @@ import ArcProfileDiagram, {
   type ActivePiece,
   type DiagramSegment,
 } from '@/pages/ArcBendingMeasurementsPage/ArcProfileDiagram'
+import { translateProgress, useLang, useT } from '@/i18n'
 import styles from './ArcBendingStrip.module.css'
 
 interface Props {
@@ -51,24 +52,26 @@ export function activePieceFromMessage(message: string | null | undefined): Acti
 }
 
 export default function ArcBendingStrip({ job, progress }: Props) {
+  const t = useT()
+  const lang = useLang()
   const { segments, trailing } = arcBendingOrder(job)
   const active = activePieceFromMessage(progress?.message)
 
   const pieces = buildPieces(segments, trailing)
   const idx = active ? pieces.findIndex((p) => p.kind === active.kind && p.seg === active.seg) : -1
-  let status = progress?.message ?? 'BÜKÜM BAŞLATILIYOR…'
+  let status = progress?.message != null ? translateProgress(progress.message, lang) : t('BÜKÜM BAŞLATILIYOR…')
   if (idx >= 0 && active) {
     const seg = segments[active.seg - 1]
     status =
       active.kind === 'straight'
-        ? `${idx + 1} · DÜZLÜK — PARÇA İLERLETİLİYOR`
-        : `${idx + 1} · RADYUS R ${seg ? seg.R.toFixed(0) : ''} BÜKÜLÜYOR`
+        ? t('{i} · DÜZLÜK — PARÇA İLERLETİLİYOR', { i: idx + 1 })
+        : t('{i} · RADYUS R {r} BÜKÜLÜYOR', { i: idx + 1, r: seg ? seg.R.toFixed(0) : '' })
   }
 
   return (
     <div className={styles.wrap}>
       <div className={styles.head}>
-        <span className={styles.title}>ÇOK AÇILI BÜKÜM</span>
+        <span className={styles.title}>{t('ÇOK AÇILI BÜKÜM')}</span>
         <span className={styles.status} data-active={idx >= 0 || undefined}>{status}</span>
       </div>
       <div className={styles.diagram}>

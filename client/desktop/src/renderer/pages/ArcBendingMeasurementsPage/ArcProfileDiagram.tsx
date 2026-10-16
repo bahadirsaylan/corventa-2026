@@ -6,6 +6,7 @@
 // Numaralar düzlükleri de kapsar: 1 düzlük, 2 radyus, 3 düzlük, …
 
 import styles from './ArcProfileDiagram.module.css'
+import { useT } from '@/i18n'
 
 export interface DiagramSegment {
   /** Yaydan önceki düzlük (büküm sırasına göre) */
@@ -44,12 +45,13 @@ export function buildPieces(segments: DiagramSegment[], trailing: number): Piece
 }
 
 export default function ArcProfileDiagram({ segments, trailing, active = null }: Props) {
+  const t = useT()
   const pieces = buildPieces(segments, trailing)
   const isActive = (p: Piece) => !!active && active.kind === p.kind && active.seg === p.seg
 
   return (
     <div className={styles.diagram}>
-      <span className={styles.endCap} data-side="start">BAŞ</span>
+      <span className={styles.endCap} data-side="start">{t('BAŞ')}</span>
       <div className={styles.row}>
         {pieces.map((p, i) =>
           p.kind === 'straight' ? (
@@ -60,19 +62,19 @@ export default function ArcProfileDiagram({ segments, trailing, active = null }:
                 </svg>
                 <span className={styles.badgeHtml} style={{ top: BASE + 16 }}>{i + 1}</span>
               </div>
-              <span className={styles.label}>{p.label}</span>
+              <span className={styles.label}>{t(p.label)}</span>
               <span className={styles.value}>{p.length.toFixed(0)} mm</span>
             </div>
           ) : (
             <div key={i} className={styles.arcPiece} data-active={isActive(p) || undefined}>
               <ArcShape order={i + 1} bendDeg={180 - p.data.alpha} />
               <span className={styles.label}>R {p.data.R.toFixed(0)}</span>
-              <span className={styles.value}>YAY {p.data.arc.toFixed(0)} mm</span>
+              <span className={styles.value}>{t('YAY')} {p.data.arc.toFixed(0)} mm</span>
             </div>
           ),
         )}
       </div>
-      <span className={styles.endCap} data-side="end">SON</span>
+      <span className={styles.endCap} data-side="end">{t('SON')}</span>
     </div>
   )
 }

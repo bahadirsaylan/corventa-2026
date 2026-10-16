@@ -15,12 +15,14 @@ import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useSessionStore, useUserKey } from '@/stores/sessionStore'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
+import { useT } from '@/i18n'
 import { SideMenuIcon, GearIcon } from './SideMenuIcons'
 import styles from './SideMenu.module.css'
 
 export default function SideMenu() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const t = useT()
   const { pathname } = useLocation()
   const bendingActive = useBendingActive()
   const resetJob = useBendingJobStore((s) => s.resetJob)
@@ -110,7 +112,7 @@ export default function SideMenu() {
           className={styles.handle}
           data-visible={(peek && !open) || undefined}
           onClick={() => setOpen(true)}
-          aria-label="Menüyü aç"
+          aria-label={t('Menüyü aç')}
         >
           <GearIcon />
         </button>
@@ -121,7 +123,7 @@ export default function SideMenu() {
       <nav
         className={styles.rail}
         data-open={open || undefined}
-        aria-label="Hızlı menü"
+        aria-label={t('Hızlı menü')}
         aria-hidden={!open}
         onPointerDown={railDown}
         onPointerMove={railMove}
@@ -143,17 +145,17 @@ export default function SideMenu() {
               tabIndex={open ? 0 : -1}
             >
               <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
-              <span className={styles.label}>{it.label}</span>
+              <span className={styles.label}>{t(it.label)}</span>
             </button>
           ))}
-          {bendingActive && <span className={styles.lockNote}>BÜKÜM SÜRÜYOR</span>}
+          {bendingActive && <span className={styles.lockNote}>{t('BÜKÜM SÜRÜYOR')}</span>}
         </div>
 
         <button
           type="button"
           className={styles.close}
           onClick={() => setOpen(false)}
-          aria-label="Menüyü kapat"
+          aria-label={t('Menüyü kapat')}
           tabIndex={open ? 0 : -1}
         >
           <svg viewBox="0 0 64 64" aria-hidden>

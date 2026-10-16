@@ -1,5 +1,13 @@
 import styles from './ArcPlanConfirmModal.module.css'
 import type { ValidateArcPlanResponse } from '@shared/types'
+import { useT } from '@/i18n'
+
+// Çevrilmiş metindeki <b>…</b> işaretlerini kalın parçalara böler (çeviri kelime sırası için).
+function withBold(text: string, boldClass?: string) {
+  return text
+    .split(/<\/?b>/)
+    .map((part, i) => (i % 2 === 1 ? <b key={i} className={boldClass}>{part}</b> : part))
+}
 
 interface Props {
   plan: ValidateArcPlanResponse
@@ -11,43 +19,43 @@ interface Props {
 // operatörden onay alan modal. Uzatma yok + reversal yoksa gösterilmez (Page
 // direkt navigate eder).
 export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props) {
+  const t = useT()
   const hasExtension = (plan.extensionMm ?? 0) > 0
   const isReversed = plan.isReversed === true
   const sideStr = plan.side === 'Leading'
-    ? 'PARÇA BAŞINA (ilk düzlük tarafına)'
+    ? t('PARÇA BAŞINA (ilk düzlük tarafına)')
     : plan.side === 'Trailing'
-      ? 'PARÇA SONUNA'
+      ? t('PARÇA SONUNA')
       : ''
-  const reasonStr = plan.isMeasurementOnly ? 'ÖLÇÜM İÇİN' : 'BÜKÜM İÇİN'
+  const reasonStr = plan.isMeasurementOnly ? t('ÖLÇÜM İÇİN') : t('BÜKÜM İÇİN')
 
   return (
     <div className={styles.overlay}>
       <div className={styles.box}>
-        <div className={styles.head}>KIVRIM PLANI HAZIR</div>
+        <div className={styles.head}>{t('KIVRIM PLANI HAZIR')}</div>
 
         {hasExtension && (
           <div className={styles.section}>
-            <div className={styles.sectionHead}>PARÇA UZATMA GEREKLİ</div>
+            <div className={styles.sectionHead}>{t('PARÇA UZATMA GEREKLİ')}</div>
             <div className={styles.sectionBody}>
               <div>
-                Parçayı <b className={styles.big}>{plan.extensionMm!.toFixed(0)} mm</b> uzatın.
+                {withBold(t('Parçayı <b>{mm} mm</b> uzatın.', { mm: plan.extensionMm!.toFixed(0) }), styles.big)}
               </div>
-              <div>Ekleme <b>{sideStr}</b> yapılacak.</div>
-              <div className={styles.small}>Sebep: {reasonStr}</div>
+              <div>{withBold(t('Ekleme <b>{side}</b> yapılacak.', { side: sideStr }))}</div>
+              <div className={styles.small}>{t('Sebep')}: {reasonStr}</div>
             </div>
           </div>
         )}
 
         {isReversed && (
           <div className={styles.section}>
-            <div className={styles.sectionHead}>SEGMENT SIRASI TERS ÇEVRİLDİ</div>
+            <div className={styles.sectionHead}>{t('SEGMENT SIRASI TERS ÇEVRİLDİ')}</div>
             <div className={styles.sectionBody}>
               <div>
-                Segmentler <b>ters sırada</b> bükülecek — parça sonu (SegN) önce
-                bükülür, Seg1 en son.
+                {withBold(t('Segmentler <b>ters sırada</b> bükülecek — parça sonu (SegN) önce bükülür, Seg1 en son.'))}
               </div>
               <div className={styles.small}>
-                Parça sıfırlama parça sonu tarafında yapılacak.
+                {t('Parça sıfırlama parça sonu tarafında yapılacak.')}
               </div>
             </div>
           </div>
@@ -55,7 +63,7 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
 
         {plan.adjustedPartLengthMm != null && plan.adjustedPartLengthMm > 0 && (
           <div className={styles.summary}>
-            Ayarlanmış toplam parça boyu: <b>{plan.adjustedPartLengthMm.toFixed(0)} mm</b>
+            {t('Ayarlanmış toplam parça boyu')}: <b>{plan.adjustedPartLengthMm.toFixed(0)} mm</b>
           </div>
         )}
 
@@ -65,10 +73,10 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
 
         <div className={styles.actions}>
           <button className={styles.cancelBtn} onClick={onCancel}>
-            İPTAL
+            {t('İPTAL')}
           </button>
           <button className={styles.acceptBtn} onClick={onAccept}>
-            ONAYLA & DEVAM
+            {t('ONAYLA & DEVAM')}
           </button>
         </div>
       </div>

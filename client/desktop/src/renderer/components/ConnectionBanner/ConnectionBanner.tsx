@@ -4,6 +4,7 @@
 import type { ReactElement } from 'react'
 
 import { useStaleMs, useOverallConnectionState } from '@/hooks/useConnectionStatus'
+import { useT } from '@/i18n'
 import styles from './ConnectionBanner.module.css'
 
 const STALE_THRESHOLD_MS = 5_000
@@ -11,6 +12,7 @@ const STALE_THRESHOLD_MS = 5_000
 export default function ConnectionBanner(): ReactElement | null {
   const overall = useOverallConnectionState()
   const staleMs = useStaleMs()
+  const t = useT()
 
   // Bağlantı tam ve veri taze → banner yok
   if (overall === 'connected' && Number.isFinite(staleMs) && staleMs < STALE_THRESHOLD_MS) {
@@ -21,15 +23,15 @@ export default function ConnectionBanner(): ReactElement | null {
   let variant: 'warn' | 'error' = 'warn'
 
   if (overall === 'connecting') {
-    label = 'MAKİNEYE BAĞLANILIYOR…'
+    label = t('MAKİNEYE BAĞLANILIYOR…')
   } else if (overall === 'reconnecting') {
-    label = 'BAĞLANTI YENİDEN KURULUYOR…'
+    label = t('BAĞLANTI YENİDEN KURULUYOR…')
   } else if (overall === 'disconnected' || overall === 'error') {
-    label = 'MAKİNEYE BAĞLANILAMIYOR'
+    label = t('MAKİNEYE BAĞLANILAMIYOR')
     variant = 'error'
   } else if (Number.isFinite(staleMs) && staleMs >= STALE_THRESHOLD_MS) {
     const sec = Math.floor(staleMs / 1000)
-    label = `VERİ AKMIYOR — ${sec}sn ÖNCESİNE AİT DURUM GÖSTERİLİYOR`
+    label = t('VERİ AKMIYOR — {sec}sn ÖNCESİNE AİT DURUM GÖSTERİLİYOR', { sec })
     variant = 'error'
   }
 

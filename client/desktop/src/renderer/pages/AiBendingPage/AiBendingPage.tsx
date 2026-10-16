@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
 import PipeTypeModal from './PipeTypeModal'
@@ -12,6 +13,7 @@ import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 export default function AiBendingPage() {
   const navigate = useNavigate()
+  const t = useT()
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -32,9 +34,9 @@ export default function AiBendingPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVIRIM PROFİLİNİ SEÇİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVIRIM PROFİLİNİ SEÇİNİZ')}</h2>
       {profileId === 'circle' && profileSubType && (
-        <p className={styles.subtitle}>{profileSubType === 'ETLI' ? 'ETLİ BORU' : 'DİKİŞLİ BORU'}</p>
+        <p className={styles.subtitle}>{profileSubType === 'ETLI' ? t('ETLİ BORU') : t('DİKİŞLİ BORU')}</p>
       )}
 
       {/* ── Content row ─────────────────────────── */}

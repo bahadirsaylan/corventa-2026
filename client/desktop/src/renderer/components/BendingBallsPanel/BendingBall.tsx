@@ -3,6 +3,7 @@
 // pointerdown → jog baslar, pointerup/leave → dur. Endustriyel touch + mouse ile ayni yolla calisir.
 
 import { useCallback, useRef } from 'react'
+import { useT } from '@/i18n'
 import styles from './BendingBall.module.css'
 
 interface BendingBallProps {
@@ -57,6 +58,7 @@ interface HoldButtonProps {
 
 function HoldButton({ label, disabled, onStart, onStop }: HoldButtonProps) {
   const activeRef = useRef(false)
+  const t = useT()
 
   const start = useCallback(() => {
     if (disabled || activeRef.current || !onStart) return
@@ -87,7 +89,7 @@ function HoldButton({ label, disabled, onStart, onStop }: HoldButtonProps) {
       onPointerCancel={stop}
       onPointerLeave={stop}
       onContextMenu={(e) => e.preventDefault()}
-      aria-label={label === '+' ? 'jog ileri' : 'jog geri'}
+      aria-label={label === '+' ? t('jog ileri') : t('jog geri')}
     >
       {label}
     </button>

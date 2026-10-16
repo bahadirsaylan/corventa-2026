@@ -3,6 +3,7 @@
 
 import { BendingDirectionId } from '@/store/bendingJobStore'
 import type { DirectionOption } from '@/constants/profileDirections'
+import { useT } from '@/i18n'
 import styles from './BendingDirectionGrid.module.css'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function BendingDirectionGrid({ options, selected, onSelect }: Props) {
+  const t = useT()
   return (
     <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${Math.max(options.length, 2)}, 1fr)` }}>
       {options.map((d) => (
@@ -22,11 +24,11 @@ export default function BendingDirectionGrid({ options, selected, onSelect }: Pr
         >
           {d.image ? (
             <>
-              <img src={d.image} alt={d.label} className={styles.image} />
-              <span className={styles.caption}>{d.label}</span>
+              <img src={d.image} alt={t(d.label)} className={styles.image} />
+              <span className={styles.caption}>{t(d.label)}</span>
             </>
           ) : (
-            <span className={styles.label}>{d.label}</span>
+            <span className={styles.label}>{t(d.label)}</span>
           )}
         </button>
       ))}

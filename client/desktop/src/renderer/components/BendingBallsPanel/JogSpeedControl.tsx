@@ -3,6 +3,7 @@
 // Deger BendingBallsPanel state'inde tutulur, hem piston BendingBall'lara hem
 // RotationJogButtons'a prop olarak gecirilir.
 
+import { useT } from '@/i18n'
 import styles from './JogSpeedControl.module.css'
 
 interface Props {
@@ -16,19 +17,20 @@ const MIN = 5
 const MAX = 100
 
 export default function JogSpeedControl({ value, onChange, disabled = false }: Props) {
+  const t = useT()
   const dec = () => onChange(Math.max(MIN, value - STEP))
   const inc = () => onChange(Math.min(MAX, value + STEP))
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.label}>MANUEL HIZ</div>
+      <div className={styles.label}>{t('MANUEL HIZ')}</div>
       <div className={styles.row}>
         <button
           type="button"
           className={styles.btn}
           onClick={dec}
           disabled={disabled || value <= MIN}
-          aria-label="hızı azalt"
+          aria-label={t('hızı azalt')}
         >
           −
         </button>
@@ -41,7 +43,7 @@ export default function JogSpeedControl({ value, onChange, disabled = false }: P
           className={styles.btn}
           onClick={inc}
           disabled={disabled || value >= MAX}
-          aria-label="hızı artır"
+          aria-label={t('hızı artır')}
         >
           +
         </button>

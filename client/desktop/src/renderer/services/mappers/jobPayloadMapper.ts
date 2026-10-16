@@ -11,6 +11,7 @@
 // Mapping konusunda backend tarafıyla tartışılması gereken noktalar
 // CLAUDE.md "Uzman Review Hazırlığı" altında not edildi.
 
+import { t } from '@/i18n'
 import type { BendingJobParams, BendingProfileId } from '@/store/bendingJobStore'
 import {
   BendingDirection,
@@ -71,11 +72,11 @@ export function mapToCreateRequest(
   opts: MapOptions = {},
 ): BendingJobCreateRequest {
   if (!params.profileId)
-    throw new JobMappingError('profileId', 'Profil seçimi tamamlanmadı')
+    throw new JobMappingError('profileId', t('Profil seçimi tamamlanmadı'))
   if (!params.bendingDirection)
-    throw new JobMappingError('bendingDirection', 'Yön seçimi tamamlanmadı')
+    throw new JobMappingError('bendingDirection', t('Yön seçimi tamamlanmadı'))
   if (!params.bendingMethod)
-    throw new JobMappingError('bendingMethod', 'Metod seçimi tamamlanmadı')
+    throw new JobMappingError('bendingMethod', t('Metod seçimi tamamlanmadı'))
 
   const profileType = PROFILE_MAP[params.profileId]
   const direction = DIRECTION_MAP[params.bendingDirection]
@@ -126,13 +127,13 @@ export function mapToCreateRequest(
   const required = { A, R }
   for (const [name, value] of Object.entries(required)) {
     if (!Number.isFinite(value) || value <= 0) {
-      throw new JobMappingError(name, `${name} değeri geçersiz veya girilmemiş`)
+      throw new JobMappingError(name, t('{name} değeri geçersiz veya girilmemiş', { name }))
     }
   }
   const optional = { B, S }
   for (const [name, value] of Object.entries(optional)) {
     if (!Number.isFinite(value) || value < 0) {
-      throw new JobMappingError(name, `${name} değeri geçersiz`)
+      throw new JobMappingError(name, t('{name} değeri geçersiz', { name }))
     }
   }
 
@@ -160,7 +161,7 @@ export function mapToCreateRequest(
     partLengthMm = params.widthMm
   }
   if (partLengthMm == null || !Number.isFinite(partLengthMm) || partLengthMm <= 0) {
-    throw new JobMappingError('partLengthMm', 'Parça uzunluğu (L) girilmemiş veya geçersiz')
+    throw new JobMappingError('partLengthMm', t('Parça uzunluğu (L) girilmemiş veya geçersiz'))
   }
 
   // Arc-only payload — P (segment sayısı), G (Arc step), H (kıvrım hız) + 1. segment
@@ -173,31 +174,31 @@ export function mapToCreateRequest(
   if (params.bendingMethod === 'arc' && params.arcBending) {
     const ab = params.arcBending
     if (ab.P == null || !Number.isFinite(ab.P) || ab.P <= 0) {
-      throw new JobMappingError('P', 'Segment sayısı (P) girilmemiş veya geçersiz')
+      throw new JobMappingError('P', t('Segment sayısı (P) girilmemiş veya geçersiz'))
     }
     if (ab.G == null || !Number.isFinite(ab.G) || ab.G <= 0) {
-      throw new JobMappingError('G', 'Adım değeri (G) girilmemiş veya geçersiz')
+      throw new JobMappingError('G', t('Adım değeri (G) girilmemiş veya geçersiz'))
     }
     if (!ab.segments || ab.segments.length === 0) {
-      throw new JobMappingError('segments', 'Segment listesi boş')
+      throw new JobMappingError('segments', t('Segment listesi boş'))
     }
     if (ab.segments.length !== Math.round(ab.P)) {
       throw new JobMappingError(
         'segments',
-        `Segment sayısı P (${ab.P}) ile listedeki (${ab.segments.length}) uyuşmuyor`,
+        t('Segment sayısı P ({p}) ile listedeki ({n}) uyuşmuyor', { p: ab.P, n: ab.segments.length }),
       )
     }
     // Her segment R>0, 0<α<180, L≥0 validate
     ab.segments.forEach((seg, i) => {
       const order = i + 1
       if (seg.R == null || !Number.isFinite(seg.R) || seg.R <= 0) {
-        throw new JobMappingError(`segment${order}.R`, `Segment ${order}: R (yarıçap) 0'dan büyük olmalı`)
+        throw new JobMappingError(`segment${order}.R`, t("Segment {order}: R (yarıçap) 0'dan büyük olmalı", { order }))
       }
       if (seg.Alpha == null || !Number.isFinite(seg.Alpha) || seg.Alpha <= 0 || seg.Alpha >= 180) {
-        throw new JobMappingError(`segment${order}.Alpha`, `Segment ${order}: α 0 < α < 180 olmalı`)
+        throw new JobMappingError(`segment${order}.Alpha`, t('Segment {order}: α 0 < α < 180 olmalı', { order }))
       }
       if (seg.L == null || !Number.isFinite(seg.L) || seg.L < 0) {
-        throw new JobMappingError(`segment${order}.L`, `Segment ${order}: L (düzlük) ≥ 0 olmalı`)
+        throw new JobMappingError(`segment${order}.L`, t('Segment {order}: L (düzlük) ≥ 0 olmalı', { order }))
       }
     })
     totalSegmentCount = Math.round(ab.P)

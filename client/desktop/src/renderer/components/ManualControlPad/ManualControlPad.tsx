@@ -15,6 +15,7 @@ import type { PistonName, SideSupportSide, SideSupportType } from '@shared/types
 import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { useT } from '@/i18n'
 import { useHoldAction } from './useHoldAction'
 import styles from './ManualControlPad.module.css'
 
@@ -29,6 +30,7 @@ const LOCK_DURING_BENDING = false
 export default function ManualControlPad() {
   const bendingActive = useBendingActive()
   const locked = LOCK_DURING_BENDING && bendingActive
+  const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const [speed, setSpeed] = useState(20)
   const [motorBusy, setMotorBusy] = useState(false)
@@ -57,7 +59,7 @@ export default function ManualControlPad() {
     <div className={styles.pad} data-locked={locked || undefined}>
       {locked && (
         <div className={styles.lockBadge}>
-          BÜKÜM AKTİF — PİSTON VE ROTASYON KİLİTLİ · YAN DAYAMALAR SERBEST
+          {t('BÜKÜM AKTİF — PİSTON VE ROTASYON KİLİTLİ · YAN DAYAMALAR SERBEST')}
         </div>
       )}
 
@@ -94,20 +96,20 @@ export default function ManualControlPad() {
           className={styles.speedBtn}
           disabled={locked || speed <= SPEED_MIN}
           onClick={() => setSpeed((v) => Math.max(SPEED_MIN, v - SPEED_STEP))}
-          aria-label="Hızı azalt"
+          aria-label={t('Hızı azalt')}
         >
           −
         </button>
         <div className={styles.speedValue}>
           <span className={styles.speedPct}>%{speed}</span>
-          <span className={styles.speedLabel}>MANUEL HIZ</span>
+          <span className={styles.speedLabel}>{t('MANUEL HIZ')}</span>
         </div>
         <button
           type="button"
           className={styles.speedBtn}
           disabled={locked || speed >= SPEED_MAX}
           onClick={() => setSpeed((v) => Math.min(SPEED_MAX, v + SPEED_STEP))}
-          aria-label="Hızı artır"
+          aria-label={t('Hızı artır')}
         >
           +
         </button>
@@ -148,11 +150,11 @@ export default function ManualControlPad() {
         data-running={motorRunning || undefined}
         disabled={locked || motorBusy || motorRunning || motorStarting}
         onClick={() => void setMotor(true)}
-        aria-label="Hidrolik motoru başlat"
+        aria-label={t('Hidrolik motoru başlat')}
       >
         <span className={styles.motorText}>START</span>
         <span className={styles.motorSub}>
-          {motorRunning ? 'MOTOR ÇALIŞIYOR' : motorStarting ? 'BAŞLIYOR…' : 'HİDROLİK MOTOR'}
+          {motorRunning ? t('MOTOR ÇALIŞIYOR') : motorStarting ? t('BAŞLIYOR…') : t('HİDROLİK MOTOR')}
         </span>
       </button>
       <button
@@ -160,10 +162,10 @@ export default function ManualControlPad() {
         className={`${styles.motorBtn} ${styles.stop}`}
         disabled={motorBusy}
         onClick={() => void setMotor(false)}
-        aria-label="Hidrolik motoru durdur"
+        aria-label={t('Hidrolik motoru durdur')}
       >
         <span className={styles.motorText}>STOP</span>
-        <span className={styles.motorSub}>HİDROLİK MOTOR</span>
+        <span className={styles.motorSub}>{t('HİDROLİK MOTOR')}</span>
       </button>
     </div>
   )
@@ -190,6 +192,7 @@ interface SideBtnProps {
 }
 
 function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
+  const t = useT()
   const onStart = useCallback(() => {
     void window.corventa.machine.sideSupportControl({ side, type, direction: dir }).catch(() => {})
   }, [side, type, dir])
@@ -204,7 +207,7 @@ function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
         type="button"
         className={styles.sideBtn}
         data-pressed={pressed || undefined}
-        aria-label={`${side === 'left' ? 'Sol' : 'Sağ'} ${type} ${dir === 1 ? 'ileri' : 'geri'}`}
+        aria-label={`${side === 'left' ? t('Sol') : t('Sağ')} ${type} ${dir === 1 ? t('ileri') : t('geri')}`}
         {...handlers}
       >
         <Arrow deg={arrow} />
@@ -223,6 +226,7 @@ interface RotationBtnProps {
 }
 
 function RotationBtn({ dir, speed, locked, cls, label }: RotationBtnProps) {
+  const t = useT()
   const onStart = useCallback(() => {
     void window.corventa.machine.rotationJog({ direction: dir, speedPercent: speed }).catch(() => {})
   }, [dir, speed])
@@ -237,7 +241,7 @@ function RotationBtn({ dir, speed, locked, cls, label }: RotationBtnProps) {
       className={`${styles.rotBtn} ${cls}`}
       data-pressed={pressed || undefined}
       disabled={locked}
-      aria-label={label}
+      aria-label={t(label)}
       {...handlers}
     >
       <svg className={styles.rotIcon} viewBox="0 0 100 100" aria-hidden
@@ -265,11 +269,12 @@ interface PistonPillProps {
 }
 
 function PistonPill(p: PistonPillProps) {
+  const t = useT()
   return (
     <div className={`${styles.pill} ${p.cls}`}>
       <PistonHalf piston={p.piston} dir={p.topDir} arrow={p.topArrow} speed={p.speed} locked={p.locked} pos="top" />
       <div className={styles.pillMid}>
-        <span className={styles.pillTitle}>{p.title}</span>
+        <span className={styles.pillTitle}>{t(p.title)}</span>
         <span className={styles.pillValue}>{p.value.toFixed(1)}</span>
       </div>
       <PistonHalf piston={p.piston} dir={p.bottomDir} arrow={p.bottomArrow} speed={p.speed} locked={p.locked} pos="bottom" />
@@ -287,6 +292,7 @@ interface PistonHalfProps {
 }
 
 function PistonHalf({ piston, dir, arrow, speed, locked, pos }: PistonHalfProps) {
+  const t = useT()
   // Backend polaritesi: direction=-1 ileri (parçaya), +1 geri (BendingBallsPanel ile aynı)
   const onStart = useCallback(() => {
     void window.corventa.machine.pistonJog({ piston, direction: dir, speedPercent: speed }).catch(() => {})
@@ -303,7 +309,7 @@ function PistonHalf({ piston, dir, arrow, speed, locked, pos }: PistonHalfProps)
       data-pos={pos}
       data-pressed={pressed || undefined}
       disabled={locked}
-      aria-label={`${piston} ${dir === -1 ? 'ileri' : 'geri'}`}
+      aria-label={`${piston} ${dir === -1 ? t('ileri') : t('geri')}`}
       {...handlers}
     >
       <Arrow deg={arrow} />

@@ -1,11 +1,12 @@
 // Ayarlar > Dil Seçimi — sade liste: bayrak + dilin kendi adı + Türkçe adı.
 // Tüm diller seçilebilir. Karta dokunmak seçer, KAYDET ile kalıcı olur.
-// Gerçek çeviri sistemi henüz yok — kaydedilen dil bu cihazda hatırlanır (localStorage);
-// i18n gelince aynı kayıt oradan okunur.
+// Kaydedilen dil bu cihazda hatırlanır (localStorage) ve tüm arayüz anında o dile geçer (@/i18n).
+// Şimdilik çevirisi olan dil: İngilizce — diğerleri Türkçe görünür.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Flag, { type FlagCode } from './Flag'
+import { useLangStore, useT, type LangCode } from '@/i18n'
 import styles from './LanguagePage.module.css'
 
 interface LangOption {
@@ -40,6 +41,7 @@ export default function LanguagePage() {
   const [saved, setSaved] = useState<string>(readStored)
   const [selected, setSelected] = useState<string>(saved)
   const [justSaved, setJustSaved] = useState(false)
+  const t = useT()
   const dirty = selected !== saved
   const savedLang = LANGS.find((l) => l.code === saved)!
 
@@ -49,11 +51,7 @@ export default function LanguagePage() {
   }
 
   function save() {
-    try {
-      localStorage.setItem(STORAGE_KEY, selected)
-    } catch {
-      /* depolama kapalıysa bu oturumda geçerli kalır */
-    }
+    useLangStore.getState().setLang(selected as LangCode) // localStorage'a da yazar
     setSaved(selected)
     setJustSaved(true)
   }
@@ -62,7 +60,7 @@ export default function LanguagePage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>DİL SEÇİMİ</h1>
+        <h1 className={styles.title}>{t('DİL SEÇİMİ')}</h1>
       </div>
 
       <div className={styles.grid}>
@@ -76,7 +74,7 @@ export default function LanguagePage() {
           >
             <Flag code={l.flag} className={styles.flag} />
             <span className={styles.native}>{l.nativeName}</span>
-            <span className={styles.name}>{l.name}</span>
+            <span className={styles.name}>{t(l.name)}</span>
             {selected === l.code && <span className={styles.check} aria-hidden>✓</span>}
           </button>
         ))}
@@ -85,13 +83,13 @@ export default function LanguagePage() {
       <div className={styles.footer}>
         <span className={styles.status} data-ok={justSaved || undefined}>
           {justSaved
-            ? `KAYDEDİLDİ — ${savedLang.name}`
+            ? t('KAYDEDİLDİ — {name}', { name: t(savedLang.name) })
             : dirty
-              ? "SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN"
-              : `KAYITLI DİL: ${savedLang.name}`}
+              ? t("SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN")
+              : t('KAYITLI DİL: {name}', { name: t(savedLang.name) })}
         </span>
         <button type="button" className={styles.saveBtn} onClick={save} disabled={!dirty}>
-          KAYDET
+          {t('KAYDET')}
         </button>
       </div>
     </div>
