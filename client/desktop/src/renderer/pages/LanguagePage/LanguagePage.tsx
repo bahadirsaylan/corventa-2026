@@ -1,16 +1,16 @@
-// Ayarlar > Dil Seçimi — sade liste: bayrak + dilin kendi adı + Türkçe adı.
+// Ayarlar > Dil Seçimi — aktif dil kartı + desteklenen diller (SVG bayrak + durum rozeti) + önizleme.
 // Tüm diller seçilebilir. Karta dokunmak seçer, KAYDET ile kalıcı olur.
 // Kaydedilen dil bu cihazda hatırlanır (localStorage) ve tüm arayüz anında o dile geçer (@/i18n).
-// Şimdilik çevirisi olan dil: İngilizce — diğerleri Türkçe görünür.
+// Çevirisi olmayan diller Türkçe görünür (rozet: PLANLANAN).
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Flag, { type FlagCode } from './Flag'
-import { useLangStore, useT, type LangCode } from '@/i18n'
+import { hasDictionary, translate, useLangStore, useT, type LangCode } from '@/i18n'
 import styles from './LanguagePage.module.css'
 
 interface LangOption {
-  code: string
+  code: LangCode
   flag: FlagCode
   name: string
   nativeName: string
@@ -25,34 +25,26 @@ const LANGS: LangOption[] = [
   { code: 'fr', flag: 'fr', name: 'FRANSIZCA', nativeName: 'Français' },
 ]
 
-const STORAGE_KEY = 'corventa.language'
-
-function readStored(): string {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY)
-    return v && LANGS.some((l) => l.code === v) ? v : 'tr'
-  } catch {
-    return 'tr'
-  }
-}
+// Önizleme satırları — sözlükteki gerçek anahtarlar
+const PREVIEW_KEYS = ['BÜKÜMÜ BAŞLAT', 'GÖNYE AL', 'STAGE SEÇİMİ', 'MAKİNE HAZIR.']
 
 export default function LanguagePage() {
   const navigate = useNavigate()
-  const [saved, setSaved] = useState<string>(readStored)
-  const [selected, setSelected] = useState<string>(saved)
+  const savedCode = useLangStore((s) => s.lang)
+  const [selected, setSelected] = useState<LangCode>(savedCode)
   const [justSaved, setJustSaved] = useState(false)
   const t = useT()
-  const dirty = selected !== saved
-  const savedLang = LANGS.find((l) => l.code === saved)!
+  const dirty = selected !== savedCode
+  const savedLang = LANGS.find((l) => l.code === savedCode) ?? LANGS[0]
+  const selectedLang = LANGS.find((l) => l.code === selected) ?? LANGS[0]
 
-  function choose(code: string) {
+  function choose(code: LangCode) {
     setSelected(code)
     setJustSaved(false)
   }
 
   function save() {
-    useLangStore.getState().setLang(selected as LangCode) // localStorage'a da yazar
-    setSaved(selected)
+    useLangStore.getState().setLang(selected) // localStorage'a da yazar
     setJustSaved(true)
   }
 
@@ -63,35 +55,84 @@ export default function LanguagePage() {
         <h1 className={styles.title}>{t('DİL SEÇİMİ')}</h1>
       </div>
 
-      <div className={styles.grid}>
-        {LANGS.map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            className={styles.langCard}
-            data-selected={selected === l.code || undefined}
-            onClick={() => choose(l.code)}
-          >
-            <Flag code={l.flag} className={styles.flag} />
-            <span className={styles.native}>{l.nativeName}</span>
-            <span className={styles.name}>{t(l.name)}</span>
-            {selected === l.code && <span className={styles.check} aria-hidden>✓</span>}
-          </button>
-        ))}
-      </div>
+      <div className={styles.body}>
+        {/* Aktif dil özet */}
+        <div className={styles.currentCard}>
+          <span className={styles.currentLabel}>{t('AKTİF DİL')}</span>
+          <div className={styles.currentRow}>
+            <Flag code={savedLang.flag} className={styles.currentFlag} />
+            <span className={styles.currentName}>{t(savedLang.name)}</span>
+            <span className={styles.currentNative}>({savedLang.nativeName})</span>
+          </div>
+        </div>
 
-      <div className={styles.footer}>
-        <span className={styles.status} data-ok={justSaved || undefined}>
-          {justSaved
-            ? t('KAYDEDİLDİ — {name}', { name: t(savedLang.name) })
-            : dirty
-              ? t("SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN")
-              : t('KAYITLI DİL: {name}', { name: t(savedLang.name) })}
-        </span>
-        <button type="button" className={styles.saveBtn} onClick={save} disabled={!dirty}>
-          {t('KAYDET')}
-        </button>
+        {/* Dil kartları */}
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>{t('DESTEKLENEN DİLLER')}</div>
+          <div className={styles.langGrid}>
+            {LANGS.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                className={`${styles.langCard} ${selected === l.code ? styles.langSelected : ''}`}
+                onClick={() => choose(l.code)}
+              >
+                <Flag code={l.flag} className={styles.langFlag} />
+                <div className={styles.langInfo}>
+                  <span className={styles.langName}>{t(l.name)}</span>
+                  <span className={styles.langNative}>{l.nativeName}</span>
+                </div>
+                <StatusBadge ready={hasDictionary(l.code)} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Önizleme */}
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>{t('ÖNİZLEME')}</div>
+          <div className={styles.previewTable}>
+            <div className={`${styles.previewRow} ${styles.previewHeader}`}>
+              <span>{t('TÜRKÇE')}</span>
+              <span>{t(selectedLang.name)}</span>
+            </div>
+            {PREVIEW_KEYS.map((k) => {
+              const target = translate(k, selected)
+              const missing = selected !== 'tr' && target === k
+              return (
+                <div key={k} className={styles.previewRow}>
+                  <span>{k}</span>
+                  <span className={styles.previewTarget}>
+                    {missing ? `${k} (${t('henüz çevrilmedi')})` : target}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className={styles.footerRow}>
+          <button type="button" className={styles.applyBtn} onClick={save} disabled={!dirty}>
+            {t('KAYDET')}
+          </button>
+          <p className={styles.note} data-ok={justSaved || undefined}>
+            {justSaved
+              ? t('KAYDEDİLDİ — {name}', { name: t(savedLang.name) })
+              : dirty
+                ? t("SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN")
+                : t('KAYITLI DİL: {name}', { name: t(savedLang.name) })}
+          </p>
+        </div>
       </div>
     </div>
+  )
+}
+
+function StatusBadge({ ready }: { ready: boolean }) {
+  const t = useT()
+  return (
+    <span className={styles.statusBadge} data-ready={ready || undefined}>
+      {ready ? t('HAZIR') : t('PLANLANAN')}
+    </span>
   )
 }

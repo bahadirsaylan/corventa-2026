@@ -33,12 +33,13 @@ function loadDict(code) {
   const dict = new Map()
   const conflicts = []
   if (!existsSync(dir)) return { dict, conflicts }
-  const pair = new RegExp(String.raw`^\s*(?:${STR})\s*:\s*(?:${STR})`, 'gm')
+  // anahtar tırnaklı ya da tırnaksız (TÜRKÇE: 'TURKISH') olabilir
+  const pair = new RegExp(String.raw`^\s*(?:${STR}|([\p{L}_$][\p{L}\p{N}_$]*))\s*:\s*(?:${STR})`, 'gmu')
   for (const f of readdirSync(dir).filter((n) => n.endsWith('.ts'))) {
     const src = readFileSync(join(dir, f), 'utf8')
     for (const m of src.matchAll(pair)) {
-      const k = unesc(m[1] ?? m[2])
-      const v = unesc(m[3] ?? m[4])
+      const k = m[3] ?? unesc(m[1] ?? m[2])
+      const v = unesc(m[4] ?? m[5])
       if (dict.has(k) && dict.get(k).v !== v) conflicts.push(`${k}  →  "${dict.get(k).v}" (${dict.get(k).f}) / "${v}" (${f})`)
       dict.set(k, { v, f })
     }

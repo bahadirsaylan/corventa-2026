@@ -13,6 +13,10 @@ const en: Record<string, string> = {
   "SEÇİMİ KAYDETMEK İÇİN KAYDET'E BASIN": 'PRESS SAVE TO APPLY YOUR SELECTION',
   'KAYITLI DİL: {name}': 'SAVED LANGUAGE: {name}',
   KAYDET: 'SAVE',
+  'AKTİF DİL': 'ACTIVE LANGUAGE',
+  'DESTEKLENEN DİLLER': 'SUPPORTED LANGUAGES',
+  PLANLANAN: 'PLANNED',
+  'henüz çevrilmedi': 'not translated yet',
 }
 
 export default en
