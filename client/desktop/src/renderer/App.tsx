@@ -38,6 +38,8 @@ import ArcBendingMeasurementsPage from '@/pages/ArcBendingMeasurementsPage/ArcBe
 import SpiralBendingMeasurementsPage from '@/pages/SpiralBendingMeasurementsPage/SpiralBendingMeasurementsPage'
 import SivamaBendingMeasurementsPage from '@/pages/SivamaBendingMeasurementsPage/SivamaBendingMeasurementsPage'
 import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
+import UnloadPage from '@/pages/UnloadPage/UnloadPage'
+import NextActionPage from '@/pages/NextActionPage/NextActionPage'
 import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage'
 import ManuelBendingPage from '@/pages/ManuelBendingPage/ManuelBendingPage'
 import ManuelProgramEditorPage from '@/pages/ManuelProgramEditorPage/ManuelProgramEditorPage'
@@ -112,6 +114,9 @@ export default function App() {
             <Route path="bending/ai/measurements/sivama" element={<SivamaBendingMeasurementsPage />} />
             <Route path="bending/ai/roll-arrangement" element={<RollArrangementPage />} />
             <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
+            {/* Büküm sonrası: tahliye (SEKIL-18) → ne yapmak istiyorsunuz (SEKIL-20) */}
+            <Route path="bending/unload" element={<UnloadPage />} />
+            <Route path="bending/next" element={<NextActionPage />} />
 
             {/* Manuel Bending */}
             <Route path="bending/manual" element={<ManuelBendingPage />} />

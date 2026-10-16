@@ -35,6 +35,11 @@ export function registerBendingHandlers(): void {
     return engineApi.applyStage(req)
   })
 
+  ipcMain.handle(Ipc.IpcInvoke.UnloadPart, async () => {
+    log.info('unload-part')
+    return engineApi.unloadPart()
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
     log.info('execute-gonye')
     return engineApi.executeGonye()

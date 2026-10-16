@@ -4,6 +4,7 @@ import { app, ipcMain, shell } from 'electron'
 import { existsSync } from 'fs'
 import { join } from 'path'
 
+import { IS_DEMO } from '@main/demo/DemoMachine'
 import { childLogger } from '@main/lib/logger'
 import { Ipc } from '@shared'
 
@@ -25,6 +26,9 @@ function resolveUserGuidePath(): string {
 }
 
 export function registerSystemHandlers(): void {
+  // Demo modu mu? (CORVENTA_DEMO=1) — demoya özel ekranlar (tahliye) bununla açılır
+  ipcMain.handle(Ipc.IpcInvoke.SystemIsDemo, async () => IS_DEMO)
+
   ipcMain.handle(Ipc.IpcInvoke.OpenUserGuide, async () => {
     const pdfPath = resolveUserGuidePath()
 

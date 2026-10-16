@@ -241,10 +241,8 @@ export class DemoMachine extends EventEmitter {
     if (this.sensorTimeout) clearTimeout(this.sensorTimeout)
     this.sensorTimeout = null
     if (url.includes('/part-loading')) {
-      if (this.partSensor) this.togglePartSensor() // ekrana girişte boş başla
-      this.sensorTimeout = setTimeout(() => {
-        if (!this.partSensor) this.togglePartSensor()
-      }, 2500 / this.speed)
+      // Kullanıcı isteği (2026-10-16): parça yükleme ekranında sensör parçayı HEMEN görür
+      if (!this.partSensor) this.togglePartSensor()
     } else if (this.activeJobId == null && this.partSensor && !url.includes('/dashboard')) {
       this.togglePartSensor() // büküm başlamadan ekrandan çıkıldı → parça yok
     }
@@ -494,6 +492,8 @@ export class DemoMachine extends EventEmitter {
     await this.rotateTo(p0 + 12, token, 10)
     if (!this.partSensor) this.togglePartSensor()
     await this.sleep(300, token)
+    // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
+    if (this.partSensor) this.togglePartSensor()
     await this.rotateTo(this.state.rotation.positionMm + (ZERO_RESET_MM - safety), token, 50)
     await this.sleep(400, token)
     this.state.rotation.positionMm = 0
@@ -765,6 +765,8 @@ export class DemoMachine extends EventEmitter {
     await this.sleep(200, token)
     const L1 = plans[0]?.seg.straightAfterMm ?? 0
     const startPos = ZERO_RESET_MM - safety - Math.max(0, L1 - safety)
+    // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
+    if (this.partSensor) this.togglePartSensor()
     if (startPos > 0) await this.rotateTo(this.state.rotation.positionMm + fwd * startPos, token, 50)
     await this.sleep(200, token)
     this.state.rotation.positionMm = 0
@@ -983,6 +985,15 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/preparation/stage') {
       await this.applyStage(Number(b.targetStage) || 1, Number(b.speedPercent) || 50)
       return { success: true }
+    }
+    if (path === '/api/preparation/unload') {
+      // Tahliye (SEKIL-18): üst top baskıyı bırakıp yukarı, yan toplar stage konumuna açılır
+      const token = this.runToken
+      const st = this.currentStage()
+      this.pressureHold = null
+      await this.movePistons({ upperPiston: 0 }, token, 50)
+      await this.movePistons({ leftPiston: st.left, rightPiston: st.right }, token, 60)
+      return { success: true, errorMessage: null }
     }
     if (path === '/api/preparation/gonye') {
       const token = this.runToken

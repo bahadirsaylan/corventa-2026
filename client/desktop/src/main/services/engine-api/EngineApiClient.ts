@@ -83,6 +83,12 @@ export class EngineApiClient {
     }
   }
 
+  // Tahliye (SEKIL-18) — toplar baskıyı bırakıp açılır. Backend endpoint'i henüz YOK:
+  // şimdilik sadece demo modunda karşılanıyor (UI ekranı da sadece demoda açılır).
+  unloadPart(): Promise<{ success: boolean; errorMessage?: string | null }> {
+    return http.post(`${this.baseUrl}/api/preparation/unload`, {}, { timeoutMs: 60_000 })
+  }
+
   startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {
     const u = new URL(`${this.baseUrl}/api/bending-job/${jobId}/start`)
     if (skipAutoCorrect) u.searchParams.set('skipAutoCorrect', 'true')

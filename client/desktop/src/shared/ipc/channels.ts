@@ -14,6 +14,8 @@ export const IpcInvoke = {
   RecommendStage: 'preparation:recommend-stage',
   ApplyStage: 'preparation:apply-stage',
   ExecuteGonye: 'preparation:execute-gonye',
+  // Tahliye (SEKIL-18): geri sayım sonrası toplar baskıyı bırakıp açılır — şimdilik sadece demo
+  UnloadPart: 'preparation:unload-part',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   ConfirmSideSupport: 'bending-job:confirm-side-support',
@@ -73,6 +75,7 @@ export const IpcInvoke = {
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
+  SystemIsDemo: 'system:is-demo',
 } as const
 
 // send (main → renderer, push)

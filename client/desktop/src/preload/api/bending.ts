@@ -40,6 +40,10 @@ export const bendingApi = {
   executeGonye: (): Promise<GonyeResult> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ExecuteGonye),
 
+  // Tahliye (SEKIL-18) — toplar açılır. Şimdilik sadece demo modunda karşılanıyor.
+  unloadPart: (): Promise<{ success: boolean; errorMessage?: string | null }> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.UnloadPart),
+
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),
 
