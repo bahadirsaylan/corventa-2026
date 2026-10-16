@@ -30,7 +30,7 @@ export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
 
       <div className={styles.titleBlock}>
         <span className={styles.title}>{t('MANUEL')}</span>
-        <span className={styles.title}>BENDING</span>
+        <span className={styles.title}>{t('BÜKÜM')}</span>
         {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </div>
 

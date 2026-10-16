@@ -35,6 +35,14 @@ const SEV_COLORS: Record<Severity, string> = {
   CRITICAL: '#7f1d1d', ERROR: '#dc2626', WARNING: '#f59e0b', INFO: '#3b82f6',
 }
 
+// Ekranda gösterilen etiketler (t() ile çevrilir) — kayıt değerleri İngilizce kod olarak kalır.
+const SEV_LABELS: Record<Severity, string> = {
+  CRITICAL: 'KRİTİK', ERROR: 'HATA', WARNING: 'UYARI', INFO: 'BİLGİ',
+}
+const CAT_LABELS: Record<Category, string> = {
+  SAFETY: 'GÜVENLİK', HYDRAULIC: 'HİDROLİK', MODBUS: 'MODBUS', PIPELINE: 'PIPELINE', SENSOR: 'SENSÖR', OTHER: 'DİĞER',
+}
+
 export default function ErrorReportsPage() {
   const navigate = useNavigate()
   const t = useT()
@@ -139,10 +147,10 @@ export default function ErrorReportsPage() {
                   <td className={styles.tdMono}>{r.timestamp}</td>
                   <td>
                     <span className={styles.sevPill} style={{ background: SEV_COLORS[r.severity] }}>
-                      {r.severity}
+                      {t(SEV_LABELS[r.severity])}
                     </span>
                   </td>
-                  <td className={styles.tdCat}>{r.category}</td>
+                  <td className={styles.tdCat}>{t(CAT_LABELS[r.category])}</td>
                   <td className={styles.tdMono}>{r.code}</td>
                   <td>{t(r.message)}</td>
                   <td className={styles.tdOperator}>{r.operator ?? '—'}</td>

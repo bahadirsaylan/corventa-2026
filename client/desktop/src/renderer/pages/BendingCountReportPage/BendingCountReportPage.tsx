@@ -21,8 +21,8 @@ const MOCK_DAILY: DayCount[] = Array.from({ length: 30 }, (_, i) => {
 })
 
 const METHOD_STATS = [
-  { method: 'FULL CIRCLE', count: 148, pct: 62, color: '#1a6fd4' },
-  { method: 'ARC',         count:  56, pct: 23, color: '#dc2626' },
+  { method: 'TAM DAİRE',   count: 148, pct: 62, color: '#1a6fd4' },
+  { method: 'YAY',         count:  56, pct: 23, color: '#dc2626' },
   { method: 'SERPANTİN',   count:  22, pct: 9,  color: '#16a34a' },
   { method: 'SIVAMA',      count:  14, pct: 6,  color: '#f59e0b' },
 ]
@@ -64,7 +64,7 @@ export default function BendingCountReportPage() {
         <div className={styles.statsRow}>
           <SumCard label={t('TOPLAM İŞ')}    value={totals.total.toString()} sub={t('son {n} gün', { n: filtered.length })} color="#2a2a2a" />
           <SumCard label={t('BAŞARILI')}     value={totals.success.toString()} sub={t('%{v}', { v: totals.successRate })} color="#16a34a" />
-          <SumCard label={t('BAŞARISIZ')}    value={totals.fail.toString()} sub="fail/emergency" color="#dc2626" />
+          <SumCard label={t('BAŞARISIZ')}    value={totals.fail.toString()} sub={t('hata/acil')} color="#dc2626" />
           <SumCard label={t('GÜNLÜK ORT.')}  value={totals.avgPerDay} sub={t('iş/gün')} color="#1a6fd4" />
         </div>
 

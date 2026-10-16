@@ -53,7 +53,7 @@ export default function AdminSettingsPage() {
   return (
     <SettingsPageShell
       title={t('ADMİN AYARLARI')}
-      badge={<span className={styles.badge}>ADMIN</span>}
+      badge={<span className={styles.badge}>{t('ADMİN')}</span>}
       onBack={() => navigate('/settings')}
     >
       <AdminEditor />

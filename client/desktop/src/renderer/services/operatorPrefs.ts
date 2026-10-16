@@ -124,3 +124,26 @@ export function readManualRunPrefs(): ManualRunPrefs {
 export function saveManualRunPrefs(p: ManualRunPrefs): void {
   write(MANUAL_RUN_KEY, JSON.stringify(p))
 }
+
+// ── Üretim toleransı (ana ekran başlığındaki TOLERANS seçimi) ──────
+// Şimdilik sadece gösterim / operatör tercihi — büküm hesabına bağlı değil.
+const PRODUCTION_TOL_KEY = 'corventa.productionTolerance'
+
+export const PRODUCTION_TOLERANCES = [
+  { mm: 1, label: 'HASSAS ÜRETİM' },
+  { mm: 10, label: 'KABA ÜRETİM' },
+] as const
+
+export function readProductionTolerance(): number {
+  try {
+    const v = Number(localStorage.getItem(PRODUCTION_TOL_KEY))
+    if (PRODUCTION_TOLERANCES.some((o) => o.mm === v)) return v
+  } catch {
+    /* varsayılan */
+  }
+  return PRODUCTION_TOLERANCES[0].mm
+}
+
+export function saveProductionTolerance(mm: number): void {
+  write(PRODUCTION_TOL_KEY, String(mm))
+}

@@ -229,7 +229,7 @@ export default function ArcBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label="ARTIFICIAL INTELLIGENCE MODE"
+        label={t('YAPAY ZEKA MODU')}
       />
       <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 

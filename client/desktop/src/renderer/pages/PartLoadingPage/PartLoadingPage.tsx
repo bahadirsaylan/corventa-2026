@@ -100,7 +100,7 @@ function PartLoadingContent() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Alarm Mode"
-        label="ALARM MODE"
+        label={t('ALARM MODU')}
       />
 
       <div className={styles.banner}>

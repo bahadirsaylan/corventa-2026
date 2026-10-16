@@ -35,11 +35,11 @@ export default function NextActionPage() {
       </h1>
       <div className={styles.grid}>
         <button type="button" className={styles.card} onClick={newBend}>
-          <ArcLabel text="NEW BEND" />
+          <ArcLabel text={t('YENİ KIVRIM')} />
           <span className={styles.letter}>N</span>
         </button>
         <button type="button" className={styles.card} onClick={repeat} disabled={!canRepeat}>
-          <ArcLabel text="REPEAT" />
+          <ArcLabel text={t('TEKRARLA')} />
           <span className={styles.letter}>R</span>
         </button>
       </div>

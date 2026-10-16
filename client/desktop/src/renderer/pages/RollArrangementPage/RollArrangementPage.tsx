@@ -35,7 +35,7 @@ export default function RollArrangementPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Artificial Intelligence" label="ARTIFICIAL INTELLIGENCE MODE" />
+      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Artificial Intelligence" label={t('YAPAY ZEKA MODU')} />
 
       <h2 className={styles.title}>{t('VALS TOPU DİZİLİMİ')}</h2>
       <p className={styles.hint}>{t('VALS TOPLARINI GÖRSELDEKİ GİBİ DİZİP ONAYLAYIN')}</p>

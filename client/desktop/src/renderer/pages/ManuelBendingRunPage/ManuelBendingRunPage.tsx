@@ -89,11 +89,11 @@ export default function ManuelBendingRunPage() {
 
       <div className={styles.content}>
         <div className={styles.statRow}>
-          <span className={styles.statLabel}>PRESSURE</span>
+          <span className={styles.statLabel}>{t('BASINÇ')}</span>
           <span className={styles.statValue}>{pressure}</span>
           <span className={styles.statUnit}>BAR</span>
           <span className={styles.spacer} />
-          <span className={styles.statLabel}>TOLERANCE</span>
+          <span className={styles.statLabel}>{t('TOLERANS')}</span>
           <span className={styles.statValue}>0.1</span>
           <span className={styles.statUnit}>mm</span>
         </div>

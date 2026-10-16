@@ -73,11 +73,6 @@ export function useT(): (source: string, vars?: TVars) => string {
   return (source, vars) => translate(source, lang, vars)
 }
 
-/** Bu dilin sözlüğü var mı (Türkçe kaynak dil, hep hazır). */
-export function hasDictionary(lang: LangCode): boolean {
-  return lang === 'tr' || DICTS[lang] !== undefined
-}
-
 export function useLang(): LangCode {
   return useLangStore((s) => s.lang)
 }

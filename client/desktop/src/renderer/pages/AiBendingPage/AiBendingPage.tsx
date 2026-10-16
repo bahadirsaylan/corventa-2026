@@ -30,7 +30,7 @@ export default function AiBendingPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label="ARTIFICIAL INTELLIGENCE MODE"
+        label={t('YAPAY ZEKA MODU')}
       />
 
       {/* ── Title ───────────────────────────────── */}

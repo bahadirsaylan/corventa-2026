@@ -15,6 +15,7 @@ import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
+import { PRODUCTION_TOLERANCES, readProductionTolerance, saveProductionTolerance } from '@/services/operatorPrefs'
 import { t as tr, translateProgress, useLang, useT, type LangCode } from '@/i18n'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -42,6 +43,15 @@ function ControlPanel() {
   // job state otomatik temizlenmeyebilir; operatöre net uyarı verilir.
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelInfo, setCancelInfo] = useState<string | null>(null)
+
+  // ── Üretim toleransı seçimi (başlıktaki TOLERANS'a dokununca) ──
+  const [tolerance, setTolerance] = useState(readProductionTolerance)
+  const [tolMenuOpen, setTolMenuOpen] = useState(false)
+  function chooseTolerance(mm: number) {
+    setTolerance(mm)
+    saveProductionTolerance(mm)
+    setTolMenuOpen(false)
+  }
 
   useEffect(() => {
     if (!cancelInfo) return
@@ -81,7 +91,7 @@ function ControlPanel() {
       {/* ── Header row ─────────────────────────────── */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <span className={styles.headerLabel}>PRESSURE</span>
+          <span className={styles.headerLabel}>{t('BASINÇ')}</span>
           <span className={styles.headerValue}>{s1Pressure}</span>
           <span className={styles.headerUnit}>BAR</span>
         </div>
@@ -94,7 +104,7 @@ function ControlPanel() {
             width={80}
             height={80}
           />
-          <span className={styles.aiLabel}>ARTIFICIAL INTELLIGENCE MODE</span>
+          <span className={styles.aiLabel}>{t('YAPAY ZEKA MODU')}</span>
         </div>
 
         <div className={styles.headerRight}>
@@ -108,11 +118,42 @@ function ControlPanel() {
               {t('■ İPTAL')}
             </button>
           )}
-          <span className={styles.headerLabel}>TOLERANCE</span>
-          <span className={styles.headerValue}>0.1</span>
-          <span className={styles.headerUnit}>mm</span>
+          <button
+            type="button"
+            className={styles.tolBtn}
+            onClick={() => setTolMenuOpen((o) => !o)}
+            aria-expanded={tolMenuOpen}
+          >
+            <span className={styles.headerLabel}>{t('TOLERANS')}</span>
+            <span className={styles.headerValue}>{tolerance}</span>
+            <span className={styles.headerUnit}>mm</span>
+            <span className={styles.tolCaret} aria-hidden>▾</span>
+          </button>
         </div>
       </div>
+
+      {tolMenuOpen && (
+        <>
+          <div className={styles.tolBackdrop} onClick={() => setTolMenuOpen(false)} />
+          <div className={styles.tolMenu} role="menu">
+            {PRODUCTION_TOLERANCES.map((o) => (
+              <button
+                key={o.mm}
+                type="button"
+                role="menuitemradio"
+                aria-checked={tolerance === o.mm}
+                className={styles.tolOption}
+                data-selected={tolerance === o.mm || undefined}
+                onClick={() => chooseTolerance(o.mm)}
+              >
+                <span className={styles.tolOptionValue}>{o.mm} mm</span>
+                <span className={styles.tolOptionLabel}>{t(o.label)}</span>
+                {tolerance === o.mm && <span className={styles.tolCheck} aria-hidden>✓</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {cancelInfo && <div className={styles.cancelInfoBar}>{cancelInfo}</div>}
 

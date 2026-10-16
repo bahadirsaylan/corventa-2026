@@ -133,7 +133,7 @@ export default function EncoderResetPage() {
             </span>
           </div>
           <div className={styles.stateRow}>
-            <span className={styles.stateLabel}>STAGE</span>
+            <span className={styles.stateLabel}>{t('STAGE')}</span>
             <span className={styles.stateValue}>
               {physical.currentStageName ?? (physical.currentStage > 0 ? `STAGE ${physical.currentStage}` : '—')}
             </span>

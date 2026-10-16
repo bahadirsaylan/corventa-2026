@@ -18,9 +18,9 @@ interface RowConfig {
 }
 
 const ROWS: RowConfig[] = [
-  { type: 'joint', label: 'JOINT' },
-  { type: 'body', label: 'BODY' },
-  { type: 'reel', label: 'REEL' },
+  { type: 'joint', label: 'MAFSAL' },
+  { type: 'body', label: 'GÖVDE' },
+  { type: 'reel', label: 'MAKARA' },
 ]
 
 export default function SideSupportControls({ side }: SideSupportControlsProps) {
@@ -51,7 +51,7 @@ function SideSupportRow({ side, type, label }: SideSupportRowProps) {
 
   return (
     <div className={styles.row}>
-      <div className={styles.rowLabel}>{label}</div>
+      <div className={styles.rowLabel}>{t(label)}</div>
       <div className={styles.buttonRow}>
         {side === 'left' ? (
           <>

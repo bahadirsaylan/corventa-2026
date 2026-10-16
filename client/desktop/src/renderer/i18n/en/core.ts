@@ -15,8 +15,6 @@ const en: Record<string, string> = {
   KAYDET: 'SAVE',
   'AKTİF DİL': 'ACTIVE LANGUAGE',
   'DESTEKLENEN DİLLER': 'SUPPORTED LANGUAGES',
-  PLANLANAN: 'PLANNED',
-  'henüz çevrilmedi': 'not translated yet',
 }
 
 export default en

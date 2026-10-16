@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useLang } from '@/i18n'
+import { useT } from '@/i18n'
 import styles from './LiveClock.module.css'
 
-const DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+// Anahtar = Türkçe ad; diğer diller sözlükten (en/misc.ts) gelir.
+const DAYS = ['PAZAR', 'PAZARTESİ', 'SALI', 'ÇARŞAMBA', 'PERŞEMBE', 'CUMA', 'CUMARTESİ']
 const MONTHS = ['OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN',
                 'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK']
-const MONTHS_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-                   'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
 
 interface LiveClockProps {
   dateOnly?: boolean
@@ -14,7 +13,7 @@ interface LiveClockProps {
 
 export default function LiveClock({ dateOnly = false }: LiveClockProps) {
   const [now, setNow] = useState(new Date())
-  const months = useLang() === 'en' ? MONTHS_EN : MONTHS
+  const t = useT()
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -24,7 +23,7 @@ export default function LiveClock({ dateOnly = false }: LiveClockProps) {
   if (dateOnly) {
     return (
       <div className={styles.date}>
-        <span className={styles.dateDay}>{now.getDate()} {months[now.getMonth()]}</span>
+        <span className={styles.dateDay}>{now.getDate()} {t(MONTHS[now.getMonth()])}</span>
         <span className={styles.dateYear}>{now.getFullYear()}</span>
       </div>
     )
@@ -33,7 +32,7 @@ export default function LiveClock({ dateOnly = false }: LiveClockProps) {
   const hh = String(now.getHours()).padStart(2, '0')
   const mm = String(now.getMinutes()).padStart(2, '0')
   const ss = String(now.getSeconds()).padStart(2, '0')
-  const dayName = DAYS[now.getDay()]
+  const dayName = t(DAYS[now.getDay()])
 
   return (
     <div className={styles.clock}>

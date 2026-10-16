@@ -76,10 +76,8 @@
 .statusBadge {
   font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
   padding: 3px 8px; border-radius: 4px;
-  background: #f3f4f6; color: #6b7280;
+  background: #dcfce7; color: #14532d;
 }
-
-.statusBadge[data-ready] { background: #dcfce7; color: #14532d; }
 
 /* Preview */
 .previewTable { display: flex; flex-direction: column; gap: 4px; }

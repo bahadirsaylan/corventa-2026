@@ -121,7 +121,7 @@ export default function UnloadPage() {
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.doneText}>IT&apos;S DONE</span>
+        <span className={styles.doneText}>{t('İŞLEM TAMAM')}</span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>
@@ -148,7 +148,7 @@ export default function UnloadPage() {
             onClick={() => choose(i)}
           >
             <span className={styles.presetNum}>{sec}</span>
-            <span className={styles.presetUnit}>SECOND</span>
+            <span className={styles.presetUnit}>{t('SANİYE')}</span>
           </button>
         ))}
         <button

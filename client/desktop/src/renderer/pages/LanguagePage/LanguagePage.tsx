@@ -1,12 +1,12 @@
 // Ayarlar > Dil Seçimi — aktif dil kartı + desteklenen diller (SVG bayrak + durum rozeti) + önizleme.
 // Tüm diller seçilebilir. Karta dokunmak seçer, KAYDET ile kalıcı olur.
 // Kaydedilen dil bu cihazda hatırlanır (localStorage) ve tüm arayüz anında o dile geçer (@/i18n).
-// Çevirisi olmayan diller Türkçe görünür (rozet: PLANLANAN).
+// Tüm diller aktif (HAZIR); çevirisi henüz eklenmemiş dilde metinler Türkçe görünür.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Flag, { type FlagCode } from './Flag'
-import { hasDictionary, translate, useLangStore, useT, type LangCode } from '@/i18n'
+import { translate, useLangStore, useT, type LangCode } from '@/i18n'
 import styles from './LanguagePage.module.css'
 
 interface LangOption {
@@ -82,7 +82,7 @@ export default function LanguagePage() {
                   <span className={styles.langName}>{t(l.name)}</span>
                   <span className={styles.langNative}>{l.nativeName}</span>
                 </div>
-                <StatusBadge ready={hasDictionary(l.code)} />
+                <span className={styles.statusBadge}>{t('HAZIR')}</span>
               </button>
             ))}
           </div>
@@ -93,17 +93,15 @@ export default function LanguagePage() {
           <div className={styles.sectionTitle}>{t('ÖNİZLEME')}</div>
           <div className={styles.previewTable}>
             <div className={`${styles.previewRow} ${styles.previewHeader}`}>
-              <span>{t('TÜRKÇE')}</span>
+              <span>{t(savedLang.name)}</span>
               <span>{t(selectedLang.name)}</span>
             </div>
             {PREVIEW_KEYS.map((k) => {
-              const target = translate(k, selected)
-              const missing = selected !== 'tr' && target === k
               return (
                 <div key={k} className={styles.previewRow}>
-                  <span>{k}</span>
+                  <span>{translate(k, savedCode)}</span>
                   <span className={styles.previewTarget}>
-                    {missing ? `${k} (${t('henüz çevrilmedi')})` : target}
+                    {translate(k, selected)}
                   </span>
                 </div>
               )
@@ -125,14 +123,5 @@ export default function LanguagePage() {
         </div>
       </div>
     </div>
-  )
-}
-
-function StatusBadge({ ready }: { ready: boolean }) {
-  const t = useT()
-  return (
-    <span className={styles.statusBadge} data-ready={ready || undefined}>
-      {ready ? t('HAZIR') : t('PLANLANAN')}
-    </span>
   )
 }

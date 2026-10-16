@@ -54,6 +54,7 @@ export default function ServicePageShell({ title, subtitle, onBack, children }: 
  * Layer sırası: arka daire → arc yazı → saç → headset bandı → kulaklık → yüz → kulaklık önü → mikrofon.
  */
 function ServiceRepIcon({ className }: { className?: string }) {
+  const t = useT()
   return (
     <svg className={className} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Arka daire çerçeve */}
@@ -64,7 +65,7 @@ function ServiceRepIcon({ className }: { className?: string }) {
         <path id="svcArc" d="M 22 60 A 38 38 0 0 1 98 60" />
       </defs>
       <text fontSize="8" fontWeight="800" letterSpacing="2.5" fill="#5a5a5a" textAnchor="middle" fontFamily="inherit">
-        <textPath href="#svcArc" startOffset="50%">SERVICES</textPath>
+        <textPath href="#svcArc" startOffset="50%">{t('SERVİSLER')}</textPath>
       </text>
 
       {/* Saç tepe + arka */}

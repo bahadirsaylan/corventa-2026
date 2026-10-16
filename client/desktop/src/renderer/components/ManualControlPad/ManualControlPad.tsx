@@ -65,28 +65,28 @@ export default function ManualControlPad() {
       )}
 
       {/* ── Sol yan dayamalar ─────────────────────── */}
-      <SideBtn side="left" type="reel" dir={1} arrow={-90} label="REEL" cls={styles.lReelFwd} />
+      <SideBtn side="left" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.lReelFwd} />
       <SideBtn side="left" type="reel" dir={-1} arrow={90} cls={styles.lReelBwd} />
       <div className={`${styles.link} ${styles.lReelLink}`} />
 
-      <SideBtn side="left" type="joint" dir={-1} arrow={180} label="JOINT" cls={styles.lJointBwd} />
+      <SideBtn side="left" type="joint" dir={-1} arrow={180} label={t('MAFSAL')} cls={styles.lJointBwd} />
       <SideBtn side="left" type="joint" dir={1} arrow={0} cls={styles.lJointFwd} />
       <div className={`${styles.link} ${styles.lJointLink}`} />
 
-      <SideBtn side="left" type="body" dir={1} arrow={-70} label="BODY" cls={styles.lBodyFwd} />
+      <SideBtn side="left" type="body" dir={1} arrow={-70} label={t('GÖVDE')} cls={styles.lBodyFwd} />
       <SideBtn side="left" type="body" dir={-1} arrow={110} cls={styles.lBodyBwd} />
       <div className={`${styles.link} ${styles.lBodyLink}`} />
 
       {/* ── Sağ yan dayamalar (ayna) ──────────────── */}
-      <SideBtn side="right" type="reel" dir={1} arrow={-90} label="REEL" cls={styles.rReelFwd} />
+      <SideBtn side="right" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.rReelFwd} />
       <SideBtn side="right" type="reel" dir={-1} arrow={90} cls={styles.rReelBwd} />
       <div className={`${styles.link} ${styles.rReelLink}`} />
 
       <SideBtn side="right" type="joint" dir={1} arrow={180} cls={styles.rJointFwd} />
-      <SideBtn side="right" type="joint" dir={-1} arrow={0} label="JOINT" cls={styles.rJointBwd} />
+      <SideBtn side="right" type="joint" dir={-1} arrow={0} label={t('MAFSAL')} cls={styles.rJointBwd} />
       <div className={`${styles.link} ${styles.rJointLink}`} />
 
-      <SideBtn side="right" type="body" dir={1} arrow={-110} label="BODY" cls={styles.rBodyFwd} />
+      <SideBtn side="right" type="body" dir={1} arrow={-110} label={t('GÖVDE')} cls={styles.rBodyFwd} />
       <SideBtn side="right" type="body" dir={-1} arrow={70} cls={styles.rBodyBwd} />
       <div className={`${styles.link} ${styles.rBodyLink}`} />
 
@@ -153,7 +153,7 @@ export default function ManualControlPad() {
         onClick={() => void setMotor(true)}
         aria-label={t('Hidrolik motoru başlat')}
       >
-        <span className={styles.motorText}>START</span>
+        <span className={styles.motorText}>{t('ÇALIŞTIR')}</span>
         <span className={styles.motorSub}>
           {motorRunning ? t('MOTOR ÇALIŞIYOR') : motorStarting ? t('BAŞLIYOR…') : t('HİDROLİK MOTOR')}
         </span>
@@ -165,7 +165,7 @@ export default function ManualControlPad() {
         onClick={() => void setMotor(false)}
         aria-label={t('Hidrolik motoru durdur')}
       >
-        <span className={styles.motorText}>STOP</span>
+        <span className={styles.motorText}>{t('DURDUR')}</span>
         <span className={styles.motorSub}>{t('HİDROLİK MOTOR')}</span>
       </button>
     </div>

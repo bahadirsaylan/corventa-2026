@@ -121,8 +121,7 @@ const en: Record<string, string> = {
   'Makine açıldı — versiyon 2026.5.15': 'Machine started — version 2026.5.15',
 
   // ── DashboardPage ──
-  'OTOMATIK': 'AUTOMATIC',
-  'BUKUM': 'BENDING',
+  'OTOMATİK': 'AUTOMATIC',
   'MANUEL': 'MANUAL',
   'MANUEL / YARI OTO': 'MANUAL / SEMI-AUTO',
   'Servis ağı': 'Service network',

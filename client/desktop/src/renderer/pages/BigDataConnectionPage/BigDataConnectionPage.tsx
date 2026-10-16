@@ -71,7 +71,7 @@ export default function BigDataConnectionPage() {
           <div className={styles.sectionTitle}>{t('SUNUCU BİLGİLERİ')}</div>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>CLOUD ENDPOINT URL</span>
+            <span className={styles.fieldLabel}>{t('BULUT ENDPOINT URL')}</span>
             <input
               type="text"
               className={styles.input}
@@ -89,7 +89,7 @@ export default function BigDataConnectionPage() {
                 className={styles.input}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                placeholder="API key"
+                placeholder={t('API anahtarı')}
               />
               <button type="button" className={styles.showHideBtn} onClick={() => setShowKey((v) => !v)}>
                 {showKey ? t('GİZLE') : t('GÖSTER')}

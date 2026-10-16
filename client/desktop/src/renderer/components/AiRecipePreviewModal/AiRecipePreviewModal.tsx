@@ -134,7 +134,7 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statLabel}>{t('KAZANÇ')}</span>
-                  <span className={styles.statValueBig}>−1<span className={styles.statUnit}>iter</span></span>
+                  <span className={styles.statValueBig}>−1<span className={styles.statUnit}>{t('tekrar')}</span></span>
                   <span className={styles.statNote}>{t('ölçüm atlanacak')}</span>
                 </div>
               </div>

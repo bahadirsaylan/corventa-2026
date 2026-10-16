@@ -147,6 +147,94 @@
   color: var(--color-text);
 }
 
+/* ── Tolerans seçimi (başlıkta dokunulabilir) ── */
+.tolBtn {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 14px;
+  margin-right: -14px;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tolBtn:active,
+.tolBtn[aria-expanded='true'] {
+  border-color: var(--color-border);
+  background: #f7f3ea;
+}
+
+.tolCaret {
+  font-size: 20px;
+  color: var(--color-text-muted);
+}
+
+.tolBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 29;
+}
+
+.tolMenu {
+  position: absolute;
+  top: 92px;
+  right: 24px;
+  z-index: 30;
+  min-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.tolOption {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 18px 60px 18px 22px;
+  background: #fafafa;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tolOption[data-selected] {
+  background: #b8e6c5;
+  border: 2px solid #16a34a;
+}
+
+.tolOptionValue {
+  min-width: 90px;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.tolOptionLabel {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+}
+
+.tolCheck {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 26px;
+  font-weight: 900;
+  color: #16a34a;
+}
+
 .headerCenter {
   display: flex;
   flex-direction: column;
