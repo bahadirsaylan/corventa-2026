@@ -49,17 +49,11 @@ const en: Record<string, string> = {
 
   // Admin ayarları
   'ADMİN AYARLARI': 'ADMIN SETTINGS',
-  'ADMİN PIN GİRİN': 'ENTER ADMIN PIN',
-  'PIN hatalı': 'Wrong PIN',
   'Ayarlar yükleniyor…': 'Loading settings…',
   'Ayarlar okunamadı': 'Settings could not be read',
   'Büküm devam ediyor — bitene kadar ayar kaydedilemez.': 'Bending in progress — settings cannot be saved until it finishes.',
   "Bu değerler büküm hesabını ve makine hareketlerini doğrudan etkiler. Emin değilseniz VAZGEÇ'e basın.":
     'These values directly affect the bending calculation and machine movements. If you are not sure, press CANCEL.',
-  'YENİ PIN (4-8 HANE)': 'NEW PIN (4-8 DIGITS)',
-  'YENİ PIN TEKRAR': 'REPEAT NEW PIN',
-  "PIN'ler eşleşmedi, tekrar deneyin": 'PINs did not match, try again',
-  'Admin PIN değiştirildi': 'Admin PIN changed',
   'GÖNYE': 'SQUARING',
   'GÖNYE & STAGE': 'SQUARING & STAGE',
   'PİSTON & EKSEN': 'PISTONS & AXES',

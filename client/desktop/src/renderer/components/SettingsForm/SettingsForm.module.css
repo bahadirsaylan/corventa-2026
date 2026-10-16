@@ -124,23 +124,6 @@
 .changeTo { font-family: var(--font-mono); font-size: 15px; font-weight: 800; color: #15803d; }
 .modalActions { display: flex; justify-content: flex-end; gap: 12px; }
 
-/* PIN */
-.pinWrap { flex: 1; display: flex; align-items: center; justify-content: center; }
-.pinCard {
-  width: 420px; max-width: 100%; background: #fff; border: 1.5px solid #d07070; border-radius: 14px;
-  padding: 24px; display: flex; flex-direction: column; gap: 14px; align-items: stretch;
-}
-.pinTitle { font-size: 16px; font-weight: 800; letter-spacing: 0.08em; text-align: center; }
-.pinDots { display: flex; justify-content: center; gap: 12px; min-height: 28px; align-items: center; }
-.pinDot { width: 18px; height: 18px; border-radius: 50%; background: #2a2a2a; }
-.pinGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.pinKey {
-  height: 62px; font-size: 24px; font-weight: 800; border-radius: 10px; border: 1.5px solid #cbd5e1;
-  background: #f9fafb; cursor: pointer;
-}
-.pinKey[data-kind='ok'] { background: #16a34a; color: #fff; border-color: #15803d; }
-.pinKey[data-kind='del'] { background: #f4ecdc; }
-
 /* Stage başlığı */
 .stageHead { display: flex; align-items: center; gap: 10px; }
 .stageName { font-size: 15px; font-weight: 800; letter-spacing: 0.06em; flex: 1; }

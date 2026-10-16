@@ -1,7 +1,7 @@
-// Ayarlar > Admin Ayarları — makinenin değiştirilebilir TÜM ayarları (PIN korumalı).
+// Ayarlar > Admin Ayarları — makinenin değiştirilebilir TÜM ayarları.
+// Erişim şimdilik açık; kimin neyi düzenleyebileceği kullanıcı girişine (rol) göre ayarlanacak.
 //   • Makine ayarları (Bending API MachineSettings) — sekmelere bölünmüş bölümler
 //   • Gönye ofsetleri + Stage tanımları (ofset, XA1/YA1, maksimum profil A)
-//   • Admin PIN değişikliği
 // Kayıt: sadece DEĞİŞEN alanlar gönderilir (main güncel kaydı okuyup üstüne yazar) ve önce
 // "eski → yeni" listesiyle onay alınır. Büküm sürerken kayıt kapalıdır (backend ayarları yeniden yükler).
 
@@ -20,19 +20,16 @@ import {
   type Values,
 } from '@/components/SettingsForm/SettingsForm'
 import { useBendingActive } from '@/stores/bendingActivityStore'
-import { changeAdminPin, verifyAdminPin } from '@/services/adminPin'
 import { useT } from '@/i18n'
 import { GONYE_SECTION, MACHINE_FIELDS, MACHINE_SECTIONS, STAGE_FIELDS } from './settingsFields'
 
 const TAB_GONYE = 'GÖNYE & STAGE'
-const TAB_PIN = 'PIN'
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 export default function AdminSettingsPage() {
   const navigate = useNavigate()
   const t = useT()
-  const [unlocked, setUnlocked] = useState(false)
 
   return (
     <SettingsPageShell
@@ -40,80 +37,8 @@ export default function AdminSettingsPage() {
       badge={<span className={styles.badge}>ADMIN</span>}
       onBack={() => navigate('/settings')}
     >
-      {unlocked ? <AdminEditor /> : <PinGate onUnlock={() => setUnlocked(true)} />}
+      <AdminEditor />
     </SettingsPageShell>
-  )
-}
-
-// ── PIN kapısı ──────────────────────────────────────────────────────
-function PinGate({ onUnlock }: { onUnlock: () => void }) {
-  const t = useT()
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  async function submit(pin: string) {
-    setBusy(true)
-    const ok = await verifyAdminPin(pin)
-    setBusy(false)
-    if (ok) onUnlock()
-    else setError(t('PIN hatalı'))
-  }
-
-  return (
-    <div className={styles.pinWrap}>
-      <PinPad title={t('ADMİN PIN GİRİN')} error={error} busy={busy} onSubmit={submit} onType={() => setError(null)} />
-    </div>
-  )
-}
-
-function PinPad({
-  title,
-  error,
-  busy,
-  onSubmit,
-  onType,
-}: {
-  title: string
-  error?: string | null
-  busy?: boolean
-  onSubmit: (pin: string) => void
-  onType?: () => void
-}) {
-  const [pin, setPin] = useState('')
-  const press = (k: string) => {
-    onType?.()
-    if (k === '⌫') setPin((p) => p.slice(0, -1))
-    else if (k === '✓') {
-      if (pin.length >= 4) {
-        onSubmit(pin)
-        setPin('')
-      }
-    } else if (pin.length < 8) setPin((p) => p + k)
-  }
-  return (
-    <div className={styles.pinCard}>
-      <div className={styles.pinTitle}>{title}</div>
-      <div className={styles.pinDots}>
-        {Array.from(pin).map((_, i) => (
-          <span key={i} className={styles.pinDot} />
-        ))}
-      </div>
-      {error && <p className={styles.error} style={{ textAlign: 'center' }}>{error}</p>}
-      <div className={styles.pinGrid}>
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', '✓'].map((k) => (
-          <button
-            key={k}
-            type="button"
-            className={styles.pinKey}
-            data-kind={k === '✓' ? 'ok' : k === '⌫' ? 'del' : undefined}
-            disabled={busy || (k === '✓' && pin.length < 4)}
-            onClick={() => press(k)}
-          >
-            {k}
-          </button>
-        ))}
-      </div>
-    </div>
   )
 }
 
@@ -123,7 +48,7 @@ type StageVals = Record<number, Values>
 function AdminEditor() {
   const t = useT()
   const bendingActive = useBendingActive()
-  const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE, TAB_PIN]
+  const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE]
   const [tab, setTab] = useState(tabs[0])
 
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -278,9 +203,7 @@ function AdminEditor() {
         </>
       )}
 
-      {tab === TAB_PIN && <PinChange />}
-
-      {tab !== TAB_PIN && (
+      {(
         <div className={styles.footer} style={{ position: 'sticky', bottom: -20, margin: '0 -24px -20px' }}>
           <span className={styles.footerInfo}>
             {changes.length ? t('{n} değişiklik kaydedilmedi', { n: changes.length }) : t('Değişiklik yok')}
@@ -313,49 +236,5 @@ function AdminEditor() {
         />
       )}
     </>
-  )
-}
-
-function PinChange() {
-  const t = useT()
-  const [first, setFirst] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
-
-  async function submit(pin: string) {
-    if (first == null) {
-      setFirst(pin)
-      return
-    }
-    if (pin !== first) {
-      setFirst(null)
-      setError(t('PIN\'ler eşleşmedi, tekrar deneyin'))
-      return
-    }
-    try {
-      await changeAdminPin(pin)
-      setDone(true)
-      setFirst(null)
-    } catch (e) {
-      setError(errMsg(e))
-      setFirst(null)
-    }
-  }
-
-  return (
-    <div className={styles.pinWrap}>
-      {done ? (
-        <p className={styles.message} data-kind="ok">
-          {t('Admin PIN değiştirildi')}
-        </p>
-      ) : (
-        <PinPad
-          title={first == null ? t('YENİ PIN (4-8 HANE)') : t('YENİ PIN TEKRAR')}
-          error={error}
-          onSubmit={(p) => void submit(p)}
-          onType={() => setError(null)}
-        />
-      )}
-    </div>
   )
 }
