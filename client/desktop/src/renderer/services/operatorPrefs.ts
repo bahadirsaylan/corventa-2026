@@ -131,7 +131,7 @@ const PRODUCTION_TOL_KEY = 'corventa.productionTolerance'
 
 export const PRODUCTION_TOLERANCES = [
   { mm: 1, label: 'HASSAS ÜRETİM' },
-  { mm: 10, label: 'KABA ÜRETİM' },
+  { mm: 10, label: 'STANDART ÜRETİM' },
 ] as const
 
 export function readProductionTolerance(): number {
