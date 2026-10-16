@@ -204,8 +204,8 @@ export class DemoMachine extends EventEmitter {
     }
     const anyS = s as unknown as { physicalInfo?: Record<string, unknown> }
     anyS.physicalInfo = { isGonyeCompleted: true, currentStage: 1, currentStageName: 'Stage 1' }
-    // Başlangıçta toplar geride — stage komutunda stage konumuna geldikleri görünsün
-    const home: Record<PistonKey, number> = { leftPiston: -40, rightPiston: -40, upperPiston: -25, lowerPiston: -30 }
+    // Gönye yapılmış makine: tüm cetveller gönye konumunda 0 (gerçekteki gibi; üst top gönye ofseti 0)
+    const home: Record<PistonKey, number> = { leftPiston: 0, rightPiston: 0, upperPiston: 0, lowerPiston: 0 }
     for (const k of Object.keys(this.targets) as PistonKey[]) {
       s[k].positionMm = home[k]
       this.targets[k] = home[k]
@@ -994,7 +994,7 @@ export class DemoMachine extends EventEmitter {
       const rot = Number(b.rotationMm) || 0
       this.pressureHold = null
       if (retract > 0) {
-        const target = Math.max(-25, this.state.upperPiston.positionMm - retract)
+        const target = Math.max(0, this.state.upperPiston.positionMm - retract) // gönye referansının altına inmez
         await this.movePistons({ upperPiston: target }, token, 50)
       }
       if (Math.abs(rot) > 0.5) await this.rotateTo(this.state.rotation.positionMm + rot, token, 60)

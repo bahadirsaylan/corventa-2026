@@ -177,11 +177,14 @@
 .countdown {
   flex-direction: column;
   justify-content: center;
+  gap: 6px;
   background: #fde68a;
+  overflow: hidden;
 }
 
+/* Kutuya sığsın: yüksekliği hareket ayarları satırıyla azaldı */
 .countNum {
-  font-size: 170px;
+  font-size: 96px;
   font-weight: 900;
   line-height: 1;
 }
