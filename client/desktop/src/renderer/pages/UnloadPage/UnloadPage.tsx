@@ -164,7 +164,7 @@ export default function UnloadPage() {
           ? 'DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN'
           : 'PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ')}
         {phase === 'countdown' && 'PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK'}
-        {phase === 'opening' && 'ÜST TOP GERİ ÇEKİLİYOR, ROTASYON YAPILIYOR…'}
+        {phase === 'opening' && 'TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON'}
         {phase === 'ready' && 'TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ'}
         {phase === 'error' && `TAHLİYE YAPILAMADI: ${error ?? ''}`}
       </div>
@@ -294,7 +294,7 @@ export default function UnloadPage() {
 
       {phase === 'opening' && (
         <div className={`${styles.bigBtn} ${styles.opening}`}>
-          <span>TOPLAR AÇILIYOR…</span>
+          <span>TAHLİYE YAPILIYOR…</span>
         </div>
       )}
 
