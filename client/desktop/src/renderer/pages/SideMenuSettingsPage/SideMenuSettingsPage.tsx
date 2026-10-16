@@ -14,12 +14,14 @@ import {
 import { SideMenuIcon } from '@/components/SideMenu/SideMenuIcons'
 import { useSessionStore, useUserKey } from '@/stores/sessionStore'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
+import { useT } from '@/i18n'
 import styles from './SideMenuSettingsPage.module.css'
 
 type Status = { kind: 'ok' | 'error'; text: string } | null
 
 export default function SideMenuSettingsPage() {
   const navigate = useNavigate()
+  const t = useT()
   const username = useSessionStore((s) => s.username)
   const userKey = useUserKey()
   const saved = useSideMenuStore((s) => s.items)
@@ -58,9 +60,9 @@ export default function SideMenuSettingsPage() {
     setStatus(null)
     try {
       await save(userKey, draft)
-      setStatus({ kind: 'ok', text: 'KAYDEDİLDİ — MENÜ GÜNCELLENDİ.' })
+      setStatus({ kind: 'ok', text: t('KAYDEDİLDİ — MENÜ GÜNCELLENDİ.') })
     } catch (e) {
-      setStatus({ kind: 'error', text: `KAYDEDİLEMEDİ: ${e instanceof Error ? e.message : String(e)}` })
+      setStatus({ kind: 'error', text: t('KAYDEDİLEMEDİ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
     } finally {
       setSaving(false)
     }
@@ -69,37 +71,37 @@ export default function SideMenuSettingsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>HIZLI MENÜ</h1>
-        <span className={styles.user}>KULLANICI: {username ? username.toUpperCase() : 'VARSAYILAN'}</span>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('HIZLI MENÜ')}</h1>
+        <span className={styles.user}>{t('KULLANICI: {name}', { name: username ? username.toUpperCase() : t('VARSAYILAN') })}</span>
       </div>
 
       <div className={styles.body}>
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>MENÜDEKİLER</div>
+          <div className={styles.sectionTitle}>{t('MENÜDEKİLER')}</div>
           {enabled.map((it, i) => (
             <div key={it.id} className={styles.row}>
               <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
-              <span className={styles.label}>{it.label}</span>
-              {it.fixed && <span className={styles.fixed}>SABİT</span>}
+              <span className={styles.label}>{t(it.label)}</span>
+              {it.fixed && <span className={styles.fixed}>{t('SABİT')}</span>}
               <div className={styles.actions}>
-                <button className={styles.smallBtn} onClick={() => move(i, -1)} disabled={i === 0} aria-label="Yukarı">▲</button>
-                <button className={styles.smallBtn} onClick={() => move(i, 1)} disabled={i === enabled.length - 1} aria-label="Aşağı">▼</button>
-                <button className={styles.removeBtn} onClick={() => remove(it.id)} disabled={it.fixed}>KALDIR</button>
+                <button className={styles.smallBtn} onClick={() => move(i, -1)} disabled={i === 0} aria-label={t('Yukarı')}>▲</button>
+                <button className={styles.smallBtn} onClick={() => move(i, 1)} disabled={i === enabled.length - 1} aria-label={t('Aşağı')}>▼</button>
+                <button className={styles.removeBtn} onClick={() => remove(it.id)} disabled={it.fixed}>{t('KALDIR')}</button>
               </div>
             </div>
           ))}
         </div>
 
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>EKLENEBİLECEKLER</div>
-          {available.length === 0 && <div className={styles.empty}>TÜM SEÇENEKLER MENÜDE.</div>}
+          <div className={styles.sectionTitle}>{t('EKLENEBİLECEKLER')}</div>
+          {available.length === 0 && <div className={styles.empty}>{t('TÜM SEÇENEKLER MENÜDE.')}</div>}
           {available.map((it) => (
             <div key={it.id} className={styles.row}>
               <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
-              <span className={styles.label}>{it.label}</span>
+              <span className={styles.label}>{t(it.label)}</span>
               <div className={styles.actions}>
-                <button className={styles.addBtn} onClick={() => add(it.id)}>EKLE</button>
+                <button className={styles.addBtn} onClick={() => add(it.id)}>{t('EKLE')}</button>
               </div>
             </div>
           ))}
@@ -115,10 +117,10 @@ export default function SideMenuSettingsPage() {
               setStatus(null)
             }}
           >
-            VARSAYILANA DÖN
+            {t('VARSAYILANA DÖN')}
           </button>
           <button className={styles.saveBtn} onClick={handleSave} disabled={!dirty || saving}>
-            {saving ? 'KAYDEDİLİYOR…' : 'KAYDET'}
+            {saving ? t('KAYDEDİLİYOR…') : t('KAYDET')}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './ChecklistPage.module.css'
 
 interface ChecklistItem {
@@ -46,6 +47,8 @@ function todayKey(): string {
 
 export default function ChecklistPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [state, setState] = useState<ChecklistState>({
     checked: {},
     savedAt: null,
@@ -73,7 +76,7 @@ export default function ChecklistPage() {
   }
 
   const handleSave = () => {
-    const now = new Date().toLocaleString('tr-TR')
+    const now = new Date().toLocaleString(locale)
     const next = { ...state, savedAt: now }
     setState(next)
     localStorage.setItem(`${STORAGE_KEY}.${today}`, JSON.stringify(next))
@@ -91,16 +94,16 @@ export default function ChecklistPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
           ←
         </button>
-        <h1 className={styles.title}>GÜNLÜK CHECK LIST</h1>
-        <span className={styles.dateBadge}>{new Date().toLocaleDateString('tr-TR')}</span>
+        <h1 className={styles.title}>{t('GÜNLÜK CHECK LIST')}</h1>
+        <span className={styles.dateBadge}>{new Date().toLocaleDateString(locale)}</span>
       </div>
 
       <div className={styles.summaryBar}>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>İLERLEME</span>
+          <span className={styles.summaryLabel}>{t('İLERLEME')}</span>
           <span className={`${styles.summaryValue} ${allDone ? styles.allDone : ''}`}>
             {checkedCount} / {totalCount}
           </span>
@@ -113,7 +116,7 @@ export default function ChecklistPage() {
         </div>
         {state.savedAt && (
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>SON KAYDET</span>
+            <span className={styles.summaryLabel}>{t('SON KAYDET')}</span>
             <span className={styles.summarySaved}>{state.savedAt}</span>
           </div>
         )}
@@ -125,7 +128,7 @@ export default function ChecklistPage() {
           if (items.length === 0) return null
           return (
             <section key={cat} className={styles.section}>
-              <h2 className={styles.sectionTitle}>{cat}</h2>
+              <h2 className={styles.sectionTitle}>{t(cat)}</h2>
               <div className={styles.itemList}>
                 {items.map((item) => (
                   <label
@@ -141,7 +144,7 @@ export default function ChecklistPage() {
                     <span className={styles.checkBox}>
                       {state.checked[item.id] && <span className={styles.checkMark}>✓</span>}
                     </span>
-                    <span className={styles.itemLabel}>{item.label}</span>
+                    <span className={styles.itemLabel}>{t(item.label)}</span>
                   </label>
                 ))}
               </div>
@@ -154,15 +157,15 @@ export default function ChecklistPage() {
         <input
           className={styles.operatorInput}
           type="text"
-          placeholder="Operatör adı"
+          placeholder={t('Operatör adı')}
           value={state.operator}
           onChange={(e) => setState((s) => ({ ...s, operator: e.target.value }))}
         />
         <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={handleReset}>
-          SIFIRLA
+          {t('SIFIRLA')}
         </button>
         <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={handleSave}>
-          KAYDET
+          {t('KAYDET')}
         </button>
       </div>
     </div>

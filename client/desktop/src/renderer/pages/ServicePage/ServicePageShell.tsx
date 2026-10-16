@@ -2,6 +2,7 @@
 // SEKIL 31-53 boyunca tekrarlayan layout — DRY için tek yerde.
 
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import MachineCodeBar from '@/pages/SettingsPage/MachineCodeBar'
 import styles from './ServicePageShell.module.css'
 
@@ -15,6 +16,7 @@ interface Props {
 
 export default function ServicePageShell({ title, subtitle, onBack, children }: Props) {
   const navigate = useNavigate()
+  const t = useT()
   const handleBack = onBack ?? (() => navigate(-1))
 
   return (
@@ -23,12 +25,12 @@ export default function ServicePageShell({ title, subtitle, onBack, children }: 
 
       <div className={styles.header}>
         <div className={styles.titleBlock}>
-          <button className={styles.backBtn} onClick={handleBack} aria-label="Geri">
+          <button className={styles.backBtn} onClick={handleBack} aria-label={t('Geri')}>
             ←
           </button>
           <div className={styles.titleText}>
-            <span className={styles.titleTop}>{title}</span>
-            {subtitle && <span className={styles.titleBottom}>{subtitle}</span>}
+            <span className={styles.titleTop}>{t(title)}</span>
+            {subtitle && <span className={styles.titleBottom}>{t(subtitle)}</span>}
           </div>
         </div>
 
@@ -37,8 +39,8 @@ export default function ServicePageShell({ title, subtitle, onBack, children }: 
         </div>
 
         <div className={styles.customerBlock}>
-          <span className={styles.customerLabel}>MÜŞTERİ ADI :</span>
-          <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>
+          <span className={styles.customerLabel}>{t('MÜŞTERİ ADI :')}</span>
+          <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>{/* i18n-ignore */}
         </div>
       </div>
 

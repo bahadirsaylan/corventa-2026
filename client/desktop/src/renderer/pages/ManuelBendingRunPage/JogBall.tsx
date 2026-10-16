@@ -1,6 +1,7 @@
 // SEKIL-26: piston pozisyon dairesi + ortasında değer + üst/alt + - jog butonları.
 // Touch-and-hold pattern: tuşa basıldıkça komut gönderilir, bırakılınca stop.
 
+import { useT } from '@/i18n'
 import styles from './JogBall.module.css'
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function JogBall({ value, active = false, onPlus, onMinus, onRelease }: Props) {
+  const t = useT()
   return (
     <div className={`${styles.ball} ${active ? styles.active : ''}`}>
       <button
@@ -22,7 +24,7 @@ export default function JogBall({ value, active = false, onPlus, onMinus, onRele
         }}
         onPointerUp={onRelease}
         onPointerLeave={onRelease}
-        aria-label="ileri"
+        aria-label={t('ileri')}
       >
         +
       </button>
@@ -35,7 +37,7 @@ export default function JogBall({ value, active = false, onPlus, onMinus, onRele
         }}
         onPointerUp={onRelease}
         onPointerLeave={onRelease}
-        aria-label="geri"
+        aria-label={t('geri')}
       >
         −
       </button>

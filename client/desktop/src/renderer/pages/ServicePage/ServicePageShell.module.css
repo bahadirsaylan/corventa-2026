@@ -27,7 +27,7 @@
 }
 
 .backBtn {
-  font-size: 24px;
+  font-size: 32px;
   color: var(--color-text);
   background: none;
   border: none;
@@ -52,7 +52,7 @@
 .titleBottom {
   font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   color: var(--color-text);
   text-transform: uppercase;
   line-height: 1.2;
@@ -86,7 +86,7 @@
 }
 
 .customerLabel {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -95,7 +95,7 @@
 }
 
 .customerName {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--color-text);
   letter-spacing: 0.03em;
 }

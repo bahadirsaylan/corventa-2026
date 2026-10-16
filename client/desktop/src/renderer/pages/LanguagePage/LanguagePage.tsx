@@ -59,7 +59,7 @@ export default function LanguagePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
         <h1 className={styles.title}>{t('DİL SEÇİMİ')}</h1>
       </div>
 

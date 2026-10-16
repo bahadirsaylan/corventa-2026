@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
+import { applyMeasureDefaults } from '@/services/operatorPrefs'
+import { useT } from '@/i18n'
 import SpiralMeasurementForm, { SpiralMeasurementValues } from './SpiralMeasurementForm'
 import styles from './SpiralBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -38,12 +40,15 @@ function fromStore(
 }
 
 export default function SpiralBendingMeasurementsPage() {
+  const t = useT()
   const navigate     = useNavigate()
   const spiralBending = useBendingJobStore((s) => s.params.spiralBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
   // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
   const visibleFields = useVisibleProfileFields()
-  const [values, setRawValues] = useState<SpiralMeasurementValues>(() => fillHiddenProfileFields(fromStore(spiralBending), visibleFields))
+  const [values, setRawValues] = useState<SpiralMeasurementValues>(() =>
+    applyMeasureDefaults(fillHiddenProfileFields(fromStore(spiralBending), visibleFields)),
+  )
   const setValues = (v: SpiralMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {
@@ -77,7 +82,7 @@ export default function SpiralBendingMeasurementsPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>

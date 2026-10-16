@@ -5,6 +5,8 @@ import { useState } from 'react'
 
 import type { ServiceRequest } from '@shared/types'
 
+import { useT } from '@/i18n'
+
 import styles from './ServiceRequestRating.module.css'
 
 interface Props {
@@ -13,6 +15,7 @@ interface Props {
 }
 
 export default function ServiceRequestRating({ request, onSaved }: Props) {
+  const t = useT()
   const [rating, setRating] = useState<number>(request.rating ?? 8)
   const [note, setNote] = useState<string>(request.ratingNote ?? '')
   const [saving, setSaving] = useState(false)
@@ -40,8 +43,9 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
   return (
     <div className={styles.root}>
       <div className={styles.intro}>
-        ALDIĞINIZ SERVİSİ 1 İLE 10 ARALIĞINDA DEĞERLENDİREREK SERVİS KALİTESİNİ
-        ARTTIRMAMIZA YARDIMCI OLABİLİRSİNİZ.
+        {t(
+          'ALDIĞINIZ SERVİSİ 1 İLE 10 ARALIĞINDA DEĞERLENDİREREK SERVİS KALİTESİNİ ARTTIRMAMIZA YARDIMCI OLABİLİRSİNİZ.',
+        )}
       </div>
 
       <div className={styles.ratingBox}>
@@ -49,7 +53,7 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
           <button
             className={styles.spinnerBtn}
             onClick={() => setRating(clamp(rating + 1))}
-            aria-label="Arttır"
+            aria-label={t('Arttır')}
           >
             ▲
           </button>
@@ -62,7 +66,7 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
           <button
             className={styles.spinnerBtn}
             onClick={() => setRating(clamp(rating - 1))}
-            aria-label="Azalt"
+            aria-label={t('Azalt')}
           >
             ▼
           </button>
@@ -71,9 +75,9 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
 
       <div className={styles.noteBox}>
         <label className={styles.noteLabel}>
-          AÇIKLAMA :
+          {t('AÇIKLAMA :')}
           <span className={styles.noteHint}>
-            ( ALDIĞINIZ HİZMETLE İLGİLİ GÖRÜŞLERİNİZİ PAYLAŞABİLİRSİNİZ. )
+            {t('( ALDIĞINIZ HİZMETLE İLGİLİ GÖRÜŞLERİNİZİ PAYLAŞABİLİRSİNİZ. )')}
           </span>
         </label>
         <textarea
@@ -85,14 +89,14 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
         />
       </div>
 
-      {error && <div className={styles.errorBox}>Hata: {error}</div>}
+      {error && <div className={styles.errorBox}>{t('Hata: {err}', { err: error })}</div>}
 
       <button
         className={styles.saveBtn}
         onClick={handleSave}
         disabled={saving}
       >
-        DEĞERLENDİRMEYİ KAYDET
+        {t('DEĞERLENDİRMEYİ KAYDET')}
       </button>
     </div>
   )

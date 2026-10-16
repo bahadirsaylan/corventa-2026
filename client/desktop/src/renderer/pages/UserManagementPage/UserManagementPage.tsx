@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './UserManagementPage.module.css'
 
 type Role = 'ADMIN' | 'OPERATÖR' | 'BAKIM' | 'TEKNİSYEN'
@@ -32,6 +33,7 @@ const ROLE_COLORS: Record<Role, string> = {
 
 export default function UserManagementPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [users] = useState<UserRow[]>(INITIAL_USERS)
   const [filter, setFilter] = useState<'all' | 'active' | 'passive'>('all')
 
@@ -48,40 +50,40 @@ export default function UserManagementPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>KULLANICI YÖNETİMİ</h1>
-        <button className={styles.addBtn} onClick={() => alert('Yeni kullanıcı formu (mock)')}>
-          + YENİ KULLANICI
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('KULLANICI YÖNETİMİ')}</h1>
+        <button className={styles.addBtn} onClick={() => alert(t('Yeni kullanıcı formu (mock)'))}>
+          + {t('YENİ KULLANICI')}
         </button>
       </div>
 
       <div className={styles.body}>
         {/* ── Özet kartı ─────────────────────────── */}
         <div className={styles.statsRow}>
-          <StatCard label="TOPLAM" value={stats.total} color="#2a2a2a" />
-          <StatCard label="AKTİF" value={stats.active} color="#16a34a" />
-          <StatCard label="YÖNETİCİ" value={stats.admins} color="#dc2626" />
+          <StatCard label={t('TOPLAM')} value={stats.total} color="#2a2a2a" />
+          <StatCard label={t('AKTİF')} value={stats.active} color="#16a34a" />
+          <StatCard label={t('YÖNETİCİ')} value={stats.admins} color="#dc2626" />
         </div>
 
         {/* ── Filtre butonları ───────────────────── */}
         <div className={styles.filterRow}>
-          <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>TÜMÜ ({users.length})</FilterBtn>
-          <FilterBtn active={filter === 'active'} onClick={() => setFilter('active')}>AKTİF ({stats.active})</FilterBtn>
-          <FilterBtn active={filter === 'passive'} onClick={() => setFilter('passive')}>PASİF ({users.length - stats.active})</FilterBtn>
+          <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>{t('TÜMÜ ({n})', { n: users.length })}</FilterBtn>
+          <FilterBtn active={filter === 'active'} onClick={() => setFilter('active')}>{t('AKTİF ({n})', { n: stats.active })}</FilterBtn>
+          <FilterBtn active={filter === 'passive'} onClick={() => setFilter('passive')}>{t('PASİF ({n})', { n: users.length - stats.active })}</FilterBtn>
         </div>
 
         {/* ── Kullanıcı tablosu ──────────────────── */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>KULLANICILAR</div>
+          <div className={styles.sectionTitle}>{t('KULLANICILAR')}</div>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>AD SOYAD</th>
-                <th>KULLANICI ADI</th>
-                <th>ROL</th>
-                <th>SON GİRİŞ</th>
-                <th>DURUM</th>
-                <th>İŞLEM</th>
+                <th>{t('AD SOYAD')}</th>
+                <th>{t('KULLANICI ADI')}</th>
+                <th>{t('ROL')}</th>
+                <th>{t('SON GİRİŞ')}</th>
+                <th>{t('DURUM')}</th>
+                <th>{t('İŞLEM')}</th>
               </tr>
             </thead>
             <tbody>
@@ -91,21 +93,21 @@ export default function UserManagementPage() {
                   <td className={styles.tdMono}>{u.username}</td>
                   <td>
                     <span className={styles.roleTag} style={{ background: ROLE_COLORS[u.role] }}>
-                      {u.role}
+                      {t(u.role)}
                     </span>
                   </td>
                   <td className={styles.tdMono}>{u.lastLogin ?? '—'}</td>
                   <td>
                     <span className={`${styles.statusPill} ${u.active ? styles.pillActive : styles.pillPassive}`}>
-                      {u.active ? 'AKTİF' : 'PASİF'}
+                      {u.active ? t('AKTİF') : t('PASİF')}
                     </span>
                   </td>
                   <td className={styles.tdActions}>
-                    <button className={styles.actionBtn} onClick={() => alert(`${u.username} düzenle (mock)`)}>
-                      DÜZENLE
+                    <button className={styles.actionBtn} onClick={() => alert(t('{user} düzenle (mock)', { user: u.username }))}>
+                      {t('DÜZENLE')}
                     </button>
-                    <button className={styles.actionBtnRed} onClick={() => alert(`${u.username} sıfırla (mock)`)}>
-                      ŞİFRE SIFIRLA
+                    <button className={styles.actionBtnRed} onClick={() => alert(t('{user} sıfırla (mock)', { user: u.username }))}>
+                      {t('ŞİFRE SIFIRLA')}
                     </button>
                   </td>
                 </tr>
@@ -115,8 +117,7 @@ export default function UserManagementPage() {
         </div>
 
         <p className={styles.note}>
-          Kullanıcı listesi henüz veritabanından gelmemektedir (mock). Şifre sıfırlama işlemi
-          yönetici SMS onayı gerektirir. Aktif olmayan kullanıcılar sisteme giriş yapamaz.
+          {t('Kullanıcı listesi henüz veritabanından gelmemektedir (mock). Şifre sıfırlama işlemi yönetici SMS onayı gerektirir. Aktif olmayan kullanıcılar sisteme giriş yapamaz.')}
         </p>
       </div>
     </div>

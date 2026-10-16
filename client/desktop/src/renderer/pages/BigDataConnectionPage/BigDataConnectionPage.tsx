@@ -3,12 +3,15 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT, type TVars } from '@/i18n'
 import styles from './BigDataConnectionPage.module.css'
 
 type ConnStatus = 'connected' | 'disconnected' | 'error' | 'testing'
 
 export default function BigDataConnectionPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
 
   // Mock defaults — gerçek değerler DataApi'den gelecek.
   const [endpoint, setEndpoint] = useState('https://cloud.corventa.com/ingest')
@@ -23,33 +26,33 @@ export default function BigDataConnectionPage() {
     setStatus('testing')
     setTimeout(() => {
       setStatus('connected')
-      setLastSync(new Date().toLocaleString('tr-TR', { hour12: false }))
+      setLastSync(new Date().toLocaleString(locale, { hour12: false }))
     }, 1200)
   }
 
   function handleSave() {
-    alert('Kaydedildi (mock) — Big Data ayarları gelecekte DataApi.settings.updateBigData ile yazılacak.')
+    alert(t('Kaydedildi (mock) — Big Data ayarları gelecekte DataApi.settings.updateBigData ile yazılacak.'))
   }
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>BİG DATA BAĞLANTI AYARLARI</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('BİG DATA BAĞLANTI AYARLARI')}</h1>
       </div>
 
       <div className={styles.body}>
         {/* ── Bağlantı Durumu ─────────────────────── */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>BAĞLANTI DURUMU</div>
+          <div className={styles.sectionTitle}>{t('BAĞLANTI DURUMU')}</div>
           <div className={styles.statusRow}>
             <div className={`${styles.statusDot} ${styles[status]}`} />
             <div className={styles.statusText}>
-              <span className={styles.statusLabel}>DURUM</span>
-              <span className={styles.statusValue}>{statusText(status)}</span>
+              <span className={styles.statusLabel}>{t('DURUM')}</span>
+              <span className={styles.statusValue}>{statusText(status, t)}</span>
             </div>
             <div className={styles.statusText}>
-              <span className={styles.statusLabel}>SON SENKRON</span>
+              <span className={styles.statusLabel}>{t('SON SENKRON')}</span>
               <span className={styles.statusValue}>{lastSync}</span>
             </div>
             <button
@@ -58,14 +61,14 @@ export default function BigDataConnectionPage() {
               onClick={handleTestConnection}
               disabled={status === 'testing'}
             >
-              {status === 'testing' ? 'TEST EDİLİYOR...' : 'BAĞLANTIYI TEST ET'}
+              {status === 'testing' ? t('TEST EDİLİYOR...') : t('BAĞLANTIYI TEST ET')}
             </button>
           </div>
         </div>
 
         {/* ── Endpoint + API Key ──────────────────── */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>SUNUCU BİLGİLERİ</div>
+          <div className={styles.sectionTitle}>{t('SUNUCU BİLGİLERİ')}</div>
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>CLOUD ENDPOINT URL</span>
@@ -79,7 +82,7 @@ export default function BigDataConnectionPage() {
           </label>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>API ANAHTARI</span>
+            <span className={styles.fieldLabel}>{t('API ANAHTARI')}</span>
             <div className={styles.inputWithBtn}>
               <input
                 type={showKey ? 'text' : 'password'}
@@ -89,7 +92,7 @@ export default function BigDataConnectionPage() {
                 placeholder="API key"
               />
               <button type="button" className={styles.showHideBtn} onClick={() => setShowKey((v) => !v)}>
-                {showKey ? 'GİZLE' : 'GÖSTER'}
+                {showKey ? t('GİZLE') : t('GÖSTER')}
               </button>
             </div>
           </label>
@@ -97,11 +100,11 @@ export default function BigDataConnectionPage() {
 
         {/* ── Veri gönderim aralığı + aktif toggle ── */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>GÖNDERİM AYARLARI</div>
+          <div className={styles.sectionTitle}>{t('GÖNDERİM AYARLARI')}</div>
 
           <div className={styles.rowSpaced}>
             <div className={styles.field}>
-              <span className={styles.fieldLabel}>VERİ GÖNDERİM ARALIĞI</span>
+              <span className={styles.fieldLabel}>{t('VERİ GÖNDERİM ARALIĞI')}</span>
               <div className={styles.numInputRow}>
                 <input
                   type="number"
@@ -111,12 +114,12 @@ export default function BigDataConnectionPage() {
                   value={pushIntervalSec}
                   onChange={(e) => setPushIntervalSec(Number(e.target.value))}
                 />
-                <span className={styles.unit}>saniye</span>
+                <span className={styles.unit}>{t('saniye')}</span>
               </div>
             </div>
 
             <label className={styles.toggleField}>
-              <span className={styles.fieldLabel}>CLOUD SENKRON</span>
+              <span className={styles.fieldLabel}>{t('CLOUD SENKRON')}</span>
               <button
                 type="button"
                 className={`${styles.toggle} ${enabled ? styles.toggleOn : ''}`}
@@ -124,17 +127,16 @@ export default function BigDataConnectionPage() {
                 aria-pressed={enabled}
               >
                 <span className={styles.toggleKnob} />
-                <span className={styles.toggleText}>{enabled ? 'AÇIK' : 'KAPALI'}</span>
+                <span className={styles.toggleText}>{enabled ? t('AÇIK') : t('KAPALI')}</span>
               </button>
             </label>
           </div>
         </div>
 
         <div className={styles.footerRow}>
-          <button type="button" className={styles.saveBtn} onClick={handleSave}>KAYDET</button>
+          <button type="button" className={styles.saveBtn} onClick={handleSave}>{t('KAYDET')}</button>
           <p className={styles.note}>
-            Değişiklikler kaydedildikten sonra Cloud senkron servisi otomatik yeniden başlar.
-            Ağ kapalıyken makine çalışmaya devam eder; veriler yerelde biriktirilir.
+            {t('Değişiklikler kaydedildikten sonra Cloud senkron servisi otomatik yeniden başlar. Ağ kapalıyken makine çalışmaya devam eder; veriler yerelde biriktirilir.')}
           </p>
         </div>
       </div>
@@ -142,11 +144,11 @@ export default function BigDataConnectionPage() {
   )
 }
 
-function statusText(s: ConnStatus): string {
+function statusText(s: ConnStatus, t: (source: string, vars?: TVars) => string): string {
   switch (s) {
-    case 'connected': return 'BAĞLI'
-    case 'disconnected': return 'BAĞLI DEĞİL'
-    case 'error': return 'HATA'
-    case 'testing': return 'TEST EDİLİYOR'
+    case 'connected': return t('BAĞLI')
+    case 'disconnected': return t('BAĞLI DEĞİL')
+    case 'error': return t('HATA')
+    case 'testing': return t('TEST EDİLİYOR')
   }
 }

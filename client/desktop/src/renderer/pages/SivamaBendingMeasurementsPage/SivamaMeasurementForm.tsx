@@ -3,6 +3,7 @@ import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/pro
 import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { useT } from '@/i18n'
 import { SpiralDirection } from '@/store/bendingJobStore'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend3-4-buyuk.png'
@@ -80,6 +81,7 @@ interface Props {
 }
 
 export default function SivamaMeasurementForm({ values, onChange, onReset }: Props) {
+  const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('sivama', defaultMethodImage)
@@ -182,7 +184,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
+          ↺ {t('SIFIRLA')}
         </button>
       </div>
 
@@ -190,7 +192,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
       {openInfo && (
         <SivamaInfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import type { ManuelProgramStep, ManuelStepCommand } from '@shared/types'
+import { useT } from '@/i18n'
 import styles from './StepFormDialog.module.css'
 
 const COMMANDS: { id: ManuelStepCommand; label: string; hint: string }[] = [
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function StepFormDialog({ mode, initialStep, onSave, onClose }: Props) {
+  const t = useT()
   const [command, setCommand] = useState<ManuelStepCommand>(initialStep?.command ?? 'S')
   const [distance, setDistance] = useState<string>(
     initialStep ? String(initialStep.distanceMm) : '',
@@ -53,11 +55,11 @@ export default function StepFormDialog({ mode, initialStep, onSave, onClose }: P
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h3 className={styles.title}>{titleByMode}</h3>
+        <h3 className={styles.title}>{t(titleByMode)}</h3>
 
         {/* Command selector */}
         <div className={styles.section}>
-          <span className={styles.sectionLabel}>KOMUT</span>
+          <span className={styles.sectionLabel}>{t('KOMUT')}</span>
           <div className={styles.commandGrid}>
             {COMMANDS.map((c) => (
               <button
@@ -66,7 +68,7 @@ export default function StepFormDialog({ mode, initialStep, onSave, onClose }: P
                 onClick={() => setCommand(c.id)}
               >
                 <span className={styles.cmdLabel}>{c.label}</span>
-                <span className={styles.cmdHint}>{c.hint}</span>
+                <span className={styles.cmdHint}>{t(c.hint)}</span>
               </button>
             ))}
           </div>
@@ -74,7 +76,7 @@ export default function StepFormDialog({ mode, initialStep, onSave, onClose }: P
 
         {/* Distance */}
         <div className={styles.section}>
-          <span className={styles.sectionLabel}>MESAFE (mm)</span>
+          <span className={styles.sectionLabel}>{t('MESAFE (mm)')}</span>
           <button className={styles.fieldBtn} onClick={() => setNumpad('distance')}>
             {distance || <span className={styles.placeholder}>0</span>}
           </button>
@@ -82,7 +84,7 @@ export default function StepFormDialog({ mode, initialStep, onSave, onClose }: P
 
         {/* Pressure (optional) */}
         <div className={styles.section}>
-          <span className={styles.sectionLabel}>BASINÇ (bar) — opsiyonel</span>
+          <span className={styles.sectionLabel}>{t('BASINÇ (bar) — opsiyonel')}</span>
           <button className={styles.fieldBtn} onClick={() => setNumpad('pressure')}>
             {pressure || <span className={styles.placeholder}>—</span>}
           </button>
@@ -90,14 +92,14 @@ export default function StepFormDialog({ mode, initialStep, onSave, onClose }: P
 
         <div className={styles.actions}>
           <button className={`${styles.actionBtn} ${styles.cancel}`} onClick={onClose}>
-            VAZGEÇ
+            {t('VAZGEÇ')}
           </button>
           <button
             className={`${styles.actionBtn} ${styles.confirm}`}
             disabled={!distance}
             onClick={handleSave}
           >
-            KAYDET
+            {t('KAYDET')}
           </button>
         </div>
 

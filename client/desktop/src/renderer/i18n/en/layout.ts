@@ -92,7 +92,6 @@ const en: Record<string, string> = {
   'HATA KAYITLARI': 'ERROR LOGS',
 
   // ── ArcBendingStrip ──
-  'BÜKÜM BAŞLATILIYOR…': 'BENDING STARTING…',
   '{i} · DÜZLÜK — PARÇA İLERLETİLİYOR': '{i} · STRAIGHT — FEEDING PART',
   '{i} · RADYUS R {r} BÜKÜLÜYOR': '{i} · BENDING RADIUS R {r}',
   'ÇOK AÇILI BÜKÜM': 'MULTI-ANGLE BENDING',

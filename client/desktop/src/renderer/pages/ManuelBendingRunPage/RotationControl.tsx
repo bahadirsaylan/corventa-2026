@@ -1,6 +1,7 @@
 // Manuel rotasyon kontrolü — ↺ CCW (-1) / ↻ CW (1) press-and-hold jog.
 // Backend rotation jog: { direction: -1|0|1, speedPercent }.
 
+import { useT } from '@/i18n'
 import styles from './RotationControl.module.css'
 
 interface Props {
@@ -16,9 +17,10 @@ export default function RotationControl({
   onJog,
   onRelease,
 }: Props) {
+  const t = useT()
   return (
     <div className={styles.box}>
-      <span className={styles.label}>ROTASYON</span>
+      <span className={styles.label}>{t('ROTASYON')}</span>
       <div className={styles.row}>
         <button
           className={`${styles.btn} ${activeDirection === -1 ? styles.btnActive : ''}`}

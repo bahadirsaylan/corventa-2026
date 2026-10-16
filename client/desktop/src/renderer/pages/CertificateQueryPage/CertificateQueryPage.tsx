@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './CertificateQueryPage.module.css'
 
 type Status = 'idle' | 'searching' | 'found' | 'notfound' | 'expired'
@@ -54,6 +55,8 @@ const MOCK_DB: Record<string, CertificateResult> = {
 
 export default function CertificateQueryPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [code, setCode] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [result, setResult] = useState<CertificateResult | null>(null)
@@ -86,14 +89,14 @@ export default function CertificateQueryPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>SERTİFİKA SORGULA</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('SERTİFİKA SORGULA')}</h1>
       </div>
 
       <div className={styles.body}>
         {/* Search card */}
         <div className={styles.searchCard}>
-          <div className={styles.sectionTitle}>SERTİFİKA NUMARASI GİRİN</div>
+          <div className={styles.sectionTitle}>{t('SERTİFİKA NUMARASI GİRİN')}</div>
           <div className={styles.searchRow}>
             <input
               type="text"
@@ -108,13 +111,13 @@ export default function CertificateQueryPage() {
               onClick={handleSearch}
               disabled={!code.trim() || status === 'searching'}
             >
-              {status === 'searching' ? 'SORGULANIYOR...' : '🔍 SORGULA'}
+              {status === 'searching' ? t('SORGULANIYOR...') : `🔍 ${t('SORGULA')}`}
             </button>
             <button className={styles.clearBtn} onClick={reset} disabled={status === 'idle' && !code}>
-              TEMİZLE
+              {t('TEMİZLE')}
             </button>
           </div>
-          <p className={styles.hint}>Örnek: <strong>CRV-2026-001</strong>, CRV-2025-042, CRV-2024-018</p>
+          <p className={styles.hint}>{t('Örnek:')} <strong>CRV-2026-001</strong>, CRV-2025-042, CRV-2024-018</p>
         </div>
 
         {/* Result */}
@@ -122,10 +125,10 @@ export default function CertificateQueryPage() {
           <div className={`${styles.resultCard} ${styles.resultNotFound}`}>
             <div className={styles.resultIcon}>✕</div>
             <div className={styles.resultBody}>
-              <h2 className={styles.resultTitle}>SERTİFİKA BULUNAMADI</h2>
+              <h2 className={styles.resultTitle}>{t('SERTİFİKA BULUNAMADI')}</h2>
               <p className={styles.resultText}>
-                <strong>{code}</strong> numaralı bir sertifika kayıtlı değildir.
-                Lütfen numarayı kontrol edip tekrar deneyin.
+                <strong>{code}</strong> {t('numaralı bir sertifika kayıtlı değildir.')}
+                {' '}{t('Lütfen numarayı kontrol edip tekrar deneyin.')}
               </p>
             </div>
           </div>
@@ -136,16 +139,16 @@ export default function CertificateQueryPage() {
             <div className={styles.resultIcon}>{status === 'expired' ? '⚠' : '✓'}</div>
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>
-                {status === 'expired' ? 'SERTİFİKA SÜRESİ DOLMUŞ' : 'SERTİFİKA GEÇERLİ'}
+                {status === 'expired' ? t('SERTİFİKA SÜRESİ DOLMUŞ') : t('SERTİFİKA GEÇERLİ')}
               </h2>
               <div className={styles.resultGrid}>
-                <ResultRow label="SERTİFİKA NO"  value={result.code} mono />
-                <ResultRow label="AD SOYAD"      value={result.ownerName} />
-                <ResultRow label="ŞİRKET"        value={result.ownerCompany} />
-                <ResultRow label="EĞİTİM"        value={result.courseName} />
-                <ResultRow label="VEREN KURUM"   value={result.certifiedBy} />
-                <ResultRow label="VERİLİŞ TARİHİ" value={formatDate(result.issuedAt)} />
-                <ResultRow label="GEÇERLİLİK SONU" value={formatDate(result.validUntil)} highlight={status === 'expired' ? 'red' : 'green'} />
+                <ResultRow label={t('SERTİFİKA NO')}  value={result.code} mono />
+                <ResultRow label={t('AD SOYAD')}      value={result.ownerName} />
+                <ResultRow label={t('ŞİRKET')}        value={result.ownerCompany} />
+                <ResultRow label={t('EĞİTİM')}        value={t(result.courseName)} />
+                <ResultRow label={t('VEREN KURUM')}   value={t(result.certifiedBy)} />
+                <ResultRow label={t('VERİLİŞ TARİHİ')} value={formatDate(result.issuedAt, locale)} />
+                <ResultRow label={t('GEÇERLİLİK SONU')} value={formatDate(result.validUntil, locale)} highlight={status === 'expired' ? 'red' : 'green'} />
               </div>
             </div>
           </div>
@@ -170,6 +173,6 @@ function ResultRow({ label, value, mono, highlight }: { label: string; value: st
   )
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' })
 }

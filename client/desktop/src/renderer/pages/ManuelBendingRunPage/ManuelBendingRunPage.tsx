@@ -8,6 +8,8 @@ import { useParams } from 'react-router-dom'
 import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useManuelProgramsStore } from '@/stores/manuelProgramsStore'
+import { readManualRunPrefs } from '@/services/operatorPrefs'
+import { useT } from '@/i18n'
 import { MachineMode, type PistonName, type PneumaticSide } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
 import JogBall from './JogBall'
@@ -15,11 +17,11 @@ import RotationControl from './RotationControl'
 import SideSupport from './SideSupport'
 import styles from './ManuelBendingRunPage.module.css'
 
-// Manuel komutlar için güvenli başlangıç hızı — operatör fazla mı az mı diye
-// karar vermeden ekran açılır açılmaz tam gaz piston göndermek istemiyoruz.
-const DEFAULT_SPEED_PERCENT = 20
+// Manuel komutlar için güvenli başlangıç hızı ve yan dayama varsayılanı Ayarlar > Operatör
+// Ayarları'ndan gelir (varsayılan %20 — ekran açılır açılmaz tam gaz piston göndermiyoruz).
 
 export default function ManuelBendingRunPage() {
+  const t = useT()
   const { programNo: rawNo } = useParams<{ programNo: string }>()
   const programNo = rawNo ? decodeURIComponent(rawNo) : null
   const program = useManuelProgramsStore((s) =>
@@ -37,8 +39,8 @@ export default function ManuelBendingRunPage() {
   const machineMode = useMachineStateStore((s) => s.state.mode)
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
 
-  const [speedPercent, setSpeedPercent] = useState(DEFAULT_SPEED_PERCENT)
-  const [autoSideSupport, setAutoSideSupport] = useState(true)
+  const [speedPercent, setSpeedPercent] = useState(() => readManualRunPrefs().speedPercent)
+  const [autoSideSupport, setAutoSideSupport] = useState(() => readManualRunPrefs().autoSideSupport)
 
   // Sayfaya girer girmez backend'i Manuel mod'a al — operatör panelden mode
   // ayarlamayı unutursa SemiAuto/Auto'da kalır ve manuel jog komutları
@@ -96,7 +98,7 @@ export default function ManuelBendingRunPage() {
           <span className={styles.statUnit}>mm</span>
         </div>
 
-        {blockReason && <div className={styles.blockBanner}>{blockReason}</div>}
+        {blockReason && <div className={styles.blockBanner}>{t(blockReason)}</div>}
 
         <div className={`${styles.body} ${!canControl ? styles.bodyDisabled : ''}`}>
           {/* Sol yan dayama */}
@@ -165,7 +167,7 @@ export default function ManuelBendingRunPage() {
         <div className={styles.footer}>
           <div className={styles.footerCol}>
             <p className={styles.speedText}>
-              KIVRIM HIZI <span className={styles.speedValue}>{speedPercent}</span> %
+              {t('KIVRIM HIZI')} <span className={styles.speedValue}>{speedPercent}</span> %
             </p>
             <div className={styles.speedControls}>
               <button
@@ -185,7 +187,7 @@ export default function ManuelBendingRunPage() {
               className={`${styles.toggleBtn} ${autoSideSupport ? styles.toggleActive : ''}`}
               onClick={() => setAutoSideSupport((v) => !v)}
             >
-              YAN DAYAMALARI OTOMATİK KULLAN
+              {t('YAN DAYAMALARI OTOMATİK KULLAN')}
             </button>
           </div>
 
@@ -199,8 +201,8 @@ export default function ManuelBendingRunPage() {
           </div>
 
           <div className={styles.footerCol}>
-            <span className={styles.footerLabel}>{program?.name ?? '—'}</span>
-            <span className={styles.footerSubtle}>PARÇANIN GERÇEK ÇAPINI ÖLÇÜNÜZ</span>
+            <span className={styles.footerLabel}>{program ? t(program.name) : '—'}</span>
+            <span className={styles.footerSubtle}>{t('PARÇANIN GERÇEK ÇAPINI ÖLÇÜNÜZ')}</span>
           </div>
         </div>
       </div>

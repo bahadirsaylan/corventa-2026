@@ -9,7 +9,7 @@
   border: 1.5px solid #c5c1b6;
   border-radius: 12px;
   padding: 14px 18px;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.5;
   color: var(--color-text);
@@ -103,7 +103,7 @@
 }
 
 .noteLabel {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.04em;
@@ -114,7 +114,7 @@
 }
 
 .noteHint {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--color-text-muted);
   letter-spacing: 0.02em;
@@ -127,7 +127,7 @@
   border-radius: 8px;
   padding: 10px 14px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.5;
   resize: vertical;
 }
@@ -139,7 +139,7 @@
   border-radius: 8px;
   color: #c93235;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .saveBtn {
@@ -147,7 +147,7 @@
   border: 2px solid #d07070;
   border-radius: 12px;
   padding: 20px;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.08em;

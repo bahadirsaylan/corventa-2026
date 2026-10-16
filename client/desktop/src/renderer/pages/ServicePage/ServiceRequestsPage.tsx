@@ -11,6 +11,7 @@ import {
 } from '@shared/types'
 
 import { useServiceRequests } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
 import ServiceRequestRating from './ServiceRequestRating'
@@ -19,6 +20,7 @@ import styles from './ServiceRequestsPage.module.css'
 
 export default function ServiceRequestsPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { requests, reports, loading, refresh } = useServiceRequests()
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null)
   const [selectedReport, setSelectedReport] = useState<ServiceRequest | null>(null)
@@ -48,12 +50,12 @@ export default function ServiceRequestsPage() {
         {/* ── SOL: Servis Talepleri ───────────── */}
         <section className={styles.column}>
           <div className={styles.colHeader}>
-            <span className={styles.colTitle}>SERVİS TALEPLERİ</span>
+            <span className={styles.colTitle}>{t('SERVİS TALEPLERİ')}</span>
           </div>
           <div className={styles.list}>
-            {loading && <div className={styles.empty}>Yükleniyor...</div>}
+            {loading && <div className={styles.empty}>{t('Yükleniyor...')}</div>}
             {!loading && requests.length === 0 && (
-              <div className={styles.empty}>Henüz talep yok</div>
+              <div className={styles.empty}>{t('Henüz talep yok')}</div>
             )}
             {requests.map((r) => (
               <button
@@ -68,8 +70,8 @@ export default function ServiceRequestsPage() {
               >
                 <span className={styles.rowCode}>{r.code}</span>
                 <span className={styles.rowSep}>-</span>
-                <span className={styles.rowLabel}>{purposeLabel(r.purpose)}</span>
-                <span className={styles.rowStatus}>{requestStatusLabel(r.status)}</span>
+                <span className={styles.rowLabel}>{t(purposeLabel(r.purpose))}</span>
+                <span className={styles.rowStatus}>{t(requestStatusLabel(r.status))}</span>
               </button>
             ))}
           </div>
@@ -83,11 +85,11 @@ export default function ServiceRequestsPage() {
         {/* ── SAĞ: Servis Raporları ───────────── */}
         <section className={styles.column}>
           <div className={styles.colHeader}>
-            <span className={styles.colTitle}>SERVİS RAPORLARI</span>
+            <span className={styles.colTitle}>{t('SERVİS RAPORLARI')}</span>
           </div>
           <div className={styles.list}>
             {!loading && reports.length === 0 && (
-              <div className={styles.empty}>Henüz rapor yok</div>
+              <div className={styles.empty}>{t('Henüz rapor yok')}</div>
             )}
             {reports.map((r) => (
               <button
@@ -102,7 +104,7 @@ export default function ServiceRequestsPage() {
               >
                 <span className={styles.rowCode}>{r.reportCode ?? r.code}</span>
                 <span className={styles.rowSep}>-</span>
-                <span className={styles.rowLabel}>{purposeLabel(r.purpose)}</span>
+                <span className={styles.rowLabel}>{t(purposeLabel(r.purpose))}</span>
                 {r.rating !== null && (
                   <span className={styles.rowRating}>{r.rating}/10</span>
                 )}
@@ -116,10 +118,10 @@ export default function ServiceRequestsPage() {
       {selectedRequest && (
         <div className={styles.previewBox}>
           <div className={styles.previewHeader}>
-            {selectedRequest.code} - {purposeLabel(selectedRequest.purpose)}
+            {selectedRequest.code} - {t(purposeLabel(selectedRequest.purpose))}
           </div>
           <div className={styles.previewBody}>
-            {selectedRequest.problemDescription ?? '(Açıklama yok)'}
+            {selectedRequest.problemDescription ?? t('(Açıklama yok)')}
           </div>
         </div>
       )}
@@ -130,28 +132,28 @@ export default function ServiceRequestsPage() {
           className={styles.actionBtn}
           onClick={() => navigate('/service/requests/new')}
         >
-          YENİ TALEP OLUŞTUR
+          {t('YENİ TALEP OLUŞTUR')}
         </button>
         <button
           className={styles.actionBtn}
           onClick={() => selectedRequest && navigate(`/service/requests/${selectedRequest.id}`)}
           disabled={!selectedRequest}
         >
-          TALEPLERİ GÖRÜNTÜLE
+          {t('TALEPLERİ GÖRÜNTÜLE')}
         </button>
         <button
           className={styles.actionBtn}
           onClick={() => selectedReport && navigate(`/service/requests/${selectedReport.id}?mode=report`)}
           disabled={!selectedReport}
         >
-          RAPOR GÖRÜNTÜLE
+          {t('RAPOR GÖRÜNTÜLE')}
         </button>
         <button
           className={styles.actionBtn}
           onClick={() => selectedReport && setShowRating(true)}
           disabled={!selectedReport || selectedReport.status !== ServiceRequestStatus.Completed}
         >
-          SERVİSİ DEĞERLENDİR
+          {t('SERVİSİ DEĞERLENDİR')}
         </button>
       </div>
     </ServicePageShell>

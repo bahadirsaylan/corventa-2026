@@ -5,12 +5,14 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { getTrainingTopic, type QuizQuestion } from '@/constants/trainingTopics'
+import { useT } from '@/i18n'
 
 import ServicePageShell from './ServicePageShell'
 import styles from './TrainingQuizPage.module.css'
 
 export default function TrainingQuizPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { id } = useParams<{ id: string }>()
   const topic = getTrainingTopic(id ?? '')
 
@@ -32,7 +34,7 @@ export default function TrainingQuizPage() {
   if (!topic) {
     return (
       <ServicePageShell title="SINAV" onBack={() => navigate('/service/training')}>
-        <div className={styles.empty}>Eğitim konusu bulunamadı.</div>
+        <div className={styles.empty}>{t('Eğitim konusu bulunamadı.')}</div>
       </ServicePageShell>
     )
   }
@@ -50,7 +52,7 @@ export default function TrainingQuizPage() {
             .filter(Boolean)
             .join(' ')}
           >
-            {passed ? '✦ EĞİTİM TAMAMLANDI ✦' : 'TEKRAR DENEYİN'}
+            {passed ? t('✦ EĞİTİM TAMAMLANDI ✦') : t('TEKRAR DENEYİN')}
           </div>
           <div className={styles.resultScore}>
             <span className={styles.resultScoreNum}>{score}</span>
@@ -65,13 +67,13 @@ export default function TrainingQuizPage() {
                 setDone(false)
               }}
             >
-              TEKRAR DENE
+              {t('TEKRAR DENE')}
             </button>
             <button
               className={styles.resultBtn}
               onClick={() => navigate('/service/training')}
             >
-              EĞİTİM MERKEZİNE DÖN
+              {t('EĞİTİM MERKEZİNE DÖN')}
             </button>
           </div>
         </div>
@@ -92,15 +94,15 @@ export default function TrainingQuizPage() {
   return (
     <ServicePageShell
       title="SINAV"
-      subtitle={`SORU ${currentIdx + 1} / ${topic.questions.length}`}
+      subtitle={t('SORU {n} / {total}', { n: currentIdx + 1, total: topic.questions.length })}
       onBack={() => navigate('/service/training')}
     >
       <div className={styles.card}>
         <div className={styles.cardHeader}>
-          <span className={styles.cardHeaderLabel}>KONU :</span>
-          <span className={styles.cardHeaderValue}>{topic.title}</span>
+          <span className={styles.cardHeaderLabel}>{t('KONU :')}</span>
+          <span className={styles.cardHeaderValue}>{t(topic.title)}</span>
         </div>
-        <div className={styles.cardBody}>{currentQ.prompt}</div>
+        <div className={styles.cardBody}>{t(currentQ.prompt)}</div>
       </div>
 
       {currentQ.type === 'yes-no' ? (
@@ -111,7 +113,7 @@ export default function TrainingQuizPage() {
               className={styles.yesNoBtn}
               onClick={() => pickAnswer(i)}
             >
-              {opt}
+              {t(opt)}
             </button>
           ))}
         </div>
@@ -123,7 +125,7 @@ export default function TrainingQuizPage() {
               className={styles.multiBtn}
               onClick={() => pickAnswer(i)}
             >
-              {String.fromCharCode(65 + i)} &nbsp;&nbsp; {opt}
+              {String.fromCharCode(65 + i)} &nbsp;&nbsp; {t(opt)}
             </button>
           ))}
         </div>

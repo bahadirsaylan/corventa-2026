@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useT, t } from '@/i18n'
 import styles from './SettingsMenuGrid.module.css'
 
 export default function SettingsMenuGrid() {
@@ -9,11 +10,11 @@ export default function SettingsMenuGrid() {
       const result = await window.corventa.system.openUserGuide()
       if (!result.ok) {
         console.error('PDF açılamadı:', result.error)
-        alert(`PDF açılamadı: ${result.error ?? 'bilinmeyen hata'}`)
+        alert(t('PDF açılamadı: {err}', { err: result.error ?? t('bilinmeyen hata') }))
       }
     } catch (err) {
       console.error('PDF IPC hatası:', err)
-      alert('PDF açılamadı (IPC hatası).')
+      alert(t('PDF açılamadı (IPC hatası).'))
     }
   }
 
@@ -53,12 +54,13 @@ function SettingsBtn({
   label,
   onClick,
 }: {
-  label: React.ReactNode
+  label: string
   onClick?: () => void
 }) {
+  const tr = useT()
   return (
     <button className={styles.settingsBtn} onClick={onClick}>
-      <span className={styles.btnLabel}>{label}</span>
+      <span className={styles.btnLabel}>{tr(label)}</span>
     </button>
   )
 }

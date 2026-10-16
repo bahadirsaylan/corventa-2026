@@ -4,24 +4,23 @@
 // sözlükte karşılığı varsa o, yoksa Türkçe kaynak gösterilir (eksik çeviri ekranı bozmaz).
 // Değişkenli metinler: t('PASO {n} BÜKÜLÜYOR', { n: 3 }) — sözlükte de aynı {n} yer tutucusu.
 //
-// Yeni dil eklemek: ./<kod>/ klasörüne sözlük dosyaları + aşağıdaki DICTS'e ekle.
+// Yeni dil eklemek: ./<kod>/ klasörü aç (ör. ./de/), içine herhangi isimde sözlük dosyaları koy
+// (`export default { 'TÜRKÇE': 'Deutsch', ... }`). Klasör OTOMATİK yüklenir — burada kayıt gerekmez.
+// Eksik çevirileri görmek için: npm run i18n:check -- de   (anahtar listesini ./en/ ile kıyaslar)
 // Seçili dil LanguagePage'den kaydedilir (localStorage 'corventa.language') ve canlı değişir.
 
 import { create } from 'zustand'
-
-import enCore from './en/core'
-import enLayout from './en/layout'
-import enFlow from './en/flow'
-import enMeasure from './en/measure'
-import enArc from './en/arc'
-import enSettings from './en/settings'
 
 export type LangCode = 'tr' | 'en' | 'de' | 'ru' | 'ar' | 'fr'
 
 const STORAGE_KEY = 'corventa.language'
 
-const DICTS: Partial<Record<LangCode, Record<string, string>>> = {
-  en: { ...enCore, ...enLayout, ...enFlow, ...enMeasure, ...enArc, ...enSettings },
+// ./<dil>/*.ts sözlük dosyaları derleme anında toplanır; aynı dildeki dosyalar birleştirilir.
+const modules = import.meta.glob<{ default: Record<string, string> }>('./*/*.ts', { eager: true })
+const DICTS: Partial<Record<LangCode, Record<string, string>>> = {}
+for (const [path, mod] of Object.entries(modules)) {
+  const lang = path.split('/')[1] as LangCode
+  DICTS[lang] = { ...DICTS[lang], ...mod.default }
 }
 
 function readStored(): LangCode {

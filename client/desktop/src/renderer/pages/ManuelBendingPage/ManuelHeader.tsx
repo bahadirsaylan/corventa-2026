@@ -2,6 +2,7 @@
 // Üstte aşağı/yukarı navigasyon okları (geri/ileri) ile.
 
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './ManuelHeader.module.css'
 
 interface Props {
@@ -13,13 +14,14 @@ interface Props {
 
 export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
   const navigate = useNavigate()
+  const t = useT()
 
   return (
     <div className={styles.wrapper}>
       <button
         className={styles.arrowBtn}
         onClick={onDown ?? (() => navigate(-1))}
-        aria-label="Geri / Aşağı"
+        aria-label={t('Geri / Aşağı')}
       >
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M12 4v16M5 13l7 7 7-7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
@@ -27,7 +29,7 @@ export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
       </button>
 
       <div className={styles.titleBlock}>
-        <span className={styles.title}>MANUEL</span>
+        <span className={styles.title}>{t('MANUEL')}</span>
         <span className={styles.title}>BENDING</span>
         {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </div>
@@ -35,7 +37,7 @@ export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
       <button
         className={styles.arrowBtn}
         onClick={onUp ?? (() => navigate('/dashboard'))}
-        aria-label="İleri / Yukarı"
+        aria-label={t('İleri / Yukarı')}
       >
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M12 20V4M5 11l7-7 7 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>

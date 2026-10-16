@@ -11,7 +11,8 @@
     "build": "electron-vite build",
     "package": "npm run build && electron-builder",
     "preview": "electron-vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "i18n:check": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

@@ -9,6 +9,7 @@ import {
   SERVICE_POINTS,
   projectToScene,
 } from '@/constants/serviceNetwork'
+import { useT } from '@/i18n'
 import mapImage from '@/assets/images/service-map-bursa.jpg'
 import styles from './ServiceNetworkPage.module.css'
 
@@ -21,6 +22,7 @@ function inScene(p: { x: number; y: number }) {
 
 export default function ServiceNetworkPage() {
   const navigate = useNavigate()
+  const t = useT()
   const machine = projectToScene(MACHINE_LOCATION.lat, MACHINE_LOCATION.lon)
 
   return (
@@ -74,16 +76,16 @@ export default function ServiceNetworkPage() {
         </div>
         <div className={styles.actions}>
           <button type="button" className={styles.actionBtn} onClick={() => navigate('/service/requests/new')}>
-            SERVİS TALEBİ OLUŞTUR
+            {t('SERVİS TALEBİ OLUŞTUR')}
           </button>
           <button type="button" className={styles.actionBtn} onClick={() => navigate('/service/requests')}>
-            SERVİS TALEBİ SORGULA
+            {t('SERVİS TALEBİ SORGULA')}
           </button>
         </div>
       </aside>
 
       {/* Ana ekrana dön */}
-      <button type="button" className={styles.homeBtn} onClick={() => navigate('/dashboard')} aria-label="Ana ekran">
+      <button type="button" className={styles.homeBtn} onClick={() => navigate('/dashboard')} aria-label={t('Ana ekran')}>
         <svg viewBox="0 0 100 90" fill="currentColor">
           <polygon points="50,4 4,44 14,44 50,13 86,44 96,44" />
           <polygon points="18,46 50,18 82,46 82,86 60,86 60,60 40,60 40,86 18,86" />
@@ -91,7 +93,7 @@ export default function ServiceNetworkPage() {
         </svg>
       </button>
 
-      <span className={styles.attribution}>© OpenStreetMap katkıda bulunanlar</span>
+      <span className={styles.attribution}>{t('© OpenStreetMap katkıda bulunanlar')}</span>
     </div>
   )
 }

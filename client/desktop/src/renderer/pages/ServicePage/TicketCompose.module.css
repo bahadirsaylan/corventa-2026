@@ -22,7 +22,7 @@
 
 .intro {
   flex: 1;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.45;
   color: var(--color-text);
@@ -49,7 +49,7 @@
 
 .formCode {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.04em;
@@ -62,7 +62,7 @@
   outline: none;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 17px;
   color: var(--color-text);
   letter-spacing: 0.04em;
   font-weight: 600;
@@ -79,7 +79,7 @@
   outline: none;
   padding: 18px 22px;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.55;
   color: var(--color-text);
   resize: none;
@@ -99,7 +99,7 @@
   border-radius: 8px;
   color: #c93235;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .actionRow {
@@ -114,7 +114,7 @@
   border: 2px solid #d07070;
   border-radius: 12px;
   padding: 16px 20px;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -143,7 +143,7 @@
 }
 
 .btnSub {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: none;

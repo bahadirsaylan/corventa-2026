@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './WelcomeMessagePage.module.css'
 
 const STORAGE_KEY = 'corventa.welcomeMessage'
@@ -9,6 +10,8 @@ const MAX_LENGTH = 500
 
 export default function WelcomeMessagePage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [message, setMessage] = useState('')
   const [savedAt, setSavedAt] = useState<string | null>(null)
 
@@ -19,7 +22,7 @@ export default function WelcomeMessagePage() {
 
   const handleSave = () => {
     localStorage.setItem(STORAGE_KEY, message)
-    const now = new Date().toLocaleString('tr-TR')
+    const now = new Date().toLocaleString(locale)
     setSavedAt(now)
   }
 
@@ -32,15 +35,15 @@ export default function WelcomeMessagePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
           ←
         </button>
-        <h1 className={styles.title}>KARŞILAMA MESAJI</h1>
+        <h1 className={styles.title}>{t('KARŞILAMA MESAJI')}</h1>
       </div>
 
       <div className={styles.body}>
         <p className={styles.helpText}>
-          Operatör login sonrası gösterilecek karşılama mesajını düzenleyin. En fazla {MAX_LENGTH} karakter.
+          {t('Operatör login sonrası gösterilecek karşılama mesajını düzenleyin. En fazla {n} karakter.', { n: MAX_LENGTH })}
         </p>
 
         <textarea
@@ -48,18 +51,18 @@ export default function WelcomeMessagePage() {
           value={message}
           onChange={(e) => setMessage(e.target.value.slice(0, MAX_LENGTH))}
           rows={10}
-          placeholder="Karşılama mesajınızı buraya yazın..."
+          placeholder={t('Karşılama mesajınızı buraya yazın...')}
         />
 
         <div className={styles.statusRow}>
           <span className={styles.counter}>
-            {message.length} / {MAX_LENGTH} karakter
+            {t('{len} / {max} karakter', { len: message.length, max: MAX_LENGTH })}
           </span>
-          {savedAt && <span className={styles.savedAt}>Kaydedildi: {savedAt}</span>}
+          {savedAt && <span className={styles.savedAt}>{t('Kaydedildi: {at}', { at: savedAt })}</span>}
         </div>
 
         <div className={styles.preview}>
-          <span className={styles.previewLabel}>ÖNİZLEME</span>
+          <span className={styles.previewLabel}>{t('ÖNİZLEME')}</span>
           <div className={styles.previewBox}>
             {message.split('\n').map((line, i) => (
               <div key={i} className={styles.previewLine}>
@@ -71,10 +74,10 @@ export default function WelcomeMessagePage() {
 
         <div className={styles.actions}>
           <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={handleReset}>
-            VARSAYILANA DÖN
+            {t('VARSAYILANA DÖN')}
           </button>
           <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={handleSave}>
-            KAYDET
+            {t('KAYDET')}
           </button>
         </div>
       </div>

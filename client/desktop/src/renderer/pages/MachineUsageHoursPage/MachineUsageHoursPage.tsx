@@ -2,6 +2,7 @@
 // Backend: DataApi.machineHours (henüz endpoint yok, mock).
 
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './MachineUsageHoursPage.module.css'
 
 interface HourCounter {
@@ -29,6 +30,8 @@ const INSTALL_DATE = '2025-11-04'
 
 export default function MachineUsageHoursPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
 
   const totalDays = Math.floor(
     (Date.now() - new Date(INSTALL_DATE).getTime()) / (1000 * 60 * 60 * 24),
@@ -37,25 +40,25 @@ export default function MachineUsageHoursPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>KULLANMA SÜRELERİ</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('KULLANMA SÜRELERİ')}</h1>
       </div>
 
       <div className={styles.body}>
         {/* Overall summary */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>MAKİNE GENEL İSTATİSTİK</div>
+          <div className={styles.sectionTitle}>{t('MAKİNE GENEL İSTATİSTİK')}</div>
           <div className={styles.summaryGrid}>
-            <BigStat label="MAKİNE YAŞI"   value={`${totalDays}`} unit="GÜN" color="#2a2a2a" />
-            <BigStat label="TOPLAM AÇIKKALMA" value={`${TOTAL_UP_HOURS.toLocaleString('tr-TR')}`} unit="SAAT" color="#1a6fd4" />
-            <BigStat label="KURULUM"       value={new Date(INSTALL_DATE).toLocaleDateString('tr-TR')} color="#16a34a" small />
-            <BigStat label="AKTİF OPERATÖR" value="3" color="#7c3aed" />
+            <BigStat label={t('MAKİNE YAŞI')}   value={`${totalDays}`} unit={t('GÜN')} color="#2a2a2a" />
+            <BigStat label={t('TOPLAM AÇIKKALMA')} value={`${TOTAL_UP_HOURS.toLocaleString(locale)}`} unit={t('SAAT')} color="#1a6fd4" />
+            <BigStat label={t('KURULUM')}       value={new Date(INSTALL_DATE).toLocaleDateString(locale)} color="#16a34a" small />
+            <BigStat label={t('AKTİF OPERATÖR')} value="3" color="#7c3aed" />
           </div>
         </div>
 
         {/* Counter grid */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>SAAT SAYAÇLARI</div>
+          <div className={styles.sectionTitle}>{t('SAAT SAYAÇLARI')}</div>
           <div className={styles.counterList}>
             {COUNTERS.map((c) => {
               const remaining = c.serviceInterval - (c.hours % c.serviceInterval)
@@ -64,15 +67,15 @@ export default function MachineUsageHoursPage() {
               return (
                 <div key={c.key} className={styles.counterRow}>
                   <div className={styles.counterInfo}>
-                    <span className={styles.counterLabel}>{c.label}</span>
-                    <span className={styles.counterDesc}>{c.desc}</span>
+                    <span className={styles.counterLabel}>{t(c.label)}</span>
+                    <span className={styles.counterDesc}>{t(c.desc)}</span>
                   </div>
                   <div className={styles.counterHours}>
-                    <span className={styles.counterHoursValue}>{c.hours.toLocaleString('tr-TR')}</span>
-                    <span className={styles.counterHoursUnit}>saat</span>
+                    <span className={styles.counterHoursValue}>{c.hours.toLocaleString(locale)}</span>
+                    <span className={styles.counterHoursUnit}>{t('saat')}</span>
                   </div>
                   <div className={styles.serviceCol}>
-                    <div className={styles.serviceLabel}>SONRAKI BAKIM</div>
+                    <div className={styles.serviceLabel}>{t('SONRAKI BAKIM')}</div>
                     <div className={styles.progressWrap}>
                       <div
                         className={`${styles.progressFill} ${isLow ? styles.progressLow : ''}`}
@@ -80,7 +83,7 @@ export default function MachineUsageHoursPage() {
                       />
                     </div>
                     <div className={`${styles.serviceRemaining} ${isLow ? styles.textLow : ''}`}>
-                      {remaining} saat kaldı
+                      {t('{n} saat kaldı', { n: remaining })}
                     </div>
                   </div>
                 </div>
@@ -90,8 +93,7 @@ export default function MachineUsageHoursPage() {
         </div>
 
         <p className={styles.note}>
-          Saat sayaçları makine açıldığı ilk andan itibaren, PLC tick counter'ından okunur.
-          Bakım geri sayımı sıfırlanmadan geçen saatler kümülatif tutulur.
+          {t("Saat sayaçları makine açıldığı ilk andan itibaren, PLC tick counter'ından okunur. Bakım geri sayımı sıfırlanmadan geçen saatler kümülatif tutulur.")}
         </p>
       </div>
     </div>

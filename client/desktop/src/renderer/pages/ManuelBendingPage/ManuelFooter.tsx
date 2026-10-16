@@ -1,5 +1,6 @@
 // SEKIL-22 alt: Uyarı + sinyal + Geometrik çap + Touch icon
 
+import { useT } from '@/i18n'
 import styles from './ManuelFooter.module.css'
 import alertIcon from '@/assets/images/alert.png'
 import touchIcon from '@/assets/images/touch.png'
@@ -16,16 +17,17 @@ export default function ManuelFooter({
   diameterLabel = 'SEÇİLİ PROGRAMIN\nGEOMETRİSEL ÇAPI',
   onTouchConfirm,
 }: Props) {
+  const t = useT()
   return (
     <div className={styles.footer}>
       <div className={styles.left}>
-        <img src={alertIcon} alt="Uyarı" className={styles.alertIcon} />
+        <img src={alertIcon} alt={t('Uyarı')} className={styles.alertIcon} />
         <SignalIcon />
       </div>
 
       <div className={styles.diameterBox}>
         <span className={styles.diameterLabel}>
-          {diameterLabel.split('\n').map((line, i) => (
+          {t(diameterLabel).split('\n').map((line, i) => (
             <span key={i}>{line}</span>
           ))}
         </span>

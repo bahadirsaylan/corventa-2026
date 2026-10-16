@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MachineIdentity } from '@shared/types'
+import { useLang, useT } from '@/i18n'
 import styles from './WarrantyPage.module.css'
 
 interface WarrantyCategory {
@@ -29,9 +30,9 @@ const EXCLUSIONS: string[] = [
   'Makine çalışırken üzerinde kaynak yapılması',
 ]
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function daysBetween(startIso: string, endIso: string): number {
@@ -47,6 +48,7 @@ function daysRemaining(endIso: string): number {
 
 export default function WarrantyPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [identity, setIdentity] = useState<MachineIdentity | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,7 +60,7 @@ export default function WarrantyPage() {
       .getIdentity()
       .then((data) => { if (!cancelled) setIdentity(data) })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? 'Garanti bilgisi alınamadı')
+        if (!cancelled) setError(err?.message ?? t('Garanti bilgisi alınamadı'))
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
@@ -67,18 +69,18 @@ export default function WarrantyPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
           ←
         </button>
-        <h1 className={styles.title}>GARANTİ SÜRESİ</h1>
+        <h1 className={styles.title}>{t('GARANTİ SÜRESİ')}</h1>
       </div>
 
       <div className={styles.body}>
-        {loading && <div className={styles.stateMsg}>Yükleniyor…</div>}
+        {loading && <div className={styles.stateMsg}>{t('Yükleniyor…')}</div>}
 
         {error && !loading && (
           <div className={`${styles.stateMsg} ${styles.errorMsg}`}>
-            Hata: {error}
+            {t('Hata: {err}', { err: error })}
           </div>
         )}
 
@@ -89,6 +91,8 @@ export default function WarrantyPage() {
 }
 
 function WarrantyContent({ identity }: { identity: MachineIdentity }) {
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const remaining = daysRemaining(identity.warrantyEndDate)
   const total = daysBetween(identity.warrantyStartDate, identity.warrantyEndDate)
   const percent = total > 0 ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 0
@@ -100,13 +104,13 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
       {/* ── Kalan garanti + info ─────────────────── */}
       <div className={styles.card}>
         <div className={styles.statusBlock}>
-          <span className={styles.statusLabel}>KALAN GARANTİ</span>
+          <span className={styles.statusLabel}>{t('KALAN GARANTİ')}</span>
           <div
             className={`${styles.statusValue} ${
               isExpired ? styles.expired : isLow ? styles.lowWarn : ''
             }`}
           >
-            {isExpired ? 'SÜRESİ DOLDU' : `${remaining} GÜN`}
+            {isExpired ? t('SÜRESİ DOLDU') : t('{n} GÜN', { n: remaining })}
           </div>
           <div className={styles.progressBar}>
             <div
@@ -121,23 +125,23 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
         <div className={styles.divider} />
 
         <div className={styles.infoGrid}>
-          <InfoRow label="MÜŞTERİ" value={identity.customerName} />
-          <InfoRow label="SERİ NO" value={identity.serialNo} />
-          <InfoRow label="SAHİPLİK" value={identity.ownershipType} />
-          <InfoRow label="GARANTİ BAŞLANGIÇ" value={formatDate(identity.warrantyStartDate)} />
-          <InfoRow label="GARANTİ BİTİŞ" value={formatDate(identity.warrantyEndDate)} />
-          <InfoRow label="TOPLAM GARANTİ" value={`${total} gün`} />
+          <InfoRow label={t('MÜŞTERİ')} value={identity.customerName} />
+          <InfoRow label={t('SERİ NO')} value={identity.serialNo} />
+          <InfoRow label={t('SAHİPLİK')} value={t(identity.ownershipType)} />
+          <InfoRow label={t('GARANTİ BAŞLANGIÇ')} value={formatDate(identity.warrantyStartDate, locale)} />
+          <InfoRow label={t('GARANTİ BİTİŞ')} value={formatDate(identity.warrantyEndDate, locale)} />
+          <InfoRow label={t('TOPLAM GARANTİ')} value={t('{n} gün', { n: total })} />
         </div>
       </div>
 
       {/* ── 4 kategori × 750 gün tablosu ─────────── */}
       <div className={styles.card}>
-        <div className={styles.sectionTitle}>KAPSANAN ÜNİTELER (PDF s.15)</div>
+        <div className={styles.sectionTitle}>{t('KAPSANAN ÜNİTELER (PDF s.15)')}</div>
         <div className={styles.categoryGrid}>
           {WARRANTY_CATEGORIES.map((cat) => (
             <div key={cat.key} className={styles.categoryTile}>
-              <span className={styles.categoryLabel}>{cat.label}</span>
-              <span className={styles.categoryDays}>{cat.days} GÜN</span>
+              <span className={styles.categoryLabel}>{t(cat.label)}</span>
+              <span className={styles.categoryDays}>{t('{n} GÜN', { n: cat.days })}</span>
             </div>
           ))}
         </div>
@@ -145,20 +149,19 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
 
       {/* ── Garanti dışı haller ──────────────────── */}
       <div className={styles.card}>
-        <div className={styles.sectionTitle}>GARANTİ KAPSAMI DIŞINDA</div>
+        <div className={styles.sectionTitle}>{t('GARANTİ KAPSAMI DIŞINDA')}</div>
         <ul className={styles.exclusionList}>
           {EXCLUSIONS.map((item) => (
             <li key={item} className={styles.exclusionItem}>
               <span className={styles.exclusionBullet}>✕</span>
-              <span>{item}</span>
+              <span>{t(item)}</span>
             </li>
           ))}
         </ul>
       </div>
 
       <p className={styles.note}>
-        Garanti süresi içinde oluşan donanım arızaları ücretsiz olarak giderilir.
-        Detaylı bilgi için Servis menüsünden talep oluşturabilirsiniz.
+        {t('Garanti süresi içinde oluşan donanım arızaları ücretsiz olarak giderilir. Detaylı bilgi için Servis menüsünden talep oluşturabilirsiniz.')}
       </p>
     </>
   )

@@ -16,6 +16,7 @@ import {
 } from '@shared/types'
 
 import { useFaqEntries, useTickets, type TicketTypeStr } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
 import ServicePageShell from './ServicePageShell'
@@ -31,6 +32,7 @@ type LocalView = 'list' | 'detail' | 'compose'
 
 export default function TicketListPage({ type }: Props) {
   const navigate = useNavigate()
+  const t = useT()
   const { tickets, loading, refresh } = useTickets(type)
   const faq = useFaqEntries(type)
 
@@ -63,29 +65,29 @@ export default function TicketListPage({ type }: Props) {
         <div className={styles.badgeWrap}>
           <CategoryBadge label={cfg.smallLabel} letter={cfg.letter} compact />
         </div>
-        <div className={styles.intro}>{cfg.intro}</div>
+        <div className={styles.intro}>{t(cfg.intro)}</div>
       </div>
 
       {/* Liste veya detail veya compose */}
       {view === 'list' && (
         <>
           <div className={styles.ticketList}>
-            {loading && <div className={styles.empty}>Yükleniyor...</div>}
+            {loading && <div className={styles.empty}>{t('Yükleniyor...')}</div>}
             {!loading && tickets.length === 0 && (
-              <div className={styles.empty}>Henüz {cfg.singular.toLowerCase()} kaydı yok</div>
+              <div className={styles.empty}>{t(cfg.emptyText)}</div>
             )}
-            {tickets.map((t) => (
+            {tickets.map((tk) => (
               <button
-                key={t.id}
-                className={[styles.ticketRow, isHighlighted(t) ? styles.ticketRowHi : '']
+                key={tk.id}
+                className={[styles.ticketRow, isHighlighted(tk) ? styles.ticketRowHi : '']
                   .filter(Boolean)
                   .join(' ')}
-                onClick={() => openDetail(t)}
+                onClick={() => openDetail(tk)}
               >
-                <span className={styles.ticketCode}>{t.code}</span>
+                <span className={styles.ticketCode}>{tk.code}</span>
                 <span className={styles.ticketSep}>-</span>
-                <span className={styles.ticketTitle}>{t.title.toUpperCase()}</span>
-                <span className={styles.ticketStatus}>{statusLabel(t.status)}</span>
+                <span className={styles.ticketTitle}>{tk.title.toUpperCase()}</span>
+                <span className={styles.ticketStatus}>{t(statusLabel(tk.status))}</span>
               </button>
             ))}
           </div>
@@ -95,23 +97,23 @@ export default function TicketListPage({ type }: Props) {
               className={styles.primaryBtn}
               onClick={() => setView('compose')}
             >
-              {cfg.createBtn}
+              {t(cfg.createBtn)}
             </button>
             <button
               className={styles.primaryBtn}
               onClick={() => {
                 // İlk cevaplanmış ticket'a git
-                const answered = tickets.find((t) => t.response)
+                const answered = tickets.find((x) => x.response)
                 if (answered) openDetail(answered)
               }}
-              disabled={!tickets.some((t) => t.response)}
+              disabled={!tickets.some((x) => x.response)}
             >
-              CEVABI GÖR
+              {t('CEVABI GÖR')}
             </button>
           </div>
 
           {/* SSS / En Çok Alınan / Sık Karşılaşılan */}
-          <div className={styles.faqHeader}>{cfg.faqHeader}</div>
+          <div className={styles.faqHeader}>{t(cfg.faqHeader)}</div>
           <div className={styles.faqList}>
             {faq.map((f) => (
               <div key={f.code} className={styles.faqItem}>
@@ -122,10 +124,10 @@ export default function TicketListPage({ type }: Props) {
                   }
                 >
                   <span className={styles.faqCode}>{f.code}</span>
-                  <span className={styles.faqQuestion}>{f.question}</span>
+                  <span className={styles.faqQuestion}>{t(f.question)}</span>
                 </button>
                 {expandedFaqCode === f.code && (
-                  <div className={styles.faqAnswer}>{f.answer}</div>
+                  <div className={styles.faqAnswer}>{t(f.answer)}</div>
                 )}
               </div>
             ))}
@@ -159,7 +161,8 @@ interface TypeConfig {
   intro: string
   createBtn: string
   faqHeader: string
-  singular: string
+  /** Boş liste metni (Türkçe kaynak — render'da t() ile çevrilir) */
+  emptyText: string
 }
 
 const TYPE_CONFIG: Record<TicketTypeStr, TypeConfig> = {
@@ -171,7 +174,7 @@ const TYPE_CONFIG: Record<TicketTypeStr, TypeConfig> = {
       'TEKNOLOJİNİN BİZE SUNDUĞU EN ÖNEMLİ DEĞER İLETİŞİMDİR. TAKILDIĞINIZ HER KONUDA BİLGİ VE TECRÜBEMİZLE SİZ DEĞERLİ MÜŞTERİLERİMİZE YARDIMCI OLMAYA ÇALIŞACAĞIZ.',
     createBtn: 'YENİ SORU OLUŞTUR',
     faqHeader: 'SIK SORULAN SORULAR',
-    singular: 'soru',
+    emptyText: 'Henüz soru kaydı yok',
   },
   suggestion: {
     pageTitle: 'ÖNERİ MERKEZİ',
@@ -181,7 +184,7 @@ const TYPE_CONFIG: Record<TicketTypeStr, TypeConfig> = {
       'SİZLERİN DEĞERLİ FİKİRLERİ BİZİM İÇİN ÇOK KIYMETLİDİR. GELECEĞİ FİKİRLER ŞEKİLLENDİRİR. ŞİRKET POLİTİKAMIZ GEREĞİ HER ÖNERİ DEĞERLENDİRİLEREK TARAFINIZA BİLGİLENDİRME YAPILACAKTIR.',
     createBtn: 'YENİ ÖNERİ OLUŞTUR',
     faqHeader: 'EN FAZLA ALINAN ÖNERİLER',
-    singular: 'öneri',
+    emptyText: 'Henüz öneri kaydı yok',
   },
   complaint: {
     pageTitle: 'ŞİKAYET MERKEZİ',
@@ -191,7 +194,7 @@ const TYPE_CONFIG: Record<TicketTypeStr, TypeConfig> = {
       'HER NE KADAR SORUNLAR MÜKEMMELLİYETİN BİR PARÇASI OLSA DA, OLUŞTURDUĞUMUZ MADURİYETTEN DOLAYI ÖZÜR DİLERİZ. GÖSTERMİŞ OLDUĞUNUZ ANLAYIŞ İÇİN TEŞEKKÜR EDERİZ.',
     createBtn: 'YENİ ŞİKAYET OLUŞTUR',
     faqHeader: 'SIK KARŞILAŞILAN ŞİKAYETLER',
-    singular: 'şikayet',
+    emptyText: 'Henüz şikayet kaydı yok',
   },
 }
 

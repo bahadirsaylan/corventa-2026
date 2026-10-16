@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useManuelProgramsStore } from '@/stores/manuelProgramsStore'
+import { useT } from '@/i18n'
 import ManuelHeader from './ManuelHeader'
 import ProgramTable from './ProgramTable'
 import ManuelFooter from './ManuelFooter'
@@ -12,6 +13,7 @@ import styles from './ManuelBendingPage.module.css'
 
 export default function ManuelBendingPage() {
   const navigate = useNavigate()
+  const t = useT()
   const programs = useManuelProgramsStore((s) => s.programs)
   const selectedNo = useManuelProgramsStore((s) => s.selectedProgramNo)
   const select = useManuelProgramsStore((s) => s.select)
@@ -65,27 +67,27 @@ export default function ManuelBendingPage() {
             disabled={!selected}
             onClick={handleEdit}
           >
-            PROGRAMI DEĞİŞTİR
+            {t('PROGRAMI DEĞİŞTİR')}
           </button>
           <button
             className={styles.actionBtn}
             disabled={!selected}
             onClick={() => setDeleteOpen(true)}
           >
-            PROGRAMI SİL
+            {t('PROGRAMI SİL')}
           </button>
           <button
             className={styles.actionBtn}
             disabled={!selected}
             onClick={handleStart}
           >
-            PROGRAMI BAŞLAT
+            {t('PROGRAMI BAŞLAT')}
           </button>
           <button
             className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
             onClick={handleNew}
           >
-            YENİ KIVRIM
+            {t('YENİ KIVRIM')}
           </button>
         </div>
       </div>

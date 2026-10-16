@@ -3,6 +3,7 @@ import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/pro
 import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { useT } from '@/i18n'
 import { SpiralDirection } from '@/store/bendingJobStore'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-4-buyuk.png'
@@ -74,6 +75,7 @@ interface Props {
 }
 
 export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
+  const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
   const methodImage = useMethodTileImage('spiral', defaultMethodImage)
@@ -176,7 +178,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
+          ↺ {t('SIFIRLA')}
         </button>
       </div>
 
@@ -184,7 +186,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
       {openInfo && (
         <SpiralInfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

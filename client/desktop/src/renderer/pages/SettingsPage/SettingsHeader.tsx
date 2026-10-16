@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import styles from './SettingsHeader.module.css'
 
 interface Props {
@@ -5,6 +6,7 @@ interface Props {
 }
 
 export default function SettingsHeader({ onBack }: Props) {
+  const t = useT()
   return (
     <div className={styles.header}>
       {/* Left — title */}
@@ -25,8 +27,8 @@ export default function SettingsHeader({ onBack }: Props) {
 
       {/* Right — customer info */}
       <div className={styles.customerBlock}>
-        <span className={styles.customerLabel}>MÜŞTERİ ADI :</span>
-        <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>
+        <span className={styles.customerLabel}>{t('MÜŞTERİ ADI :')}</span>
+        <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>{/* i18n-ignore */}
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 // SEKIL-22: Program listesi tablosu
 
 import type { ManuelProgram } from '@shared/types'
+import { useT } from '@/i18n'
 import styles from './ProgramTable.module.css'
 
 interface Props {
@@ -27,15 +28,16 @@ function fmt(iso: string): string {
 }
 
 export default function ProgramTable({ programs, selected, onSelect }: Props) {
+  const t = useT()
   return (
     <div className={styles.scroll}>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>PROGRAM NO</th>
-            <th>PROGRAM ADI</th>
-            <th>KAYIT TARİHİ</th>
-            <th>DEĞİŞTİRME TARİHİ</th>
+            <th>{t('PROGRAM NO')}</th>
+            <th>{t('PROGRAM ADI')}</th>
+            <th>{t('KAYIT TARİHİ')}</th>
+            <th>{t('DEĞİŞTİRME TARİHİ')}</th>
           </tr>
         </thead>
         <tbody>
@@ -48,7 +50,7 @@ export default function ProgramTable({ programs, selected, onSelect }: Props) {
                 onClick={() => onSelect(p.programNo)}
               >
                 <td className={styles.colNo}>{p.programNo}</td>
-                <td className={styles.colName}>{p.name}</td>
+                <td className={styles.colName}>{t(p.name)}</td>
                 <td className={styles.colDate}>{fmt(p.createdAt)}</td>
                 <td className={styles.colDate}>{fmt(p.updatedAt)}</td>
               </tr>
@@ -57,7 +59,7 @@ export default function ProgramTable({ programs, selected, onSelect }: Props) {
           {programs.length === 0 && (
             <tr>
               <td colSpan={4} className={styles.empty}>
-                Henüz kayıtlı program yok. "YENİ KIVRIM" ile başla.
+                {t('Henüz kayıtlı program yok. "YENİ KIVRIM" ile başla.')}
               </td>
             </tr>
           )}

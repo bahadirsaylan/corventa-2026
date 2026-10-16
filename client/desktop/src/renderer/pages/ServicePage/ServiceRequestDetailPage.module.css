@@ -8,6 +8,7 @@
   padding: 40px;
   text-align: center;
   color: var(--color-text-muted);
+  font-size: 18px;
 }
 
 /* ── Onay kodu paneli (SEKIL-52/53) ───────────── */
@@ -22,7 +23,7 @@
 }
 
 .confirmLabel {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--color-text);
@@ -42,7 +43,7 @@
 
 .confirmHint {
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-primary);
   letter-spacing: 0.04em;
@@ -73,7 +74,7 @@
   border: 2px solid #d07070;
   border-radius: 8px;
   padding: 12px 22px;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -100,11 +101,11 @@
 
 .row {
   display: grid;
-  grid-template-columns: 180px 12px 1fr;
+  grid-template-columns: 230px 12px minmax(0, 1fr);
   gap: 10px;
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px dashed #e5e1d6;
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .row:last-child {
@@ -140,7 +141,7 @@
   background: #f7f3e7;
   border-bottom: 1px solid #c5c1b6;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.04em;
@@ -148,7 +149,7 @@
 
 .detailBody {
   padding: 16px 22px;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--color-text);
   white-space: pre-wrap;
@@ -160,7 +161,7 @@
   border: 2px solid #d07070;
   border-radius: 12px;
   padding: 18px 22px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -188,5 +189,5 @@
   border-radius: 8px;
   color: #c93235;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
 }

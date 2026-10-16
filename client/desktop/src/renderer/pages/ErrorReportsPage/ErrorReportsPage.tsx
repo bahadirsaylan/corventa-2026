@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './ErrorReportsPage.module.css'
 
 type Severity = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO'
@@ -36,6 +37,7 @@ const SEV_COLORS: Record<Severity, string> = {
 
 export default function ErrorReportsPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [severityFilter, setSeverityFilter] = useState<'ALL' | Severity>('ALL')
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | Category>('ALL')
   const [dateFrom, setDateFrom] = useState('2026-08-12')
@@ -61,54 +63,54 @@ export default function ErrorReportsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>HATA RAPORLARI</h1>
-        <button className={styles.exportBtn} onClick={() => alert('CSV dışa aktar (mock)')}>
-          ↓ CSV DIŞA AKTAR
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('HATA RAPORLARI')}</h1>
+        <button className={styles.exportBtn} onClick={() => alert(t('CSV dışa aktar (mock)'))}>
+          ↓ {t('CSV DIŞA AKTAR')}
         </button>
       </div>
 
       <div className={styles.body}>
         {/* Özet kartlar */}
         <div className={styles.statsRow}>
-          <SevStat label="KRİTİK"   count={counts.critical} color={SEV_COLORS.CRITICAL} />
-          <SevStat label="HATA"     count={counts.error}    color={SEV_COLORS.ERROR} />
-          <SevStat label="UYARI"    count={counts.warning}  color={SEV_COLORS.WARNING} />
-          <SevStat label="BİLGİ"    count={counts.info}     color={SEV_COLORS.INFO} />
+          <SevStat label={t('KRİTİK')}   count={counts.critical} color={SEV_COLORS.CRITICAL} />
+          <SevStat label={t('HATA')}     count={counts.error}    color={SEV_COLORS.ERROR} />
+          <SevStat label={t('UYARI')}    count={counts.warning}  color={SEV_COLORS.WARNING} />
+          <SevStat label={t('BİLGİ')}    count={counts.info}     color={SEV_COLORS.INFO} />
         </div>
 
         {/* Filtreler */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>FİLTRELER</div>
+          <div className={styles.sectionTitle}>{t('FİLTRELER')}</div>
           <div className={styles.filterGrid}>
             <div className={styles.filterField}>
-              <label className={styles.filterLabel}>TARİH BAŞLANGIÇ</label>
+              <label className={styles.filterLabel}>{t('TARİH BAŞLANGIÇ')}</label>
               <input type="date" className={styles.dateInput} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             </div>
             <div className={styles.filterField}>
-              <label className={styles.filterLabel}>TARİH BİTİŞ</label>
+              <label className={styles.filterLabel}>{t('TARİH BİTİŞ')}</label>
               <input type="date" className={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
             </div>
             <div className={styles.filterField}>
-              <label className={styles.filterLabel}>SEVİYE</label>
+              <label className={styles.filterLabel}>{t('SEVİYE')}</label>
               <select className={styles.selectInput} value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value as 'ALL' | Severity)}>
-                <option value="ALL">HEPSİ</option>
-                <option value="CRITICAL">KRİTİK</option>
-                <option value="ERROR">HATA</option>
-                <option value="WARNING">UYARI</option>
-                <option value="INFO">BİLGİ</option>
+                <option value="ALL">{t('HEPSİ')}</option>
+                <option value="CRITICAL">{t('KRİTİK')}</option>
+                <option value="ERROR">{t('HATA')}</option>
+                <option value="WARNING">{t('UYARI')}</option>
+                <option value="INFO">{t('BİLGİ')}</option>
               </select>
             </div>
             <div className={styles.filterField}>
-              <label className={styles.filterLabel}>KATEGORİ</label>
+              <label className={styles.filterLabel}>{t('KATEGORİ')}</label>
               <select className={styles.selectInput} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value as 'ALL' | Category)}>
-                <option value="ALL">HEPSİ</option>
-                <option value="SAFETY">GÜVENLİK</option>
-                <option value="HYDRAULIC">HİDROLİK</option>
+                <option value="ALL">{t('HEPSİ')}</option>
+                <option value="SAFETY">{t('GÜVENLİK')}</option>
+                <option value="HYDRAULIC">{t('HİDROLİK')}</option>
                 <option value="MODBUS">MODBUS</option>
                 <option value="PIPELINE">PIPELINE</option>
-                <option value="SENSOR">SENSÖR</option>
-                <option value="OTHER">DİĞER</option>
+                <option value="SENSOR">{t('SENSÖR')}</option>
+                <option value="OTHER">{t('DİĞER')}</option>
               </select>
             </div>
           </div>
@@ -116,21 +118,21 @@ export default function ErrorReportsPage() {
 
         {/* Log tablo */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>KAYITLAR ({filtered.length})</div>
+          <div className={styles.sectionTitle}>{t('KAYITLAR ({n})', { n: filtered.length })}</div>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>ZAMAN</th>
-                <th>SEVİYE</th>
-                <th>KATEGORİ</th>
-                <th>KOD</th>
-                <th>MESAJ</th>
-                <th>OPERATÖR</th>
+                <th>{t('ZAMAN')}</th>
+                <th>{t('SEVİYE')}</th>
+                <th>{t('KATEGORİ')}</th>
+                <th>{t('KOD')}</th>
+                <th>{t('MESAJ')}</th>
+                <th>{t('OPERATÖR')}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} className={styles.empty}>Filtreye uyan kayıt yok</td></tr>
+                <tr><td colSpan={6} className={styles.empty}>{t('Filtreye uyan kayıt yok')}</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id}>
@@ -142,7 +144,7 @@ export default function ErrorReportsPage() {
                   </td>
                   <td className={styles.tdCat}>{r.category}</td>
                   <td className={styles.tdMono}>{r.code}</td>
-                  <td>{r.message}</td>
+                  <td>{t(r.message)}</td>
                   <td className={styles.tdOperator}>{r.operator ?? '—'}</td>
                 </tr>
               ))}

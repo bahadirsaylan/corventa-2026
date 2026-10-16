@@ -1,6 +1,7 @@
 // SEKIL 31'deki büyük daire kategori butonu (SERVİS S, KURULUM K, EĞİTİM E, SORU S, ÖNERİ Ö, ŞİKAYET Ş).
 // İçinde dönen yarım daire + iki kırmızı nokta + büyük harf var.
 
+import { useLang, useT } from '@/i18n'
 import styles from './CategoryBadge.module.css'
 
 interface Props {
@@ -14,6 +15,11 @@ interface Props {
 }
 
 export default function CategoryBadge({ label, letter, onClick, compact, disabled }: Props) {
+  const t = useT()
+  const lang = useLang()
+  const shownLabel = t(label)
+  // Türkçe dışında harf, çevrilmiş etiketin baş harfi olur (SORU S → QUESTION Q)
+  const shownLetter = lang === 'tr' ? letter : shownLabel.charAt(0) || letter
   return (
     <button
       type="button"
@@ -23,7 +29,7 @@ export default function CategoryBadge({ label, letter, onClick, compact, disable
       onClick={onClick}
       disabled={disabled}
     >
-      <span className={styles.smallLabel}>{label}</span>
+      <span className={styles.smallLabel}>{shownLabel}</span>
 
       {/* Yarım daire kıvrımı + iki kırmızı uç noktası — SEKIL-31'deki rozet işareti */}
       <svg viewBox="0 0 100 100" className={styles.arc} aria-hidden="true">
@@ -41,7 +47,7 @@ export default function CategoryBadge({ label, letter, onClick, compact, disable
         <circle cx="28" cy="78" r="3.5" fill="#c93235" />
       </svg>
 
-      <span className={styles.letter}>{letter}</span>
+      <span className={styles.letter}>{shownLetter}</span>
     </button>
   )
 }

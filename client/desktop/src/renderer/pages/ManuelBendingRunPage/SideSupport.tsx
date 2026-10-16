@@ -1,6 +1,7 @@
 // SEKIL-26 yan dayama göstergesi — açı + pozisyon değeri + dikey çubuk simgesi.
 // Press-and-hold: ↑ = ileri (direction=1), ↓ = geri (direction=-1).
 
+import { useT } from '@/i18n'
 import styles from './SideSupport.module.css'
 
 interface Props {
@@ -22,6 +23,7 @@ export default function SideSupport({
   onBackward,
   onRelease,
 }: Props) {
+  const t = useT()
   return (
     <div className={`${styles.box} ${side === 'left' ? styles.left : styles.right}`}>
       <span className={styles.angle}>
@@ -42,7 +44,7 @@ export default function SideSupport({
           }}
           onPointerUp={onRelease}
           onPointerLeave={onRelease}
-          aria-label="ileri"
+          aria-label={t('ileri')}
         >
           ▲
         </button>
@@ -54,7 +56,7 @@ export default function SideSupport({
           }}
           onPointerUp={onRelease}
           onPointerLeave={onRelease}
-          aria-label="geri"
+          aria-label={t('geri')}
         >
           ▼
         </button>

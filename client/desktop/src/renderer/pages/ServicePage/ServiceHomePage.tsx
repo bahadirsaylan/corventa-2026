@@ -10,12 +10,16 @@ import {
   type ServiceTicket,
 } from '@shared/types'
 
+import { useLang, useT } from '@/i18n'
+
 import CategoryBadge from './CategoryBadge'
 import ServicePageShell from './ServicePageShell'
 import styles from './ServiceHomePage.module.css'
 
 export default function ServiceHomePage() {
   const navigate = useNavigate()
+  const t = useT()
+  const lang = useLang()
   const [recent, setRecent] = useState<ServiceTicket[]>([])
 
   // En yeni 3 ticket'ı 3 tipten birleştir (Soru + Öneri + Şikayet)
@@ -90,21 +94,21 @@ export default function ServiceHomePage() {
           {/* Son ticket önizleme */}
           <div className={styles.recentBox}>
             {recent.length === 0 && (
-              <div className={styles.recentEmpty}>Henüz kayıtlı talep yok</div>
+              <div className={styles.recentEmpty}>{t('Henüz kayıtlı talep yok')}</div>
             )}
-            {recent.map((t) => (
+            {recent.map((tk) => (
               <button
-                key={t.id}
+                key={tk.id}
                 className={styles.recentRow}
-                onClick={() => navigate(`/service/${typeToRoute(t)}`)}
+                onClick={() => navigate(`/service/${typeToRoute(tk)}`)}
               >
-                <span className={styles.recentCode}>{t.code}</span>
+                <span className={styles.recentCode}>{tk.code}</span>
                 <span className={styles.recentDate}>
-                  {formatDate(t.createdAt)} {formatTime(t.createdAt)}
+                  {formatDate(tk.createdAt, lang)} {formatTime(tk.createdAt, lang)}
                 </span>
-                <span className={styles.recentStatus}>{statusLabel(t.status)}</span>
-                <span className={styles.recentTitle}>{t.title.toUpperCase()}</span>
-                <span className={styles.recentStars}>{stars(t)}</span>
+                <span className={styles.recentStatus}>{t(statusLabel(tk.status))}</span>
+                <span className={styles.recentTitle}>{tk.title.toUpperCase()}</span>
+                <span className={styles.recentStars}>{stars(tk)}</span>
               </button>
             ))}
           </div>
@@ -123,14 +127,14 @@ function typeToRoute(t: ServiceTicket): string {
   return 'complaints'
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, lang: string): string {
   const d = new Date(iso)
-  return d.toLocaleDateString('tr-TR')
+  return d.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-GB')
 }
 
-function formatTime(iso: string): string {
+function formatTime(iso: string, lang: string): string {
   const d = new Date(iso)
-  return d.toLocaleTimeString('tr-TR')
+  return d.toLocaleTimeString(lang === 'tr' ? 'tr-TR' : 'en-GB')
 }
 
 function statusLabel(s: ServiceTicketStatus): string {

@@ -25,8 +25,13 @@ const en: Record<string, string> = {
   'TUŞ TAKIMI BAŞLANGIÇ HIZI': 'KEYPAD START SPEED',
   'Uygulama açıldığında orta tuş takımındaki manuel hız.': 'Manual speed of the center keypad when the application starts.',
   'ÖLÇÜ GİRİŞİ': 'MEASUREMENT INPUT',
-  'Çember ve çok açılı ölçü ekranlarında alan boşsa bu değerler yazılır. Boş = her işte operatör girer.':
-    'Filled in on the circle and multi-angle measurement screens when the field is empty. Empty = the operator enters it for each job.',
+  'Ölçü ekranlarında alan boşsa bu değerler yazılır (G sadece çember ve çok açılıda). Boş = her işte operatör girer.':
+    'Filled in on the measurement screens when the field is empty (G only on circle and multi-angle). Empty = the operator enters it for each job.',
+  'MANUEL BÜKÜM EKRANI BAŞLANGIÇ HIZI': 'MANUAL BENDING SCREEN START SPEED',
+  'Manuel büküm programı çalıştırma ekranı açıldığındaki hız.': 'Speed when the manual bending program run screen opens.',
+  'OTOMATİK YAN DAYAMA': 'AUTOMATIC SIDE SUPPORT',
+  'Manuel büküm ekranı açıldığında otomatik yan dayama açık mı başlasın.': 'Whether automatic side support starts on when the manual bending screen opens.',
+  'DİĞER OPERATÖR AYARLARI': 'OTHER OPERATOR SETTINGS',
   'VARSAYILAN H (KIVRIM HIZI)': 'DEFAULT H (BENDING SPEED)',
   'VARSAYILAN G (ADIM)': 'DEFAULT G (STEP)',
   'TAHLİYE': 'UNLOAD',

@@ -11,12 +11,14 @@ import {
 } from '@shared/types'
 
 import { useCreateServiceRequest } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import ServicePageShell from './ServicePageShell'
 import styles from './ServiceRequestFormPage.module.css'
 
 export default function ServiceRequestFormPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { create, submitting, error } = useCreateServiceRequest()
 
   const [title, setTitle] = useState('')
@@ -46,7 +48,7 @@ export default function ServiceRequestFormPage() {
       <div className={styles.root}>
         {/* Amaç seçimi */}
         <div className={styles.purposeBox}>
-          <span className={styles.purposeLabel}>SERVİSİN AMACI :</span>
+          <span className={styles.purposeLabel}>{t('SERVİSİN AMACI :')}</span>
           <div className={styles.purposeRow}>
             {(
               [
@@ -67,7 +69,7 @@ export default function ServiceRequestFormPage() {
                   .join(' ')}
                 onClick={() => setPurpose(val)}
               >
-                {label}
+                {t(label)}
               </button>
             ))}
           </div>
@@ -80,19 +82,19 @@ export default function ServiceRequestFormPage() {
             className={styles.titleInput}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="TALEBİN BAŞLIĞINI GİRİNİZ..."
+            placeholder={t('TALEBİN BAŞLIĞINI GİRİNİZ...')}
             maxLength={200}
           />
           <textarea
             className={styles.descInput}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="TALEBİNİZİN DETAYINI YAZINIZ..."
+            placeholder={t('TALEBİNİZİN DETAYINI YAZINIZ...')}
             maxLength={2000}
           />
         </div>
 
-        {error && <div className={styles.errorBox}>Hata: {error}</div>}
+        {error && <div className={styles.errorBox}>{t('Hata: {err}', { err: error })}</div>}
 
         {/* Aksiyon */}
         <div className={styles.actionRow}>
@@ -101,14 +103,14 @@ export default function ServiceRequestFormPage() {
             onClick={() => navigate('/service/requests')}
             disabled={submitting}
           >
-            GERİ DÖN
+            {t('GERİ DÖN')}
           </button>
           <button
             className={styles.submitBtn}
             onClick={handleSubmit}
             disabled={submitting || !title.trim() || !description.trim()}
           >
-            TALEBİ GÖNDER
+            {t('TALEBİ GÖNDER')}
           </button>
         </div>
       </div>

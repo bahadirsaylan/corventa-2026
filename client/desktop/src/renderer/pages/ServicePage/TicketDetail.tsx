@@ -6,6 +6,7 @@ import { useState } from 'react'
 import type { ServiceTicket } from '@shared/types'
 
 import { useUpdateTicketStatus, type TicketTypeStr } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
 import styles from './TicketDetail.module.css'
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function TicketDetail({ ticket, type, onClose }: Props) {
+  const t = useT()
   const { update } = useUpdateTicketStatus()
   const [working, setWorking] = useState(false)
   const cfg = DETAIL_CONFIG[type]
@@ -38,7 +40,7 @@ export default function TicketDetail({ ticket, type, onClose }: Props) {
         <div className={styles.badgeWrap}>
           <CategoryBadge label={cfg.smallLabel} letter={cfg.letter} compact />
         </div>
-        <div className={styles.intro}>{cfg.intro}</div>
+        <div className={styles.intro}>{t(cfg.intro)}</div>
       </div>
 
       {/* Ticket gövdesi */}
@@ -47,7 +49,7 @@ export default function TicketDetail({ ticket, type, onClose }: Props) {
           {ticket.code} - {ticket.title.toUpperCase()}
         </div>
         <div className={styles.responseBody}>
-          {ticket.response ?? '(Henüz cevaplanmadı. Teknik ekibimiz size en kısa sürede dönüş yapacaktır.)'}
+          {ticket.response ?? t('(Henüz cevaplanmadı. Teknik ekibimiz size en kısa sürede dönüş yapacaktır.)')}
         </div>
       </div>
 
@@ -58,15 +60,15 @@ export default function TicketDetail({ ticket, type, onClose }: Props) {
           onClick={() => handleAction('in-progress')}
           disabled={working}
         >
-          {cfg.continueBtn}
-          {cfg.continueSub && <span className={styles.btnSub}>{cfg.continueSub}</span>}
+          {t(cfg.continueBtn)}
+          {cfg.continueSub && <span className={styles.btnSub}>{t(cfg.continueSub)}</span>}
         </button>
         <button
           className={styles.successBtn}
           onClick={() => handleAction('resolved')}
           disabled={working}
         >
-          {cfg.resolveBtn}
+          {t(cfg.resolveBtn)}
         </button>
       </div>
     </div>

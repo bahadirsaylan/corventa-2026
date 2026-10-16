@@ -10,6 +10,7 @@ import {
   type MaintenancePeriodInfo,
   type MaintenanceState,
 } from '@shared/types'
+import { useLang, useT, type TVars } from '@/i18n'
 import styles from './MaintenancePage.module.css'
 
 /** Bakım durumu için renk/etiket kodu — sarı: 7 gün kala, kırmızı: geciken. */
@@ -46,21 +47,27 @@ function pickLastAt(key: MaintenancePeriodInfo['key'], state: MaintenanceState):
   }
 }
 
-function formatDateShort(iso: string | Date | null): string {
+function formatDateShort(iso: string | Date | null, locale: string): string {
   if (!iso) return '—'
   const d = typeof iso === 'string' ? new Date(iso) : iso
-  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function severityLabel(s: Severity, daysUntilNext: number | null): string {
-  if (s === 'unknown') return 'HİÇ YAPILMADI'
-  if (s === 'overdue') return `${Math.abs(daysUntilNext ?? 0)} GÜN GECİKME`
-  if (s === 'warn') return `${daysUntilNext} GÜN KALDI`
-  return `${daysUntilNext} GÜN KALDI`
+function severityLabel(
+  s: Severity,
+  daysUntilNext: number | null,
+  t: (source: string, vars?: TVars) => string,
+): string {
+  if (s === 'unknown') return t('HİÇ YAPILMADI')
+  if (s === 'overdue') return t('{n} GÜN GECİKME', { n: Math.abs(daysUntilNext ?? 0) })
+  if (s === 'warn') return t('{n} GÜN KALDI', { n: String(daysUntilNext) })
+  return t('{n} GÜN KALDI', { n: String(daysUntilNext) })
 }
 
 export default function MaintenancePage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [state, setState] = useState<MaintenanceState | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +79,7 @@ export default function MaintenancePage() {
       .getMaintenance()
       .then((data) => { if (!cancelled) setState(data) })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? 'Bakım durumu alınamadı')
+        if (!cancelled) setError(err?.message ?? t('Bakım durumu alınamadı'))
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
@@ -85,7 +92,7 @@ export default function MaintenancePage() {
       const updated = await window.corventa.settings.markMaintenanceCompleted(info.key)
       setState(updated)
     } catch (err) {
-      alert(`Bakım işaretlenemedi: ${(err as Error)?.message ?? 'bilinmeyen hata'}`)
+      alert(t('Bakım işaretlenemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
     } finally {
       setPendingKey(null)
     }
@@ -98,7 +105,7 @@ export default function MaintenancePage() {
       const updated = await window.corventa.settings.setMaintenanceMode(!state.isInMaintenanceMode)
       setState(updated)
     } catch (err) {
-      alert(`Bakım modu değiştirilemedi: ${(err as Error)?.message ?? 'bilinmeyen hata'}`)
+      alert(t('Bakım modu değiştirilemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
     } finally {
       setPendingKey(null)
     }
@@ -107,18 +114,18 @@ export default function MaintenancePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
           ←
         </button>
-        <h1 className={styles.title}>BAKIM SÜRESİ</h1>
+        <h1 className={styles.title}>{t('BAKIM SÜRESİ')}</h1>
       </div>
 
       <div className={styles.body}>
-        {loading && <div className={styles.stateMsg}>Yükleniyor…</div>}
+        {loading && <div className={styles.stateMsg}>{t('Yükleniyor…')}</div>}
 
         {error && !loading && (
           <div className={`${styles.stateMsg} ${styles.errorMsg}`}>
-            Hata: {error}
+            {t('Hata: {err}', { err: error })}
           </div>
         )}
 
@@ -127,14 +134,14 @@ export default function MaintenancePage() {
             {/* ── Bakım Modu toggle ─────────────────── */}
             <div className={`${styles.card} ${styles.modeCard} ${state.isInMaintenanceMode ? styles.modeOn : ''}`}>
               <div className={styles.modeInfo}>
-                <span className={styles.modeLabel}>BAKIM MODU</span>
+                <span className={styles.modeLabel}>{t('BAKIM MODU')}</span>
                 <span className={styles.modeValue}>
-                  {state.isInMaintenanceMode ? 'AÇIK' : 'KAPALI'}
+                  {state.isInMaintenanceMode ? t('AÇIK') : t('KAPALI')}
                 </span>
                 <span className={styles.modeHint}>
                   {state.isInMaintenanceMode
-                    ? 'Servis/bakım devam ediyor — yeni büküm işi başlatılamaz.'
-                    : 'Makine normal üretim modunda.'}
+                    ? t('Servis/bakım devam ediyor — yeni büküm işi başlatılamaz.')
+                    : t('Makine normal üretim modunda.')}
                 </span>
               </div>
               <button
@@ -142,7 +149,7 @@ export default function MaintenancePage() {
                 onClick={handleToggleMode}
                 disabled={pendingKey !== null}
               >
-                {state.isInMaintenanceMode ? 'KAPAT' : 'AÇ'}
+                {state.isInMaintenanceMode ? t('KAPAT') : t('AÇ')}
               </button>
             </div>
 
@@ -156,25 +163,25 @@ export default function MaintenancePage() {
                     className={`${styles.periodCard} ${styles[`sev_${st.severity}`] ?? ''}`}
                   >
                     <div className={styles.periodHeader}>
-                      <span className={styles.periodLabel}>{p.label}</span>
-                      <span className={styles.periodInterval}>her {p.intervalDays} gün</span>
+                      <span className={styles.periodLabel}>{t(p.label)}</span>
+                      <span className={styles.periodInterval}>{t('her {n} gün', { n: p.intervalDays })}</span>
                     </div>
 
                     <div className={styles.periodStatus}>
-                      <span className={styles.periodStatusLabel}>DURUM</span>
+                      <span className={styles.periodStatusLabel}>{t('DURUM')}</span>
                       <span className={styles.periodStatusValue}>
-                        {severityLabel(st.severity, st.daysUntilNext)}
+                        {severityLabel(st.severity, st.daysUntilNext, t)}
                       </span>
                     </div>
 
                     <div className={styles.periodDates}>
                       <div className={styles.periodDateRow}>
-                        <span>SON YAPILDI:</span>
-                        <b>{formatDateShort(st.lastAt)}</b>
+                        <span>{t('SON YAPILDI:')}</span>
+                        <b>{formatDateShort(st.lastAt, locale)}</b>
                       </div>
                       <div className={styles.periodDateRow}>
-                        <span>SONRAKİ:</span>
-                        <b>{formatDateShort(st.nextAt)}</b>
+                        <span>{t('SONRAKİ:')}</span>
+                        <b>{formatDateShort(st.nextAt, locale)}</b>
                       </div>
                     </div>
 
@@ -183,7 +190,7 @@ export default function MaintenancePage() {
                       onClick={() => handleMarkCompleted(p)}
                       disabled={pendingKey !== null}
                     >
-                      {pendingKey === p.key ? 'İŞARETLENİYOR…' : '✓ BAKIM YAPILDI'}
+                      {pendingKey === p.key ? t('İŞARETLENİYOR…') : `✓ ${t('BAKIM YAPILDI')}`}
                     </button>
                   </div>
                 )
@@ -192,9 +199,8 @@ export default function MaintenancePage() {
 
             {/* ── Bilgi notu ────────────────────────── */}
             <p className={styles.note}>
-              Bakımlar 24 saat önce ekranda ve mail ile bildirilir. Geciken bakımlar kırmızı,
-              yaklaşanlar sarı işaretlenir. Servis işlemi öncesi/sonrası <b>Bakım Modu</b>'nu
-              açık tutun — modda iken yeni büküm işi başlatılamaz. (PDF s.8-12)
+              {t('Bakımlar 24 saat önce ekranda ve mail ile bildirilir. Geciken bakımlar kırmızı, yaklaşanlar sarı işaretlenir.')}
+              {' '}{t('Servis işlemi öncesi/sonrası')} <b>{t('Bakım Modu')}</b>{t("'nu açık tutun — modda iken yeni büküm işi başlatılamaz. (PDF s.8-12)")}
             </p>
           </>
         )}

@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useT } from '@/i18n'
 import styles from './BendingCountReportPage.module.css'
 
 type Period = 'week' | 'month' | 'year'
@@ -28,6 +29,7 @@ const METHOD_STATS = [
 
 export default function BendingCountReportPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [period, setPeriod] = useState<Period>('month')
 
   const filtered = useMemo(() => {
@@ -48,31 +50,31 @@ export default function BendingCountReportPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>KIVRIM ADETLERİ RAPORU</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('KIVRIM ADETLERİ RAPORU')}</h1>
         <div className={styles.periodTabs}>
-          <PeriodTab active={period === 'week'} onClick={() => setPeriod('week')}>7 GÜN</PeriodTab>
-          <PeriodTab active={period === 'month'} onClick={() => setPeriod('month')}>30 GÜN</PeriodTab>
-          <PeriodTab active={period === 'year'} onClick={() => setPeriod('year')}>YIL</PeriodTab>
+          <PeriodTab active={period === 'week'} onClick={() => setPeriod('week')}>{t('{n} GÜN', { n: 7 })}</PeriodTab>
+          <PeriodTab active={period === 'month'} onClick={() => setPeriod('month')}>{t('{n} GÜN', { n: 30 })}</PeriodTab>
+          <PeriodTab active={period === 'year'} onClick={() => setPeriod('year')}>{t('YIL')}</PeriodTab>
         </div>
       </div>
 
       <div className={styles.body}>
         {/* Summary */}
         <div className={styles.statsRow}>
-          <SumCard label="TOPLAM İŞ"    value={totals.total.toString()} sub={`son ${filtered.length} gün`} color="#2a2a2a" />
-          <SumCard label="BAŞARILI"     value={totals.success.toString()} sub={`%${totals.successRate}`} color="#16a34a" />
-          <SumCard label="BAŞARISIZ"    value={totals.fail.toString()} sub="fail/emergency" color="#dc2626" />
-          <SumCard label="GÜNLÜK ORT."  value={totals.avgPerDay} sub="iş/gün" color="#1a6fd4" />
+          <SumCard label={t('TOPLAM İŞ')}    value={totals.total.toString()} sub={t('son {n} gün', { n: filtered.length })} color="#2a2a2a" />
+          <SumCard label={t('BAŞARILI')}     value={totals.success.toString()} sub={t('%{v}', { v: totals.successRate })} color="#16a34a" />
+          <SumCard label={t('BAŞARISIZ')}    value={totals.fail.toString()} sub="fail/emergency" color="#dc2626" />
+          <SumCard label={t('GÜNLÜK ORT.')}  value={totals.avgPerDay} sub={t('iş/gün')} color="#1a6fd4" />
         </div>
 
         {/* Bar chart */}
         <div className={styles.card}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>GÜNLÜK KIVRIM SAYISI</span>
+            <span className={styles.sectionTitle}>{t('GÜNLÜK KIVRIM SAYISI')}</span>
             <div className={styles.legendRow}>
-              <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#16a34a' }} /> BAŞARILI</span>
-              <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#dc2626' }} /> HATA</span>
+              <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#16a34a' }} /> {t('BAŞARILI')}</span>
+              <span className={styles.legendItem}><span className={styles.legendDot} style={{ background: '#dc2626' }} /> {t('HATA')}</span>
             </div>
           </div>
           <div className={styles.chartArea}>
@@ -81,7 +83,7 @@ export default function BendingCountReportPage() {
               const failH = (d.fail / maxCount) * 100
               const day = d.date.slice(-2)
               return (
-                <div key={d.date} className={styles.barCol} title={`${d.date}: ${d.count} iş (${d.fail} fail)`}>
+                <div key={d.date} className={styles.barCol} title={t('{date}: {n} iş ({fail} fail)', { date: d.date, n: d.count, fail: d.fail })}>
                   <div className={styles.barStack}>
                     {failH > 0 && <div className={styles.barFail} style={{ height: `${failH}%` }} />}
                     <div className={styles.barSuccess} style={{ height: `${successH}%` }} />
@@ -96,18 +98,18 @@ export default function BendingCountReportPage() {
 
         {/* Method dağılımı */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>METOT DAĞILIMI</div>
+          <div className={styles.sectionTitle}>{t('METOT DAĞILIMI')}</div>
           <div className={styles.methodList}>
             {METHOD_STATS.map((m) => (
               <div key={m.method} className={styles.methodRow}>
                 <div className={styles.methodLabelCol}>
-                  <span className={styles.methodName}>{m.method}</span>
-                  <span className={styles.methodCount}>{m.count} iş</span>
+                  <span className={styles.methodName}>{t(m.method)}</span>
+                  <span className={styles.methodCount}>{t('{n} iş', { n: m.count })}</span>
                 </div>
                 <div className={styles.methodBarWrap}>
                   <div className={styles.methodBar} style={{ width: `${m.pct}%`, background: m.color }} />
                 </div>
-                <span className={styles.methodPct}>%{m.pct}</span>
+                <span className={styles.methodPct}>{t('%{v}', { v: m.pct })}</span>
               </div>
             ))}
           </div>

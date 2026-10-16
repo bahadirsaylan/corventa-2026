@@ -1,0 +1,37 @@
+// İngilizce sözlük — çeşitli ekranlarda kalan kısa etiketler (i18n:check ile bulundu).
+
+const en: Record<string, string> = {
+  'sn': 's',
+  'KAZANÇ': 'GAIN',
+  'SON': 'LAST',
+  'efektif': 'effective',
+  'düz': 'straight',
+  'Sil': 'Delete',
+  'Boşluk': 'Space',
+  'BOŞLUK': 'SPACE',
+  'LAMA': 'FLAT BAR',
+  'Yay': 'Arc',
+  'Bütçe': 'Budget',
+  'Kalan': 'Remaining',
+  'AŞIM': 'OVERFLOW',
+  'Sebep': 'Reason',
+  'İPTAL': 'CANCEL',
+  'eklendi': 'added',
+  'Parça': 'Part',
+  'Y': 'ARC',
+  'BAŞ': 'START',
+  'YAY': 'ARC',
+  'Uyarı': 'Warning',
+  'DEĞİŞTİREN': 'MODIFIED BY',
+  'KOMUT': 'COMMAND',
+  'DİKKAT': 'CAUTION',
+  'DÜZELT': 'EDIT',
+  'DOĞRULA': 'CONFIRM',
+  'AMAÇ': 'PURPOSE',
+  'DEĞERLENDİRME': 'RATING',
+  'Arttır': 'Increase',
+  'Azalt': 'Decrease',
+  'GÖNDER': 'SEND',
+}
+
+export default en

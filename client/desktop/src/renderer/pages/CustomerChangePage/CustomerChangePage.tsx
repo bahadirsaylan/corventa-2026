@@ -4,6 +4,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './CustomerChangePage.module.css'
 
 interface CustomerForm {
@@ -34,6 +35,8 @@ const CURRENT_CUSTOMER = {
 
 export default function CustomerChangePage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [form, setForm] = useState<CustomerForm>(EMPTY_FORM)
   const [smsSent, setSmsSent] = useState(false)
   const [smsCode, setSmsCode] = useState('')
@@ -47,69 +50,69 @@ export default function CustomerChangePage() {
   function sendSms() {
     if (!isFormValid) return
     setSmsSent(true)
-    alert('Onay kodu mevcut yetkiliye SMS ile gönderildi (mock — +90 532 *** ****)')
+    alert(t('Onay kodu mevcut yetkiliye SMS ile gönderildi (mock — +90 532 *** ****)'))
   }
 
   function submit() {
     if (smsCode.length !== 6) {
-      alert('6 haneli SMS onay kodu girin')
+      alert(t('6 haneli SMS onay kodu girin'))
       return
     }
-    alert(`Müşteri değişikliği tamamlandı (mock):\n${CURRENT_CUSTOMER.companyName} → ${form.companyName}`)
+    alert(`${t('Müşteri değişikliği tamamlandı (mock):')}\n${CURRENT_CUSTOMER.companyName} → ${form.companyName}`)
   }
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>MÜŞTERİ DEĞİŞİKLİĞİ</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('MÜŞTERİ DEĞİŞİKLİĞİ')}</h1>
       </div>
 
       <div className={styles.body}>
         <div className={styles.warnBar}>
-          ⚠ BU İŞLEM KRİTİKTİR — GARANTİ VE SERTİFİKA SAHİPLİĞİ YENİ MÜŞTERİYE DEVREDİLİR.
-          &nbsp;İŞLEM GERİ ALINAMAZ.
+          ⚠ {t('BU İŞLEM KRİTİKTİR — GARANTİ VE SERTİFİKA SAHİPLİĞİ YENİ MÜŞTERİYE DEVREDİLİR.')}
+          &nbsp;{t('İŞLEM GERİ ALINAMAZ.')}
         </div>
 
         <div className={styles.twoCol}>
           {/* Mevcut müşteri */}
           <div className={`${styles.card} ${styles.currentCard}`}>
-            <div className={styles.sectionTitle}>MEVCUT MÜŞTERİ</div>
-            <InfoRow label="ŞİRKET"          value={CURRENT_CUSTOMER.companyName} />
-            <InfoRow label="VERGİ NO"        value={CURRENT_CUSTOMER.taxNo} mono />
-            <InfoRow label="YETKİLİ"         value={CURRENT_CUSTOMER.authorizedPerson} />
-            <InfoRow label="TELEFON"         value={CURRENT_CUSTOMER.phone} mono />
-            <InfoRow label="E-POSTA"         value={CURRENT_CUSTOMER.email} mono />
-            <InfoRow label="ADRES"           value={`${CURRENT_CUSTOMER.address}, ${CURRENT_CUSTOMER.city}`} />
-            <InfoRow label="SAHİPLİK TARİHİ" value={new Date(CURRENT_CUSTOMER.since).toLocaleDateString('tr-TR')} highlight />
+            <div className={styles.sectionTitle}>{t('MEVCUT MÜŞTERİ')}</div>
+            <InfoRow label={t('ŞİRKET')}          value={CURRENT_CUSTOMER.companyName} />
+            <InfoRow label={t('VERGİ NO')}        value={CURRENT_CUSTOMER.taxNo} mono />
+            <InfoRow label={t('YETKİLİ')}         value={CURRENT_CUSTOMER.authorizedPerson} />
+            <InfoRow label={t('TELEFON')}         value={CURRENT_CUSTOMER.phone} mono />
+            <InfoRow label={t('E-POSTA')}         value={CURRENT_CUSTOMER.email} mono />
+            <InfoRow label={t('ADRES')}           value={`${CURRENT_CUSTOMER.address}, ${CURRENT_CUSTOMER.city}`} />
+            <InfoRow label={t('SAHİPLİK TARİHİ')} value={new Date(CURRENT_CUSTOMER.since).toLocaleDateString(locale)} highlight />
           </div>
 
           {/* Yeni müşteri */}
           <div className={`${styles.card} ${styles.newCard}`}>
-            <div className={styles.sectionTitle}>YENİ MÜŞTERİ</div>
-            <FormField label="ŞİRKET ADI *"     value={form.companyName} onChange={(v) => update('companyName', v)} />
-            <FormField label="VERGİ NO *"        value={form.taxNo} onChange={(v) => update('taxNo', v)} placeholder="10 haneli" />
-            <FormField label="YETKİLİ AD SOYAD *" value={form.authorizedPerson} onChange={(v) => update('authorizedPerson', v)} />
-            <FormField label="TELEFON *"         value={form.phone} onChange={(v) => update('phone', v)} placeholder="+90 ..." />
-            <FormField label="E-POSTA"           value={form.email} onChange={(v) => update('email', v)} placeholder="ornek@sirket.com" />
-            <FormField label="ADRES"             value={form.address} onChange={(v) => update('address', v)} />
-            <FormField label="ŞEHİR"             value={form.city} onChange={(v) => update('city', v)} />
+            <div className={styles.sectionTitle}>{t('YENİ MÜŞTERİ')}</div>
+            <FormField label={t('ŞİRKET ADI *')}     value={form.companyName} onChange={(v) => update('companyName', v)} />
+            <FormField label={t('VERGİ NO *')}        value={form.taxNo} onChange={(v) => update('taxNo', v)} placeholder={t('10 haneli')} />
+            <FormField label={t('YETKİLİ AD SOYAD *')} value={form.authorizedPerson} onChange={(v) => update('authorizedPerson', v)} />
+            <FormField label={t('TELEFON *')}         value={form.phone} onChange={(v) => update('phone', v)} placeholder="+90 ..." />
+            <FormField label={t('E-POSTA')}           value={form.email} onChange={(v) => update('email', v)} placeholder={t('ornek@sirket.com')} />
+            <FormField label={t('ADRES')}             value={form.address} onChange={(v) => update('address', v)} />
+            <FormField label={t('ŞEHİR')}             value={form.city} onChange={(v) => update('city', v)} />
           </div>
         </div>
 
         {/* SMS onay */}
         <div className={styles.smsCard}>
-          <div className={styles.sectionTitle}>SMS ONAYI</div>
+          <div className={styles.sectionTitle}>{t('SMS ONAYI')}</div>
           <div className={styles.smsRow}>
             <button
               className={styles.sendSmsBtn}
               onClick={sendSms}
               disabled={!isFormValid || smsSent}
             >
-              {smsSent ? '✓ KOD GÖNDERİLDİ' : 'MEVCUT YETKİLİYE KOD GÖNDER'}
+              {smsSent ? `✓ ${t('KOD GÖNDERİLDİ')}` : t('MEVCUT YETKİLİYE KOD GÖNDER')}
             </button>
             <div className={styles.smsInputBlock}>
-              <label className={styles.smsLabel}>6 HANELİ ONAY KODU</label>
+              <label className={styles.smsLabel}>{t('6 HANELİ ONAY KODU')}</label>
               <input
                 type="text"
                 maxLength={6}
@@ -125,7 +128,7 @@ export default function CustomerChangePage() {
               onClick={submit}
               disabled={!smsSent || smsCode.length !== 6}
             >
-              MÜŞTERİYİ DEĞİŞTİR
+              {t('MÜŞTERİYİ DEĞİŞTİR')}
             </button>
           </div>
         </div>

@@ -4,6 +4,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLang, useT } from '@/i18n'
 import styles from './MachineTransferPage.module.css'
 
 type TransferType = 'SATIŞ' | 'TAKAS' | 'HİBE'
@@ -39,6 +40,8 @@ const MACHINE = {
 
 export default function MachineTransferPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [transferType, setTransferType] = useState<TransferType>('SATIŞ')
   const [form, setForm] = useState<TransferForm>(EMPTY_FORM)
 
@@ -53,86 +56,86 @@ export default function MachineTransferPage() {
     // Mock — gerçekte dialog + file picker
     setTimeout(() => {
       update('documentUploaded', true)
-      alert('Belge yüklendi (mock — devir_belgesi.pdf, 2.4 MB)')
+      alert(t('Belge yüklendi (mock — devir_belgesi.pdf, 2.4 MB)'))
     }, 500)
   }
 
   function submit() {
     alert(
-      `Corventa merkezine devir talebi gönderildi (mock):\n\n` +
-      `Tip: ${transferType}\n` +
-      `Makine: ${MACHINE.serialNo}\n` +
-      `Eski: ${MACHINE.currentOwner}\n` +
-      `Yeni: ${form.newOwnerCompany}\n\n` +
-      `Merkez onayı sonrası sertifika/garanti transfer edilir.`,
+      `${t('Corventa merkezine devir talebi gönderildi (mock):')}\n\n` +
+      `${t('Tip: {v}', { v: t(transferType) })}\n` +
+      `${t('Makine: {v}', { v: MACHINE.serialNo })}\n` +
+      `${t('Eski: {v}', { v: MACHINE.currentOwner })}\n` +
+      `${t('Yeni: {v}', { v: form.newOwnerCompany })}\n\n` +
+      t('Merkez onayı sonrası sertifika/garanti transfer edilir.'),
     )
   }
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri">←</button>
-        <h1 className={styles.title}>SATIŞ / TAKAS / HİBE</h1>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <h1 className={styles.title}>{t('SATIŞ / TAKAS / HİBE')}</h1>
       </div>
 
       <div className={styles.body}>
         {/* Makine bilgisi */}
         <div className={styles.machineCard}>
           <div className={styles.machineLeft}>
-            <span className={styles.machineLabel}>MAKİNE</span>
+            <span className={styles.machineLabel}>{t('MAKİNE')}</span>
             <span className={styles.machineSerial}>{MACHINE.serialNo}</span>
             <span className={styles.machineModel}>{MACHINE.model}</span>
           </div>
           <div className={styles.machineRight}>
-            <span className={styles.machineLabel}>MEVCUT SAHİP</span>
+            <span className={styles.machineLabel}>{t('MEVCUT SAHİP')}</span>
             <span className={styles.machineOwner}>{MACHINE.currentOwner}</span>
-            <span className={styles.machineSince}>{new Date(MACHINE.ownerSince).toLocaleDateString('tr-TR')} tarihinden beri</span>
+            <span className={styles.machineSince}>{t('{date} tarihinden beri', { date: new Date(MACHINE.ownerSince).toLocaleDateString(locale) })}</span>
           </div>
         </div>
 
         {/* Transfer tipi seçim */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>DEVİR TİPİ</div>
+          <div className={styles.sectionTitle}>{t('DEVİR TİPİ')}</div>
           <div className={styles.typeGrid}>
-            {(['SATIŞ', 'TAKAS', 'HİBE'] as TransferType[]).map((t) => {
-              const ti = TRANSFER_INFO[t]
-              const isActive = transferType === t
+            {(['SATIŞ', 'TAKAS', 'HİBE'] as TransferType[]).map((tt) => {
+              const ti = TRANSFER_INFO[tt]
+              const isActive = transferType === tt
               return (
                 <button
-                  key={t}
+                  key={tt}
                   className={`${styles.typeCard} ${isActive ? styles.typeActive : ''}`}
-                  onClick={() => setTransferType(t)}
+                  onClick={() => setTransferType(tt)}
                   style={isActive ? { borderColor: ti.color, background: ti.color + '22' } : {}}
                 >
                   <span className={styles.typeBadge}>{ti.badge}</span>
-                  <span className={styles.typeName} style={isActive ? { color: ti.color } : {}}>{t}</span>
+                  <span className={styles.typeName} style={isActive ? { color: ti.color } : {}}>{t(tt)}</span>
                 </button>
               )
             })}
           </div>
-          <p className={styles.typeDesc}>{info.desc}</p>
+          <p className={styles.typeDesc}>{t(info.desc)}</p>
         </div>
 
         {/* Yeni sahip formu */}
         <div className={styles.card}>
-          <div className={styles.sectionTitle}>YENİ SAHİP BİLGİLERİ</div>
+          <div className={styles.sectionTitle}>{t('YENİ SAHİP BİLGİLERİ')}</div>
           <div className={styles.formGrid}>
-            <FormField label="ŞİRKET ADI *"       value={form.newOwnerCompany}    onChange={(v) => update('newOwnerCompany', v)} />
-            <FormField label="YETKİLİ AD SOYAD *" value={form.newOwnerAuthorized} onChange={(v) => update('newOwnerAuthorized', v)} />
-            <FormField label="VERGİ NO *"          value={form.newOwnerTaxNo}      onChange={(v) => update('newOwnerTaxNo', v)} placeholder="10 haneli" />
-            <FormField label="TELEFON"             value={form.newOwnerPhone}      onChange={(v) => update('newOwnerPhone', v)} placeholder="+90 ..." />
-            <FormField label="ADRES" full          value={form.newOwnerAddress}    onChange={(v) => update('newOwnerAddress', v)} />
-            <FormField label="DEVİR AÇIKLAMASI" full textarea value={form.reason} onChange={(v) => update('reason', v)}
-              placeholder="Örn: Sersovis A.Ş. Corventa Otomasyon Ltd.'ye bağış (patent geçişi kapsamında)" />
+            <FormField label={t('ŞİRKET ADI *')}       value={form.newOwnerCompany}    onChange={(v) => update('newOwnerCompany', v)} />
+            <FormField label={t('YETKİLİ AD SOYAD *')} value={form.newOwnerAuthorized} onChange={(v) => update('newOwnerAuthorized', v)} />
+            <FormField label={t('VERGİ NO *')}          value={form.newOwnerTaxNo}      onChange={(v) => update('newOwnerTaxNo', v)} placeholder={t('10 haneli')} />
+            <FormField label={t('TELEFON')}             value={form.newOwnerPhone}      onChange={(v) => update('newOwnerPhone', v)} placeholder="+90 ..." />
+            <FormField label={t('ADRES')} full          value={form.newOwnerAddress}    onChange={(v) => update('newOwnerAddress', v)} />
+            <FormField label={t('DEVİR AÇIKLAMASI')} full textarea value={form.reason} onChange={(v) => update('reason', v)}
+              placeholder={t("Örn: Sersovis A.Ş. Corventa Otomasyon Ltd.'ye bağış (patent geçişi kapsamında)")} />
           </div>
         </div>
 
         {/* Belge upload + gönder */}
         <div className={styles.actionCard}>
           <div className={styles.uploadBlock}>
-            <span className={styles.uploadLabel}>DEVİR BELGESİ *</span>
+            <span className={styles.uploadLabel}>{t('DEVİR BELGESİ *')}</span>
             <button className={styles.uploadBtn} onClick={uploadDocument} disabled={form.documentUploaded}>
-              {form.documentUploaded ? '✓ BELGE YÜKLENDİ (devir_belgesi.pdf)' : '📎 BELGE YÜKLE'}
+              {form.documentUploaded ? `✓ ${t('BELGE YÜKLENDİ (devir_belgesi.pdf)')}` : `📎 ${t('BELGE YÜKLE')}`}
             </button>
           </div>
           <button
@@ -141,13 +144,13 @@ export default function MachineTransferPage() {
             disabled={!isFormValid}
             style={{ background: isFormValid ? info.color : '#9ca3af' }}
           >
-            CORVENTA MERKEZE GÖNDER
+            {t('CORVENTA MERKEZE GÖNDER')}
           </button>
         </div>
 
         <p className={styles.note}>
-          Devir işlemi Corventa merkezi teknik ekip tarafından onaylandıktan sonra tamamlanır (~3 iş günü).
-          Garanti süresi, sertifikalar ve servis geçmişi yeni sahibe otomatik transfer edilir.
+          {t('Devir işlemi Corventa merkezi teknik ekip tarafından onaylandıktan sonra tamamlanır (~3 iş günü).')}
+          {' '}{t('Garanti süresi, sertifikalar ve servis geçmişi yeni sahibe otomatik transfer edilir.')}
         </p>
       </div>
     </div>

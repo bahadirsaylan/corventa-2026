@@ -8,12 +8,14 @@ import { useNavigate } from 'react-router-dom'
 import { ServicePurpose } from '@shared/types'
 
 import { useServiceRequests } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import ServicePageShell from './ServicePageShell'
 import styles from './InstallationPage.module.css'
 
 export default function InstallationPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { requests, loading } = useServiceRequests()
 
   const installs = useMemo(
@@ -24,14 +26,15 @@ export default function InstallationPage() {
   return (
     <ServicePageShell title="KURULUM HİZMETLERİ" onBack={() => navigate('/service')}>
       <div className={styles.intro}>
-        Makinanın ilk kurulumu, operatör eğitimi ve devreye alma süreçleri burada listelenir.
-        Yeni bir kurulum talep etmek için "Yeni Talep Oluştur" butonunu kullanın.
+        {t(
+          'Makinanın ilk kurulumu, operatör eğitimi ve devreye alma süreçleri burada listelenir. Yeni bir kurulum talep etmek için "Yeni Talep Oluştur" butonunu kullanın.',
+        )}
       </div>
 
       <div className={styles.list}>
-        {loading && <div className={styles.empty}>Yükleniyor...</div>}
+        {loading && <div className={styles.empty}>{t('Yükleniyor...')}</div>}
         {!loading && installs.length === 0 && (
-          <div className={styles.empty}>Henüz kurulum kaydı yok</div>
+          <div className={styles.empty}>{t('Henüz kurulum kaydı yok')}</div>
         )}
         {installs.map((r) => (
           <button
@@ -41,8 +44,8 @@ export default function InstallationPage() {
           >
             <span className={styles.code}>{r.code}</span>
             <span className={styles.sep}>-</span>
-            <span className={styles.label}>{r.problemDescription?.split('\n')[0] ?? 'KURULUM'}</span>
-            <span className={styles.status}>{statusLabel(r.status)}</span>
+            <span className={styles.label}>{r.problemDescription?.split('\n')[0] ?? t('KURULUM')}</span>
+            <span className={styles.status}>{t(statusLabel(r.status))}</span>
           </button>
         ))}
       </div>
@@ -51,7 +54,7 @@ export default function InstallationPage() {
         className={styles.newBtn}
         onClick={() => navigate('/service/requests/new')}
       >
-        YENİ KURULUM TALEBİ OLUŞTUR
+        {t('YENİ KURULUM TALEBİ OLUŞTUR')}
       </button>
     </ServicePageShell>
   )

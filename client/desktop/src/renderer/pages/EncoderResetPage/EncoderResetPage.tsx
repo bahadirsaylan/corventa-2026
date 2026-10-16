@@ -9,6 +9,7 @@ import type { StageInfo } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { useT } from '@/i18n'
 import styles from './EncoderResetPage.module.css'
 
 // Backend POST /api/preparation/stage sadece 1-3 kabul ediyor (PreparationController).
@@ -28,6 +29,7 @@ type Status = { kind: 'ok' | 'error'; text: string } | null
 
 export default function EncoderResetPage() {
   const navigate = useNavigate()
+  const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const physical = useMachineStateStore((s) => s.state.physicalInfo)
   const bendingActive = useBendingActive()
@@ -78,9 +80,9 @@ export default function EncoderResetPage() {
     setStatus(null)
     try {
       await window.corventa.bending.applyStage({ targetStage: st.stageNumber, speedPercent: 50 })
-      setStatus({ kind: 'ok', text: `${st.name.toUpperCase()} KONUMUNA GEÇİLDİ.` })
+      setStatus({ kind: 'ok', text: t('{name} KONUMUNA GEÇİLDİ.', { name: st.name.toUpperCase() }) })
     } catch (e) {
-      setStatus({ kind: 'error', text: `STAGE DEĞİŞTİRİLEMEDİ: ${e instanceof Error ? e.message : String(e)}` })
+      setStatus({ kind: 'error', text: t('STAGE DEĞİŞTİRİLEMEDİ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
     } finally {
       setStageRunning(null)
     }
@@ -94,11 +96,11 @@ export default function EncoderResetPage() {
       const res = await window.corventa.bending.executeGonye()
       setStatus(
         res.success
-          ? { kind: 'ok', text: 'GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.' }
-          : { kind: 'error', text: `GÖNYE BAŞARISIZ: ${res.errorMessage ?? 'BİLİNMEYEN HATA'}` },
+          ? { kind: 'ok', text: t('GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.') }
+          : { kind: 'error', text: t('GÖNYE BAŞARISIZ: {err}', { err: res.errorMessage ?? t('BİLİNMEYEN HATA') }) },
       )
     } catch (e) {
-      setStatus({ kind: 'error', text: `GÖNYE ÇAĞRISI BAŞARISIZ: ${e instanceof Error ? e.message : String(e)}` })
+      setStatus({ kind: 'error', text: t('GÖNYE ÇAĞRISI BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
     } finally {
       setRunning(false)
     }
@@ -107,26 +109,26 @@ export default function EncoderResetPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label="Geri" disabled={busy}>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')} disabled={busy}>
           ←
         </button>
-        <h1 className={styles.title}>CETVEL SIFIRLAMA — GÖNYE ALMA</h1>
+        <h1 className={styles.title}>{t('CETVEL SIFIRLAMA — GÖNYE ALMA')}</h1>
       </div>
 
       <div className={styles.body}>
         <div className={styles.warnBar}>
-          ⚠ GÖNYE TÜM PİSTONLARI HAREKET ETTİRİR VE MAKİNENİN POZİSYON REFERANSINI YENİDEN BELİRLER.
-          &nbsp;BAŞLATMADAN ÖNCE MAKİNEDE PARÇA OLMADIĞINDAN VE ÇEVRENİN GÜVENLİ OLDUĞUNDAN EMİN OLUN.
+          ⚠ {t('GÖNYE TÜM PİSTONLARI HAREKET ETTİRİR VE MAKİNENİN POZİSYON REFERANSINI YENİDEN BELİRLER.')}
+          &nbsp;{t('BAŞLATMADAN ÖNCE MAKİNEDE PARÇA OLMADIĞINDAN VE ÇEVRENİN GÜVENLİ OLDUĞUNDAN EMİN OLUN.')}
         </div>
 
         <div className={styles.card}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>MEVCUT DURUM</span>
+            <span className={styles.sectionTitle}>{t('MEVCUT DURUM')}</span>
           </div>
           <div className={styles.stateRow}>
-            <span className={styles.stateLabel}>GÖNYE</span>
+            <span className={styles.stateLabel}>{t('GÖNYE')}</span>
             <span className={physical.isGonyeCompleted ? styles.stateOk : styles.stateNo}>
-              {physical.isGonyeCompleted ? 'YAPILDI' : 'YAPILMADI'}
+              {physical.isGonyeCompleted ? t('YAPILDI') : t('YAPILMADI')}
             </span>
           </div>
           <div className={styles.stateRow}>
@@ -136,18 +138,20 @@ export default function EncoderResetPage() {
             </span>
           </div>
           <div className={styles.stateRow}>
-            <span className={styles.stateLabel}>HİDROLİK MOTOR</span>
+            <span className={styles.stateLabel}>{t('HİDROLİK MOTOR')}</span>
             <span className={motorReady ? styles.stateOk : styles.stateNo}>
-              {motorReady ? 'HAZIR' : motorState === 1 ? 'BAŞLIYOR' : 'KAPALI'}
+              {motorReady ? t('HAZIR') : motorState === 1 ? t('BAŞLIYOR') : t('KAPALI')}
             </span>
           </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>STAGE SEÇİMİ</span>
+            <span className={styles.sectionTitle}>{t('STAGE SEÇİMİ')}</span>
             <span className={styles.stageHint}>
-              {stageRunning != null ? `STAGE ${stageRunning} KONUMUNA GİDİLİYOR…` : stageBlockedReason ?? 'DOKUNARAK SEÇİN'}
+              {stageRunning != null
+                ? t('STAGE {n} KONUMUNA GİDİLİYOR…', { n: stageRunning })
+                : t(stageBlockedReason ?? 'DOKUNARAK SEÇİN')}
             </span>
           </div>
           <div className={styles.stageGrid}>
@@ -165,9 +169,9 @@ export default function EncoderResetPage() {
                 >
                   <span className={styles.stageName}>{st.name.toUpperCase()}</span>
                   <span className={styles.stageOffsets}>
-                    SOL {st.leftOffsetMm.toFixed(2)} · ALT {st.lowerOffsetMm.toFixed(2)} · SAĞ {st.rightOffsetMm.toFixed(2)}
+                    {t('SOL')} {st.leftOffsetMm.toFixed(2)} · {t('ALT')} {st.lowerOffsetMm.toFixed(2)} · {t('SAĞ')} {st.rightOffsetMm.toFixed(2)}
                   </span>
-                  {current && <span className={styles.stageCurrent}>✓ AKTİF</span>}
+                  {current && <span className={styles.stageCurrent}>✓ {t('AKTİF')}</span>}
                 </button>
               )
             })}
@@ -176,11 +180,11 @@ export default function EncoderResetPage() {
 
         <div className={styles.card}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>GÖNYE — İŞLEM ADIMLARI</span>
+            <span className={styles.sectionTitle}>{t('GÖNYE — İŞLEM ADIMLARI')}</span>
           </div>
           <ol className={styles.stepList}>
             {STEPS.map((s) => (
-              <li key={s} className={styles.step}>{s}</li>
+              <li key={s} className={styles.step}>{t(s)}</li>
             ))}
           </ol>
         </div>
@@ -191,7 +195,7 @@ export default function EncoderResetPage() {
 
         <div className={styles.actionRow}>
           <span className={styles.actionHint}>
-            {running ? 'GÖNYE ALINIYOR — İŞLEM BİTENE KADAR BEKLEYİN…' : blockedReason ?? 'MAKİNE HAZIR.'}
+            {running ? t('GÖNYE ALINIYOR — İŞLEM BİTENE KADAR BEKLEYİN…') : t(blockedReason ?? 'MAKİNE HAZIR.')}
           </span>
           <button
             type="button"
@@ -199,7 +203,7 @@ export default function EncoderResetPage() {
             onClick={() => setConfirming(true)}
             disabled={busy || blockedReason != null}
           >
-            {running ? 'GÖNYE ALINIYOR…' : '↻ GÖNYE AL'}
+            {running ? t('GÖNYE ALINIYOR…') : `↻ ${t('GÖNYE AL')}`}
           </button>
         </div>
       </div>
@@ -217,9 +221,9 @@ export default function EncoderResetPage() {
 
       {stageConfirm && (
         <ConfirmModal
-          message={`SOL, ALT VE SAĞ PİSTONLAR ${stageConfirm.name.toUpperCase()} KONUMUNA GİDECEK. DEVAM EDİLSİN Mİ`}
+          message={t('SOL, ALT VE SAĞ PİSTONLAR {name} KONUMUNA GİDECEK. DEVAM EDİLSİN Mİ', { name: stageConfirm.name.toUpperCase() })}
           variant="danger"
-          confirmLabel={`${stageConfirm.name.toUpperCase()}'E GEÇ`}
+          confirmLabel={t("{name}'E GEÇ", { name: stageConfirm.name.toUpperCase() })}
           cancelLabel="VAZGEÇ"
           onCancel={() => setStageConfirm(null)}
           onConfirm={() => runStage(stageConfirm)}

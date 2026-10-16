@@ -14,12 +14,14 @@ import {
 } from '@shared/types'
 
 import { useServiceRequest } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import ServicePageShell from './ServicePageShell'
 import styles from './ServiceRequestDetailPage.module.css'
 
 export default function ServiceRequestDetailPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { id: idStr } = useParams<{ id: string }>()
   const [searchParams] = useSearchParams()
   const id = Number(idStr)
@@ -65,7 +67,7 @@ export default function ServiceRequestDetailPage() {
   if (loading || !request) {
     return (
       <ServicePageShell title="SERVİS DETAYI" onBack={() => navigate('/service/requests')}>
-        <div className={styles.loading}>Yükleniyor...</div>
+        <div className={styles.loading}>{t('Yükleniyor...')}</div>
       </ServicePageShell>
     )
   }
@@ -87,9 +89,9 @@ export default function ServiceRequestDetailPage() {
           <div className={styles.confirmBox}>
             <div className={styles.confirmLabel}>
               {confirmSuccess ? (
-                <span className={styles.confirmSuccessLabel}>SERVİS ONAYI ALINDI</span>
+                <span className={styles.confirmSuccessLabel}>{t('SERVİS ONAYI ALINDI')}</span>
               ) : (
-                'ONAY KODUNU GİRİNİZ'
+                t('ONAY KODUNU GİRİNİZ')
               )}
             </div>
             <div className={styles.confirmInputRow}>
@@ -114,7 +116,7 @@ export default function ServiceRequestDetailPage() {
                   disabled={working || confirmInput.length !== 6}
                   onClick={handleConfirm}
                 >
-                  DOĞRULA
+                  {t('DOĞRULA')}
                 </button>
               )}
             </div>
@@ -124,29 +126,29 @@ export default function ServiceRequestDetailPage() {
 
         {/* Müşteri / makina meta */}
         <div className={styles.metaBox}>
-          <Row label="MÜŞTERİ" value={`${request.customerName} – ${request.customerAddress}`} />
-          <Row label="MAKİNA MODELİ" value={`${request.machineModel} – ${request.machineProductionYear}`} />
-          <Row label="MAKİNA KODU" value={`${request.machineCode} / ${request.machineVeAiCode}`} />
-          <Row label="TEKNİSYEN" value={request.technicianName || '(atanmamış)'} />
-          <Row label="AMAÇ" value={purposeLabel(request.purpose)} />
-          <Row label="DURUM" value={statusLabel(request.status)} />
+          <Row label={t('MÜŞTERİ')} value={`${request.customerName} – ${request.customerAddress}`} />
+          <Row label={t('MAKİNA MODELİ')} value={`${request.machineModel} – ${request.machineProductionYear}`} />
+          <Row label={t('MAKİNA KODU')} value={`${request.machineCode} / ${request.machineVeAiCode}`} />
+          <Row label={t('TEKNİSYEN')} value={request.technicianName || t('(atanmamış)')} />
+          <Row label={t('AMAÇ')} value={t(purposeLabel(request.purpose))} />
+          <Row label={t('DURUM')} value={t(statusLabel(request.status))} />
           {request.rating !== null && (
-            <Row label="DEĞERLENDİRME" value={`${request.rating}/10`} />
+            <Row label={t('DEĞERLENDİRME')} value={`${request.rating}/10`} />
           )}
         </div>
 
         {/* Detay metni */}
         <div className={styles.detailBox}>
-          <div className={styles.detailHeader}>PROBLEM TANIMI / TEKNİK YANIT</div>
+          <div className={styles.detailHeader}>{t('PROBLEM TANIMI / TEKNİK YANIT')}</div>
           <div className={styles.detailBody}>
-            {request.problemDescription ?? '(Detay yok)'}
+            {request.problemDescription ?? t('(Detay yok)')}
           </div>
         </div>
 
         {/* Teknisyen aksiyonu (sadece InProgress → Completed) */}
         {request.status === ServiceRequestStatus.InProgress && !isReportMode && (
           <button className={styles.completeBtn} onClick={handleComplete} disabled={working}>
-            SERVİSİ TAMAMLA → RAPOR ÜRET
+            {t('SERVİSİ TAMAMLA → RAPOR ÜRET')}
           </button>
         )}
       </div>

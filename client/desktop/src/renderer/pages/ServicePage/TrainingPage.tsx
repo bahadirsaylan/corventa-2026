@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { TRAINING_TOPICS } from '@/constants/trainingTopics'
+import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
 import ServicePageShell from './ServicePageShell'
@@ -12,6 +13,7 @@ import styles from './TrainingPage.module.css'
 
 export default function TrainingPage() {
   const navigate = useNavigate()
+  const t = useT()
   const [participant, setParticipant] = useState({ name: '', title: '', company: '' })
   const topic = TRAINING_TOPICS[0]
 
@@ -25,20 +27,20 @@ export default function TrainingPage() {
           </div>
           <div className={styles.participantFields}>
             <Field
-              label="KATILIMCI ADI SOYADI"
-              placeholder="LÜTFEN ADINIZI VE SOYADINIZI GİRİNİZ..."
+              label={t('KATILIMCI ADI SOYADI')}
+              placeholder={t('LÜTFEN ADINIZI VE SOYADINIZI GİRİNİZ...')}
               value={participant.name}
               onChange={(v) => setParticipant((p) => ({ ...p, name: v }))}
             />
             <Field
-              label="KATILIMCI ÜNVANI"
-              placeholder="LÜTFEN ÇALIŞTIĞINIZ POZİSYONU TANIMLAYINIZ..."
+              label={t('KATILIMCI ÜNVANI')}
+              placeholder={t('LÜTFEN ÇALIŞTIĞINIZ POZİSYONU TANIMLAYINIZ...')}
               value={participant.title}
               onChange={(v) => setParticipant((p) => ({ ...p, title: v }))}
             />
             <Field
-              label="ŞİRKET ADI ÜNVANI"
-              placeholder="LÜTFEN ŞİRKET ADINI TAM OLARAK GİRİNİZ..."
+              label={t('ŞİRKET ADI ÜNVANI')}
+              placeholder={t('LÜTFEN ŞİRKET ADINI TAM OLARAK GİRİNİZ...')}
               value={participant.company}
               onChange={(v) => setParticipant((p) => ({ ...p, company: v }))}
             />
@@ -48,14 +50,14 @@ export default function TrainingPage() {
         {/* Konu kartı (SEKIL-44) */}
         <div className={styles.topicCard}>
           <div className={styles.topicHeader}>
-            <span className={styles.topicHeaderLabel}>KONU :</span>
-            <span className={styles.topicHeaderValue}>{topic.title}</span>
+            <span className={styles.topicHeaderLabel}>{t('KONU :')}</span>
+            <span className={styles.topicHeaderValue}>{t(topic.title)}</span>
           </div>
           <div className={styles.topicBody}>
             {topic.bodySections.map((sec) => (
               <div key={sec.heading} className={styles.topicSection}>
                 <span className={styles.topicHeading}>{sec.heading} :</span>
-                <span className={styles.topicText}>{sec.text}</span>
+                <span className={styles.topicText}>{t(sec.text)}</span>
               </div>
             ))}
           </div>
@@ -71,7 +73,7 @@ export default function TrainingPage() {
             disabled={!participant.name.trim()}
           >
             <span className={styles.playIcon}>▶</span>
-            <span>YENİ EĞİTİM BAŞLAT</span>
+            <span>{t('YENİ EĞİTİM BAŞLAT')}</span>
           </button>
 
           <button
@@ -79,7 +81,7 @@ export default function TrainingPage() {
             onClick={() => navigate(`/service/training/quiz/${topic.id}`)}
             disabled={!participant.name.trim()}
           >
-            SINAVLARI BAŞLAT
+            {t('SINAVLARI BAŞLAT')}
           </button>
 
           <button
@@ -87,7 +89,7 @@ export default function TrainingPage() {
             onClick={() => navigate(`/service/training/topic/${topic.id}`)}
           >
             <span className={styles.repeatIcon}>↻</span>
-            <span>EĞİTİMİ TEKRARLA</span>
+            <span>{t('EĞİTİMİ TEKRARLA')}</span>
           </button>
         </div>
       </div>

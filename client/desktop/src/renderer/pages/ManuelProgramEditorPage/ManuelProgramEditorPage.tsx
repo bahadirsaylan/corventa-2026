@@ -7,6 +7,7 @@ import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useManuelProgramsStore } from '@/stores/manuelProgramsStore'
+import { useT } from '@/i18n'
 import type { ManuelProgramStep, ManuelStepCommand } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
 import ManuelFooter from '../ManuelBendingPage/ManuelFooter'
@@ -16,6 +17,7 @@ import styles from './ManuelProgramEditorPage.module.css'
 
 export default function ManuelProgramEditorPage() {
   const navigate = useNavigate()
+  const t = useT()
   const { programNo: rawNo } = useParams<{ programNo: string }>()
   const programNo = rawNo ? decodeURIComponent(rawNo) : null
 
@@ -41,7 +43,7 @@ export default function ManuelProgramEditorPage() {
     return (
       <div className={styles.page}>
         <ManuelHeader />
-        <div className={styles.empty}>Program bulunamadı.</div>
+        <div className={styles.empty}>{t('Program bulunamadı.')}</div>
       </div>
     )
   }
@@ -83,7 +85,7 @@ export default function ManuelProgramEditorPage() {
         {/* Program meta header */}
         <div className={styles.metaRow} onClick={() => setKeyboardOpen('name')}>
           <span className={styles.metaCode}>{program.programNo}</span>
-          <span className={styles.metaName}>{program.name}</span>
+          <span className={styles.metaName}>{t(program.name)}</span>
         </div>
 
         {/* Step table */}
@@ -91,10 +93,10 @@ export default function ManuelProgramEditorPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th className={styles.colNo}>SATIR SIRA NO</th>
-                <th>PROGRAM ADIMLARI</th>
-                <th>DEĞİŞTİREN</th>
-                <th>DEĞİŞTİRME TARİHİ</th>
+                <th className={styles.colNo}>{t('SATIR SIRA NO')}</th>
+                <th>{t('PROGRAM ADIMLARI')}</th>
+                <th>{t('DEĞİŞTİREN')}</th>
+                <th>{t('DEĞİŞTİRME TARİHİ')}</th>
               </tr>
             </thead>
             <tbody>
@@ -109,7 +111,7 @@ export default function ManuelProgramEditorPage() {
               {program.steps.length === 0 && (
                 <tr>
                   <td colSpan={4} className={styles.emptyRow}>
-                    Adım yok. "ÖNE SATIR EKLE" ile ilk komutu ekle.
+                    {t('Adım yok. "ÖNE SATIR EKLE" ile ilk komutu ekle.')}
                   </td>
                 </tr>
               )}
@@ -124,7 +126,7 @@ export default function ManuelProgramEditorPage() {
             disabled={!selectedStep}
             onClick={() => selectedStep && setStepDialog({ mode: 'edit', step: selectedStep })}
           >
-            SATIRI DEĞİŞTİR
+            {t('SATIRI DEĞİŞTİR')}
           </button>
           <button
             className={styles.actionBtn}
@@ -133,20 +135,20 @@ export default function ManuelProgramEditorPage() {
               setStepDialog({ mode: 'insert', atIndex: idx })
             }}
           >
-            ÖNE SATIR EKLE
+            {t('ÖNE SATIR EKLE')}
           </button>
           <button
             className={styles.actionBtn}
             disabled={!selectedStep}
             onClick={() => setDeleteOpen(true)}
           >
-            SATIR SİL
+            {t('SATIR SİL')}
           </button>
           <button
             className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
             onClick={() => navigate('/bending/manual')}
           >
-            KAYDET
+            {t('KAYDET')}
           </button>
         </div>
       </div>
@@ -197,7 +199,7 @@ export default function ManuelProgramEditorPage() {
 
       {deleteOpen && (
         <ConfirmModal
-          message={`S.${String(selectedStepNo).padStart(4, '0')} satırını silmek istediğinizden emin misiniz`}
+          message={t('S.{no} satırını silmek istediğinizden emin misiniz', { no: String(selectedStepNo).padStart(4, '0') })}
           confirmLabel="SİL"
           variant="danger"
           onCancel={() => setDeleteOpen(false)}

@@ -1,8 +1,9 @@
 // Ayarlar > Operatör Ayarları — operatörün değiştirebileceği ayarlar (eski "Varsayılan Hız" sayfası).
-//   • Bu cihazda saklananlar (services/operatorPrefs): manuel tuş takımı hızı, ölçü ekranı H/G
-//     ön değerleri, tahliye süreleri ve hareketi
+//   • Bu cihazda saklananlar (services/operatorPrefs): manuel tuş takımı hızı, manuel büküm ekranı
+//     hızı + otomatik yan dayama, ölçü ekranı H/G ön değerleri, tahliye süreleri ve hareketi
 //   • Makinede saklanan (Bending API MachineSettings): geri esneme toleransı
-// Makine ayarlarının tamamı Admin Ayarları'nda (PIN korumalı).
+//   • Kısayollar: Dil, Karşılama Mesajı, Hızlı Menü, Check List (kendi sayfalarında kaydedilir)
+// Makine ayarlarının tamamı Admin Ayarları'nda.
 
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -23,11 +24,13 @@ import {
   UNLOAD_ROT,
   UNLOAD_SECONDS,
   UNLOAD_UPPER,
+  readManualRunPrefs,
   readManualSpeed,
   readMeasureDefaults,
   readUnloadMotion,
   readUnloadPresets,
   readUnloadSelected,
+  saveManualRunPrefs,
   saveManualSpeed,
   saveMeasureDefaults,
   saveUnloadMotion,
@@ -49,11 +52,30 @@ const LOCAL_SECTIONS: SectionDef[] = [
         integer: true,
         desc: 'Uygulama açıldığında orta tuş takımındaki manuel hız.',
       },
+      {
+        key: 'manualRunSpeed',
+        label: 'MANUEL BÜKÜM EKRANI BAŞLANGIÇ HIZI',
+        unit: '%',
+        min: MANUAL_SPEED.min,
+        max: MANUAL_SPEED.max,
+        integer: true,
+        desc: 'Manuel büküm programı çalıştırma ekranı açıldığındaki hız.',
+      },
+      {
+        type: 'select',
+        key: 'manualRunAutoSide',
+        label: 'OTOMATİK YAN DAYAMA',
+        desc: 'Manuel büküm ekranı açıldığında otomatik yan dayama açık mı başlasın.',
+        options: [
+          { value: 'on', label: 'AÇIK' },
+          { value: 'off', label: 'KAPALI' },
+        ],
+      },
     ],
   },
   {
     title: 'ÖLÇÜ GİRİŞİ',
-    note: 'Çember ve çok açılı ölçü ekranlarında alan boşsa bu değerler yazılır. Boş = her işte operatör girer.',
+    note: 'Ölçü ekranlarında alan boşsa bu değerler yazılır (G sadece çember ve çok açılıda). Boş = her işte operatör girer.',
     fields: [
       { key: 'measureH', label: 'VARSAYILAN H (KIVRIM HIZI)', unit: 'm/dk', min: 0.1, max: 100, nullable: true },
       { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true },
@@ -101,13 +123,24 @@ const MACHINE_SECTION: SectionDef = {
   ],
 }
 
+// Operatörün kendi sayfalarında değiştirdiği diğer ayarlar
+const SHORTCUTS: [string, string][] = [
+  ['DİL SEÇİMİ', '/settings/language'],
+  ['KARŞILAMA MESAJI', '/settings/welcome-message'],
+  ['HIZLI MENÜ', '/settings/side-menu'],
+  ['CHECK LIST', '/settings/checklist'],
+]
+
 const LOCAL_FIELDS = LOCAL_SECTIONS.flatMap((s) => s.fields)
 
 function readLocal(): Values {
   const m = readUnloadMotion()
   const d = readMeasureDefaults()
+  const run = readManualRunPrefs()
   const v: Values = {
     manualSpeed: readManualSpeed(),
+    manualRunSpeed: run.speedPercent,
+    manualRunAutoSide: run.autoSideSupport ? 'on' : 'off',
     measureH: d.H,
     measureG: d.G,
     unloadUpperMm: m.upperRetractMm,
@@ -120,6 +153,7 @@ function readLocal(): Values {
 
 function writeLocal(v: Values): void {
   saveManualSpeed(Number(v.manualSpeed))
+  saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed), autoSideSupport: v.manualRunAutoSide !== 'off' })
   saveMeasureDefaults({ H: (v.measureH as number | null) ?? null, G: (v.measureG as number | null) ?? null })
   saveUnloadMotion({
     upperRetractMm: Number(v.unloadUpperMm),
@@ -251,6 +285,17 @@ export default function OperatorSettingsPage() {
           disabled={!Object.keys(machine0).length}
         />
       )}
+
+      <div className={styles.card}>
+        <div className={styles.sectionTitle}>{t('DİĞER OPERATÖR AYARLARI')}</div>
+        <div className={styles.tabs}>
+          {SHORTCUTS.map(([label, path]) => (
+            <button key={path} type="button" className={styles.tab} onClick={() => navigate(path)}>
+              {t(label)} →
+            </button>
+          ))}
+        </div>
+      </div>
 
       {confirm && (
         <ConfirmChangesModal

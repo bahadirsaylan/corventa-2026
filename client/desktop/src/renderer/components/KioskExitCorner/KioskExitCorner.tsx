@@ -7,6 +7,7 @@
 // Simdilik sifresiz — rol/sifre yapisi sonraki fazda eklenecek.
 
 import { useEffect, useRef, useState } from 'react'
+import { t } from '@/i18n'
 import styles from './KioskExitCorner.module.css'
 
 const TAP_COUNT_TARGET = 5
@@ -24,13 +25,13 @@ export default function KioskExitCorner() {
   const triggerExit = (reason: string) => {
     if (exitedRef.current) return
     exitedRef.current = true
-    setToast(`Kioskdan cikiliyor (${reason})...`)
+    setToast(t('Kioskdan cikiliyor ({reason})...', { reason }))
     setTimeout(() => {
       window.corventa?.system
         ?.exitKiosk()
         .catch((err) => {
           console.error('kiosk exit fail', err)
-          setToast(`Cikis basarisiz: ${String(err)}`)
+          setToast(t('Cikis basarisiz: {err}', { err: String(err) }))
           exitedRef.current = false // tekrar denenebilsin
         })
     }, 300)
@@ -55,7 +56,7 @@ export default function KioskExitCorner() {
   const handlePointerDown = () => {
     if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
     longPressTimerRef.current = setTimeout(() => {
-      triggerExit(`${LONG_PRESS_MS / 1000}sn uzun basis`)
+      triggerExit(t('{n}sn uzun basis', { n: LONG_PRESS_MS / 1000 }))
     }, LONG_PRESS_MS)
   }
 

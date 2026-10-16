@@ -5,6 +5,7 @@
 import { useState } from 'react'
 
 import { useCreateTicket, type TicketTypeStr } from '@/hooks/useService'
+import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
 import styles from './TicketCompose.module.css'
@@ -15,14 +16,15 @@ interface Props {
 }
 
 export default function TicketCompose({ type, onClose }: Props) {
+  const t = useT()
   const { create, submitting, error } = useCreateTicket(type)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
 
   const cfg = COMPOSE_CONFIG[type]
 
-  const titlePlaceholder = title.length === 0 ? cfg.titlePlaceholder : ''
-  const bodyPlaceholder = body.length === 0 ? cfg.bodyPlaceholder : ''
+  const titlePlaceholder = title.length === 0 ? t(cfg.titlePlaceholder) : ''
+  const bodyPlaceholder = body.length === 0 ? t(cfg.bodyPlaceholder) : ''
 
   async function handleSubmit() {
     if (!title.trim() || !body.trim()) return
@@ -40,7 +42,7 @@ export default function TicketCompose({ type, onClose }: Props) {
         <div className={styles.badgeWrap}>
           <CategoryBadge label={cfg.smallLabel} letter={cfg.letter} compact />
         </div>
-        <div className={styles.intro}>{cfg.intro}</div>
+        <div className={styles.intro}>{t(cfg.intro)}</div>
       </div>
 
       <div className={styles.formBox}>
@@ -64,7 +66,7 @@ export default function TicketCompose({ type, onClose }: Props) {
         />
       </div>
 
-      {error && <div className={styles.errorBox}>Hata: {error}</div>}
+      {error && <div className={styles.errorBox}>{t('Hata: {err}', { err: error })}</div>}
 
       <div className={styles.actionRow}>
         <button
@@ -72,15 +74,15 @@ export default function TicketCompose({ type, onClose }: Props) {
           onClick={handleCancel}
           disabled={submitting}
         >
-          İPTAL
+          {t('İPTAL')}
         </button>
         <button
           className={styles.submitBtn}
           onClick={handleSubmit}
           disabled={submitting || !title.trim() || !body.trim()}
         >
-          GÖNDER
-          <span className={styles.btnSub}>(TAHMİNİ GERİ DÖNÜŞ 2 SAAT)</span>
+          {t('GÖNDER')}
+          <span className={styles.btnSub}>{t('(TAHMİNİ GERİ DÖNÜŞ 2 SAAT)')}</span>
         </button>
       </div>
     </div>

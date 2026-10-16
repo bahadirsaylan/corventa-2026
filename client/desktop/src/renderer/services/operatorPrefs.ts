@@ -98,12 +98,31 @@ export function saveMeasureDefaults(d: MeasureDefaults): void {
   write(MEASURE_DEFAULTS_KEY, JSON.stringify(d))
 }
 
-/** Ölçü formunda H / G boşsa operatör varsayılanıyla doldurur (dolu alana dokunmaz). */
-export function applyMeasureDefaults<T extends { H: string; G: string }>(v: T): T {
+/** Ölçü formunda H / G boşsa operatör varsayılanıyla doldurur (dolu alana dokunmaz; G'si olmayan formlarda sadece H). */
+export function applyMeasureDefaults<T extends { H: string; G?: string }>(v: T): T {
   const d = readMeasureDefaults()
+  const out = { ...v, H: v.H.trim() === '' && d.H != null ? String(d.H) : v.H }
+  if (typeof v.G === 'string') out.G = v.G.trim() === '' && d.G != null ? String(d.G) : v.G
+  return out
+}
+
+// ── Manuel büküm ekranı (ManuelBendingRunPage) ──────────────────────
+const MANUAL_RUN_KEY = 'corventa.manualRun'
+
+export interface ManualRunPrefs {
+  speedPercent: number
+  autoSideSupport: boolean
+}
+
+export function readManualRunPrefs(): ManualRunPrefs {
+  const v = readJson(MANUAL_RUN_KEY) as Partial<ManualRunPrefs> | null
+  const sp = Number(v?.speedPercent)
   return {
-    ...v,
-    H: v.H.trim() === '' && d.H != null ? String(d.H) : v.H,
-    G: v.G.trim() === '' && d.G != null ? String(d.G) : v.G,
+    speedPercent: Number.isFinite(sp) && sp >= MANUAL_SPEED.min && sp <= MANUAL_SPEED.max ? sp : MANUAL_SPEED.def,
+    autoSideSupport: typeof v?.autoSideSupport === 'boolean' ? v.autoSideSupport : true,
   }
+}
+
+export function saveManualRunPrefs(p: ManualRunPrefs): void {
+  write(MANUAL_RUN_KEY, JSON.stringify(p))
 }

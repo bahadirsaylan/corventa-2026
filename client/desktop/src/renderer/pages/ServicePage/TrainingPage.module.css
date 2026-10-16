@@ -30,7 +30,7 @@
 
 .field {
   display: grid;
-  grid-template-columns: 220px 12px 1fr;
+  grid-template-columns: 280px 12px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   background: rgba(255, 255, 255, 0.7);
@@ -39,7 +39,7 @@
 }
 
 .fieldLabel {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--color-text);
@@ -55,7 +55,7 @@
   outline: none;
   background: transparent;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 16px;
   color: var(--color-text);
   letter-spacing: 0.03em;
 }
@@ -84,14 +84,14 @@
 }
 
 .topicHeaderLabel {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: var(--color-text);
   letter-spacing: 0.06em;
 }
 
 .topicHeaderValue {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: 0.04em;
@@ -112,13 +112,13 @@
 }
 
 .topicHeading {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--color-text);
 }
 
 .topicText {
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.55;
   color: var(--color-text);
   letter-spacing: 0.02em;
@@ -137,7 +137,7 @@
   border: 2px solid #c5c1b6;
   border-radius: 12px;
   padding: 18px 22px;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;
@@ -156,7 +156,7 @@
   background: #ffffff;
   border: 2px solid #c5c1b6;
   border-radius: 12px;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--color-text);
   letter-spacing: 0.06em;

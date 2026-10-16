@@ -1,6 +1,6 @@
 .columns {
   display: grid;
-  grid-template-columns: 1fr 80px 1fr;
+  grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
   gap: 12px;
   align-items: stretch;
   margin-bottom: 14px;
@@ -23,9 +23,9 @@
 }
 
 .colTitle {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--color-text);
 }
 
@@ -46,22 +46,22 @@
   padding: 22px;
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 17px;
 }
 
 .row {
   width: 100%;
   display: grid;
-  grid-template-columns: 130px 12px 1fr auto;
+  grid-template-columns: auto 12px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
-  padding: 10px 14px;
+  padding: 14px 14px;
   border: none;
   border-bottom: 1px solid #e5e1d6;
   background: #ffffff;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 16px;
   text-align: left;
   transition: background 0.1s;
 }
@@ -100,8 +100,8 @@
 .rowRating {
   font-weight: 800;
   color: var(--color-primary);
-  letter-spacing: 0.05em;
-  font-size: 11px;
+  letter-spacing: 0.03em;
+  font-size: 14px;
 }
 
 .previewBox {
@@ -117,14 +117,14 @@
   background: #f7f3e7;
   border-bottom: 1px solid #c5c1b6;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--color-text);
 }
 
 .previewBody {
   padding: 14px 18px;
-  font-size: 13px;
+  font-size: 17px;
   line-height: 1.6;
   color: var(--color-text);
   white-space: pre-wrap;
@@ -140,15 +140,15 @@
   background: #f4a0a0;
   border: 2px solid #d07070;
   border-radius: 10px;
-  padding: 14px 12px;
-  font-size: 13px;
+  padding: 12px 10px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--color-text);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   cursor: pointer;
   text-transform: uppercase;
   transition: filter 0.12s, transform 0.08s;
-  min-height: 60px;
+  min-height: 72px;
   touch-action: manipulation;
 }
 
