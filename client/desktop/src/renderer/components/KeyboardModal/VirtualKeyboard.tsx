@@ -71,11 +71,23 @@ export default function VirtualKeyboard() {
     function handleFocus(e: FocusEvent) {
       if (Date.now() < suppressUntilRef.current) return
       if (!isTextTarget(e.target)) return
-      // Modal içindeki input'lara kendi de focus alabilir — target set edildiyse dokunma
-      setTarget((prev) => prev ?? (e.target as TargetEl))
+      // Modal içindeki input'lara kendi de focus alabilir — target set edildiyse dokunma.
+      // Önceki hedef sayfadan kalkmışsa (ekran değişti) takılı kalmasın, yeni hedefe geç.
+      setTarget((prev) => (prev && prev.isConnected ? prev : (e.target as TargetEl)))
+    }
+    // Zaten odakta olan alana dokunmak focusin üretmez (ör. autoFocus pencere aktif olmadan
+    // çalıştıysa veya klavye kapatıldıktan sonra) — dokunuşta da klavye açılsın.
+    function handleClick(e: MouseEvent) {
+      if (Date.now() < suppressUntilRef.current) return
+      if (!isTextTarget(e.target)) return
+      setTarget((prev) => (prev && prev.isConnected ? prev : (e.target as TargetEl)))
     }
     document.addEventListener('focusin', handleFocus)
-    return () => document.removeEventListener('focusin', handleFocus)
+    document.addEventListener('click', handleClick)
+    return () => {
+      document.removeEventListener('focusin', handleFocus)
+      document.removeEventListener('click', handleClick)
+    }
   }, [])
 
   function handleConfirm(value: string) {
@@ -92,6 +104,15 @@ export default function VirtualKeyboard() {
     suppressUntilRef.current = Date.now() + 250
     setTarget(null)
   }
+
+  // Hedef input ekrandan kalktıysa (sayfa değişti) klavyeyi kapat
+  useEffect(() => {
+    if (!target) return
+    const id = setInterval(() => {
+      if (!target.isConnected) setTarget(null)
+    }, 500)
+    return () => clearInterval(id)
+  }, [target])
 
   if (!target) return null
 
