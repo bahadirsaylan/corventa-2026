@@ -50,11 +50,17 @@ const files = walk(ROOT).filter((f) => !f.startsWith(I18N))
 const used = new Map()
 const untranslated = []
 const tCall = new RegExp(String.raw`\bt\(\s*(?:${STR})`, 'g')
+const fieldText = new RegExp(String.raw`\b(?:label|title|note|desc|description):\s*(?:${STR})`, 'g')
 for (const f of files) {
   const src = readFileSync(f, 'utf8')
   for (const m of src.matchAll(tCall)) {
     const k = unesc(m[1] ?? m[2])
     if (!used.has(k)) used.set(k, relative(ROOT, f))
+  }
+  // Ekranda t(x) ile çevrilen veri tanımları (ayar alanları vb.): label/title/note/desc: 'Türkçe…'
+  for (const m of src.matchAll(fieldText)) {
+    const k = unesc(m[1] ?? m[2])
+    if (/[ÇĞİÖŞÜçğıöşü]/.test(k) && !used.has(k)) used.set(k, relative(ROOT, f))
   }
   if (f.endsWith('.tsx')) {
     src.split('\n').forEach((line, i) => {

@@ -5,6 +5,9 @@
 
 import type { FieldDef, SectionDef } from '@/components/SettingsForm/SettingsForm'
 
+// Proses parametreleri DB'ye kaydedilir; makine yazılımı şimdilik aynı değerleri sabit kullanıyor.
+const PENDING = 'Kaydedilir; makine yazılımına bağlanması sonraki güncellemede.'
+
 export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
   {
     tab: 'MAKİNE',
@@ -48,6 +51,16 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },
         ],
       },
+      {
+        title: 'ADAPTİF TEMAS (PASO 1)',
+        note: PENDING,
+        fields: [
+          { key: 'adaptiveJogSpeedPercent', label: 'TEMAS ARAMA HIZI', unit: '%', min: 5, max: 100, integer: true },
+          { key: 'adaptiveSampleIntervalMm', label: 'ÖRNEK ARALIĞI', unit: 'mm', min: 0.1, max: 10, desc: 'Piston her bu kadar ilerlediğinde bir encoder örneği alınır.' },
+          { key: 'adaptiveWindowSampleCount', label: 'PENCERE ÖRNEK SAYISI', min: 2, max: 50, integer: true, desc: 'Karşılaştırılan son örnek sayısı.' },
+          { key: 'adaptiveEncoderStopToleranceMm', label: 'DURMA EŞİĞİ', unit: 'mm', min: 0.01, max: 5, desc: 'Pencere boyunca encoder bu kadardan az değişirse temas kabul edilir.' },
+        ],
+      },
     ],
   },
   {
@@ -60,6 +73,21 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'upperLowerCenterDistanceMm', label: 'ÜST-ALT TOP MERKEZ MESAFESİ', unit: 'mm', min: 1, max: 2000, desc: 'Sıkıştırma konum hesabı (üst piston en üstte, alt mekanik limitte).' },
           { key: 'clampOverpressMm', label: 'SIKIŞTIRMA EKSTRA BASKI', unit: 'mm', min: 0, max: 10 },
         ],
+      },
+      {
+        title: 'SIKIŞTIRMA HAREKETİ',
+        note: PENDING,
+        fields: [
+          { key: 'clampContactDeltaBar', label: 'TEMAS BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 20, integer: true, desc: 'Yürüme basıncı + bu değer görülünce üst top durur.' },
+          { key: 'clampJogSpeedPercent', label: 'SIKIŞTIRMA HIZI', unit: '%', min: 5, max: 100, integer: true },
+          { key: 'clampSlowSpeedPercent', label: 'SON BÖLÜM YAVAŞ HIZ', unit: '%', min: 5, max: 100, integer: true },
+          { key: 'clampSlowdownPercentOfTarget', label: 'YAVAŞLAMA NOKTASI', unit: '%', min: 50, max: 100, integer: true, desc: 'Hedef konumun bu yüzdesinde yavaşlar ve yürüme basıncını okur.' },
+        ],
+      },
+      {
+        title: 'BOŞLUK ALMA HIZI',
+        note: PENDING,
+        fields: [{ key: 'slackSpeedPercent', label: 'BOŞLUK ALMA HIZI', unit: '%', min: 5, max: 100, integer: true }],
       },
       {
         title: 'ÇEMBER — BOŞLUK ALMA',
@@ -95,6 +123,18 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         fields: [
           { key: 'defaultToleranceMm', label: 'GERİ ESNEME TOLERANSI', unit: 'mm', min: 0.01, max: 500 },
           { key: 'minMeasurableArcLengthMm', label: 'ÖLÇÜLEBİLİR EN KISA YAY', unit: 'mm', min: 0, max: 10000, nullable: true, desc: 'Boş = eşik yok.' },
+        ],
+      },
+      {
+        title: 'GERİ ESNEME DÜZELTMESİ',
+        note: PENDING,
+        fields: [
+          { key: 'springbackMaxIterations', label: 'ÇEMBER EN FAZLA İTERASYON', min: 1, max: 20, integer: true },
+          { key: 'arcMeasureMaxIterations', label: 'ÇOK AÇILI EN FAZLA İTERASYON', min: 1, max: 20, integer: true },
+          { key: 'springbackRotationOnlyMaxMm', label: 'SADECE ROTASYON SINIRI', unit: 'mm', min: 0, max: 500, desc: 'Çap farkı bu kadar veya altındaysa düzeltme bükümü yapılmaz, sadece rotasyon.' },
+          { key: 'springbackStableTimeMs', label: 'SENSÖR SABİTLENME SÜRESİ', unit: 'ms', min: 50, max: 10000, integer: true },
+          { key: 'springbackIncreaseThresholdMm', label: 'ÖLÇÜM ARTIŞ EŞİĞİ', unit: 'mm', min: 0.01, max: 5 },
+          { key: 'springbackMinThresholdMm', label: 'ÖLÇÜM EN KÜÇÜK EŞİK', unit: 'mm', min: 0.01, max: 5 },
         ],
       },
       {

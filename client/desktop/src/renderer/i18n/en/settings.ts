@@ -178,6 +178,35 @@ const en: Record<string, string> = {
     'Stage 1-3 positions are fixed in the machine software; offsets are shown here for reference only.',
   'Ofsetler gönye konumundan MUTLAK değerlerdir; stage geçişinde pistonlar bu konumlara gider.':
     'Offsets are ABSOLUTE values from the squaring position; pistons move to these positions on stage change.',
+  'Kaydedilir; makine yazılımına bağlanması sonraki güncellemede.': 'Saved; connection to the machine software comes in the next update.',
+  'ADAPTİF TEMAS (PASO 1)': 'ADAPTIVE CONTACT (PASS 1)',
+  'TEMAS ARAMA HIZI': 'CONTACT SEARCH SPEED',
+  'ÖRNEK ARALIĞI': 'SAMPLE INTERVAL',
+  'Piston her bu kadar ilerlediğinde bir encoder örneği alınır.': 'An encoder sample is taken every time the piston advances this much.',
+  'PENCERE ÖRNEK SAYISI': 'WINDOW SAMPLE COUNT',
+  'Karşılaştırılan son örnek sayısı.': 'Number of recent samples compared.',
+  'DURMA EŞİĞİ': 'STOP THRESHOLD',
+  'Pencere boyunca encoder bu kadardan az değişirse temas kabul edilir.': 'Contact is detected when the encoder changes less than this over the window.',
+  'SIKIŞTIRMA HAREKETİ': 'CLAMPING MOTION',
+  'TEMAS BASINÇ ARTIŞI': 'CONTACT PRESSURE RISE',
+  'Yürüme basıncı + bu değer görülünce üst top durur.': 'The upper roll stops when travel pressure + this value is reached.',
+  'SIKIŞTIRMA HIZI': 'CLAMPING SPEED',
+  'SON BÖLÜM YAVAŞ HIZ': 'FINAL SECTION SLOW SPEED',
+  'YAVAŞLAMA NOKTASI': 'SLOWDOWN POINT',
+  'Hedef konumun bu yüzdesinde yavaşlar ve yürüme basıncını okur.': 'Slows down and reads the travel pressure at this percentage of the target position.',
+  'BOŞLUK ALMA HIZI': 'TAKE-UP SPEED',
+  'GERİ ESNEME DÜZELTMESİ': 'SPRINGBACK CORRECTION',
+  'ÇEMBER EN FAZLA İTERASYON': 'CIRCLE MAX ITERATIONS',
+  'ÇOK AÇILI EN FAZLA İTERASYON': 'MULTI-ANGLE MAX ITERATIONS',
+  'SADECE ROTASYON SINIRI': 'ROTATION-ONLY LIMIT',
+  'Çap farkı bu kadar veya altındaysa düzeltme bükümü yapılmaz, sadece rotasyon.': 'If the diameter difference is this or less, no correction bend is made, only rotation.',
+  'SENSÖR SABİTLENME SÜRESİ': 'SENSOR SETTLING TIME',
+  'ÖLÇÜM ARTIŞ EŞİĞİ': 'MEASUREMENT RISE THRESHOLD',
+  'ÖLÇÜM EN KÜÇÜK EŞİK': 'MEASUREMENT MIN THRESHOLD',
+  'Sıkıştırma konum hesabı (üst piston en üstte, alt mekanik limitte).':
+    'Clamping position calculation (upper piston at top, lower at mechanical limit).',
+  'KIVIRIM YAY UZUNLUĞU (mm). AÇI YERİNE DOĞRUDAN YAY UZUNLUĞU GİRMEK İÇİN KULLANIN (0 < Yay < π·R). BACKEND α = 180 − (Yay·180)/(π·R) İLE α HESAPLAR.':
+    'BEND ARC LENGTH (mm). USE IT TO ENTER THE ARC LENGTH DIRECTLY INSTEAD OF THE ANGLE (0 < Arc < π·R). THE BACKEND CALCULATES α = 180 − (Arc·180)/(π·R).',
 }
 
 export default en
