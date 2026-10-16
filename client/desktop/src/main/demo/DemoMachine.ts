@@ -41,6 +41,29 @@ const STAGES = [
   { stageNumber: 3, stageId: 3, name: 'Stage 3', maxProfileAMm: 250, left: 134.68, right: 134.68, lower: 120, xa1: -422 },
 ]
 const BALL = 220
+
+// MachineSettings entity varsayılanları (camelCase) — demo ayar ekranları için
+const DEMO_MACHINE_SETTINGS = {
+  id: 1,
+  leftPistonStrokeMm: 422, rightPistonStrokeMm: 422, upperPistonStrokeMm: 161, lowerPistonStrokeMm: 195,
+  leftPistonMaxReg: 21093, rightPistonMaxReg: 21127, upperPistonMaxReg: 7981, lowerPistonMaxReg: 9732,
+  pneumaticStrokeMm: 265, pneumaticMaxReg: 13250, rollerDiameterMm: 220, rotationEncoderPpr: 1024,
+  safetyMarginMm: 1, zeroResetDistanceMm: 810,
+  defaultActiveSensorSide: 'Left', defaultValsCode: null,
+  defaultPistonSpeedPercent: 100, defaultRotationSpeedPercent: 100,
+  defaultToleranceMm: 5, defaultSafetyMarginMm: 100,
+  defaultSlackPressureBar: 157, defaultSlackDistanceMm: 0.1, adaptiveInitialSlackDistanceMm: null,
+  circularSlackDistanceMm: 0.1, circularSlackPressureBar: 157, circularAdaptiveInitialSlackDistanceMm: null,
+  arcSlackDistanceMm: 0.1, arcSlackPressureBar: 157, arcAdaptiveInitialSlackDistanceMm: null,
+  defaultClampPressureBar: 150, defaultBallDiameterMm: 220, defaultCenterDistanceMm: 300.82,
+  centerDistanceMiddleRadiusMm: 300, upperLowerCenterDistanceMm: 488, clampOverpressMm: 0.1,
+  defaultThetaDeg: 63, defaultXA1: -465, defaultYA1: 0,
+  slpisZeroOffsetMm: 0, slpisLMm: 70, slpisRulmanCapMm: 35,
+  leftRadiusSensorZeroOffsetMm: 0, rightRadiusSensorZeroOffsetMm: 0,
+  radiusSensorMmPerPulse: 0.00025, radiusSensorStrokeMm: 12,
+  minMeasurableArcLengthMm: null, defaultMeasurementDistanceMm: 850, stateSnapshotIntervalSec: 5,
+  createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+}
 const THETA = 63
 const CENTER_NORMAL = 300.82
 const CENTER_MIDDLE = 300
@@ -178,6 +201,11 @@ export class DemoMachine extends EventEmitter {
   private runToken = 0
   private progress: BendingProgress | null = null
   private prefs = new Map<string, unknown>()
+  // Ayar ekranları (Operatör / Admin) için bellek içi kayıtlar — sadece ekranda görünür,
+  // demo simülasyonunun hesabına etki etmez.
+  private machineSettings: Record<string, unknown> = { ...DEMO_MACHINE_SETTINGS }
+  private gonyeSettings: Record<string, unknown> = { id: 1, leftOffsetMm: 3.75, rightOffsetMm: 3.75, upperOffsetMm: 0, lowerOffsetMm: 10.5, referencePressureBar: 70 }
+  private stageEdits = new Map<number, Record<string, unknown>>()
 
   // ── yaşam döngüsü ──
 
@@ -1116,8 +1144,22 @@ export class DemoMachine extends EventEmitter {
       return STAGES.map((s) => ({
         id: s.stageId, stageNumber: s.stageNumber, name: s.name,
         leftOffsetMm: s.left, rightOffsetMm: s.right, lowerOffsetMm: s.lower,
-        xA1Mm: s.xa1, yA1Mm: 0, maxProfileAMm: s.maxProfileAMm,
+        xA1Mm: s.xa1, yA1Mm: 0, maxProfileAMm: s.maxProfileAMm, displayOrder: s.stageNumber, isActive: true,
+        ...this.stageEdits.get(s.stageId),
       }))
+    }
+    if ((m = /^\/api\/settings\/stages\/(\d+)$/.exec(path)) && method === 'PUT') {
+      const id = Number(m[1])
+      this.stageEdits.set(id, { ...this.stageEdits.get(id), ...b, id })
+      return { ...b, id }
+    }
+    if (path === '/api/settings/machine') {
+      if (method === 'PUT') this.machineSettings = { ...this.machineSettings, ...b, updatedAt: new Date().toISOString() }
+      return this.machineSettings
+    }
+    if (path === '/api/settings/gonye') {
+      if (method === 'PUT') this.gonyeSettings = { ...this.gonyeSettings, ...b }
+      return this.gonyeSettings
     }
     if (path === '/api/machine-identity') {
       return { id: 1, serialNo: 'CRV-DEMO-001', customerName: 'Corventa', warrantyStartDate: '2026-01-01T00:00:00Z', warrantyEndDate: '2028-01-01T00:00:00Z', ownershipType: 'SATIS', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }

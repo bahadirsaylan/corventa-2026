@@ -12,6 +12,7 @@ import { checkCapacity, type CapacityCheck } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
+import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
@@ -40,7 +41,9 @@ export default function RingBendingMeasurementsPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
   const visibleFields = useVisibleProfileFields()
-  const [values, setRawValues] = useState<MeasurementValues>(() => fillHiddenProfileFields(fromStore(ringBending), visibleFields))
+  const [values, setRawValues] = useState<MeasurementValues>(() =>
+    applyMeasureDefaults(fillHiddenProfileFields(fromStore(ringBending), visibleFields)),
+  )
   const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç

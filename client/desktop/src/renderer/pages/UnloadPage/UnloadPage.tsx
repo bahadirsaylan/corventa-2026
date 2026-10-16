@@ -3,65 +3,40 @@
 // "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda üst top seçilen mm kadar geri çekilir, ardından
 // seçilen mm (ve yönde) rotasyon yapılır → parça alınır
 // → SEKIL-20 (yeni büküm / tekrar).
-// Süreler bu cihazda hatırlanır (localStorage). Şimdilik SADECE DEMO modunda açılıyor —
+// Süreler bu cihazda hatırlanır (localStorage, services/operatorPrefs). Şimdilik SADECE DEMO modunda açılıyor —
 // gerçek backend'de tahliye komutu (POST /api/preparation/unload) henüz yok.
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import {
+  UNLOAD_ROT,
+  UNLOAD_SECONDS,
+  UNLOAD_UPPER,
+  readUnloadMotion,
+  readUnloadPresets,
+  readUnloadSelected,
+  saveUnloadMotion,
+  saveUnloadPresets,
+  type UnloadMotion,
+} from '@/services/operatorPrefs'
 import styles from './UnloadPage.module.css'
 
-const DEFAULT_PRESETS = [3, 5, 8, 10, 15]
-const STORAGE_KEY = 'corventa.unloadPresets'
-const SEL_KEY = 'corventa.unloadSelected'
-const MIN_S = 1
-const MAX_S = 60
+const MIN_S = UNLOAD_SECONDS.min
+const MAX_S = UNLOAD_SECONDS.max
 
 // Tahliye hareketi: geri sayım bitince üst top X mm geri, sonra rotasyon Y mm (seçilen yönde)
-const MOTION_KEY = 'corventa.unloadMotion'
-const UPPER = { min: 0, max: 150, step: 5, def: 50 }
-const ROT = { min: 0, max: 3000, step: 50, def: 300 }
-
-interface Motion {
-  upperRetractMm: number
-  rotationMm: number
-  rotationDir: 1 | -1
-}
-
-function readMotion(): Motion {
-  try {
-    const v = JSON.parse(localStorage.getItem(MOTION_KEY) ?? 'null')
-    if (v && Number.isFinite(v.upperRetractMm) && Number.isFinite(v.rotationMm) && (v.rotationDir === 1 || v.rotationDir === -1))
-      return v
-  } catch {
-    /* varsayılan */
-  }
-  return { upperRetractMm: UPPER.def, rotationMm: ROT.def, rotationDir: 1 }
-}
+// Varsayılanlar Ayarlar > Operatör Ayarları'ndan da değiştirilebilir (services/operatorPrefs).
+const UPPER = UNLOAD_UPPER
+const ROT = UNLOAD_ROT
+type Motion = UnloadMotion
+const readMotion = readUnloadMotion
+const readPresets = readUnloadPresets
+const readSelected = readUnloadSelected
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 type Phase = 'select' | 'countdown' | 'opening' | 'ready' | 'error'
-
-function readPresets(): number[] {
-  try {
-    const v = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null')
-    if (Array.isArray(v) && v.length === DEFAULT_PRESETS.length && v.every((n) => Number.isFinite(n))) return v
-  } catch {
-    /* varsayılan */
-  }
-  return [...DEFAULT_PRESETS]
-}
-
-function readSelected(): number {
-  try {
-    const v = Number(localStorage.getItem(SEL_KEY))
-    if (Number.isInteger(v) && v >= 0 && v < DEFAULT_PRESETS.length) return v
-  } catch {
-    /* varsayılan */
-  }
-  return 0
-}
 
 export default function UnloadPage() {
   const navigate = useNavigate()
@@ -78,11 +53,7 @@ export default function UnloadPage() {
   function updateMotion(patch: Partial<Motion>) {
     const next = { ...motion, ...patch }
     setMotion(next)
-    try {
-      localStorage.setItem(MOTION_KEY, JSON.stringify(next))
-    } catch {
-      /* depolama kapalı */
-    }
+    saveUnloadMotion(next)
   }
 
   useEffect(() => () => {
@@ -90,12 +61,7 @@ export default function UnloadPage() {
   }, [])
 
   function save(next: number[], sel: number) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-      localStorage.setItem(SEL_KEY, String(sel))
-    } catch {
-      /* depolama kapalı — bu oturumda geçerli */
-    }
+    saveUnloadPresets(next, sel)
   }
 
   function choose(i: number) {

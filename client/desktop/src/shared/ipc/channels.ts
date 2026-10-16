@@ -72,6 +72,12 @@ export const IpcInvoke = {
   SettingsGetUserPreference: 'settings:get-user-preference',
   SettingsPutUserPreference: 'settings:put-user-preference',
   SettingsGetStages: 'settings:get-stages',
+  // Bending API — makine ayarları (Operatör / Admin ayar ekranları). Kayıt sonrası backend orchestrator'ı yeniler.
+  SettingsGetMachine: 'settings:get-machine',
+  SettingsUpdateMachine: 'settings:update-machine',
+  SettingsGetGonye: 'settings:get-gonye',
+  SettingsUpdateGonye: 'settings:update-gonye',
+  SettingsUpdateStage: 'settings:update-stage',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

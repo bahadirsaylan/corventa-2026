@@ -19,7 +19,8 @@ import MaintenancePage from '@/pages/MaintenancePage/MaintenancePage'
 import ChecklistPage from '@/pages/ChecklistPage/ChecklistPage'
 import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnectionPage'
 import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
-import DefaultSpeedsPage from '@/pages/DefaultSpeedsPage/DefaultSpeedsPage'
+import OperatorSettingsPage from '@/pages/OperatorSettingsPage/OperatorSettingsPage'
+import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
@@ -94,7 +95,8 @@ export default function App() {
             <Route path="settings/checklist" element={<ChecklistPage />} />
             <Route path="settings/big-data" element={<BigDataConnectionPage />} />
             <Route path="settings/users" element={<UserManagementPage />} />
-            <Route path="settings/default-speeds" element={<DefaultSpeedsPage />} />
+            <Route path="settings/operator" element={<OperatorSettingsPage />} />
+            <Route path="settings/admin" element={<AdminSettingsPage />} />
             <Route path="settings/encoder-reset" element={<EncoderResetPage />} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />

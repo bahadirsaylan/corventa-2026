@@ -6,6 +6,9 @@ import type {
   ApplyStageRequest,
   GonyeResult,
   BendingCalculateRequest,
+  GonyeSettingsDto,
+  MachineSettingsDto,
+  StageInfo,
   BendingCalculateResponse,
   BendingPreviewRequest,
   BendingPreviewResponse,
@@ -38,6 +41,28 @@ export class EngineApiClient {
     } catch {
       return false
     }
+  }
+
+  // ---------- Ayarlar (DB-backed; PUT sonrası backend orchestrator cache'ini yeniler) ----------
+
+  getMachineSettings(): Promise<MachineSettingsDto> {
+    return http.get<MachineSettingsDto>(`${this.baseUrl}/api/settings/machine`)
+  }
+
+  updateMachineSettings(body: MachineSettingsDto): Promise<MachineSettingsDto> {
+    return http.put<MachineSettingsDto>(`${this.baseUrl}/api/settings/machine`, body)
+  }
+
+  getGonyeSettings(): Promise<GonyeSettingsDto> {
+    return http.get<GonyeSettingsDto>(`${this.baseUrl}/api/settings/gonye`)
+  }
+
+  updateGonyeSettings(body: GonyeSettingsDto): Promise<GonyeSettingsDto> {
+    return http.put<GonyeSettingsDto>(`${this.baseUrl}/api/settings/gonye`, body)
+  }
+
+  updateStage(id: number, body: StageInfo): Promise<StageInfo> {
+    return http.put<StageInfo>(`${this.baseUrl}/api/settings/stages/${id}`, body)
   }
 
   // ---------- Bending pipeline ----------

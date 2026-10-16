@@ -6,8 +6,12 @@ import { ipcMain } from 'electron'
 
 import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
+import { engineApi } from '@main/services/engine-api/EngineApiClient'
 import {
   Ipc,
+  type GonyeSettingsDto,
+  type MachineSettingsDto,
+  type StageInfo,
   type MachineIdentity,
   type MaintenancePeriodKey,
 } from '@shared'
@@ -33,6 +37,33 @@ export function registerSettingsHandlers(): void {
 
   ipcMain.handle(Ipc.IpcInvoke.SettingsGetStages, async () => {
     return dataApi.getStages()
+  })
+
+  // ---------- MAKİNE AYARLARI (Bending API — kayıt sonrası orchestrator yenilenir) ----------
+  // Renderer sadece değişen alanları yollar; güncel kayıt okunup üstüne yazılır → dokunulmayan
+  // alanlar backend'deki değerleriyle birebir geri gider (yuvarlama / null kaybı olmaz).
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetMachine, async () => engineApi.getMachineSettings())
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsUpdateMachine, async (_evt, patch: MachineSettingsDto) => {
+    log.info('update-machine-settings', { fields: Object.keys(patch ?? {}) })
+    const current = await engineApi.getMachineSettings()
+    return engineApi.updateMachineSettings({ ...current, ...patch })
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetGonye, async () => engineApi.getGonyeSettings())
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsUpdateGonye, async (_evt, patch: Partial<GonyeSettingsDto>) => {
+    log.info('update-gonye-settings', { fields: Object.keys(patch ?? {}) })
+    const current = await engineApi.getGonyeSettings()
+    return engineApi.updateGonyeSettings({ ...current, ...patch })
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsUpdateStage, async (_evt, id: number, patch: Partial<StageInfo>) => {
+    log.info('update-stage', { id, fields: Object.keys(patch ?? {}) })
+    const current = (await dataApi.getStages()).find((s) => s.id === id)
+    if (!current) throw new Error(`Stage id=${id} bulunamadı`)
+    return engineApi.updateStage(id, { ...current, ...patch })
   })
 
   // ---------- MACHINE IDENTITY ----------

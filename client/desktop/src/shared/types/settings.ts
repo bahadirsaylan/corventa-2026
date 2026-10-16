@@ -70,4 +70,23 @@ export interface StageInfo {
   xA1Mm?: number | null
   yA1Mm?: number | null
   maxProfileAMm?: number | null
+  displayOrder?: number
+  isActive?: boolean
+}
+
+/**
+ * Bending API MachineSettings (GET/PUT /api/settings/machine) — alan adları C# entity'nin camelCase hali.
+ * Ayar ekranları sadece DEĞİŞEN alanları gönderir: güncel kayıt okunur, değişiklik üstüne yazılır, PUT edilir.
+ */
+export type MachineSettingsDto = Record<string, number | string | boolean | null>
+
+/** Bending API GonyeSettings (GET/PUT /api/settings/gonye). */
+export interface GonyeSettingsDto {
+  id: number
+  leftOffsetMm: number
+  rightOffsetMm: number
+  upperOffsetMm: number
+  lowerOffsetMm: number
+  referencePressureBar: number
+  [k: string]: unknown
 }

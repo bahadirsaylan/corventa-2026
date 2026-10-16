@@ -17,6 +17,7 @@ import ArcPlanSummary from './ArcPlanSummary'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
+import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 
 const EMPTY: ArcMeasurementValues = {
@@ -107,7 +108,9 @@ export default function ArcBendingMeasurementsPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
   const visibleFields = useVisibleProfileFields()
-  const [values, setRawValues] = useState<ArcMeasurementValues>(() => fillHiddenProfileFields(fromStore(arcBending), visibleFields))
+  const [values, setRawValues] = useState<ArcMeasurementValues>(() =>
+    applyMeasureDefaults(fillHiddenProfileFields(fromStore(arcBending), visibleFields)),
+  )
   const setValues = (v: ArcMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
   const [stage, setStage] = useState<ArcFormStage>('main')

@@ -5,7 +5,9 @@ import { ipcRenderer } from 'electron'
 
 import {
   Ipc,
+  type GonyeSettingsDto,
   type MachineIdentity,
+  type MachineSettingsDto,
   type MaintenancePeriodKey,
   type MaintenanceState,
   type StageInfo,
@@ -39,6 +41,16 @@ export const settingsApi = {
 
   // Stage tanımları (DataApi) — gönye ekranında stage seçimi
   getStages: (): Promise<StageInfo[]> => ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetStages),
+
+  // Makine ayarları (Bending API) — sadece değişen alanlar gönderilir (patch); main güncel kaydı okuyup birleştirir
+  getMachine: (): Promise<MachineSettingsDto> => ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetMachine),
+  updateMachine: (patch: MachineSettingsDto): Promise<MachineSettingsDto> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateMachine, patch),
+  getGonye: (): Promise<GonyeSettingsDto> => ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetGonye),
+  updateGonye: (patch: Partial<GonyeSettingsDto>): Promise<GonyeSettingsDto> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateGonye, patch),
+  updateStage: (id: number, patch: Partial<StageInfo>): Promise<StageInfo> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateStage, id, patch),
 }
 
 export type SettingsApi = typeof settingsApi

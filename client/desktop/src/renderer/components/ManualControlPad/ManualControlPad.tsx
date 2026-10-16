@@ -17,6 +17,7 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
 import { useHoldAction } from './useHoldAction'
+import { readManualSpeed } from '@/services/operatorPrefs'
 import styles from './ManualControlPad.module.css'
 
 const SPEED_STEP = 5
@@ -32,7 +33,7 @@ export default function ManualControlPad() {
   const locked = LOCK_DURING_BENDING && bendingActive
   const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
-  const [speed, setSpeed] = useState(20)
+  const [speed, setSpeed] = useState(readManualSpeed)
   const [motorBusy, setMotorBusy] = useState(false)
 
   const upper = usePiston('upperPiston')

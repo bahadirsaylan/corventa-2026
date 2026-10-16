@@ -8,6 +8,8 @@ interface NumpadModalProps {
   initialValue: string
   onConfirm: (value: string) => void
   onClose: () => void
+  /** true → işaret değiştirme (±) tuşu gösterilir (negatif değerler, ör. XA1) */
+  allowNegative?: boolean
 }
 
 const KEYS = [
@@ -17,7 +19,7 @@ const KEYS = [
   '.', '0', '⌫',
 ]
 
-export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose }: NumpadModalProps) {
+export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative }: NumpadModalProps) {
   const [display, setDisplay] = useState(initialValue || '')
 
   useEffect(() => {
@@ -36,15 +38,19 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
     }
     if (key === '.') {
       if (display.includes('.')) return
-      setDisplay((d) => (d === '' ? '0.' : d + '.'))
+      setDisplay((d) => (d === '' || d === '-' ? d + '0.' : d + '.'))
       return
     }
     // prevent multiple leading zeros
-    if (display === '0' && key !== '.') {
-      setDisplay(key)
+    if ((display === '0' || display === '-0') && key !== '.') {
+      setDisplay(display.startsWith('-') ? '-' + key : key)
       return
     }
     setDisplay((d) => d + key)
+  }
+
+  function toggleSign() {
+    setDisplay((d) => (d.startsWith('-') ? d.slice(1) : '-' + d))
   }
 
   function handleClear() {
@@ -52,7 +58,8 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   }
 
   function handleConfirm() {
-    const cleaned = display.endsWith('.') ? display.slice(0, -1) : display
+    let cleaned = display.endsWith('.') ? display.slice(0, -1) : display
+    if (cleaned === '-') cleaned = ''
     onConfirm(cleaned)
     onClose()
   }
@@ -83,10 +90,15 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
         </div>
 
         {/* ── Action row ── */}
-        <div className={styles.actions}>
+        <div className={styles.actions} style={allowNegative ? { gridTemplateColumns: '1fr 1fr 2fr' } : undefined}>
           <button className={styles.clearBtn} onClick={handleClear}>
             C
           </button>
+          {allowNegative && (
+            <button className={styles.clearBtn} style={{ background: '#4b5563' }} onClick={toggleSign}>
+              ±
+            </button>
+          )}
           <button className={styles.confirmBtn} onClick={handleConfirm}>
             ✓
           </button>

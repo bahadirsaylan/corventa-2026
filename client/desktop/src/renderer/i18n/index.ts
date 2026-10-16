@@ -14,13 +14,14 @@ import enLayout from './en/layout'
 import enFlow from './en/flow'
 import enMeasure from './en/measure'
 import enArc from './en/arc'
+import enSettings from './en/settings'
 
 export type LangCode = 'tr' | 'en' | 'de' | 'ru' | 'ar' | 'fr'
 
 const STORAGE_KEY = 'corventa.language'
 
 const DICTS: Partial<Record<LangCode, Record<string, string>>> = {
-  en: { ...enCore, ...enLayout, ...enFlow, ...enMeasure, ...enArc },
+  en: { ...enCore, ...enLayout, ...enFlow, ...enMeasure, ...enArc, ...enSettings },
 }
 
 function readStored(): LangCode {

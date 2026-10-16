@@ -24,10 +24,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="GARANTİ SÜRESİ" onClick={() => navigate('/settings/warranty')} />
         <SettingsBtn label="BİG DATA BAĞLANTI AYARLARI" onClick={() => navigate('/settings/big-data')} />
         <SettingsBtn label="KULLANICI YÖNETİMİ" onClick={() => navigate('/settings/users')} />
-        <SettingsBtn
-          label={<>KIVRIM İÇİN VARSAYILAN HIZ : <span className={styles.highlight}>6m/dk</span></>}
-          onClick={() => navigate('/settings/default-speeds')}
-        />
+        <SettingsBtn label="OPERATÖR AYARLARI" onClick={() => navigate('/settings/operator')} />
         <SettingsBtn label="KARŞILAMA MESAJI" onClick={() => navigate('/settings/welcome-message')} />
         <SettingsBtn label="CHECK LIST" onClick={() => navigate('/settings/checklist')} />
         <SettingsBtn label="PDF KULLANIM KİTABI" onClick={openUserGuide} />
@@ -45,6 +42,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" onClick={() => navigate('/settings/customer-change')} />
         <SettingsBtn label="SATIŞ / TAKAS / HİBE" onClick={() => navigate('/settings/machine-transfer')} />
         <SettingsBtn label="HIZLI MENÜ" onClick={() => navigate('/settings/side-menu')} />
+        <SettingsBtn label="ADMİN AYARLARI" onClick={() => navigate('/settings/admin')} />
       </div>
     </div>
   )
