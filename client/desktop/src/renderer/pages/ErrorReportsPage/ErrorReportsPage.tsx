@@ -26,7 +26,7 @@ const MOCK_LOGS: ErrorLogRow[] = [
   { id: 3, timestamp: '2026-08-13 17:48', severity: 'CRITICAL', category: 'SAFETY',    code: 'EST-01', message: 'Acil durdurma tetiklendi — Job #128 iptal', operator: 'mehmet' },
   { id: 4, timestamp: '2026-08-13 16:12', severity: 'ERROR',    category: 'MODBUS',    code: 'MB-timeout', message: 'PLC read timeout 3× (bağlantı yeniden kuruldu)' },
   { id: 5, timestamp: '2026-08-13 14:33', severity: 'WARNING',  category: 'PIPELINE',  code: 'ARC-verify', message: 'Arc segment ölçüm tolerans dışı (0.24mm)', operator: 'ahmet' },
-  { id: 6, timestamp: '2026-08-13 11:07', severity: 'INFO',     category: 'OTHER',     code: 'GONYE-OK', message: 'Gönye tamamlandı — L:3.75 R:3.75 U:0 L:10.51', operator: 'kadir' },
+  { id: 6, timestamp: '2026-08-13 11:07', severity: 'INFO',     category: 'OTHER',     code: 'GONYE-OK', message: 'Gönye tamamlandı — L:3.75 R:3.75 U:0 L:10.51', operator: 'serkan' },
   { id: 7, timestamp: '2026-08-12 15:20', severity: 'ERROR',    category: 'HYDRAULIC', code: 'PRESS-1', message: 'S1 basınç düştü (<10 bar / 3sn)' },
   { id: 8, timestamp: '2026-08-12 09:00', severity: 'INFO',     category: 'OTHER',     code: 'STARTUP', message: 'Makine açıldı — versiyon 2026.5.15' },
 ]

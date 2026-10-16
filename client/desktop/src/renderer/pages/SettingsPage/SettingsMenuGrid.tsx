@@ -1,25 +1,18 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useT, t } from '@/i18n'
+import UserGuideViewer from '@/components/UserGuideViewer/UserGuideViewer'
+import { useT } from '@/i18n'
 import styles from './SettingsMenuGrid.module.css'
 
 export default function SettingsMenuGrid() {
   const navigate = useNavigate()
 
-  const openUserGuide = async () => {
-    try {
-      const result = await window.corventa.system.openUserGuide()
-      if (!result.ok) {
-        console.error('PDF açılamadı:', result.error)
-        alert(t('PDF açılamadı: {err}', { err: result.error ?? t('bilinmeyen hata') }))
-      }
-    } catch (err) {
-      console.error('PDF IPC hatası:', err)
-      alert(t('PDF açılamadı (IPC hatası).'))
-    }
-  }
+  // PDF kılavuz uygulama içinde (kiosk'tan çıkmadan) tam ekran açılır
+  const [showGuide, setShowGuide] = useState(false)
 
   return (
     <div className={styles.grid}>
+      {showGuide && <UserGuideViewer onClose={() => setShowGuide(false)} />}
       {/* ── LEFT COLUMN ───────────────────────────── */}
       <div className={styles.col}>
         <SettingsBtn label="GARANTİ SÜRESİ" onClick={() => navigate('/settings/warranty')} />
@@ -28,7 +21,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="OPERATÖR AYARLARI" onClick={() => navigate('/settings/operator')} />
         <SettingsBtn label="KARŞILAMA MESAJI" onClick={() => navigate('/settings/welcome-message')} />
         <SettingsBtn label="CHECK LIST" onClick={() => navigate('/settings/checklist')} />
-        <SettingsBtn label="PDF KULLANIM KİTABI" onClick={openUserGuide} />
+        <SettingsBtn label="PDF KULLANIM KİTABI" onClick={() => setShowGuide(true)} />
         <SettingsBtn label="BAKIM SÜRESİ" onClick={() => navigate('/settings/maintenance')} />
         <SettingsBtn label="CETVEL SIFIRLAMA" onClick={() => navigate('/settings/encoder-reset')} />
       </div>

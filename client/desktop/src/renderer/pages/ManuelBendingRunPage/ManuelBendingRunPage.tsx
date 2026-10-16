@@ -17,7 +17,7 @@ import RotationControl from './RotationControl'
 import SideSupport from './SideSupport'
 import styles from './ManuelBendingRunPage.module.css'
 
-// Manuel komutlar için güvenli başlangıç hızı ve yan dayama varsayılanı Ayarlar > Operatör
+// Manuel komutlar için güvenli başlangıç hızı Ayarlar > Operatör
 // Ayarları'ndan gelir (varsayılan %20 — ekran açılır açılmaz tam gaz piston göndermiyoruz).
 
 export default function ManuelBendingRunPage() {
@@ -40,7 +40,7 @@ export default function ManuelBendingRunPage() {
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
 
   const [speedPercent, setSpeedPercent] = useState(() => readManualRunPrefs().speedPercent)
-  const [autoSideSupport, setAutoSideSupport] = useState(() => readManualRunPrefs().autoSideSupport)
+  const [autoSideSupport, setAutoSideSupport] = useState(true)
 
   // Sayfaya girer girmez backend'i Manuel mod'a al — operatör panelden mode
   // ayarlamayı unutursa SemiAuto/Auto'da kalır ve manuel jog komutları

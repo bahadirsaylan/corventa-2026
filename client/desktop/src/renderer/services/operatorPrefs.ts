@@ -111,7 +111,6 @@ const MANUAL_RUN_KEY = 'corventa.manualRun'
 
 export interface ManualRunPrefs {
   speedPercent: number
-  autoSideSupport: boolean
 }
 
 export function readManualRunPrefs(): ManualRunPrefs {
@@ -119,7 +118,6 @@ export function readManualRunPrefs(): ManualRunPrefs {
   const sp = Number(v?.speedPercent)
   return {
     speedPercent: Number.isFinite(sp) && sp >= MANUAL_SPEED.min && sp <= MANUAL_SPEED.max ? sp : MANUAL_SPEED.def,
-    autoSideSupport: typeof v?.autoSideSupport === 'boolean' ? v.autoSideSupport : true,
   }
 }
 

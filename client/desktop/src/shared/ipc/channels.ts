@@ -81,6 +81,7 @@ export const IpcInvoke = {
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
+  ReadUserGuide: 'system:read-user-guide',
   SystemIsDemo: 'system:is-demo',
 } as const
 

@@ -1,6 +1,6 @@
 // Ayarlar > Operatör Ayarları — operatörün değiştirebileceği ayarlar (eski "Varsayılan Hız" sayfası).
 //   • Bu cihazda saklananlar (services/operatorPrefs): manuel tuş takımı hızı, manuel büküm ekranı
-//     hızı + otomatik yan dayama, ölçü ekranı H/G ön değerleri, tahliye süreleri ve hareketi
+//     hızı, ölçü ekranı H/G ön değerleri, tahliye süreleri ve hareketi
 //   • Makinede saklanan (Bending API MachineSettings): geri esneme toleransı
 //   • Kısayollar: Dil, Karşılama Mesajı, Hızlı Menü, Check List (kendi sayfalarında kaydedilir)
 // Makine ayarlarının tamamı Admin Ayarları'nda.
@@ -60,16 +60,6 @@ const LOCAL_SECTIONS: SectionDef[] = [
         max: MANUAL_SPEED.max,
         integer: true,
         desc: 'Manuel büküm programı çalıştırma ekranı açıldığındaki hız.',
-      },
-      {
-        type: 'select',
-        key: 'manualRunAutoSide',
-        label: 'OTOMATİK YAN DAYAMA',
-        desc: 'Manuel büküm ekranı açıldığında otomatik yan dayama açık mı başlasın.',
-        options: [
-          { value: 'on', label: 'AÇIK' },
-          { value: 'off', label: 'KAPALI' },
-        ],
       },
     ],
   },
@@ -140,7 +130,6 @@ function readLocal(): Values {
   const v: Values = {
     manualSpeed: readManualSpeed(),
     manualRunSpeed: run.speedPercent,
-    manualRunAutoSide: run.autoSideSupport ? 'on' : 'off',
     measureH: d.H,
     measureG: d.G,
     unloadUpperMm: m.upperRetractMm,
@@ -153,7 +142,7 @@ function readLocal(): Values {
 
 function writeLocal(v: Values): void {
   saveManualSpeed(Number(v.manualSpeed))
-  saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed), autoSideSupport: v.manualRunAutoSide !== 'off' })
+  saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed) })
   saveMeasureDefaults({ H: (v.measureH as number | null) ?? null, G: (v.measureG as number | null) ?? null })
   saveUnloadMotion({
     upperRetractMm: Number(v.unloadUpperMm),

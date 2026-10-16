@@ -32,6 +32,7 @@ const en: Record<string, string> = {
   'Arttır': 'Increase',
   'Azalt': 'Decrease',
   'GÖNDER': 'SEND',
+  'PDF açılamadı': 'PDF could not be opened',
 }
 
 export default en

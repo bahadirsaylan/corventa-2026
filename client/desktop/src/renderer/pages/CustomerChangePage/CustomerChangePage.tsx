@@ -25,7 +25,7 @@ const EMPTY_FORM: CustomerForm = {
 const CURRENT_CUSTOMER = {
   companyName: 'Sersovis A.Ş.',
   taxNo: '1234567890',
-  authorizedPerson: 'Kadir Akalın',
+  authorizedPerson: 'Serkan Öztürk',
   phone: '+90 532 000 0000',
   email: 'info@sersovis.com',
   address: 'Organize Sanayi Bölgesi, 5. Cadde No:14',

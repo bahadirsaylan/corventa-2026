@@ -2,6 +2,7 @@
 
 import { app, ipcMain, shell } from 'electron'
 import { existsSync } from 'fs'
+import { readFile } from 'fs/promises'
 import { join } from 'path'
 
 import { IS_DEMO } from '@main/demo/DemoMachine'
@@ -28,6 +29,20 @@ function resolveUserGuidePath(): string {
 export function registerSystemHandlers(): void {
   // Demo modu mu? (CORVENTA_DEMO=1) — demoya özel ekranlar (tahliye) bununla açılır
   ipcMain.handle(Ipc.IpcInvoke.SystemIsDemo, async () => IS_DEMO)
+
+  // Kılavuzu uygulama İÇİNDE göstermek için dosya içeriği (renderer blob URL ile PDF görüntüleyicide açar)
+  ipcMain.handle(Ipc.IpcInvoke.ReadUserGuide, async () => {
+    const pdfPath = resolveUserGuidePath()
+    if (!existsSync(pdfPath)) {
+      log.warn('user guide PDF not found', { pdfPath })
+      return { ok: false, error: `PDF bulunamadı: ${pdfPath}` }
+    }
+    try {
+      return { ok: true, data: new Uint8Array(await readFile(pdfPath)) }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
+  })
 
   ipcMain.handle(Ipc.IpcInvoke.OpenUserGuide, async () => {
     const pdfPath = resolveUserGuidePath()

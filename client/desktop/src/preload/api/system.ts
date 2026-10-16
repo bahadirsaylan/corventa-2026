@@ -13,6 +13,10 @@ export const systemApi = {
   openUserGuide: (): Promise<OpenUserGuideResult> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.OpenUserGuide),
 
+  // Kılavuz PDF içeriği — uygulama içi görüntüleyici için
+  readUserGuide: (): Promise<{ ok: boolean; data?: Uint8Array; error?: string }> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ReadUserGuide),
+
   // Demo modu (CORVENTA_DEMO=1) açık mı
   isDemo: (): Promise<boolean> => ipcRenderer.invoke(Ipc.IpcInvoke.SystemIsDemo),
 

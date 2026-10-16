@@ -19,7 +19,7 @@ interface UserRow {
 
 // Mock — gerçek liste DataApi'den gelecek
 const INITIAL_USERS: UserRow[] = [
-  { id: 1, fullName: 'Kadir Akalın',      username: 'kadir',    role: 'ADMIN',      active: true,  lastLogin: '2026-08-14 09:15' },
+  { id: 1, fullName: 'Serkan Öztürk',     username: 'serkan',   role: 'ADMIN',      active: true,  lastLogin: '2026-08-14 09:15' },
   { id: 2, fullName: 'Ahmet Yılmaz',       username: 'ahmet',    role: 'OPERATÖR',   active: true,  lastLogin: '2026-08-13 16:42' },
   { id: 3, fullName: 'Mehmet Demir',       username: 'mehmet',   role: 'OPERATÖR',   active: true,  lastLogin: '2026-08-14 07:30' },
   { id: 4, fullName: 'Ali Kaya',           username: 'ali',      role: 'BAKIM',      active: true,  lastLogin: '2026-08-12 11:08' },
