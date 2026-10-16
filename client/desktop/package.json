@@ -7,7 +7,7 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "demo": "set CORVENTA_DEMO=1&& electron-vite dev",
+    "demo": "set CORVENTA_DEMO=1&& set CORVENTA_NO_KIOSK=1&& electron-vite dev",
     "build": "electron-vite build",
     "package": "npm run build && electron-builder",
     "preview": "electron-vite preview",
