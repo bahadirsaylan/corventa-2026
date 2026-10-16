@@ -33,6 +33,10 @@ const en: Record<string, string> = {
   'Azalt': 'Decrease',
   'GÖNDER': 'SEND',
   'PDF açılamadı': 'PDF could not be opened',
+  'HOŞ GELDİNİZ': 'WELCOME',
+  'HOŞ GELDİNİZ, {name}': 'WELCOME, {name}',
+  'CORVENTA BENDING MACHINE\n\nMakineyi seçtiğiniz için teşekkür ederiz.\nİyi çalışmalar dileriz.':
+    'CORVENTA BENDING MACHINE\n\nThank you for choosing our machine.\nHave a productive day.',
 }
 
 export default en

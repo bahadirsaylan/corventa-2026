@@ -5,6 +5,7 @@ import BendingBallsPanel from '@/components/BendingBallsPanel/BendingBallsPanel'
 import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
 import SideMenu from '@/components/SideMenu/SideMenu'
+import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
 import { startBendingActivityPoller, useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
 import styles from './AppLayout.module.css'
@@ -69,6 +70,9 @@ export default function AppLayout() {
 
       {/* Sağ kenar hızlı menü (SEKIL-19) — tüm ekranı boydan boya kaplar */}
       <SideMenu />
+
+      {/* Girişten sonra bir kez karşılama mesajı (Ayarlar > Karşılama Mesajı) */}
+      <WelcomeOverlay />
     </div>
   )
 }

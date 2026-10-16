@@ -8,15 +8,25 @@ const DEFAULT_USER_KEY = 'varsayilan'
 
 interface SessionStore {
   username: string | null
+  /** Girişten hemen sonra karşılama mesajı gösterilecek mi (gösterilince kapanır) */
+  showWelcome: boolean
   setUsername: (username: string | null) => void
+  dismissWelcome: () => void
   clear: () => void
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
   username: null,
+  showWelcome: false,
   setUsername: (username) => set({ username: username?.trim() || null }),
-  clear: () => set({ username: null }),
+  dismissWelcome: () => set({ showWelcome: false }),
+  clear: () => set({ username: null, showWelcome: false }),
 }))
+
+/** Giriş başarılı — kullanıcıyı yaz ve karşılama mesajını bir kez göster. */
+export function startSession(username: string): void {
+  useSessionStore.setState({ username: username.trim() || null, showWelcome: true })
+}
 
 /** Kullanıcı adı → DataApi anahtarı (a-z 0-9 . _ -, en fazla 64). Boşsa "varsayilan". */
 export function toUserKey(username: string | null | undefined): string {

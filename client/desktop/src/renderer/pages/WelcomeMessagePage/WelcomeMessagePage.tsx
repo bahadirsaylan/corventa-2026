@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang, useT } from '@/i18n'
+import {
+  WELCOME_DEFAULT_MESSAGE as DEFAULT_MESSAGE,
+  WELCOME_MAX_LENGTH as MAX_LENGTH,
+  WELCOME_STORAGE_KEY as STORAGE_KEY,
+} from '@/services/welcomeMessage'
 import styles from './WelcomeMessagePage.module.css'
-
-const STORAGE_KEY = 'corventa.welcomeMessage'
-const DEFAULT_MESSAGE =
-  'CORVENTA BENDING MACHINE\n\nMakineyi seçtiğiniz için teşekkür ederiz.\nİyi çalışmalar dileriz.'
-const MAX_LENGTH = 500
 
 export default function WelcomeMessagePage() {
   const navigate = useNavigate()
