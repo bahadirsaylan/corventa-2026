@@ -19,6 +19,7 @@ import type {
   RotationPositionRequest,
   SideSupportRequest,
   StartJobResponse,
+  UnloadPartRequest,
   ValidateArcPlanRequest,
   ValidateArcPlanResponse,
 } from '@shared/types'
@@ -85,8 +86,9 @@ export class EngineApiClient {
 
   // Tahliye (SEKIL-18) — toplar baskıyı bırakıp açılır. Backend endpoint'i henüz YOK:
   // şimdilik sadece demo modunda karşılanıyor (UI ekranı da sadece demoda açılır).
-  unloadPart(): Promise<{ success: boolean; errorMessage?: string | null }> {
-    return http.post(`${this.baseUrl}/api/preparation/unload`, {}, { timeoutMs: 60_000 })
+  // upperRetractMm: üst top kaç mm geri çekilsin · rotationMm: işaretli rotasyon mesafesi (+ / − yön)
+  unloadPart(req: UnloadPartRequest): Promise<{ success: boolean; errorMessage?: string | null }> {
+    return http.post(`${this.baseUrl}/api/preparation/unload`, req, { timeoutMs: 120_000 })
   }
 
   startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {

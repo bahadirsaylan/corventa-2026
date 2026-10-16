@@ -1,6 +1,7 @@
 // Tahliye ekranı (SEKIL-18) — büküm hatasız bitince açılır.
 // Operatör parçayı tutma süresini seçer (3/5/8/10/15 sn veya kalemle değiştirdiği süre),
-// "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda toplar baskıyı bırakıp açılır → parça alınır
+// "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda üst top seçilen mm kadar geri çekilir, ardından
+// seçilen mm (ve yönde) rotasyon yapılır → parça alınır
 // → SEKIL-20 (yeni büküm / tekrar).
 // Süreler bu cihazda hatırlanır (localStorage). Şimdilik SADECE DEMO modunda açılıyor —
 // gerçek backend'de tahliye komutu (POST /api/preparation/unload) henüz yok.
@@ -14,6 +15,30 @@ const STORAGE_KEY = 'corventa.unloadPresets'
 const SEL_KEY = 'corventa.unloadSelected'
 const MIN_S = 1
 const MAX_S = 60
+
+// Tahliye hareketi: geri sayım bitince üst top X mm geri, sonra rotasyon Y mm (seçilen yönde)
+const MOTION_KEY = 'corventa.unloadMotion'
+const UPPER = { min: 0, max: 150, step: 5, def: 50 }
+const ROT = { min: 0, max: 3000, step: 50, def: 300 }
+
+interface Motion {
+  upperRetractMm: number
+  rotationMm: number
+  rotationDir: 1 | -1
+}
+
+function readMotion(): Motion {
+  try {
+    const v = JSON.parse(localStorage.getItem(MOTION_KEY) ?? 'null')
+    if (v && Number.isFinite(v.upperRetractMm) && Number.isFinite(v.rotationMm) && (v.rotationDir === 1 || v.rotationDir === -1))
+      return v
+  } catch {
+    /* varsayılan */
+  }
+  return { upperRetractMm: UPPER.def, rotationMm: ROT.def, rotationDir: 1 }
+}
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 type Phase = 'select' | 'countdown' | 'opening' | 'ready' | 'error'
 
@@ -45,7 +70,18 @@ export default function UnloadPage() {
   const [phase, setPhase] = useState<Phase>('select')
   const [remaining, setRemaining] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [motion, setMotion] = useState<Motion>(readMotion)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  function updateMotion(patch: Partial<Motion>) {
+    const next = { ...motion, ...patch }
+    setMotion(next)
+    try {
+      localStorage.setItem(MOTION_KEY, JSON.stringify(next))
+    } catch {
+      /* depolama kapalı */
+    }
+  }
 
   useEffect(() => () => {
     if (timer.current) clearInterval(timer.current)
@@ -76,7 +112,10 @@ export default function UnloadPage() {
   async function openRolls() {
     setPhase('opening')
     try {
-      const r = await window.corventa.bending.unloadPart()
+      const r = await window.corventa.bending.unloadPart({
+        upperRetractMm: motion.upperRetractMm,
+        rotationMm: motion.rotationDir * motion.rotationMm,
+      })
       if (r && r.success === false) throw new Error(r.errorMessage ?? 'Tahliye başarısız')
       setPhase('ready')
     } catch (e) {
@@ -124,9 +163,9 @@ export default function UnloadPage() {
         {phase === 'select' && (editing
           ? 'DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN'
           : 'PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ')}
-        {phase === 'countdown' && 'PARÇAYI TUTUN — SÜRE BİTİNCE TOPLAR AÇILACAK'}
-        {phase === 'opening' && 'TOPLAR AÇILIYOR…'}
-        {phase === 'ready' && 'TOPLAR AÇILDI — PARÇAYI ALABİLİRSİNİZ'}
+        {phase === 'countdown' && 'PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK'}
+        {phase === 'opening' && 'ÜST TOP GERİ ÇEKİLİYOR, ROTASYON YAPILIYOR…'}
+        {phase === 'ready' && 'TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ'}
         {phase === 'error' && `TAHLİYE YAPILAMADI: ${error ?? ''}`}
       </div>
 
@@ -168,6 +207,75 @@ export default function UnloadPage() {
           </button>
         </div>
       )}
+
+      {/* Tahliye hareketi — üst top geri çekilme + rotasyon */}
+      <div className={styles.motionRow}>
+        <div className={styles.motionBox}>
+          <span className={styles.motionLabel}>ÜST TOP GERİ</span>
+          <div className={styles.motionCtl}>
+            <button
+              type="button"
+              className={styles.motionStep}
+              disabled={phase !== 'select' || motion.upperRetractMm <= UPPER.min}
+              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm - UPPER.step, UPPER.min, UPPER.max) })}
+            >
+              −
+            </button>
+            <span className={styles.motionValue}>{motion.upperRetractMm} mm</span>
+            <button
+              type="button"
+              className={styles.motionStep}
+              disabled={phase !== 'select' || motion.upperRetractMm >= UPPER.max}
+              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm + UPPER.step, UPPER.min, UPPER.max) })}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.motionBox}>
+          <span className={styles.motionLabel}>ROTASYON</span>
+          <div className={styles.motionCtl}>
+            <button
+              type="button"
+              className={styles.dirBtn}
+              data-on={motion.rotationDir === -1 || undefined}
+              disabled={phase !== 'select'}
+              onClick={() => updateMotion({ rotationDir: -1 })}
+              aria-label="Rotasyon geri yön"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className={styles.motionStep}
+              disabled={phase !== 'select' || motion.rotationMm <= ROT.min}
+              onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm - ROT.step, ROT.min, ROT.max) })}
+            >
+              −
+            </button>
+            <span className={styles.motionValue}>{motion.rotationMm} mm</span>
+            <button
+              type="button"
+              className={styles.motionStep}
+              disabled={phase !== 'select' || motion.rotationMm >= ROT.max}
+              onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm + ROT.step, ROT.min, ROT.max) })}
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className={styles.dirBtn}
+              data-on={motion.rotationDir === 1 || undefined}
+              disabled={phase !== 'select'}
+              onClick={() => updateMotion({ rotationDir: 1 })}
+              aria-label="Rotasyon ileri yön"
+            >
+              ▶
+            </button>
+          </div>
+        </div>
+      </div>
 
       {phase === 'select' && !editing && (
         <button type="button" className={styles.bigBtn} onClick={start}>

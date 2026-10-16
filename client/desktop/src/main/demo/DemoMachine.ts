@@ -987,12 +987,17 @@ export class DemoMachine extends EventEmitter {
       return { success: true }
     }
     if (path === '/api/preparation/unload') {
-      // Tahliye (SEKIL-18): üst top baskıyı bırakıp yukarı, yan toplar stage konumuna açılır
+      // Tahliye (SEKIL-18): üst top seçilen mm kadar GERİ çekilir (baskı biter), ardından
+      // seçilen mesafe kadar rotasyon (işaret = yön). Yan toplar oynamaz.
       const token = this.runToken
-      const st = this.currentStage()
+      const retract = Math.max(0, Number(b.upperRetractMm) || 0)
+      const rot = Number(b.rotationMm) || 0
       this.pressureHold = null
-      await this.movePistons({ upperPiston: 0 }, token, 50)
-      await this.movePistons({ leftPiston: st.left, rightPiston: st.right }, token, 60)
+      if (retract > 0) {
+        const target = Math.max(-25, this.state.upperPiston.positionMm - retract)
+        await this.movePistons({ upperPiston: target }, token, 50)
+      }
+      if (Math.abs(rot) > 0.5) await this.rotateTo(this.state.rotation.positionMm + rot, token, 60)
       return { success: true, errorMessage: null }
     }
     if (path === '/api/preparation/gonye') {

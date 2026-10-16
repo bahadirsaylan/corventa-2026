@@ -207,3 +207,72 @@
   font-size: 64px;
   font-weight: 800;
 }
+
+/* Tahliye hareketi — üst top geri + rotasyon */
+.motionRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1.45fr;
+  gap: 22px;
+}
+
+.motionBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 3px solid #4a4a4a;
+  border-radius: 14px;
+}
+
+.motionLabel {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.motionCtl {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.motionStep,
+.dirBtn {
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  border: 2px solid #4a4a4a;
+  background: #fafafa;
+  font-size: 32px;
+  font-weight: 900;
+  color: #3a3a3a;
+  cursor: pointer;
+}
+
+.dirBtn {
+  font-size: 24px;
+}
+
+/* Seçili yön — temadaki pastel yeşil */
+.dirBtn[data-on] {
+  background: #b8e6c5;
+  border: 3px solid #16a34a;
+}
+
+.motionStep:disabled,
+.dirBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.motionValue {
+  min-width: 140px;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--color-text);
+}

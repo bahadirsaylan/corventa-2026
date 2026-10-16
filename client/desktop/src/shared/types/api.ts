@@ -113,6 +113,14 @@ export interface ValidateArcPlanResponse {
   warningMessage?: string
 }
 
+// POST /api/preparation/unload — tahliye (SEKIL-18): geri sayım sonrası üst top geri + rotasyon
+export interface UnloadPartRequest {
+  /** Üst top kaç mm geri çekilsin (≥ 0) */
+  upperRetractMm: number
+  /** Rotasyon mesafesi (mm), işaret = yön (+ ileri / − geri) */
+  rotationMm: number
+}
+
 // POST /api/bending-job/{id}/start  (no body)
 export interface StartJobResponse {
   success: boolean

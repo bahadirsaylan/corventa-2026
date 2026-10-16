@@ -5,7 +5,7 @@ import { ipcMain } from 'electron'
 import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
-import { Ipc, type BendingJob, type BendingJobCreateRequest, type SimilarBendingJobRequest } from '@shared'
+import { Ipc, type BendingJob, type BendingJobCreateRequest, type SimilarBendingJobRequest, type UnloadPartRequest } from '@shared'
 
 const log = childLogger('ipc:bending')
 
@@ -35,9 +35,9 @@ export function registerBendingHandlers(): void {
     return engineApi.applyStage(req)
   })
 
-  ipcMain.handle(Ipc.IpcInvoke.UnloadPart, async () => {
-    log.info('unload-part')
-    return engineApi.unloadPart()
+  ipcMain.handle(Ipc.IpcInvoke.UnloadPart, async (_evt, req: UnloadPartRequest) => {
+    log.info('unload-part', { req })
+    return engineApi.unloadPart(req)
   })
 
   ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
