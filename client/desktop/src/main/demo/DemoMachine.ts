@@ -788,9 +788,13 @@ export class DemoMachine extends EventEmitter {
       const corrD = 2 * seg.radiusMm - (2 * measured1 - 2 * seg.radiusMm) * CORRECTION_COEF
       const corrBase = { ...base, center: CENTER_NORMAL }
       const corrPush = calcPush({ ...corrBase, diameter: corrD }) ?? push
-      return { seg, order, arcLen, duzlukEf, arcEf, mode, base, push, contact, measured1, corrPush }
+      // Demo senaryosu: ortadan bükülen segmentler 1 düzeltme alır (ilk ölçüm tolerans dışı → SPLIT →
+      // ikinci ölçüm tolerans içinde); ön bükümlü (adaptif, tek paso) segmentte ilk ölçüm tutar.
+      const correct = mode === 'Middle' && corrPush > push
+      return { seg, order, arcLen, duzlukEf, arcEf, mode, base, push, contact, measured1, corrPush, correct }
     })
-    const pushMax = Math.max(1, ...plans.map((p) => p.push))
+    // Ekranda en derin konum (son düzeltme dahil) = MAX_PISTON_MM; diğer hedefler gerçek hesap farkıyla altında
+    const pushMax = Math.max(1, ...plans.map((p) => (p.correct ? p.corrPush : p.push)))
     const disp = this.displayMapper(pushMax, Math.max(st.left, st.right))
 
     this.setProgress(job.id, 0, approx, 'Arc büküm başlatıldı', { completedSegmentOrder: 0, totalSegmentCount: P })
@@ -946,8 +950,8 @@ export class DemoMachine extends EventEmitter {
           await this.movePneumatic(measSide, true, token)
           await this.sleep(5000, token) // PneumaticWaitMs
           await this.sleep(5000, token) // örnekleme
-          // Demo senaryosu: ilk ölçüm tolerans içinde → düzeltmesiz devam
-          const measuredR = p.seg.radiusMm + (Math.random() * 1.0 - 0.5) * tol
+          // Demo senaryosu: düzeltmeli segmentte ilk ölçüm hedefin %3 üstü (az bükülmüş), sonra tolerans içinde
+          const measuredR = p.correct && it === 1 ? p.measured1 : p.seg.radiusMm + (Math.random() * 1.0 - 0.5) * tol
           this.setProgress(job.id, completed, approx, lastMsg, { ...segExtra, currentRadiusMm: measuredR })
           await this.movePneumatic(measSide, false, token)
           await this.sleep(3800, token) // geri çekme bekleme (toplam 5sn)
