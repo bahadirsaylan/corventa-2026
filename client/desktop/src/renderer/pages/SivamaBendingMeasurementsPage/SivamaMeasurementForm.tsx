@@ -1,19 +1,24 @@
 import { useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { useT } from '@/i18n'
 import { SpiralDirection } from '@/store/bendingJobStore'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend3-4-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
+import defaultMethodImage from '@/assets/images/blend3-4-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 
-export type SivamaNumericKey = 'A' | 'B' | 'S' | 'X' | 'H'
+export type SivamaNumericKey = 'A' | 'B' | 'S' | 'R' | 'X' | 'L' | 'H'
 export type SivamaFieldKey = SivamaNumericKey | 'Y'
 
 export interface SivamaMeasurementValues {
   A: string
   B: string
   S: string
+  R: string
   X: string
+  L: string
   H: string
   Y: SpiralDirection | ''
 }
@@ -39,10 +44,20 @@ const FIELD_INFO: Record<SivamaFieldKey, FieldInfo> = {
     description:
       'PROFİLE AİT KALINLIK ÖLÇÜSÜDÜR. VALS TOPLARININ DOĞRULUĞUNU VE KIVIRIM KAPASİTESİNİ DEĞERLENDİREREK, YAPAY ZEKANIN DOĞRU ÇALIŞMASINI SAĞLAR.',
   },
+  R: {
+    title: 'R :',
+    description:
+      'HEDEF SIVAMA YARIÇAP ÖLÇÜSÜDÜR (mm). MAKİNA PISTON HEDEF POZİSYONUNU VE İLK ROTASYON UZUNLUĞUNU BU DEĞERE GÖRE HESAPLAR (çap = R × 2).',
+  },
   X: {
     title: 'X :',
     description:
       'KIVIRIM AÇISINI AYARLAMANIZI SAĞLAR. APARATIN BAŞINA KONUMLANDIRDIĞINIZ PROFİLİNİZİ TALEP ETTİĞİNİZ VALS TOPU ÇAPINA, SEÇTİĞİNİZ AÇI KADAR SIVAMA İŞLEMİ GERÇEKLEŞTİRİR.',
+  },
+  L: {
+    title: 'L :',
+    description:
+      'PARÇANIN TOPLAM UZUNLUĞUDUR (mm). MAKİNE İLK SIVAMA ROTASYONUNDAN SONRA KALAN PARÇAYI (L − GÜVENLİK PAYI − İLK ROTASYON) KADAR DAHA DÖNDÜRÜR.',
   },
   H: {
     title: 'H :',
@@ -56,8 +71,8 @@ const FIELD_INFO: Record<SivamaFieldKey, FieldInfo> = {
   },
 }
 
-const LEFT_FIELDS:  SivamaNumericKey[] = ['A', 'B', 'S']
-const RIGHT_FIELDS: SivamaFieldKey[]   = ['X', 'H', 'Y']
+const LEFT_FIELDS:  SivamaNumericKey[] = ['A', 'B', 'S', 'L']
+const RIGHT_FIELDS: SivamaFieldKey[]   = ['R', 'X', 'H', 'Y']
 
 interface Props {
   values: SivamaMeasurementValues
@@ -66,6 +81,10 @@ interface Props {
 }
 
 export default function SivamaMeasurementForm({ values, onChange, onReset }: Props) {
+  const t = useT()
+  const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
+  const methodImage = useMethodTileImage('sivama', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SivamaFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SivamaNumericKey | null>(null)
 
@@ -157,7 +176,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderNumericField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}
@@ -165,7 +184,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
+          ↺ {t('SIFIRLA')}
         </button>
       </div>
 
@@ -173,7 +192,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
       {openInfo && (
         <SivamaInfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

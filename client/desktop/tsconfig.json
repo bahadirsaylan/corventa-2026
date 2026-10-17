@@ -17,7 +17,10 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/renderer/*"]
+      "@/*": ["src/renderer/*"],
+      "@shared": ["src/shared/index.ts"],
+      "@shared/*": ["src/shared/*"],
+      "@main/*": ["src/main/*"]
     }
   },
   "include": ["src", "electron.vite.config.ts"]

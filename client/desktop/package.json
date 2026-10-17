@@ -7,17 +7,21 @@
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "demo": "set CORVENTA_DEMO=1&& set CORVENTA_NO_KIOSK=1&& electron-vite dev",
     "build": "electron-vite build",
     "package": "npm run build && electron-builder",
     "preview": "electron-vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "i18n:check": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@microsoft/signalr": "^10.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.6.0",
+    "winston": "^3.19.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -38,6 +42,15 @@
     },
     "files": [
       "out/**"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",

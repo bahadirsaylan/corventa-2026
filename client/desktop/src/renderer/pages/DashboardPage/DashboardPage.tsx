@@ -1,11 +1,23 @@
 import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { useBendingJobStore } from '@/store/bendingJobStore'
 import LiveClock from './LiveClock'
+import { useT } from '@/i18n'
 import styles from './DashboardPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const t = useT()
+  const resetJob = useBendingJobStore((s) => s.resetJob)
+  const setParams = useBendingJobStore((s) => s.setParams)
+
+  // Otomatik büküm = AI (tam otomatik). Yarı oto artık Manuel altında seçiliyor.
+  function startAiBending() {
+    resetJob()
+    setParams({ bendingMode: 'ai' })
+    navigate('/bending/ai')
+  }
 
   return (
     <div className={styles.page}>
@@ -14,18 +26,19 @@ export default function DashboardPage() {
       <div className={styles.colLeft}>
         <button
           className={`${styles.navBtn} ${styles.navBtnPrimary}`}
-          onClick={() => navigate('/bending/ai')}
+          onClick={startAiBending}
         >
-          <span className={styles.navBtnLabel}>ARTIFICIAL<br />INTELLIGENCE</span>
+          <span className={styles.navBtnLabel}>{t('OTOMATİK')}<br />{t('BÜKÜM')}</span>
           <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
-          <span className={styles.navBtnSub}>BENDING</span>
+          <span className={styles.navBtnSub}>{t('YZ')}</span>
         </button>
 
         <button
           className={`${styles.navBtn} ${styles.navBtnSecondary}`}
-          onClick={() => navigate('/bending/manual')}
+          onClick={() => navigate('/bending/manual-mode')}
         >
-          <span className={styles.navBtnLabel}>MANUEL<br />BENDING</span>
+          <span className={styles.navBtnLabel}>{t('MANUEL')}<br />{t('BÜKÜM')}</span>
+          <span className={styles.navBtnSub}>{t('MANUEL / YARI OTO')}</span>
         </button>
       </div>
 
@@ -34,9 +47,15 @@ export default function DashboardPage() {
         <div className={styles.clockBox}>
           <LiveClock />
         </div>
-        <div className={styles.logoWrapper}>
+        {/* Logo → servis ağı haritası (SEKIL-6) */}
+        <button
+          type="button"
+          className={styles.logoWrapper}
+          onClick={() => navigate('/service-network')}
+          aria-label={t('Servis ağı')}
+        >
           <CorventaLogo size="dashboard" />
-        </div>
+        </button>
         <div className={styles.dateBox}>
           <LiveClock dateOnly />
         </div>
@@ -47,20 +66,20 @@ export default function DashboardPage() {
         <button
           className={`${styles.iconBtn} ${styles.iconBtnTop}`}
           onClick={() => navigate('/settings')}
-          aria-label="Settings"
+          aria-label={t('AYARLAR')}
         >
           <svg className={styles.gearIcon} viewBox="0 0 64 64" fill="none">
             <circle cx="32" cy="32" r="10" stroke="currentColor" strokeWidth="4"/>
             <path d="M32 4v8M32 52v8M4 32h8M52 32h8M11.03 11.03l5.66 5.66M47.31 47.31l5.66 5.66M52.97 11.03l-5.66 5.66M16.69 47.31l-5.66 5.66"
               stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
           </svg>
-          <span className={styles.iconBtnLabel}>SETTINGS</span>
+          <span className={styles.iconBtnLabel}>{t('AYARLAR')}</span>
         </button>
 
         <button
           className={styles.iconBtn}
           onClick={() => navigate('/service')}
-          aria-label="Service"
+          aria-label={t('SERVİS')}
         >
           <svg className={styles.serviceIcon} viewBox="0 0 64 64" fill="none">
             <path d="M10 30C10 18.95 19.4 10 31 10s21 8.95 21 20" stroke="currentColor" strokeWidth="4" fill="none"/>
@@ -69,7 +88,7 @@ export default function DashboardPage() {
             <path d="M58 48c0 6-4 10-10 10H36" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
             <circle cx="32" cy="58" r="4" stroke="currentColor" strokeWidth="3"/>
           </svg>
-          <span className={styles.iconBtnLabel}>SERVICE</span>
+          <span className={styles.iconBtnLabel}>{t('SERVİS')}</span>
         </button>
       </div>
 

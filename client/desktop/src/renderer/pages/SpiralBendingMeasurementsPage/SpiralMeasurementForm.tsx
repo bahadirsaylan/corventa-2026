@@ -1,12 +1,15 @@
 import { useState } from 'react'
+import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { useT } from '@/i18n'
 import { SpiralDirection } from '@/store/bendingJobStore'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend4-4-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
+import defaultMethodImage from '@/assets/images/blend4-4-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 
-export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'H'
+export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'L' | 'H'
 export type SpiralFieldKey = SpiralNumericKey | 'Y'
 
 export interface SpiralMeasurementValues {
@@ -14,6 +17,7 @@ export interface SpiralMeasurementValues {
   B: string
   S: string
   R: string
+  L: string
   H: string
   Y: SpiralDirection | ''
 }
@@ -44,6 +48,11 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
     description:
       'KIVIRIM YARICAP ÖLÇÜSÜDÜR. SERPANTİN KIVRIMININ BAŞLANGIÇ YARICAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA BU DEĞERİ ESAS ALARAK GEOMETRİK KIVIRIM YAPAR.',
   },
+  L: {
+    title: 'L :',
+    description:
+      'PARÇANIN TOPLAM UZUNLUĞUDUR (mm). MAKİNE BU DEĞERİ ESAS ALARAK ROTASYONU HESAPLAR. GÜVENLİK PAYI ÇIKARILDIKTAN SONRA KALAN MESAFE KADAR DÖNER.',
+  },
   H: {
     title: 'H :',
     description:
@@ -56,7 +65,7 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
   },
 }
 
-const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S']
+const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'H', 'Y']
 
 interface Props {
@@ -66,6 +75,10 @@ interface Props {
 }
 
 export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
+  const t = useT()
+  const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
+  const methodImage = useMethodTileImage('spiral', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SpiralFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SpiralNumericKey | null>(null)
 
@@ -157,7 +170,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderNumericField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}
@@ -165,7 +178,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
+          ↺ {t('SIFIRLA')}
         </button>
       </div>
 
@@ -173,7 +186,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
       {openInfo && (
         <SpiralInfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

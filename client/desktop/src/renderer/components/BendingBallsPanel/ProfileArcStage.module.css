@@ -1,0 +1,48 @@
+.stage {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Profil parçası — SEKIL-14-F renk ölçümü (#FFE87E) */
+.band {
+  fill: #ffe87e;
+}
+
+.label {
+  font-size: 27px;
+  font-weight: 400;
+  fill: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.zig {
+  fill: none;
+  stroke: #404040;
+  stroke-width: 2.5;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+}
+
+.roller {
+  fill: none;
+  stroke: #808080;
+  stroke-width: 4;
+}
+
+.arrow {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 4.5;
+  stroke-linejoin: miter;
+}
+
+.ball {
+  position: absolute;
+}
