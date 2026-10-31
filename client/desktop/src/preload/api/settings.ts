@@ -5,6 +5,11 @@ import { ipcRenderer } from 'electron'
 
 import {
   Ipc,
+  type Certificate,
+  type CustomerChangeConfirmResponse,
+  type CustomerChangeRequestBody,
+  type CustomerChangeRequestResponse,
+  type CustomerChangeResult,
   type GonyeSettingsDto,
   type MachineIdentity,
   type MachineSettingsDto,
@@ -21,6 +26,22 @@ export const settingsApi = {
 
   updateIdentity: (identity: MachineIdentity): Promise<MachineIdentity> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateIdentity, identity),
+
+  // Sertifika sorgula — null = bulunamadı; ağ / sunucu hatasında Promise reject olur
+  getCertificate: (code: string): Promise<Certificate | null> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CertificateGetByCode, code),
+
+  // Müşteri değişikliği (satış / takas / hibe) — e-posta OTP. Hiç reject etmez: { ok, status, error }
+  requestCustomerChange: (
+    body: CustomerChangeRequestBody,
+  ): Promise<CustomerChangeResult<CustomerChangeRequestResponse>> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CustomerChangeRequest, body),
+
+  confirmCustomerChange: (
+    requestId: string,
+    otp: string,
+  ): Promise<CustomerChangeResult<CustomerChangeConfirmResponse>> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.CustomerChangeConfirm, requestId, otp),
 
   // Maintenance
   getMaintenance: (): Promise<MaintenanceState> =>

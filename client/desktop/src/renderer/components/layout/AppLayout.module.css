@@ -19,6 +19,19 @@
   border-bottom: 2px solid var(--color-border);
 }
 
+/* Üst alan içi: [bakım modu ekranı/şeridi] + sayfa (Outlet). Sayfa kalan yüksekliği doldurur. */
+.topStack {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.topPage {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Middle zone — navigable content */
 .middle {
   height: 750px;

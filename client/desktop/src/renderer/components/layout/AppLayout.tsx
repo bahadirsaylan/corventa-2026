@@ -6,6 +6,9 @@ import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
 import SideMenu from '@/components/SideMenu/SideMenu'
 import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
+import MaintenanceAlertOverlay from '@/components/MaintenanceAlertOverlay/MaintenanceAlertOverlay'
+import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/MaintenanceModeScreen'
+import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
 import styles from './AppLayout.module.css'
@@ -17,6 +20,10 @@ const FINISH_CHECK_RETRY_MS = 1500
 export default function AppLayout() {
   // "Otomatik büküm aktif mi?" izleyicisi — uygulama boyunca tek örnek.
   useEffect(() => startBendingActivityPoller(), [])
+  // Bakım durumu (DataApi /api/maintenance) — 30 sn'de bir; uyarı şeridi / bakım uyarı penceresi / bakım modu ekranı
+  useEffect(() => startMaintenancePoller(), [])
+  const inMaintenanceMode = useMaintenanceStore((s) => s.state?.isInMaintenanceMode === true)
+  const maintenanceCollapsed = useMaintenanceStore((s) => s.screenCollapsed)
   const bendingActive = useBendingActive()
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -79,9 +86,21 @@ export default function AppLayout() {
   return (
     <div className={styles.root}>
       {/* Üst alan — normalde sayfalar; otomatik büküm sırasında top pozisyon/ilerleme monitörü.
-          Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez. */}
+          Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez.
+          Bakım modu açıkken (ve büküm monitörü yokken) BAKIM MODU AKTİF ekranı/şeridi — sadece görünür uyarı.
+          Outlet bakım modundan bağımsız HEP aynı ağaç konumunda: bakım ekranı tam boyken sadece gizlenir
+          (hidden), mod açılıp/kapanınca veya küçültülünce açık sayfa sıfırlanmaz. Büküm dalı eski davranışta. */}
       <div className={styles.top}>
-        {bendingActive ? <BendingBallsPanel variant="monitor" /> : <Outlet />}
+        {bendingActive ? (
+          <BendingBallsPanel variant="monitor" />
+        ) : (
+          <div className={styles.topStack}>
+            {inMaintenanceMode && <MaintenanceModeScreen />}
+            <div className={styles.topPage} hidden={inMaintenanceMode && !maintenanceCollapsed}>
+              <Outlet />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Orta alan — başlık + manuel tuş takımı (her zaman sabit) */}
@@ -108,6 +127,9 @@ export default function AppLayout() {
 
       {/* Girişten sonra bir kez karşılama mesajı (Ayarlar > Karşılama Mesajı) */}
       <WelcomeOverlay />
+
+      {/* Karşılama mesajı kapandıktan sonra bir kez: vadesi geçen bakım varsa kademe renkli uyarı */}
+      <MaintenanceAlertOverlay />
     </div>
   )
 }

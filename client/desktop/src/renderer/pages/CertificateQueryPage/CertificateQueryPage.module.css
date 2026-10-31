@@ -82,6 +82,7 @@
 .resultFound    { border-color: #16a34a; background: #f0fdf4; }
 .resultExpired  { border-color: #f59e0b; background: #fffbeb; }
 .resultNotFound { border-color: #dc2626; background: #fef2f2; }
+.resultError    { border-color: #64748b; background: #f8fafc; }
 
 .resultIcon {
   font-size: 42px; font-weight: 900; line-height: 1;
@@ -95,6 +96,7 @@
 .resultFound   .resultIcon { background: #16a34a; }
 .resultExpired .resultIcon { background: #f59e0b; }
 .resultNotFound .resultIcon { background: #dc2626; }
+.resultError    .resultIcon { background: #64748b; }
 
 .resultBody { flex: 1; }
 
@@ -105,6 +107,7 @@
 }
 
 .resultText { font-size: 14px; line-height: 1.5; color: var(--color-text); margin: 0; }
+.errorDetail { margin-top: 6px; font-size: 12px; color: var(--color-text-muted); font-family: var(--font-mono); word-break: break-word; }
 
 .resultGrid { display: flex; flex-direction: column; gap: 8px; }
 

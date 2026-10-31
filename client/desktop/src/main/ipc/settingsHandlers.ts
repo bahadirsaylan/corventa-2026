@@ -5,10 +5,16 @@
 import { ipcMain } from 'electron'
 
 import { childLogger } from '@main/lib/logger'
+import { HttpError } from '@main/lib/http'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
 import {
   Ipc,
+  normalizeCertificateCode,
+  type CustomerChangeConfirmResponse,
+  type CustomerChangeRequestBody,
+  type CustomerChangeRequestResponse,
+  type CustomerChangeResult,
   type GonyeSettingsDto,
   type MachineSettingsDto,
   type StageInfo,
@@ -17,6 +23,19 @@ import {
 } from '@shared'
 
 const log = childLogger('ipc:settings')
+
+/** HttpError → renderer'ın okuyabileceği hata sonucu (status 0 = DataApi'ye ulaşılamadı) */
+function toCustomerChangeFailure(err: unknown): { ok: false; status: number; error: string; remainingAttempts?: number } {
+  if (err instanceof HttpError) {
+    const body = (err.body ?? {}) as { remainingAttempts?: unknown }
+    const remaining = typeof body.remainingAttempts === 'number' ? body.remainingAttempts : undefined
+    log.warn('customer-change failed', { status: err.status, error: err.message })
+    return { ok: false, status: err.status, error: err.message, remainingAttempts: remaining }
+  }
+  const message = err instanceof Error ? err.message : String(err)
+  log.warn('customer-change unreachable', { error: message })
+  return { ok: false, status: 0, error: message }
+}
 
 async function reloadEngineQuietly(): Promise<void> {
   try {
@@ -101,6 +120,50 @@ export function registerSettingsHandlers(): void {
         ownership: identity.ownershipType,
       })
       return dataApi.updateMachineIdentity(identity)
+    },
+  )
+
+  // ---------- SERTİFİKA SORGULA ----------
+  // null = bulunamadı (404). Ağ hatası fırlatılır → renderer ayrı hata durumu gösterir.
+
+  ipcMain.handle(Ipc.IpcInvoke.CertificateGetByCode, async (_evt, code: string) => {
+    const normalized = normalizeCertificateCode(String(code ?? ''))
+    if (!normalized) return null
+    log.info('get-certificate', { code: normalized })
+    return dataApi.getCertificate(normalized)
+  })
+
+  // ---------- MÜŞTERİ DEĞİŞİKLİĞİ (satış / takas / hibe, e-posta OTP) ----------
+  // Fırlatmak yerine sonuç nesnesi döner: Electron IPC hatanın sadece mesajını taşır, oysa
+  // renderer 503 / 410 / 429 / hatalı OTP (kalan hak) durumlarını ayırt etmek zorunda.
+
+  ipcMain.handle(
+    Ipc.IpcInvoke.CustomerChangeRequest,
+    async (_evt, body: CustomerChangeRequestBody): Promise<CustomerChangeResult<CustomerChangeRequestResponse>> => {
+      log.info('customer-change-request', { reason: body?.reason, newCustomer: body?.newCustomerName })
+      try {
+        return { ok: true, data: await dataApi.requestCustomerChange(body) }
+      } catch (err) {
+        return toCustomerChangeFailure(err)
+      }
+    },
+  )
+
+  ipcMain.handle(
+    Ipc.IpcInvoke.CustomerChangeConfirm,
+    async (_evt, requestId: string, otp: string): Promise<CustomerChangeResult<CustomerChangeConfirmResponse>> => {
+      log.info('customer-change-confirm', { requestId })
+      try {
+        const data = await dataApi.confirmCustomerChange(String(requestId ?? ''), String(otp ?? ''))
+        log.info('customer-change-confirmed', {
+          requestId,
+          customer: data.machineIdentity?.customerName,
+          ownership: data.machineIdentity?.ownershipType,
+        })
+        return { ok: true, data }
+      } catch (err) {
+        return toCustomerChangeFailure(err)
+      }
     },
   )
 

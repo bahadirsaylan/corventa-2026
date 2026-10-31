@@ -10,6 +10,13 @@ interface NumpadModalProps {
   onClose: () => void
   /** true → işaret değiştirme (±) tuşu gösterilir (negatif değerler, ör. XA1) */
   allowNegative?: boolean
+  /**
+   * true → kod girişi (ör. 6 haneli OTP): sadece rakam, baştaki sıfırlar KORUNUR,
+   * '.' tuşu kapalı. Sayısal alanlardaki "baştaki sıfırı yut" kuralı uygulanmaz.
+   */
+  digitsOnly?: boolean
+  /** En fazla karakter (digitsOnly ile, ör. 6) */
+  maxLength?: number
 }
 
 const KEYS = [
@@ -19,7 +26,7 @@ const KEYS = [
   '.', '0', '⌫',
 ]
 
-export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative }: NumpadModalProps) {
+export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative, digitsOnly, maxLength }: NumpadModalProps) {
   const [display, setDisplay] = useState(initialValue || '')
 
   useEffect(() => {
@@ -34,6 +41,12 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   function press(key: string) {
     if (key === '⌫') {
       setDisplay((d) => d.slice(0, -1))
+      return
+    }
+    if (digitsOnly) {
+      // Kod girişi: '.' yok, baştaki 0 korunur (012345 geçerli kod)
+      if (key === '.') return
+      setDisplay((d) => (maxLength != null && d.length >= maxLength ? d : d + key))
       return
     }
     if (key === '.') {
@@ -83,6 +96,8 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
               key={key}
               className={`${styles.key} ${key === '⌫' ? styles.keyBackspace : ''}`}
               onClick={() => press(key)}
+              disabled={digitsOnly && key === '.'}
+              style={digitsOnly && key === '.' ? { visibility: 'hidden' } : undefined}
             >
               {key}
             </button>

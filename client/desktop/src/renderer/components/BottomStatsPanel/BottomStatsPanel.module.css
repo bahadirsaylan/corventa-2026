@@ -122,3 +122,57 @@
   font-size: 15px;
   line-height: 1;
 }
+
+/* ── Bakım uyarısı (UI madde 19) — gecikme hafta kademesi ──────────
+   1. hafta yeşil hatırlatma · 2. hafta sarı uyarı · 3. hafta+ kırmızı kritik */
+.stripe.maint_reminder {
+  background: #effaf2;
+  border-color: #4fbb6a;
+  border-left: 4px solid #4fbb6a;
+}
+.stripe.maint_warning {
+  background: #fff7e0;
+  border-color: var(--color-warning);
+  border-left: 4px solid var(--color-warning);
+}
+.stripe.maint_critical {
+  background: #fdecec;
+  border-color: var(--color-primary);
+  border-left: 4px solid var(--color-primary);
+}
+.maint_reminder .warnText { color: #2f8a48; }
+.maint_warning  .warnText { color: #9a5b00; }
+.maint_critical .warnText { color: var(--color-primary-dark); }
+
+/* Şeridin tamamı dokunulabilir (Bakım Süresi sayfasını açar) */
+.maintArea {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Makine uyarısı varken sağda küçük bakım rozeti */
+.maintChip {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #fff;
+}
+.maintChip.maint_reminder { color: #2f8a48; background: #effaf2; }
+.maintChip.maint_warning  { color: #9a5b00; background: #fff7e0; }
+.maintChip.maint_critical { color: var(--color-primary-dark); background: #fdecec; }

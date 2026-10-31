@@ -5,6 +5,7 @@ import type { EventsApi } from './api/events'
 import type { MachineApi } from './api/machine'
 import type { ServiceApi } from './api/service'
 import type { SystemApi } from './api/system'
+import type { UsageApi } from './api/usage'
 
 export interface CorventaAPI {
   getAppVersion: () => Promise<string>
@@ -13,6 +14,7 @@ export interface CorventaAPI {
   events: EventsApi
   service: ServiceApi
   system: SystemApi
+  usage: UsageApi
 }
 
 declare global {

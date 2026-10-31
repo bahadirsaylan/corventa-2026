@@ -2,11 +2,12 @@
 // Erişim şimdilik açık; kimin neyi düzenleyebileceği kullanıcı girişine (rol) göre ayarlanacak.
 //   • Makine ayarları (Bending API MachineSettings) — sekmelere bölünmüş bölümler
 //   • Gönye ofsetleri + 5 stage yuvası (aktif/pasif, ofset, XA1/YA1, maksimum profil A)
+//   • Cetvel sıfırlama (gönye alma) girişi — GÖNYE & STAGE sekmesinde; sayfa /settings/encoder-reset
 // Kayıt: sadece DEĞİŞEN alanlar gönderilir (main güncel kaydı okuyup üstüne yazar) ve önce
 // "eski → yeni" listesiyle onay alınır. Büküm sürerken kayıt kapalıdır (backend ayarları yeniden yükler).
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import type { StageInfo } from '@shared/types'
 import {
   ConfirmChangesModal,
@@ -69,7 +70,10 @@ function AdminEditor() {
   const t = useT()
   const bendingActive = useBendingActive()
   const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE]
-  const [tab, setTab] = useState(tabs[0])
+  // Cetvel sıfırlama sayfasından geri dönüşte GÖNYE & STAGE sekmesi açık gelsin (navigate state.tab)
+  const location = useLocation()
+  const initialTab = (location.state as { tab?: string } | null)?.tab === 'gonye' ? TAB_GONYE : tabs[0]
+  const [tab, setTab] = useState(initialTab)
 
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -223,6 +227,7 @@ function AdminEditor() {
 
       {tab === TAB_GONYE && (
         <>
+          <EncoderResetCard bendingActive={bendingActive} unsaved={changes.length > 0} />
           <SettingsSection section={GONYE_SECTION} values={gonye} original={gonye0} onChange={set(setGonye)} />
           <p className={styles.sectionNote}>
             {t('Makinede en fazla {n} stage tanımlanır. Pasif stage gönye ekranında ve otomatik stage önerisinde kullanılmaz. Stage 1 (gönye konumu) her zaman aktiftir.', { n: STAGE_SLOTS })}
@@ -319,5 +324,42 @@ function AdminEditor() {
         />
       )}
     </>
+  )
+}
+
+// ── Cetvel sıfırlama girişi ─────────────────────────────────────────
+/** Cetvel sıfırlama (gönye alma) sadece admin tarafında — sayfanın kendisi /settings/encoder-reset.
+ *  Büküm sürerken kapalı; kaydedilmemiş gönye/stage değişikliği varken de kapalı (gönye DB'deki
+ *  kayıtlı ofsetlerle yapılır, ekrandaki kaydedilmemiş değerlerle değil). */
+function EncoderResetCard({ bendingActive, unsaved }: { bendingActive: boolean; unsaved: boolean }) {
+  const t = useT()
+  const navigate = useNavigate()
+  const blocked = bendingActive
+    ? 'Büküm devam ediyor — bitene kadar cetvel sıfırlanamaz.'
+    : unsaved
+      ? 'Kaydedilmemiş değişiklik var — önce KAYDET veya GERİ AL.'
+      : null
+  return (
+    <div className={styles.card}>
+      <div className={styles.sectionTitle}>{t('CETVEL SIFIRLAMA')}</div>
+      <p className={styles.sectionNote}>
+        {t('Gönye alınır: tüm pistonlar mekanik limite çekilir, cetveller sıfırlanır ve gönye ofsetlerine gidilir. Stage geçişi de bu ekrandan yapılır.')}
+      </p>
+      {blocked && (
+        <p className={styles.message} data-kind="err">
+          {t(blocked)}
+        </p>
+      )}
+      <div>
+        <button
+          type="button"
+          className={styles.resetBtn}
+          disabled={!!blocked}
+          onClick={() => navigate('/settings/encoder-reset')}
+        >
+          {t('CETVEL SIFIRLAMA EKRANINI AÇ')}
+        </button>
+      </div>
+    </div>
   )
 }

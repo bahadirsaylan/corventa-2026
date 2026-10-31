@@ -9,6 +9,7 @@ import type { MachineApi } from './preload/api/machine'
 import type { ServiceApi } from './preload/api/service'
 import type { SettingsApi } from './preload/api/settings'
 import type { SystemApi } from './preload/api/system'
+import type { UsageApi } from './preload/api/usage'
 
 declare global {
   interface CorventaAPI {
@@ -19,6 +20,7 @@ declare global {
     service: ServiceApi
     settings: SettingsApi
     system: SystemApi
+    usage: UsageApi
   }
 
   interface Window {

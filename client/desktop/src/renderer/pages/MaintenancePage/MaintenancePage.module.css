@@ -158,6 +158,12 @@
 .periodCard.sev_overdue  { border-left-color: var(--color-error); background: #fdf0f0; }
 .periodCard.sev_unknown  { border-left-color: #b8b8b8; background: #f7f7f7; }
 
+/* Vadesi geçen kart — gecikme hafta kademesi (services/maintenanceStatus.ts):
+   1. hafta yeşil hatırlatma, 2. hafta sarı uyarı, 3. hafta+ kırmızı kritik */
+.periodCard.tier_reminder { border-left-color: #4fbb6a; background: #effaf2; }
+.periodCard.tier_warning  { border-left-color: #f0a545; background: #fff7e0; }
+.periodCard.tier_critical { border-left-color: var(--color-error); background: #fdf0f0; }
+
 .periodHeader {
   display: flex;
   align-items: baseline;
@@ -199,6 +205,20 @@
 .sev_warn    .periodStatusValue { color: #d68320; }
 .sev_overdue .periodStatusValue { color: var(--color-error); }
 .sev_unknown .periodStatusValue { color: var(--color-text-muted); font-size: 18px; }
+.tier_reminder .periodStatusValue { color: #2f8a48; }
+.tier_warning  .periodStatusValue { color: #d68320; }
+.tier_critical .periodStatusValue { color: var(--color-error); }
+
+.periodTier {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.tier_reminder .periodTier { color: #2f8a48; }
+.tier_warning  .periodTier { color: #b86a12; }
+.tier_critical .periodTier { color: var(--color-error); }
 
 .periodDates {
   display: flex;

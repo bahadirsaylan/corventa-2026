@@ -1,57 +1,14 @@
 // Ayarlar > Sertifika Sorgula — sertifika no input + doğrulama sonuç kartı.
-// Backend: DataApi.certificate.verify (henüz yok, mock).
+// Backend: DataApi GET /api/certificates/{code} (main → DataApiClient → ipc → preload; demo'da DemoMachine).
+// null = bulunamadı (404), isExpired = süresi dolmuş, reject = bağlantı / sunucu hatası.
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { normalizeCertificateCode, type Certificate } from '@shared/types'
 import { useLang, useT } from '@/i18n'
 import styles from './CertificateQueryPage.module.css'
 
-type Status = 'idle' | 'searching' | 'found' | 'notfound' | 'expired'
-
-interface CertificateResult {
-  code: string
-  ownerName: string
-  ownerCompany: string
-  issuedAt: string
-  validUntil: string
-  courseName: string
-  certifiedBy: string
-  isExpired: boolean
-}
-
-// Mock DB
-const MOCK_DB: Record<string, CertificateResult> = {
-  'CRV-2026-001': {
-    code: 'CRV-2026-001',
-    ownerName: 'Ahmet Yılmaz',
-    ownerCompany: 'Sersovis A.Ş.',
-    issuedAt: '2026-02-15',
-    validUntil: '2028-02-15',
-    courseName: 'Corventa Bending Machine — Temel Operatör Eğitimi',
-    certifiedBy: 'Corventa Teknik Eğitim',
-    isExpired: false,
-  },
-  'CRV-2025-042': {
-    code: 'CRV-2025-042',
-    ownerName: 'Mehmet Demir',
-    ownerCompany: 'Sersovis A.Ş.',
-    issuedAt: '2025-06-10',
-    validUntil: '2027-06-10',
-    courseName: 'İleri Seviye Bakım Eğitimi',
-    certifiedBy: 'Corventa Teknik Eğitim',
-    isExpired: false,
-  },
-  'CRV-2024-018': {
-    code: 'CRV-2024-018',
-    ownerName: 'Osman Şahin',
-    ownerCompany: 'Sersovis A.Ş.',
-    issuedAt: '2024-03-20',
-    validUntil: '2026-03-20',
-    courseName: 'Temel Operatör Eğitimi',
-    certifiedBy: 'Corventa Teknik Eğitim',
-    isExpired: true,
-  },
-}
+type Status = 'idle' | 'searching' | 'found' | 'notfound' | 'expired' | 'error'
 
 export default function CertificateQueryPage() {
   const navigate = useNavigate()
@@ -59,31 +16,48 @@ export default function CertificateQueryPage() {
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [code, setCode] = useState('')
   const [status, setStatus] = useState<Status>('idle')
-  const [result, setResult] = useState<CertificateResult | null>(null)
+  const [result, setResult] = useState<Certificate | null>(null)
+  // Sorgulanan (normalize) kod — sonuç kartında gösterilir; input sonradan değişse de sabit kalır
+  const [queriedCode, setQueriedCode] = useState('')
+  const [errorDetail, setErrorDetail] = useState('')
+  // Geç gelen eski cevap yeni sorgunun sonucunu ezmesin
+  const requestSeq = useRef(0)
 
-  function handleSearch() {
-    if (!code.trim()) return
+  async function handleSearch() {
+    const normalized = normalizeCertificateCode(code)
+    if (!normalized || status === 'searching') return
+    const seq = ++requestSeq.current
+    setCode(normalized)
+    setQueriedCode(normalized)
     setStatus('searching')
     setResult(null)
+    setErrorDetail('')
 
-    setTimeout(() => {
-      const found = MOCK_DB[code.trim().toUpperCase()]
+    try {
+      const found = await window.corventa.settings.getCertificate(normalized)
+      if (seq !== requestSeq.current) return
       if (!found) {
         setStatus('notfound')
-      } else if (found.isExpired) {
-        setStatus('expired')
-        setResult(found)
       } else {
-        setStatus('found')
         setResult(found)
+        setStatus(found.isExpired ? 'expired' : 'found')
       }
-    }, 700)
+    } catch (err) {
+      if (seq !== requestSeq.current) return
+      // Electron IPC hatayı "Error invoking remote method '...': HttpError: ..." diye sarar → ön eki at
+      const raw = err instanceof Error ? err.message : String(err)
+      setErrorDetail(raw.replace(/^Error invoking remote method '[^']*':\s*/, ''))
+      setStatus('error')
+    }
   }
 
   function reset() {
+    requestSeq.current++
     setCode('')
+    setQueriedCode('')
     setStatus('idle')
     setResult(null)
+    setErrorDetail('')
   }
 
   return (
@@ -102,13 +76,14 @@ export default function CertificateQueryPage() {
               type="text"
               className={styles.codeInput}
               placeholder="CRV-YYYY-NNN"
+              maxLength={64}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch() }}
+              onKeyDown={(e) => { if (e.key === 'Enter') void handleSearch() }}
             />
             <button
               className={styles.searchBtn}
-              onClick={handleSearch}
+              onClick={() => void handleSearch()}
               disabled={!code.trim() || status === 'searching'}
             >
               {status === 'searching' ? t('SORGULANIYOR...') : `🔍 ${t('SORGULA')}`}
@@ -117,7 +92,7 @@ export default function CertificateQueryPage() {
               {t('TEMİZLE')}
             </button>
           </div>
-          <p className={styles.hint}>{t('Örnek:')} <strong>CRV-2026-001</strong>, CRV-2025-042, CRV-2024-018</p>
+          <p className={styles.hint}>{t('Sertifika numarasında büyük / küçük harf fark etmez.')}</p>
         </div>
 
         {/* Result */}
@@ -127,9 +102,22 @@ export default function CertificateQueryPage() {
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>{t('SERTİFİKA BULUNAMADI')}</h2>
               <p className={styles.resultText}>
-                <strong>{code}</strong> {t('numaralı bir sertifika kayıtlı değildir.')}
+                <strong>{queriedCode}</strong> {t('numaralı bir sertifika kayıtlı değildir.')}
                 {' '}{t('Lütfen numarayı kontrol edip tekrar deneyin.')}
               </p>
+            </div>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className={`${styles.resultCard} ${styles.resultError}`}>
+            <div className={styles.resultIcon}>!</div>
+            <div className={styles.resultBody}>
+              <h2 className={styles.resultTitle}>{t('SORGULAMA YAPILAMADI')}</h2>
+              <p className={styles.resultText}>
+                {t('Sertifika veritabanına ulaşılamadı. Bağlantıyı kontrol edip tekrar deneyin.')}
+              </p>
+              {errorDetail && <div className={styles.errorDetail}>{errorDetail}</div>}
             </div>
           </div>
         )}
@@ -144,11 +132,15 @@ export default function CertificateQueryPage() {
               <div className={styles.resultGrid}>
                 <ResultRow label={t('SERTİFİKA NO')}  value={result.code} mono />
                 <ResultRow label={t('AD SOYAD')}      value={result.ownerName} />
-                <ResultRow label={t('ŞİRKET')}        value={result.ownerCompany} />
-                <ResultRow label={t('EĞİTİM')}        value={t(result.courseName)} />
-                <ResultRow label={t('VEREN KURUM')}   value={t(result.certifiedBy)} />
+                <ResultRow label={t('ŞİRKET')}        value={result.ownerCompany || '—'} />
+                <ResultRow label={t('EĞİTİM')}        value={result.courseName} />
+                <ResultRow label={t('VEREN KURUM')}   value={result.certifiedBy} />
                 <ResultRow label={t('VERİLİŞ TARİHİ')} value={formatDate(result.issuedAt, locale)} />
-                <ResultRow label={t('GEÇERLİLİK SONU')} value={formatDate(result.validUntil, locale)} highlight={status === 'expired' ? 'red' : 'green'} />
+                <ResultRow
+                  label={t('GEÇERLİLİK SONU')}
+                  value={result.validUntil ? formatDate(result.validUntil, locale) : t('SÜRESİZ')}
+                  highlight={status === 'expired' ? 'red' : 'green'}
+                />
               </div>
             </div>
           </div>
@@ -174,5 +166,7 @@ function ResultRow({ label, value, mono, highlight }: { label: string; value: st
 }
 
 function formatDate(iso: string, locale: string): string {
-  return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' })
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' })
 }

@@ -23,7 +23,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="CHECK LIST" onClick={() => navigate('/settings/checklist')} />
         <SettingsBtn label="PDF KULLANIM KİTABI" onClick={() => setShowGuide(true)} />
         <SettingsBtn label="BAKIM SÜRESİ" onClick={() => navigate('/settings/maintenance')} />
-        <SettingsBtn label="CETVEL SIFIRLAMA" onClick={() => navigate('/settings/encoder-reset')} />
+        {/* CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin) */}
       </div>
 
       {/* ── RIGHT COLUMN ──────────────────────────── */}
@@ -33,8 +33,8 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="KIVRIM ADETLERİ RAPORU" onClick={() => navigate('/settings/bending-count')} />
         <SettingsBtn label="DİL SEÇİMİ" onClick={() => navigate('/settings/language')} />
         <SettingsBtn label="SERTİFİKA SORGULA" onClick={() => navigate('/settings/certificate')} />
+        {/* SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17) */}
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" onClick={() => navigate('/settings/customer-change')} />
-        <SettingsBtn label="SATIŞ / TAKAS / HİBE" onClick={() => navigate('/settings/machine-transfer')} />
         <SettingsBtn label="HIZLI MENÜ" onClick={() => navigate('/settings/side-menu')} />
         <SettingsBtn label="ADMİN AYARLARI" onClick={() => navigate('/settings/admin')} />
       </div>

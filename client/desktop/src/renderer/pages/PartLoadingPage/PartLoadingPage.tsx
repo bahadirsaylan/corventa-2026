@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
 import PageHeader from '@/components/PageHeader/PageHeader'
@@ -58,6 +58,26 @@ function PartLoadingContent() {
   // Mod: ana ekran OTOMATİK BÜKÜM → 'ai', Manuel > Yarı Oto → 'semi' (ManualModeSelectPage).
   const isSemiAuto = params.bendingMode === 'semi'
   const useAutoCorrect = !isSemiAuto
+
+  // Sensör sıfırlama mesafesi (mm) — MachineSettings.ZeroResetDistanceMm (sensör ↔ merkez).
+  // Zero handler'ları parçayı sensörden bu mesafeye göre konumlar; sensör görmüyorsa operatör
+  // parça ucunu merkezden bu kadar uzağa (sensör hizasına) koyar. Ayar okunamazsa not gösterilmez.
+  const [zeroResetMm, setZeroResetMm] = useState<number | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    window.corventa.settings
+      .getMachine()
+      .then((m) => {
+        const v = Number(m?.zeroResetDistanceMm)
+        if (!cancelled && Number.isFinite(v) && v > 0) setZeroResetMm(v)
+      })
+      .catch(() => {
+        /* ayar okunamadı — bilgi notu gösterilmez */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
 
@@ -169,6 +189,13 @@ function PartLoadingContent() {
 
       <StatusBar
         backTo={backTo}
+        hint={
+          zeroResetMm != null
+            ? t('SENSÖR ÇALIŞMIYORSA PARÇAYI MERKEZDEN {mm} MM UZAĞA YERLEŞTİRİN', {
+                mm: Number.isInteger(zeroResetMm) ? zeroResetMm : zeroResetMm.toFixed(1),
+              })
+            : undefined
+        }
         onConfirm={() => {
           if (phase === 'idle') setPhase('loaded')
           else if (phase === 'error') setPhase('idle')

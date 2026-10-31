@@ -1,9 +1,13 @@
 // DataApi (port 5002) HTTP client — DB CRUD operations.
 
 import { getConfig } from '@main/config/runtime-config'
-import { http } from '@main/lib/http'
+import { http, HttpError } from '@main/lib/http'
 import type {
   BendingJob,
+  Certificate,
+  CustomerChangeConfirmResponse,
+  CustomerChangeRequestBody,
+  CustomerChangeRequestResponse,
   MachineIdentity,
   UserPreference,
   MaintenancePeriodKey,
@@ -16,6 +20,7 @@ import type {
   ServiceTicketCreateRequest,
   SimilarBendingJobRequest,
   SimilarBendingJobResponse,
+  UsageTimeSummary,
 } from '@shared/types'
 
 export class DataApiClient {
@@ -170,6 +175,38 @@ export class DataApiClient {
     return http.put<MachineIdentity>(`${this.baseUrl}/api/machine-identity`, identity)
   }
 
+  // ---------- Sertifika sorgulama ----------
+
+  /** Kod ile sertifika — 404 → null (bulunamadı); ağ / diğer HTTP hataları fırlatılır */
+  async getCertificate(code: string): Promise<Certificate | null> {
+    try {
+      return await http.get<Certificate>(`${this.baseUrl}/api/certificates/${encodeURIComponent(code)}`)
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return null
+      throw err
+    }
+  }
+
+  // ---------- Müşteri değişikliği (satış / takas / hibe, e-posta OTP) ----------
+  // OTP, DataApi'deki CustomerChange:OtpRecipientEmail adresine gider. Hatalar HttpError olarak
+  // fırlatılır (status + body.error / body.remainingAttempts) — IPC handler sonuç nesnesine çevirir.
+  // SMTP gönderimi birkaç saniye sürebilir → varsayılandan uzun zaman aşımı.
+
+  requestCustomerChange(body: CustomerChangeRequestBody): Promise<CustomerChangeRequestResponse> {
+    return http.post<CustomerChangeRequestResponse>(
+      `${this.baseUrl}/api/customer-change/request`,
+      body,
+      { timeoutMs: 30_000 },
+    )
+  }
+
+  confirmCustomerChange(requestId: string, otp: string): Promise<CustomerChangeConfirmResponse> {
+    return http.post<CustomerChangeConfirmResponse>(
+      `${this.baseUrl}/api/customer-change/confirm`,
+      { requestId, otp },
+    )
+  }
+
   // ---------- Kullanıcı tercihleri (ör. sağ hızlı menü) ----------
 
   async getUserPreference(userKey: string, prefKey: string): Promise<UserPreference | null> {
@@ -218,6 +255,12 @@ export class DataApiClient {
       `${this.baseUrl}/api/maintenance/mode?on=${on}`,
       {},
     )
+  }
+
+  // ---------- Kullanım süreleri (usage-time) ----------
+  // Kategori anahtarları BÜYÜK HARF, değerler saniye. days 1..366.
+  getUsageTimeSummary(days = 30): Promise<UsageTimeSummary> {
+    return http.get<UsageTimeSummary>(`${this.baseUrl}/api/usage-time/summary?days=${days}`)
   }
 }
 

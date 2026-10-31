@@ -1,4 +1,5 @@
-// Ayarlar > Cetvel Sıfırlama — gönye alma (makine referans pozisyonu).
+// Ayarlar > Admin Ayarları > Cetvel Sıfırlama — gönye alma (makine referans pozisyonu).
+// Sadece Admin Ayarları'ndan açılır (Ayarlar ızgarasında yok); geri butonu /settings/admin'e döner.
 // Backend: POST /api/preparation/gonye (Web projesindeki "Gönye Al" ile aynı çağrı, boş body).
 // Akış (backend): pistonlar mekanik limite çekilir → tüm cetveller sıfırlanır → gönye ofsetlerine gidilir
 // → cetveller tekrar sıfırlanır → fiziksel pozisyon takibi "gönye yapıldı" olarak işaretlenir.
@@ -110,7 +111,7 @@ export default function EncoderResetPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')} disabled={busy}>
+        <button className={styles.backBtn} onClick={() => navigate('/settings/admin', { state: { tab: 'gonye' } })} aria-label={t('Geri')} disabled={busy}>
           ←
         </button>
         <h1 className={styles.title}>{t('CETVEL SIFIRLAMA — GÖNYE ALMA')}</h1>

@@ -5,47 +5,26 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MAINTENANCE_PERIODS, type MaintenancePeriodInfo } from '@shared/types'
 import {
-  MAINTENANCE_PERIODS,
-  type MaintenancePeriodInfo,
-  type MaintenanceState,
-} from '@shared/types'
+  computeMaintenanceStatus,
+  maintenanceTierTitle,
+  type MaintenanceSeverity,
+} from '@/services/maintenanceStatus'
+import {
+  markMaintenancePeriodCompleted,
+  refreshMaintenance,
+  setMaintenanceModeOn,
+  useMaintenanceStore,
+} from '@/stores/maintenanceStore'
 import { useLang, useT, type TVars } from '@/i18n'
 import styles from './MaintenancePage.module.css'
 
-/** Bakım durumu için renk/etiket kodu — sarı: 7 gün kala, kırmızı: geciken. */
-type Severity = 'ok' | 'warn' | 'overdue' | 'unknown'
-
-interface PeriodStatus {
-  info: MaintenancePeriodInfo
-  lastAt: string | null
-  nextAt: Date | null
-  daysUntilNext: number | null
-  severity: Severity
-}
-
-function computeStatus(info: MaintenancePeriodInfo, state: MaintenanceState): PeriodStatus {
-  const lastAt = pickLastAt(info.key, state)
-  if (!lastAt) {
-    return { info, lastAt: null, nextAt: null, daysUntilNext: null, severity: 'unknown' }
-  }
-  const nextAt = new Date(new Date(lastAt).getTime() + info.intervalDays * 86_400_000)
-  const daysUntilNext = Math.floor((nextAt.getTime() - Date.now()) / 86_400_000)
-  let severity: Severity = 'ok'
-  if (daysUntilNext < 0) severity = 'overdue'
-  else if (daysUntilNext <= Math.min(7, info.intervalDays / 4)) severity = 'warn'
-  return { info, lastAt, nextAt, daysUntilNext, severity }
-}
-
-function pickLastAt(key: MaintenancePeriodInfo['key'], state: MaintenanceState): string | null {
-  switch (key) {
-    case 'daily':          return state.lastDailyAt
-    case 'weekly':         return state.lastWeeklyAt
-    case 'monthly':        return state.lastMonthlyAt
-    case 'six-monthly':    return state.last6MonthlyAt
-    case 'twelve-monthly': return state.last12MonthlyAt
-  }
-}
+// Durum hesabı (sonraki tarih, kalan gün, gecikme hafta kademesi) ortak yardımcıda:
+// services/maintenanceStatus.ts — alt uyarı şeridi ve bakım uyarı penceresiyle aynı kural.
+// Renk: vade öncesi 7 gün kala sarı (ön uyarı); vadesi geçen kart hafta kademesine göre
+// 1. hafta yeşil / 2. hafta sarı / 3. hafta+ kırmızı.
+type Severity = MaintenanceSeverity
 
 function formatDateShort(iso: string | Date | null, locale: string): string {
   if (!iso) return '—'
@@ -56,10 +35,12 @@ function formatDateShort(iso: string | Date | null, locale: string): string {
 function severityLabel(
   s: Severity,
   daysUntilNext: number | null,
+  overdueDays: number,
   t: (source: string, vars?: TVars) => string,
 ): string {
   if (s === 'unknown') return t('HİÇ YAPILMADI')
-  if (s === 'overdue') return t('{n} GÜN GECİKME', { n: Math.abs(daysUntilNext ?? 0) })
+  // Gecikme günü uyarı şeridi / bakım modu ekranıyla aynı kaynaktan (overdueDays) — floor(negatif) bir gün fazla gösterirdi
+  if (s === 'overdue') return t('{n} GÜN GECİKME', { n: overdueDays })
   if (s === 'warn') return t('{n} GÜN KALDI', { n: String(daysUntilNext) })
   return t('{n} GÜN KALDI', { n: String(daysUntilNext) })
 }
@@ -68,20 +49,17 @@ export default function MaintenancePage() {
   const navigate = useNavigate()
   const t = useT()
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
-  const [state, setState] = useState<MaintenanceState | null>(null)
+  // Ortak bakım store'u (AppLayout 30 sn'de bir yeniler) — sayfa açılınca hemen tazelenir
+  const state = useMaintenanceStore((s) => s.state)
+  const storeError = useMaintenanceStore((s) => s.error)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [pendingKey, setPendingKey] = useState<string | null>(null)  // hangi buton işleniyor
+  // İlk yükleme hatası — state hiç gelmediyse gösterilir (sonraki 30 sn yenileme hataları son veriyi bozmaz)
+  const error = !state ? storeError : null
 
   useEffect(() => {
     let cancelled = false
-    window.corventa.settings
-      .getMaintenance()
-      .then((data) => { if (!cancelled) setState(data) })
-      .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t('Bakım durumu alınamadı'))
-      })
-      .finally(() => { if (!cancelled) setLoading(false) })
+    refreshMaintenance().finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [])
 
@@ -89,8 +67,7 @@ export default function MaintenancePage() {
     if (pendingKey) return
     setPendingKey(info.key)
     try {
-      const updated = await window.corventa.settings.markMaintenanceCompleted(info.key)
-      setState(updated)
+      await markMaintenancePeriodCompleted(info.key)
     } catch (err) {
       alert(t('Bakım işaretlenemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
     } finally {
@@ -102,8 +79,7 @@ export default function MaintenancePage() {
     if (!state || pendingKey) return
     setPendingKey('mode')
     try {
-      const updated = await window.corventa.settings.setMaintenanceMode(!state.isInMaintenanceMode)
-      setState(updated)
+      await setMaintenanceModeOn(!state.isInMaintenanceMode)
     } catch (err) {
       alert(t('Bakım modu değiştirilemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
     } finally {
@@ -156,11 +132,13 @@ export default function MaintenancePage() {
             {/* ── 5 periyot kartı ────────────────────── */}
             <div className={styles.periodGrid}>
               {MAINTENANCE_PERIODS.map((p) => {
-                const st = computeStatus(p, state)
+                const st = computeMaintenanceStatus(p, state)
+                // Gecikmiş kart hafta kademesinin rengini alır (tier_reminder/warning/critical)
+                const sevClass = st.tier ? styles[`tier_${st.tier}`] : styles[`sev_${st.severity}`]
                 return (
                   <div
                     key={p.key}
-                    className={`${styles.periodCard} ${styles[`sev_${st.severity}`] ?? ''}`}
+                    className={`${styles.periodCard} ${sevClass ?? ''}`}
                   >
                     <div className={styles.periodHeader}>
                       <span className={styles.periodLabel}>{t(p.label)}</span>
@@ -170,8 +148,14 @@ export default function MaintenancePage() {
                     <div className={styles.periodStatus}>
                       <span className={styles.periodStatusLabel}>{t('DURUM')}</span>
                       <span className={styles.periodStatusValue}>
-                        {severityLabel(st.severity, st.daysUntilNext, t)}
+                        {severityLabel(st.severity, st.daysUntilNext, st.overdueDays ?? 0, t)}
                       </span>
+                      {st.tier && (
+                        <span className={styles.periodTier}>
+                          {t(maintenanceTierTitle(st.tier))}
+                          {st.lockSoon && ` · ${t('BAKIM KİLİDİ YAKINDA')}`}
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.periodDates}>
@@ -199,8 +183,8 @@ export default function MaintenancePage() {
 
             {/* ── Bilgi notu ────────────────────────── */}
             <p className={styles.note}>
-              {t('Bakımlar 24 saat önce ekranda ve mail ile bildirilir. Geciken bakımlar kırmızı, yaklaşanlar sarı işaretlenir.')}
-              {' '}{t('Servis işlemi öncesi/sonrası')} <b>{t('Bakım Modu')}</b>{t("'nu açık tutun — modda iken yeni büküm işi başlatılamaz. (PDF s.8-12)")}
+              {t('Yaklaşan bakımlar (7 gün kala) sarı işaretlenir. Geciken bakımlar: 1. hafta yeşil hatırlatma, 2. hafta sarı uyarı, 3. hafta kırmızı kritik.')}
+              {' '}{t('Servis işlemi öncesi/sonrası')} <b>{t('Bakım Modu')}</b>{t("'nu açık tutun — modda geçen süre BAKIM kullanım süresine yazılır. (PDF s.8-12)")}
             </p>
           </>
         )}

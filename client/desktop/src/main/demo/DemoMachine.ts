@@ -1239,12 +1239,41 @@ export class DemoMachine extends EventEmitter {
       if (method === 'PUT') this.gonyeSettings = { ...this.gonyeSettings, ...b }
       return this.gonyeSettings
     }
+    if (path === '/api/usage-time/summary' && method === 'GET') {
+      // Kullanım süreleri — gerçek DataApi sözleşmesiyle birebir (BÜYÜK HARF kategori, saniye)
+      const days = Number(u.searchParams.get('days') ?? 30)
+      if (!Number.isInteger(days) || days < 1 || days > 366) {
+        throw new HttpError(400, rawUrl, 'days 1..366 aralığında olmalı', { error: 'days 1..366 aralığında olmalı' })
+      }
+      return demoUsageSummary(days)
+    }
+    if ((m = /^\/api\/certificates\/([^/]+)$/.exec(path)) && method === 'GET') {
+      // Sertifika sorgula — gerçek DataApi sözleşmesiyle birebir (büyük harf kod, 404 = bulunamadı)
+      const code = decodeURIComponent(m[1]).trim().toUpperCase()
+      if (!code) throw new HttpError(400, rawUrl, 'Sertifika kodu boş olamaz', { error: 'Sertifika kodu boş olamaz' })
+      const cert = demoCertificate(code)
+      if (!cert) {
+        const error = `'${code}' kodlu sertifika bulunamadı`
+        throw new HttpError(404, rawUrl, error, { error })
+      }
+      return cert
+    }
+    if (path === '/api/customer-change/request' && method === 'POST') {
+      return demoCustomerChangeRequest(rawUrl, b)
+    }
+    if (path === '/api/customer-change/confirm' && method === 'POST') {
+      return demoCustomerChangeConfirm(rawUrl, b)
+    }
+    if (path === '/api/customer-change/history' && method === 'GET') {
+      const limit = Math.min(Math.max(Number(u.searchParams.get('limit') ?? 50) || 50, 1), 500)
+      return DEMO_CUSTOMER_CHANGE_LOGS.slice(0, limit)
+    }
     if (path === '/api/machine-identity') {
-      return { id: 1, serialNo: 'CRV-DEMO-001', customerName: 'Corventa', warrantyStartDate: '2026-01-01T00:00:00Z', warrantyEndDate: '2028-01-01T00:00:00Z', ownershipType: 'SATIS', createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }
+      // Müşteri değişikliği (OTP) demoda da kimliği günceller → aynı nesne döner
+      return { ...demoIdentity }
     }
     if (path.startsWith('/api/maintenance')) {
-      const now = new Date().toISOString()
-      return { id: 1, lastDailyAt: now, lastWeeklyAt: now, lastMonthlyAt: now, last6MonthlyAt: now, last12MonthlyAt: now, isInMaintenanceMode: false, createdAt: now, updatedAt: now }
+      return demoMaintenance(rawUrl, path, method, u, b)
     }
     if (/^\/api\/service\/(tickets|requests|reports)$/.test(path) && method === 'GET') return []
 
@@ -1271,6 +1300,285 @@ export class DemoMachine extends EventEmitter {
       const id = this.activeJobId
       this.setProgress(id, this.progress?.completedPasos ?? 0, this.progress?.totalPasos ?? 0, 'İptal edildi')
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Makine kimliği + müşteri değişikliği (OTP) demo verisi
+// POST /api/customer-change/request · /confirm · GET /history — gerçek DataApi sözleşmesiyle birebir
+// (aynı durum kodları ve hata gövdeleri: 400/404/409/410/429, { error, remainingAttempts? }).
+// ─────────────────────────────────────────────────────────────
+
+// ---------- Bakım durumu (DataApi /api/maintenance sözleşmesi) ----------
+// Demoda bakım uyarısı görünsün diye haftalık bakım 9 gün gecikmiş başlar (2. hafta → sarı uyarı).
+// mark-completed / mode / PUT gerçek DataApi gibi state'i değiştirir (süreç boyunca bellekte).
+const DEMO_DAY_MS = 86_400_000
+const demoMaintenanceState = (() => {
+  const now = Date.now()
+  const iso = (ms: number) => new Date(ms).toISOString()
+  return {
+    id: 1,
+    lastDailyAt: iso(now - 2 * 3600_000) as string | null,
+    lastWeeklyAt: iso(now - (7 + 9) * DEMO_DAY_MS - 3600_000) as string | null,
+    lastMonthlyAt: iso(now - 10 * DEMO_DAY_MS) as string | null,
+    last6MonthlyAt: iso(now - 60 * DEMO_DAY_MS) as string | null,
+    last12MonthlyAt: iso(now - 120 * DEMO_DAY_MS) as string | null,
+    isInMaintenanceMode: false,
+    createdAt: iso(now - 365 * DEMO_DAY_MS),
+    updatedAt: iso(now),
+  }
+})()
+
+const DEMO_MAINTENANCE_FIELDS: Record<string, 'lastDailyAt' | 'lastWeeklyAt' | 'lastMonthlyAt' | 'last6MonthlyAt' | 'last12MonthlyAt'> = {
+  daily: 'lastDailyAt',
+  weekly: 'lastWeeklyAt',
+  monthly: 'lastMonthlyAt',
+  'six-monthly': 'last6MonthlyAt',
+  'twelve-monthly': 'last12MonthlyAt',
+}
+
+function demoMaintenance(rawUrl: string, path: string, method: string, u: URL, b: Record<string, unknown>): unknown {
+  const st = demoMaintenanceState
+  const now = new Date().toISOString()
+  if (path === '/api/maintenance' && method === 'GET') return { ...st }
+  if (path === '/api/maintenance' && method === 'PUT') {
+    for (const f of Object.values(DEMO_MAINTENANCE_FIELDS)) {
+      const v = b[f]
+      st[f] = typeof v === 'string' && v ? v : null
+    }
+    st.isInMaintenanceMode = b.isInMaintenanceMode === true
+    st.updatedAt = now
+    return { ...st }
+  }
+  if (path === '/api/maintenance/mark-completed' && method === 'POST') {
+    const period = (u.searchParams.get('period') ?? '').trim().toLowerCase()
+    if (!period) demoFail(400, rawUrl, 'period query param zorunlu')
+    const field = DEMO_MAINTENANCE_FIELDS[period]
+    if (!field) {
+      demoFail(400, rawUrl, `Geçersiz periyot '${period}'. Beklenen: daily|weekly|monthly|six-monthly|twelve-monthly`)
+    }
+    st[field] = now
+    st.updatedAt = now
+    return { ...st }
+  }
+  if (path === '/api/maintenance/mode' && method === 'POST') {
+    st.isInMaintenanceMode = u.searchParams.get('on') === 'true'
+    st.updatedAt = now
+    return { ...st }
+  }
+  return demoFail(404, rawUrl, 'Demo modunda desteklenmiyor')
+}
+
+const demoIdentity = {
+  id: 1, serialNo: 'CRV-DEMO-001', customerName: 'Corventa',
+  warrantyStartDate: '2026-01-01T00:00:00Z', warrantyEndDate: '2028-01-01T00:00:00Z', ownershipType: 'SATIS',
+  customerCompany: null as string | null, customerTaxNo: null as string | null, customerPhone: null as string | null,
+  customerEmail: null as string | null, customerAddress: null as string | null,
+  createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+}
+
+/** DEMO OTP — demo modunda e-posta gönderilmez, kod HER ZAMAN 123456'dır (yalnızca bu dosyada). */
+const DEMO_OTP = '123456'
+const DEMO_OTP_VALID_MS = 10 * 60_000
+const DEMO_OTP_MAX_ATTEMPTS = 5
+const DEMO_OTP_SENT_TO = 'de***@corventa.com'
+
+const REASON_TO_OWNERSHIP: Record<string, string> = { SALE: 'SATIS', TRADE: 'TAKAS', GRANT: 'HIBE' }
+
+type DemoChangeRequest = {
+  requestId: string; reason: string; expiresAt: number; attempts: number
+  status: 'Pending' | 'Confirmed' | 'Superseded'
+  fields: {
+    newCustomerName: string; newCustomerCompany: string | null; newCustomerTaxNo: string | null
+    newCustomerPhone: string | null; newCustomerEmail: string | null; newCustomerAddress: string | null; note: string | null
+  }
+}
+
+const demoChangeRequests = new Map<string, DemoChangeRequest>()
+const DEMO_CUSTOMER_CHANGE_LOGS: Record<string, unknown>[] = []
+
+function demoFail(status: number, rawUrl: string, error: string, extra: Record<string, unknown> = {}): never {
+  throw new HttpError(status, rawUrl, error, { error, ...extra })
+}
+
+/** Boş/whitespace → null, aksi halde trim (backend gibi) */
+/** Backend CustomerChangeController.LooksLikeEmail ile aynı kural (UI CustomerChangePage.isValidEmail de aynı) */
+function demoLooksLikeEmail(s: string): boolean {
+  const at = s.indexOf('@')
+  return at > 0 && at === s.lastIndexOf('@') && s.indexOf('.', at) > at + 1 && !s.endsWith('.') && !s.includes(' ')
+}
+
+function demoOpt(v: unknown): string | null {
+  const s = typeof v === 'string' ? v.trim() : ''
+  return s ? s : null
+}
+
+function demoCustomerChangeRequest(rawUrl: string, b: Record<string, unknown>): unknown {
+  const reason = String(b.reason ?? '').trim().toUpperCase()
+  if (!REASON_TO_OWNERSHIP[reason]) demoFail(400, rawUrl, "reason 'SALE', 'TRADE' veya 'GRANT' olmalı (satış/takas/hibe)")
+  const fields = {
+    newCustomerName: demoOpt(b.newCustomerName) ?? '',
+    newCustomerCompany: demoOpt(b.newCustomerCompany),
+    newCustomerTaxNo: demoOpt(b.newCustomerTaxNo),
+    newCustomerPhone: demoOpt(b.newCustomerPhone),
+    newCustomerEmail: demoOpt(b.newCustomerEmail),
+    newCustomerAddress: demoOpt(b.newCustomerAddress),
+    note: demoOpt(b.note),
+  }
+  if (!fields.newCustomerName) demoFail(400, rawUrl, 'Yeni müşteri adı boş olamaz')
+  const limits: [keyof typeof fields, number][] = [
+    ['newCustomerName', 200], ['newCustomerCompany', 200], ['newCustomerTaxNo', 50], ['newCustomerPhone', 50],
+    ['newCustomerEmail', 200], ['newCustomerAddress', 500], ['note', 1000],
+  ]
+  for (const [k, max] of limits) {
+    if ((fields[k]?.length ?? 0) > max) demoFail(400, rawUrl, `${k} en fazla ${max} karakter olabilir`)
+  }
+  if (fields.newCustomerEmail && !demoLooksLikeEmail(fields.newCustomerEmail)) {
+    demoFail(400, rawUrl, 'Yeni müşteri e-posta adresi geçersiz')
+  }
+  // Yeni talep → bekleyen eski talepler geçersiz (backend gibi)
+  for (const r of demoChangeRequests.values()) if (r.status === 'Pending') r.status = 'Superseded'
+  const requestId = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+  const expiresAt = Date.now() + DEMO_OTP_VALID_MS
+  demoChangeRequests.set(requestId, { requestId, reason, expiresAt, attempts: 0, status: 'Pending', fields })
+  log.info(`DEMO: müşteri değişikliği talebi — OTP ${DEMO_OTP}`, { requestId, reason })
+  return { requestId, expiresAt: new Date(expiresAt).toISOString(), sentTo: DEMO_OTP_SENT_TO }
+}
+
+function demoCustomerChangeConfirm(rawUrl: string, b: Record<string, unknown>): unknown {
+  const requestId = String(b.requestId ?? '').trim()
+  const otp = String(b.otp ?? '').trim()
+  if (!requestId || !otp) demoFail(400, rawUrl, 'requestId ve otp zorunlu')
+  const r = demoChangeRequests.get(requestId)
+  if (!r) return demoFail(404, rawUrl, 'Talep bulunamadı')
+  if (r.status === 'Confirmed') demoFail(409, rawUrl, 'Bu talep zaten onaylandı')
+  if (r.status === 'Superseded') demoFail(410, rawUrl, 'Bu talep geçersiz — daha yeni bir talep açıldı')
+  if (Date.now() > r.expiresAt) demoFail(410, rawUrl, 'OTP süresi doldu — yeni talep açın')
+  if (r.attempts >= DEMO_OTP_MAX_ATTEMPTS) demoFail(429, rawUrl, 'Deneme hakkı bitti — yeni talep açın', { remainingAttempts: 0 })
+  if (otp !== DEMO_OTP) {
+    r.attempts++
+    const remaining = Math.max(0, DEMO_OTP_MAX_ATTEMPTS - r.attempts)
+    if (remaining === 0) demoFail(429, rawUrl, 'OTP hatalı — deneme hakkı bitti, yeni talep açın', { remainingAttempts: 0 })
+    demoFail(400, rawUrl, 'OTP hatalı', { remainingAttempts: remaining })
+  }
+
+  const now = new Date().toISOString()
+  const newOwnership = REASON_TO_OWNERSHIP[r.reason]
+  const change = {
+    id: DEMO_CUSTOMER_CHANGE_LOGS.length + 1,
+    requestId: r.requestId,
+    reason: r.reason,
+    oldCustomerName: demoIdentity.customerName,
+    oldCustomerCompany: demoIdentity.customerCompany,
+    oldCustomerTaxNo: demoIdentity.customerTaxNo,
+    oldCustomerPhone: demoIdentity.customerPhone,
+    oldCustomerEmail: demoIdentity.customerEmail,
+    oldCustomerAddress: demoIdentity.customerAddress,
+    oldOwnershipType: demoIdentity.ownershipType,
+    ...r.fields,
+    newOwnershipType: newOwnership,
+    otpSentTo: DEMO_OTP_SENT_TO,
+    changedAt: now,
+  }
+  Object.assign(demoIdentity, {
+    customerName: r.fields.newCustomerName,
+    customerCompany: r.fields.newCustomerCompany,
+    customerTaxNo: r.fields.newCustomerTaxNo,
+    customerPhone: r.fields.newCustomerPhone,
+    customerEmail: r.fields.newCustomerEmail,
+    customerAddress: r.fields.newCustomerAddress,
+    ownershipType: newOwnership,
+    updatedAt: now,
+  })
+  r.status = 'Confirmed'
+  DEMO_CUSTOMER_CHANGE_LOGS.unshift(change)
+  return { machineIdentity: { ...demoIdentity }, change }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Sertifika demo verisi (GET /api/certificates/{code})
+// ─────────────────────────────────────────────────────────────
+
+type DemoCertificate = {
+  id: number; code: string; ownerName: string; ownerCompany: string | null; courseName: string
+  certifiedBy: string; issuedAt: string; validUntil: string | null; createdAt: string
+}
+
+const DEMO_CERTIFICATES: readonly DemoCertificate[] = [
+  { id: 1, code: 'CRV-2026-001', ownerName: 'Ahmet Yılmaz', ownerCompany: 'Demo Metal A.Ş.', courseName: 'Temel Operatör Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2026-02-15T00:00:00Z', validUntil: '2028-02-15T00:00:00Z', createdAt: '2026-02-15T09:00:00Z' },
+  { id: 2, code: 'CRV-2025-042', ownerName: 'Mehmet Demir', ownerCompany: null, courseName: 'İleri Seviye Bakım Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2025-06-10T00:00:00Z', validUntil: null, createdAt: '2025-06-10T09:00:00Z' },
+  { id: 3, code: 'CRV-2024-018', ownerName: 'Osman Şahin', ownerCompany: 'Demo Metal A.Ş.', courseName: 'Temel Operatör Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2024-03-20T00:00:00Z', validUntil: '2026-03-20T00:00:00Z', createdAt: '2024-03-20T09:00:00Z' },
+]
+
+/** Kod ile demo sertifika — isExpired backend gibi istek anında hesaplanır (validUntil null = süresiz) */
+function demoCertificate(code: string): (DemoCertificate & { isExpired: boolean }) | null {
+  const c = DEMO_CERTIFICATES.find((x) => x.code === code)
+  if (!c) return null
+  return { ...c, isExpired: c.validUntil != null && new Date(c.validUntil).getTime() < Date.now() }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Kullanım süreleri demo verisi (GET /api/usage-time/summary)
+// ─────────────────────────────────────────────────────────────
+
+type DemoUsageMap = { PRESSURE: number; STANDBY: number; ERROR: number; MAINTENANCE: number; SERVICE: number }
+
+/** Yerel tarih "yyyy-MM-dd" (backend'in gün anahtarı gibi) */
+function localDateKey(d: Date): string {
+  const p = (n: number): string => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+/** Tarihten sabit sözde rastgele [0,1) — demo her açılışta aynı geçmişi gösterir */
+function dayRand(key: string, salt: number): number {
+  let h = 2166136261 ^ salt
+  for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 16777619)
+  return ((h >>> 0) % 10_000) / 10_000
+}
+
+/** Bir günün sahte kullanımı (saniye). Pazar kapalı; bugün günün geçen kısmına göre ölçeklenir. */
+function demoUsageDay(d: Date, fraction = 1): DemoUsageMap {
+  const key = localDateKey(d)
+  if (d.getDay() === 0) return { PRESSURE: 0, STANDBY: 0, ERROR: 0, MAINTENANCE: 0, SERVICE: 0 }
+  const r = (salt: number): number => dayRand(key, salt)
+  const scale = (sec: number): number => Math.round(sec * fraction)
+  return {
+    PRESSURE: scale(3 * 3600 + r(1) * 2.5 * 3600),
+    STANDBY: scale(1.5 * 3600 + r(2) * 1.5 * 3600),
+    ERROR: scale(r(3) < 0.35 ? 120 + r(4) * 1500 : 0),
+    MAINTENANCE: scale(d.getDay() === 1 ? 1200 + r(5) * 1800 : 0),
+    SERVICE: scale(r(6) < 0.06 ? 3600 + r(7) * 5400 : 0),
+  }
+}
+
+function demoUsageSummary(days: number): unknown {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  // Bugün: 08:00-18:00 vardiyasının geçen kısmı kadar
+  const hour = now.getHours() + now.getMinutes() / 60
+  const todayFraction = Math.min(1, Math.max(0, (hour - 8) / 10))
+  const daily: ({ date: string } & DemoUsageMap)[] = []
+  const rangeTotals: DemoUsageMap = { PRESSURE: 0, STANDBY: 0, ERROR: 0, MAINTENANCE: 0, SERVICE: 0 }
+  let todayMap: DemoUsageMap = { PRESSURE: 0, STANDBY: 0, ERROR: 0, MAINTENANCE: 0, SERVICE: 0 }
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
+    const m = demoUsageDay(d, i === 0 ? todayFraction : 1)
+    daily.push({ date: localDateKey(d), ...m })
+    for (const k of Object.keys(rangeTotals) as (keyof DemoUsageMap)[]) rangeTotals[k] += m[k]
+    if (i === 0) todayMap = m
+  }
+  // Tüm zamanlar = aralık + kurulumdan beri sabit geçmiş (≈1 yıl)
+  const base: DemoUsageMap = { PRESSURE: 1_150 * 3600, STANDBY: 640 * 3600, ERROR: 31 * 3600, MAINTENANCE: 48 * 3600, SERVICE: 19 * 3600 }
+  const totals = { ...rangeTotals }
+  for (const k of Object.keys(totals) as (keyof DemoUsageMap)[]) totals[k] += base[k]
+  return {
+    days,
+    from: daily[0].date,
+    to: daily[daily.length - 1].date,
+    totals,
+    rangeTotals,
+    today: { ...todayMap },
+    daily,
   }
 }
 

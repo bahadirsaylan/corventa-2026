@@ -1,41 +1,116 @@
-// Ayarlar > Kullanma Süreleri — motor/pompa/fan/vals saat sayaçları + bakım geri sayımı.
-// Backend: DataApi.machineHours (henüz endpoint yok, mock).
+// Ayarlar > Kullanma Süreleri — 5 kategori (Excel madde 35/36):
+// BASINÇ (aktif kullanım) · STANDBY · HATA MODLARI · BAKIM · SERVİS.
+// Kaynak: DataApi GET /api/usage-time/summary (window.corventa.usage.getSummary). Sayımı Bending API
+// UsageTimeTracker yapar (saniye, 30 sn'de bir DataApi'ye yazar) → ekran da 30 sn'de bir yenilenir.
+// Her kart: tüm zamanlar toplamı (saat:dakika) + bugün + son 30 gün payı (CSS yatay çubuk).
 
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import {
+  USAGE_TIME_CATEGORIES,
+  type UsageTimeCategory,
+  type UsageTimeSummary,
+} from '@shared/types'
 import { useLang, useT } from '@/i18n'
 import styles from './MachineUsageHoursPage.module.css'
 
-interface HourCounter {
-  key: string
+const RANGE_DAYS = 30
+const REFRESH_MS = 30_000
+
+interface CategoryInfo {
   label: string
   desc: string
-  hours: number
-  serviceInterval: number // saat cinsinden bakım aralığı
-  lastService?: string
+  color: string
 }
 
-const COUNTERS: HourCounter[] = [
-  { key: 'motor',    label: 'HİDROLİK MOTOR',   desc: 'Ana pompa motoru toplam çalışma süresi',    hours: 1247,  serviceInterval: 2000, lastService: '2026-06-15' },
-  { key: 'pump',     label: 'HİDROLİK POMPA',    desc: 'Pompa yağ pompalama süresi',                hours: 1247,  serviceInterval: 4000, lastService: '2026-01-10' },
-  { key: 'fan',      label: 'SOĞUTMA FANI',      desc: 'Yağ soğutma fanı süresi',                   hours: 892,   serviceInterval: 5000, lastService: '2026-01-10' },
-  { key: 'valveS1',  label: 'S1 VALFI',          desc: 'Üst/alt piston hattı valfi (döngü)',        hours: 486,   serviceInterval: 3000 },
-  { key: 'valveS2',  label: 'S2 VALFI',          desc: 'Sağ/sol piston hattı valfi (döngü)',        hours: 512,   serviceInterval: 3000 },
-  { key: 'rollers',  label: 'VALS TOPLARI',      desc: 'Toplam kıvrım işlem süresi',                hours: 984,   serviceInterval: 8000 },
-  { key: 'rotation', label: 'ROTASYON MOTORU',   desc: 'Parça besleme rotasyon motoru',             hours: 1102,  serviceInterval: 5000 },
-  { key: 'panel',    label: 'CNC PANEL',         desc: 'Makine güç açık süresi (kontrol panosu)',   hours: 2145,  serviceInterval: 10000, lastService: '2026-01-10' },
-]
+// Etiket + kısa tanım (Excel) — ekranda t() ile çevrilir
+const CATEGORY_INFO: Record<UsageTimeCategory, CategoryInfo> = {
+  PRESSURE: {
+    label: 'BASINÇ (AKTİF KULLANIM)',
+    desc: 'Tam oto / yarı oto bükümün başlangıcı ile bitişi arasında geçen süre.',
+    color: '#16a34a',
+  },
+  STANDBY: {
+    label: 'STANDBY',
+    desc: 'Hidrolik motor çalışırken büküm yapılmadan beklenen süre.',
+    color: '#1a6fd4',
+  },
+  ERROR: {
+    label: 'HATA MODLARI',
+    desc: 'Makinenin hata, alarm veya acil stop durumunda geçirdiği süre.',
+    color: '#dc2626',
+  },
+  MAINTENANCE: {
+    label: 'BAKIM',
+    desc: 'Bakım modu açıkken geçen süre.',
+    color: '#f59e0b',
+  },
+  SERVICE: {
+    label: 'SERVİS',
+    desc: 'Başlatılmış servis müdahalesi süresince geçen süre.',
+    color: '#7c3aed',
+  },
+}
 
-const TOTAL_UP_HOURS = 2145 // panel === total up
-const INSTALL_DATE = '2025-11-04'
+/** Saniye → "saat:dakika" (saatte binlik ayırıcı), ör. 1.247:05 */
+function formatHm(seconds: number, locale: string): string {
+  const totalMin = Math.floor(Math.max(0, seconds) / 60)
+  const h = Math.floor(totalMin / 60)
+  const m = totalMin % 60
+  return `${h.toLocaleString(locale)}:${String(m).padStart(2, '0')}`
+}
+
+/** "yyyy-MM-dd" (yerel gün) → kısa tarih; UTC kaymasın diye parçalanarak kurulur */
+function formatDay(day: string, locale: string): string {
+  const [y, mo, d] = day.split('-').map(Number)
+  if (!y || !mo || !d) return day
+  return new Date(y, mo - 1, d).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' })
+}
 
 export default function MachineUsageHoursPage() {
   const navigate = useNavigate()
   const t = useT()
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
 
-  const totalDays = Math.floor(
-    (Date.now() - new Date(INSTALL_DATE).getTime()) / (1000 * 60 * 60 * 24),
-  )
+  const [summary, setSummary] = useState<UsageTimeSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+  const mounted = useRef(true)
+
+  const load = useCallback(async () => {
+    try {
+      const data = await window.corventa.usage.getSummary(RANGE_DAYS)
+      if (!mounted.current) return
+      setSummary(data)
+      setError(null)
+      setUpdatedAt(new Date())
+    } catch (err) {
+      if (!mounted.current) return
+      // Eski veri varsa ekranda kalır, sadece uyarı gösterilir
+      setError((err as Error)?.message ?? String(err))
+    } finally {
+      if (mounted.current) setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    mounted.current = true
+    void load()
+    const id = window.setInterval(() => void load(), REFRESH_MS)
+    return () => {
+      mounted.current = false
+      window.clearInterval(id)
+    }
+  }, [load])
+
+  const rangeSum = summary
+    ? USAGE_TIME_CATEGORIES.reduce((acc, c) => acc + (summary.rangeTotals[c] ?? 0), 0)
+    : 0
+  const allTimeSum = summary
+    ? USAGE_TIME_CATEGORIES.reduce((acc, c) => acc + (summary.totals[c] ?? 0), 0)
+    : 0
+  const isEmpty = summary != null && allTimeSum === 0
 
   return (
     <div className={styles.page}>
@@ -45,75 +120,88 @@ export default function MachineUsageHoursPage() {
       </div>
 
       <div className={styles.body}>
-        {/* Overall summary */}
-        <div className={styles.card}>
-          <div className={styles.sectionTitle}>{t('MAKİNE GENEL İSTATİSTİK')}</div>
-          <div className={styles.summaryGrid}>
-            <BigStat label={t('MAKİNE YAŞI')}   value={`${totalDays}`} unit={t('GÜN')} color="#2a2a2a" />
-            <BigStat label={t('TOPLAM AÇIKKALMA')} value={`${TOTAL_UP_HOURS.toLocaleString(locale)}`} unit={t('SAAT')} color="#1a6fd4" />
-            <BigStat label={t('KURULUM')}       value={new Date(INSTALL_DATE).toLocaleDateString(locale)} color="#16a34a" small />
-            <BigStat label={t('AKTİF OPERATÖR')} value="3" color="#7c3aed" />
-          </div>
-        </div>
+        {loading && !summary && <div className={styles.stateMsg}>{t('Yükleniyor…')}</div>}
 
-        {/* Counter grid */}
-        <div className={styles.card}>
-          <div className={styles.sectionTitle}>{t('SAAT SAYAÇLARI')}</div>
-          <div className={styles.counterList}>
-            {COUNTERS.map((c) => {
-              const remaining = c.serviceInterval - (c.hours % c.serviceInterval)
-              const pct = (remaining / c.serviceInterval) * 100
-              const isLow = pct < 20
+        {error && !summary && !loading && (
+          <div className={`${styles.stateMsg} ${styles.errorMsg}`}>
+            <span>{t('Kullanım süreleri alınamadı: {err}', { err: error })}</span>
+            <button
+              className={styles.retryBtn}
+              onClick={() => {
+                setLoading(true)
+                void load()
+              }}
+            >
+              {t('TEKRAR DENE')}
+            </button>
+          </div>
+        )}
+
+        {summary && (
+          <>
+            <div className={styles.metaRow}>
+              <span>
+                {t('Son {n} gün: {from} – {to}', {
+                  n: summary.days,
+                  from: formatDay(summary.from, locale),
+                  to: formatDay(summary.to, locale),
+                })}
+              </span>
+              {updatedAt && (
+                <span>
+                  {t('Güncellendi: {time}', {
+                    time: updatedAt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
+                  })}
+                </span>
+              )}
+            </div>
+
+            {error && (
+              <div className={styles.warnMsg}>
+                {t('Güncelleme başarısız, son alınan veri gösteriliyor: {err}', { err: error })}
+              </div>
+            )}
+
+            {isEmpty && (
+              <div className={styles.warnMsg}>
+                {t('Henüz kullanım kaydı yok. Süreler makine çalıştıkça 30 sn aralıklarla kaydedilir.')}
+              </div>
+            )}
+
+            {USAGE_TIME_CATEGORIES.map((cat) => {
+              const info = CATEGORY_INFO[cat]
+              const range = summary.rangeTotals[cat] ?? 0
+              const pct = rangeSum > 0 ? (range / rangeSum) * 100 : 0
               return (
-                <div key={c.key} className={styles.counterRow}>
-                  <div className={styles.counterInfo}>
-                    <span className={styles.counterLabel}>{t(c.label)}</span>
-                    <span className={styles.counterDesc}>{t(c.desc)}</span>
+                <div key={cat} className={styles.card} style={{ borderLeftColor: info.color }}>
+                  <div className={styles.cardTop}>
+                    <span className={styles.catLabel}>{t(info.label)}</span>
+                    <span className={styles.total}>
+                      <span className={styles.totalValue}>{formatHm(summary.totals[cat] ?? 0, locale)}</span>
+                      <span className={styles.unit}>{t('sa:dk')}</span>
+                    </span>
                   </div>
-                  <div className={styles.counterHours}>
-                    <span className={styles.counterHoursValue}>{c.hours.toLocaleString(locale)}</span>
-                    <span className={styles.counterHoursUnit}>{t('saat')}</span>
+
+                  <div className={styles.statRow}>
+                    <span className={styles.statItem}>
+                      {t('BUGÜN')} <b>{formatHm(summary.today[cat] ?? 0, locale)}</b>
+                    </span>
+                    <span className={styles.statItem}>
+                      {t('SON {n} GÜN', { n: summary.days })} <b>{formatHm(range, locale)}</b>
+                    </span>
+                    <span className={styles.pct}>%{pct.toFixed(pct > 0 && pct < 10 ? 1 : 0)}</span>
                   </div>
-                  <div className={styles.serviceCol}>
-                    <div className={styles.serviceLabel}>{t('SONRAKI BAKIM')}</div>
-                    <div className={styles.progressWrap}>
-                      <div
-                        className={`${styles.progressFill} ${isLow ? styles.progressLow : ''}`}
-                        style={{ width: `${100 - pct}%` }}
-                      />
-                    </div>
-                    <div className={`${styles.serviceRemaining} ${isLow ? styles.textLow : ''}`}>
-                      {t('{n} saat kaldı', { n: remaining })}
-                    </div>
+
+                  <div className={styles.barWrap} aria-hidden>
+                    <div className={styles.barFill} style={{ width: `${pct}%`, background: info.color }} />
                   </div>
+
+                  <div className={styles.desc}>{t(info.desc)}</div>
                 </div>
               )
             })}
-          </div>
-        </div>
-
-        <p className={styles.note}>
-          {t("Saat sayaçları makine açıldığı ilk andan itibaren, PLC tick counter'ından okunur. Bakım geri sayımı sıfırlanmadan geçen saatler kümülatif tutulur.")}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function BigStat({
-  label, value, unit, color, small = false,
-}: { label: string; value: string; unit?: string; color: string; small?: boolean }) {
-  return (
-    <div className={styles.bigStat}>
-      <span className={styles.bigStatLabel}>{label}</span>
-      <div className={styles.bigStatValueRow}>
-        <span
-          className={styles.bigStatValue}
-          style={{ color, fontSize: small ? '20px' : '32px' }}
-        >
-          {value}
-        </span>
-        {unit && <span className={styles.bigStatUnit}>{unit}</span>}
+          </>
+        )}
       </div>
     </div>
   )

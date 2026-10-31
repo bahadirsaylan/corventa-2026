@@ -29,7 +29,6 @@ import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountR
 import LanguagePage from '@/pages/LanguagePage/LanguagePage'
 import CertificateQueryPage from '@/pages/CertificateQueryPage/CertificateQueryPage'
 import CustomerChangePage from '@/pages/CustomerChangePage/CustomerChangePage'
-import MachineTransferPage from '@/pages/MachineTransferPage/MachineTransferPage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
 import ManualModeSelectPage from '@/pages/ManualModeSelectPage/ManualModeSelectPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
@@ -105,7 +104,8 @@ export default function App() {
             <Route path="settings/language" element={<LanguagePage />} />
             <Route path="settings/certificate" element={<CertificateQueryPage />} />
             <Route path="settings/customer-change" element={<CustomerChangePage />} />
-            <Route path="settings/machine-transfer" element={<MachineTransferPage />} />
+            {/* Satış / takas / hibe artık müşteri değişikliğinin içinde (neden seçimi) — eski rota yönlendirilir */}
+            <Route path="settings/machine-transfer" element={<Navigate to="/settings/customer-change" replace />} />
             <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />

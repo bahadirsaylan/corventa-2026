@@ -11,6 +11,13 @@ export interface MachineIdentity {
   warrantyEndDate: string
   /** 'SATIS' | 'TAKAS' | 'HIBE' */
   ownershipType: string
+  // Müşteri iletişim bilgileri — yalnızca OTP onaylı müşteri değişikliği ile yazılır
+  // (PUT /api/machine-identity bunlara dokunmaz). Eski DataApi'de alan yok → opsiyonel.
+  customerCompany?: string | null
+  customerTaxNo?: string | null
+  customerPhone?: string | null
+  customerEmail?: string | null
+  customerAddress?: string | null
   createdAt: string
   updatedAt: string
 }

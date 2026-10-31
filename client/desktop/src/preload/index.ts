@@ -7,6 +7,7 @@ import { machineApi } from './api/machine'
 import { serviceApi } from './api/service'
 import { settingsApi } from './api/settings'
 import { systemApi } from './api/system'
+import { usageApi } from './api/usage'
 
 if (process.contextIsolated) {
   try {
@@ -20,6 +21,7 @@ if (process.contextIsolated) {
       service: serviceApi,
       settings: settingsApi,
       system: systemApi,
+      usage: usageApi,
     })
   } catch (error) {
     console.error('preload: contextBridge.exposeInMainWorld failed', error)

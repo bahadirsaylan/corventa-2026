@@ -82,6 +82,16 @@ export const IpcInvoke = {
   SettingsGetAllStages: 'settings:get-all-stages',
   SettingsCreateStage: 'settings:create-stage',
 
+  // DataApi — Sertifika sorgulama
+  CertificateGetByCode: 'certificate:get-by-code',
+
+  // DataApi — Müşteri değişikliği (satış / takas / hibe, e-posta OTP onaylı)
+  CustomerChangeRequest: 'customer-change:request',
+  CustomerChangeConfirm: 'customer-change:confirm',
+
+  // DataApi — Kullanım süreleri (usage-time)
+  UsageGetSummary: 'usage:get-summary',
+
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',

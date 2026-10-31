@@ -10,22 +10,27 @@ interface SessionStore {
   username: string | null
   /** Girişten hemen sonra karşılama mesajı gösterilecek mi (gösterilince kapanır) */
   showWelcome: boolean
+  /** Girişten sonra (karşılama mesajı kapanınca) bakım uyarı penceresi bir kez gösterilecek mi */
+  showMaintenanceAlert: boolean
   setUsername: (username: string | null) => void
   dismissWelcome: () => void
+  dismissMaintenanceAlert: () => void
   clear: () => void
 }
 
 export const useSessionStore = create<SessionStore>((set) => ({
   username: null,
   showWelcome: false,
+  showMaintenanceAlert: false,
   setUsername: (username) => set({ username: username?.trim() || null }),
   dismissWelcome: () => set({ showWelcome: false }),
-  clear: () => set({ username: null, showWelcome: false }),
+  dismissMaintenanceAlert: () => set({ showMaintenanceAlert: false }),
+  clear: () => set({ username: null, showWelcome: false, showMaintenanceAlert: false }),
 }))
 
-/** Giriş başarılı — kullanıcıyı yaz ve karşılama mesajını bir kez göster. */
+/** Giriş başarılı — kullanıcıyı yaz, karşılama mesajını ve (varsa) bakım uyarısını bir kez göster. */
 export function startSession(username: string): void {
-  useSessionStore.setState({ username: username.trim() || null, showWelcome: true })
+  useSessionStore.setState({ username: username.trim() || null, showWelcome: true, showMaintenanceAlert: true })
 }
 
 /** Kullanıcı adı → DataApi anahtarı (a-z 0-9 . _ -, en fazla 64). Boşsa "varsayilan". */
