@@ -8,9 +8,11 @@ import SideMenu from '@/components/SideMenu/SideMenu'
 import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
 import MaintenanceAlertOverlay from '@/components/MaintenanceAlertOverlay/MaintenanceAlertOverlay'
 import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/MaintenanceModeScreen'
+import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/MaintenanceReminderOverlay'
 import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
+import type { UnloadJobOutcome } from '@/pages/UnloadPage/UnloadPage'
 import styles from './AppLayout.module.css'
 
 // Bitiş kontrolü (getJob) tekrar denemesi — DataApi anlık ulaşılamaz / henüz Running görünüyorsa
@@ -29,14 +31,16 @@ export default function AppLayout() {
   const navigate = useNavigate()
   const t = useT()
 
-  // Tahliye ekranı (SEKIL-18): otomatik / yarı oto job Completed bitince açılır.
+  // Tahliye ekranı (SEKIL-18): otomatik / yarı oto job BİTİNCE açılır — Completed, Failed VE Cancelled
+  // (kullanıcı kararı 2026-11-01: hatalı / durdurulmuş bitse bile parçanın çıkarılması gerekiyor).
+  // Sonuç navigate state.jobOutcome ile taşınır; UnloadPage başlığı/rengi buna göre değişir.
   // Bitiş progress mesajından DEĞİL, DataApi'deki job durumundan okunur (backend'in son mesajı
   // metoda göre değişiyor: "Geri esneme düzeltmesi başlıyor...", "BUKUM TAMAMLANDI (...)", "Serpantin
   // tamamlandı"…). İzlenen job Running'den çıkınca (runningJobId değişti) veya monitör kapanınca
   // (aktif → pasif) GET /api/bending-jobs/{id}: Status = Completed ise açılır. errorMessage doluysa
   // (ör. geri esneme düzeltmesi maks. iterasyonda yakınsamadı — büküm bitti, parça hâlâ sıkılı) ekran
   // yine açılır ve mesaj uyarı olarak gösterilir (navigate state.jobWarning).
-  // Failed / Cancelled'da açılmaz. getJob hata verirse veya job hâlâ Running görünürse (DataApi gecikmesi)
+  // (Eski davranış: Failed / Cancelled'da açılmazdı — artık açılır.) getJob hata verirse veya job hâlâ Running görünürse (DataApi gecikmesi)
   // kısa aralıkla birkaç kez tekrar bakılır; sonra bir sonraki değişimde. Aynı job için bir kez açılır.
   // Manuel programlar DataApi job'u yaratmaz → manuel bükümde bu ekran açılmaz (eski davranış).
   const runningJobId = useBendingActivityStore((s) => s.runningJobId)
@@ -65,7 +69,24 @@ export default function AppLayout() {
           if (status === BendingJobStatus.Running || status === 'Running') return retry() // henüz bitmedi / gecikme
           handledJobId.current = jobId // son durum (Completed / Failed / Cancelled) — bir daha bakma
           const completed = status === BendingJobStatus.Completed || status === 'Completed'
-          if (completed) navigate('/bending/unload', job.errorMessage ? { state: { jobWarning: job.errorMessage } } : undefined)
+          const failed = status === BendingJobStatus.Failed || status === 'Failed'
+          const cancelled = status === BendingJobStatus.Cancelled || status === 'Cancelled'
+          if (!completed && !failed && !cancelled) return // Created/Ready vb. — bitmiş iş değil
+          const jobOutcome: UnloadJobOutcome = completed
+            ? job.errorMessage
+              ? 'warning'
+              : 'completed'
+            : failed
+              ? 'failed'
+              : 'cancelled'
+          navigate('/bending/unload', {
+            state: {
+              jobOutcome,
+              // Geriye uyum: Completed + errorMessage eski 'jobWarning' anahtarıyla da gider
+              ...(completed && job.errorMessage ? { jobWarning: job.errorMessage } : {}),
+              ...(job.errorMessage ? { jobMessage: job.errorMessage } : {}),
+            },
+          })
         })
         .catch(() => {
           // DataApi'ye anlık ulaşılamadı — birkaç kez tekrar; yine olmazsa ekran açılmaz (manuel tuşlarla alınır)
@@ -130,6 +151,10 @@ export default function AppLayout() {
 
       {/* Karşılama mesajı kapandıktan sonra bir kez: vadesi geçen bakım varsa kademe renkli uyarı */}
       <MaintenanceAlertOverlay />
+
+      {/* Bakım modu uzun süre açık kalınca DEVAM EDİYOR MUSUNUZ? hatırlatması (otomatik kapanma geri sayımı)
+          + backend modu otomatik kapattıysa bir kez bilgi. Tüm ekranın üstünde. */}
+      <MaintenanceReminderOverlay />
     </div>
   )
 }

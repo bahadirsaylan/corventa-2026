@@ -18,6 +18,7 @@ import { EventEmitter } from 'node:events'
 
 import { app, type BrowserWindow } from 'electron'
 
+import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -483,7 +484,8 @@ export class DemoMachine extends EventEmitter {
     this.activeJobId = job.id
     this.progress = null
     // Parça makinede — temas sensörü aktif (bitince operatör alır → pasif)
-    if (!this.partSensor) this.togglePartSensor()
+    // Elle konumlandırmada sensör arızalı kabul edilir → açılmaz
+    if (!this.partSensor && !job.manualPlacement) this.togglePartSensor()
     try {
       if (job.method === 1) await this.runArc(job, st, token)
       else await this.runCircle(job, st, token)
@@ -522,9 +524,9 @@ export class DemoMachine extends EventEmitter {
    * ClampPartCircularHandler: parça sensörü beklenir → üst top %30 ile basınç modunda iner
    * (DB pozisyon hedefi 488−220−10.5−A+0.1 üst strok 161'i aştığı için basınç moduna düşer).
    */
-  private async clampCircle(jobId: number, total: number, token: number): Promise<void> {
-    this.setProgress(jobId, 0, total, 'Parça sıkıştırılıyor...')
-    await this.waitUntil(() => this.partSensor, token)
+  private async clampCircle(jobId: number, total: number, token: number, manual = false): Promise<void> {
+    this.setProgress(jobId, 0, total, manual ? 'Parça sıkıştırılıyor (ELLE KONUMLANDIRMA — sensörsüz)...' : 'Parça sıkıştırılıyor...')
+    if (!manual) await this.waitUntil(() => this.partSensor, token)
     await this.movePistons({ upperPiston: CLAMP_UPPER_MM }, token, 30)
     this.pressureHold = CLAMP_PRESSURE_BAR
     await this.sleep(1200, token)
@@ -534,15 +536,20 @@ export class DemoMachine extends EventEmitter {
    * ZeroPartCircularHandler: (1) %80 sensörden uzaklaş → sensör kapanır, (2) %10 geri yaklaş →
    * sensör açılır, (3) %50 ile (ResetDistance − Safety) uzaklaş, (4) rotasyon enkoderi = 0.
    */
-  private async zeroCircle(jobId: number, total: number, safety: number, token: number): Promise<void> {
-    this.setProgress(jobId, 0, total, 'Parça sıfırlanıyor...')
-    const p0 = this.state.rotation.positionMm
-    await this.rotateTo(p0 + 140, token, 80)
-    if (this.partSensor) this.togglePartSensor()
-    await this.sleep(300, token)
-    await this.rotateTo(p0 + 12, token, 10)
-    if (!this.partSensor) this.togglePartSensor()
-    await this.sleep(300, token)
+  private async zeroCircle(jobId: number, total: number, safety: number, token: number, manual = false): Promise<void> {
+    this.setProgress(jobId, 0, total, manual ? 'Parça sıfırlanıyor (ELLE KONUMLANDIRMA — sensör araması yok)...' : 'Parça sıfırlanıyor...')
+    if (!manual) {
+      const p0 = this.state.rotation.positionMm
+      await this.rotateTo(p0 + 140, token, 80)
+      if (this.partSensor) this.togglePartSensor()
+      await this.sleep(300, token)
+      await this.rotateTo(p0 + 12, token, 10)
+      if (!this.partSensor) this.togglePartSensor()
+      await this.sleep(300, token)
+    } else {
+      // Elle konumlandırma: mevcut konum = sensör tetik anı; doğrudan başlangıç pozisyonuna gidilir
+      await this.sleep(100, token)
+    }
     // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
     if (this.partSensor) this.togglePartSensor()
     await this.rotateTo(this.state.rotation.positionMm + (ZERO_RESET_MM - safety), token, 50)
@@ -615,8 +622,8 @@ export class DemoMachine extends EventEmitter {
     }
 
     this.setProgress(job.id, 0, total, 'Büküm başlıyor...')
-    await this.clampCircle(job.id, total, token)
-    await this.zeroCircle(job.id, total, safety, token)
+    await this.clampCircle(job.id, total, token, !!job.manualPlacement)
+    await this.zeroCircle(job.id, total, safety, token, !!job.manualPlacement)
 
     // ── PASO 1 (ADAPTİF) ──
     let active: PistonKey = 'leftPiston' // ActiveSensorSide = Left → ilk aktif sol
@@ -804,20 +811,25 @@ export class DemoMachine extends EventEmitter {
 
     // ── Sıkıştır ──
     this.setProgress(job.id, 0, approx, 'Parça sıkıştırılıyor...', { completedSegmentOrder: 0, totalSegmentCount: P })
-    await this.waitUntil(() => this.partSensor, token)
+    if (!job.manualPlacement) await this.waitUntil(() => this.partSensor, token)
     await this.movePistons({ upperPiston: CLAMP_UPPER_MM }, token, 30)
     this.pressureHold = CLAMP_PRESSURE_BAR
     await this.sleep(800, token)
 
     // ── Sıfırla (ZeroPartArc) ──
     this.setProgress(job.id, 0, approx, 'Parça sıfırlanıyor...', { completedSegmentOrder: 0, totalSegmentCount: P })
-    const p0 = this.state.rotation.positionMm
-    await this.rotateTo(p0 + 140, token, 80)
-    if (this.partSensor) this.togglePartSensor()
-    await this.sleep(200, token)
-    await this.rotateTo(p0 + 12, token, 10)
-    if (!this.partSensor) this.togglePartSensor()
-    await this.sleep(200, token)
+    if (!job.manualPlacement) {
+      const p0 = this.state.rotation.positionMm
+      await this.rotateTo(p0 + 140, token, 80)
+      if (this.partSensor) this.togglePartSensor()
+      await this.sleep(200, token)
+      await this.rotateTo(p0 + 12, token, 10)
+      if (!this.partSensor) this.togglePartSensor()
+      await this.sleep(200, token)
+    } else {
+      // Elle konumlandırma: sensör araması yok — mevcut konum referans
+      await this.sleep(100, token)
+    }
     const L1 = plans[0]?.seg.straightAfterMm ?? 0
     const startPos = ZERO_RESET_MM - safety - Math.max(0, L1 - safety)
     // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
@@ -1146,6 +1158,18 @@ export class DemoMachine extends EventEmitter {
       const job = this.jobs.get(Number(m[1]))
       if (!job) return { success: false, error: 'Job bulunamadı' }
       job.skipAutoCorrect = u.searchParams.get('skipAutoCorrect') === 'true'
+      // ELLE KONUMLANDIRMA (sensörsüz) — gerçek BendingJobController.StartJob ile aynı doğrulama
+      const manualPlacement = u.searchParams.get('manualPlacement') === 'true'
+      if (manualPlacement) {
+        const side = u.searchParams.get('manualPlacementSide')
+        const jobSide = String(job.activeSensorSide ?? 'Left')
+        let err: string | null = null
+        if (side !== 'Left' && side !== 'Right') err = "Elle konumlandırmada manualPlacementSide 'Left' veya 'Right' olmalı"
+        else if (side.toLowerCase() !== jobSide.toLowerCase())
+          err = `Elle konumlandırma tarafı (${side}) job tarafı (${jobSide}) ile aynı olmalı`
+        if (err) throw new HttpError(400, rawUrl, err, { success: false, error: err })
+      }
+      job.manualPlacement = manualPlacement
       if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3)
         return { success: false, error: 'Zaten çalışan bir büküm var' }
       void this.runJob(job)
@@ -1275,6 +1299,10 @@ export class DemoMachine extends EventEmitter {
     if (path.startsWith('/api/maintenance')) {
       return demoMaintenance(rawUrl, path, method, u, b)
     }
+    // Rol sistemi — giriş / kullanıcı yönetimi (demoAuth.ts; operator|admin|super, şifre 1234)
+    if (path.startsWith('/api/auth/') || path === '/api/users' || path.startsWith('/api/users/')) {
+      return demoAuth(rawUrl, path, method, b)
+    }
     if (/^\/api\/service\/(tickets|requests|reports)$/.test(path) && method === 'GET') return []
 
     log.warn('DEMO: karşılanmayan istek', { method, path })
@@ -1337,18 +1365,87 @@ const DEMO_MAINTENANCE_FIELDS: Record<string, 'lastDailyAt' | 'lastWeeklyAt' | '
   'twelve-monthly': 'last12MonthlyAt',
 }
 
+// Bakım modu kuralları (DataApi MaintenanceModeService ile aynı sözleşme): min süre / hatırlatma / otomatik kapanma.
+// DEMO: değerler bilerek KISA — sunumda "X DK SONRA" düğmesi, DEVAM EDİYOR MUSUNUZ? hatırlatması ve
+// otomatik kapanma birkaç dakikada görülebilsin (gerçek varsayılanlar: 10/30/60/120/240 dk, hatırlatma 180 dk,
+// otomatik kapanma 15 dk). Admin Ayarları'ndan kayıtta backend aralıkları geçerli (hatırlatma ≥ 15 dk).
+const demoMaintenanceRules: { periodKey: string; minDurationMinutes: number }[] = [
+  { periodKey: 'daily', minDurationMinutes: 1 },
+  { periodKey: 'weekly', minDurationMinutes: 2 },
+  { periodKey: 'monthly', minDurationMinutes: 3 },
+  { periodKey: 'six-monthly', minDurationMinutes: 5 },
+  { periodKey: 'twelve-monthly', minDurationMinutes: 10 },
+]
+const demoMaintenanceTiming = { reminderAfterMinutes: 3, autoCloseAfterMinutes: 2 }
+const demoMaintenanceMode = {
+  startedAt: null as number | null,
+  reminderDueAt: null as number | null,
+  lastAutoClosedAt: null as string | null,
+}
+
+function demoMaintenanceSetMode(on: boolean): void {
+  const st = demoMaintenanceState
+  const now = Date.now()
+  if (on && !st.isInMaintenanceMode) {
+    st.isInMaintenanceMode = true
+    demoMaintenanceMode.startedAt = now
+    demoMaintenanceMode.reminderDueAt = now + demoMaintenanceTiming.reminderAfterMinutes * 60_000
+  } else if (!on && st.isInMaintenanceMode) {
+    st.isInMaintenanceMode = false
+    demoMaintenanceMode.startedAt = null
+    demoMaintenanceMode.reminderDueAt = null
+  }
+  st.updatedAt = new Date(now).toISOString()
+}
+
+/** Süre dolmuşsa otomatik kapat (backend lazy kontrolü gibi) */
+function demoMaintenanceEnforce(): void {
+  const m = demoMaintenanceMode
+  if (!demoMaintenanceState.isInMaintenanceMode || m.reminderDueAt == null) return
+  if (Date.now() >= m.reminderDueAt + demoMaintenanceTiming.autoCloseAfterMinutes * 60_000) {
+    demoMaintenanceSetMode(false)
+    m.lastAutoClosedAt = new Date().toISOString()
+  }
+}
+
+function demoMaintenanceView(): Record<string, unknown> {
+  const m = demoMaintenanceMode
+  const now = Date.now()
+  const open = demoMaintenanceState.isInMaintenanceMode && m.startedAt != null && m.reminderDueAt != null
+  const iso = (ms: number | null) => (ms == null ? null : new Date(ms).toISOString())
+  return {
+    ...demoMaintenanceState,
+    modeStartedAt: open ? iso(m.startedAt) : null,
+    elapsedMinutes: open ? Math.max(0, Math.floor((now - m.startedAt!) / 60_000)) : null,
+    reminderDueAt: open ? iso(m.reminderDueAt) : null,
+    reminderActive: open ? now >= m.reminderDueAt! : false,
+    autoCloseAt: open ? iso(m.reminderDueAt! + demoMaintenanceTiming.autoCloseAfterMinutes * 60_000) : null,
+    lastAutoClosedAt: m.lastAutoClosedAt,
+    reminderAfterMinutes: demoMaintenanceTiming.reminderAfterMinutes,
+    autoCloseAfterMinutes: demoMaintenanceTiming.autoCloseAfterMinutes,
+    rules: demoMaintenanceRules.map((r) => ({ ...r })),
+  }
+}
+
+function demoMaintenanceRulesView(): Record<string, unknown> {
+  return { rules: demoMaintenanceRules.map((r) => ({ ...r })), ...demoMaintenanceTiming }
+}
+
 function demoMaintenance(rawUrl: string, path: string, method: string, u: URL, b: Record<string, unknown>): unknown {
   const st = demoMaintenanceState
   const now = new Date().toISOString()
-  if (path === '/api/maintenance' && method === 'GET') return { ...st }
+  demoMaintenanceEnforce()
+  if (path === '/api/maintenance' && method === 'GET') return demoMaintenanceView()
   if (path === '/api/maintenance' && method === 'PUT') {
+    // Elle düzeltme (min süre kuralını atlar) — gerçek DataApi gibi SUPERADMIN'e kilitli (401/403)
+    demoRequireRole(rawUrl, 'SUPERADMIN')
     for (const f of Object.values(DEMO_MAINTENANCE_FIELDS)) {
       const v = b[f]
       st[f] = typeof v === 'string' && v ? v : null
     }
-    st.isInMaintenanceMode = b.isInMaintenanceMode === true
+    demoMaintenanceSetMode(b.isInMaintenanceMode === true)
     st.updatedAt = now
-    return { ...st }
+    return demoMaintenanceView()
   }
   if (path === '/api/maintenance/mark-completed' && method === 'POST') {
     const period = (u.searchParams.get('period') ?? '').trim().toLowerCase()
@@ -1357,14 +1454,62 @@ function demoMaintenance(rawUrl: string, path: string, method: string, u: URL, b
     if (!field) {
       demoFail(400, rawUrl, `Geçersiz periyot '${period}'. Beklenen: daily|weekly|monthly|six-monthly|twelve-monthly`)
     }
+    const startedAt = demoMaintenanceMode.startedAt
+    if (!st.isInMaintenanceMode || startedAt == null) {
+      demoFail(409, rawUrl, 'Bakım tamamlandı demek için önce bakım modunu açın')
+    }
+    const minMinutes = demoMaintenanceRules.find((r) => r.periodKey === period)?.minDurationMinutes ?? 0
+    const elapsedMin = (Date.now() - startedAt) / 60_000
+    if (elapsedMin < minMinutes) {
+      const remaining = Math.ceil(minMinutes - elapsedMin)
+      demoFail(409, rawUrl, `Minimum bakım süresi dolmadı — ${remaining} dk kaldı`, { remainingMinutes: remaining })
+    }
     st[field] = now
     st.updatedAt = now
-    return { ...st }
+    return demoMaintenanceView()
   }
   if (path === '/api/maintenance/mode' && method === 'POST') {
-    st.isInMaintenanceMode = u.searchParams.get('on') === 'true'
+    demoMaintenanceSetMode(u.searchParams.get('on') === 'true')
+    return demoMaintenanceView()
+  }
+  if (path === '/api/maintenance/continue' && method === 'POST') {
+    if (!st.isInMaintenanceMode) demoFail(409, rawUrl, 'Bakım modu açık değil')
+    demoMaintenanceMode.reminderDueAt = Date.now() + demoMaintenanceTiming.reminderAfterMinutes * 60_000
     st.updatedAt = now
-    return { ...st }
+    return demoMaintenanceView()
+  }
+  if (path === '/api/maintenance/rules' && method === 'GET') return demoMaintenanceRulesView()
+  if (path === '/api/maintenance/rules' && method === 'PUT') {
+    // ADMIN+ — Bearer başlığı interceptor'a gelmiyor; demoAuth main'deki oturum token'ından doğrular (401/403)
+    demoRequireRole(rawUrl, 'ADMIN')
+    const rules = Array.isArray(b.rules) ? (b.rules as Record<string, unknown>[]) : []
+    const updates: { periodKey: string; minDurationMinutes: number }[] = []
+    for (const r of rules) {
+      const key = String(r.periodKey ?? '').trim().toLowerCase()
+      if (!demoMaintenanceRules.some((x) => x.periodKey === key)) {
+        demoFail(400, rawUrl, `Geçersiz periodKey '${String(r.periodKey)}'. Beklenen: daily|weekly|monthly|six-monthly|twelve-monthly`)
+      }
+      const min = Number(r.minDurationMinutes)
+      if (!Number.isInteger(min) || min < 1 || min > 1440) {
+        demoFail(400, rawUrl, `${key} minimum süresi 1..1440 dk olmalı (gelen ${String(r.minDurationMinutes)})`)
+      }
+      updates.push({ periodKey: key, minDurationMinutes: min })
+    }
+    const rem = b.reminderAfterMinutes
+    if (rem != null && (!Number.isInteger(rem) || (rem as number) < 15 || (rem as number) > 1440)) {
+      demoFail(400, rawUrl, `reminderAfterMinutes 15..1440 olmalı (gelen ${String(rem)})`)
+    }
+    const ac = b.autoCloseAfterMinutes
+    if (ac != null && (!Number.isInteger(ac) || (ac as number) < 1 || (ac as number) > 120)) {
+      demoFail(400, rawUrl, `autoCloseAfterMinutes 1..120 olmalı (gelen ${String(ac)})`)
+    }
+    for (const up of updates) {
+      const r = demoMaintenanceRules.find((x) => x.periodKey === up.periodKey)
+      if (r) r.minDurationMinutes = up.minDurationMinutes
+    }
+    if (rem != null) demoMaintenanceTiming.reminderAfterMinutes = rem as number
+    if (ac != null) demoMaintenanceTiming.autoCloseAfterMinutes = ac as number
+    return demoMaintenanceRulesView()
   }
   return demoFail(404, rawUrl, 'Demo modunda desteklenmiyor')
 }

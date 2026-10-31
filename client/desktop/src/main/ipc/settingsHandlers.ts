@@ -20,6 +20,7 @@ import {
   type StageInfo,
   type MachineIdentity,
   type MaintenancePeriodKey,
+  type MaintenanceRulesConfig,
 } from '@shared'
 
 const log = childLogger('ipc:settings')
@@ -186,6 +187,29 @@ export function registerSettingsHandlers(): void {
     async (_evt, on: boolean) => {
       log.info('set-maintenance-mode', { on })
       return dataApi.setMaintenanceMode(on)
+    },
+  )
+
+  // Bakım modu hatırlatması — DEVAM ET (409 mod kapalı → hata fırlatılır, renderer mesajı gösterir)
+  ipcMain.handle(Ipc.IpcInvoke.SettingsContinueMaintenance, async () => {
+    log.info('continue-maintenance-mode')
+    return dataApi.continueMaintenanceMode()
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SettingsGetMaintenanceRules, async () => {
+    return dataApi.getMaintenanceRules()
+  })
+
+  // ADMIN+ — Bearer'ı http başlık sağlayıcısı (authSession) ekler; 401/403/400 hata olarak fırlar
+  ipcMain.handle(
+    Ipc.IpcInvoke.SettingsUpdateMaintenanceRules,
+    async (_evt, body: Partial<MaintenanceRulesConfig>) => {
+      log.info('update-maintenance-rules', {
+        rules: body.rules?.length ?? 0,
+        reminderAfterMinutes: body.reminderAfterMinutes,
+        autoCloseAfterMinutes: body.autoCloseAfterMinutes,
+      })
+      return dataApi.updateMaintenanceRules(body)
     },
   )
 }

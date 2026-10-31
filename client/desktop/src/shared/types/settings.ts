@@ -32,7 +32,46 @@ export interface MaintenanceState {
   isInMaintenanceMode: boolean
   createdAt: string
   updatedAt: string
+  // ── Bakım modu kuralları (DataApi MaintenanceModeService, 2026-11-01) ──
+  // Eski DataApi bu alanları göndermez → hepsi opsiyonel; yoksa UI eski davranışa düşer.
+  // Zaman alanları UTC ('Z' ile) ISO 8601.
+  /** Bakım modunun açıldığı an (mod kapalıysa null) */
+  modeStartedAt?: string | null
+  /** Mod açıkken geçen tam dakika (kapalıysa null) */
+  elapsedMinutes?: number | null
+  /** Hatırlatma penceresinin açılacağı an (DEVAM ET ile ileri atılır) */
+  reminderDueAt?: string | null
+  /** Hatırlatma şu an aktif mi (now ≥ reminderDueAt) */
+  reminderActive?: boolean
+  /** Cevap verilmezse modun otomatik kapanacağı an (reminderDueAt + autoCloseAfterMinutes) */
+  autoCloseAt?: string | null
+  /** En son otomatik kapanma anı (hiç olmadıysa null) */
+  lastAutoClosedAt?: string | null
+  reminderAfterMinutes?: number
+  autoCloseAfterMinutes?: number
+  /** Periyot başına minimum bakım süresi — bu süre dolmadan "tamamlandı" 409 döner */
+  rules?: MaintenanceRule[]
 }
+
+/** Periyodun minimum bakım süresi (DataApi MaintenanceRules tablosu) */
+export interface MaintenanceRule {
+  periodKey: MaintenancePeriodKey
+  minDurationMinutes: number
+}
+
+/** GET/PUT /api/maintenance/rules — PUT'ta alanlar opsiyonel (ADMIN+ Bearer) */
+export interface MaintenanceRulesConfig {
+  rules: MaintenanceRule[]
+  reminderAfterMinutes: number
+  autoCloseAfterMinutes: number
+}
+
+/** Backend aralıkları (MaintenanceController) — form sınırları bunlarla aynı */
+export const MAINTENANCE_RULE_LIMITS = {
+  minDuration: { min: 1, max: 1440 },
+  reminderAfter: { min: 15, max: 1440 },
+  autoCloseAfter: { min: 1, max: 120 },
+} as const
 
 export type MaintenancePeriodKey =
   | 'daily'

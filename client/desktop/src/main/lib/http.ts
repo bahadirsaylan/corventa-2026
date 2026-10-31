@@ -38,6 +38,14 @@ export function setHttpInterceptor(fn: HttpInterceptor | null): void {
   interceptor = fn
 }
 
+// Ek başlık sağlayıcı — rol sistemi (2026-11-01): oturum açıkken DataApi isteklerine
+// Authorization: Bearer <token> ekler (main/services/auth/authSession.ts kaydeder). Token renderer'a hiç gitmez.
+type HeaderProvider = (url: string) => Record<string, string> | undefined
+let headerProvider: HeaderProvider | null = null
+export function setRequestHeaderProvider(fn: HeaderProvider | null): void {
+  headerProvider = fn
+}
+
 async function request<T>(
   method: string,
   url: string,
@@ -57,6 +65,7 @@ async function request<T>(
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    ...headerProvider?.(url),
     ...opts.headers,
   }
   if (body !== undefined) headers['Content-Type'] = 'application/json'

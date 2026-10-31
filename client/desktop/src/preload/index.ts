@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
+import { authApi } from './api/auth'
 import { bendingApi } from './api/bending'
 import { eventsApi } from './api/events'
 import { machineApi } from './api/machine'
@@ -22,6 +23,7 @@ if (process.contextIsolated) {
       settings: settingsApi,
       system: systemApi,
       usage: usageApi,
+      auth: authApi,
     })
   } catch (error) {
     console.error('preload: contextBridge.exposeInMainWorld failed', error)

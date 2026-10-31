@@ -15,6 +15,7 @@ import {
   type MachineSettingsDto,
   type MaintenancePeriodKey,
   type MaintenanceState,
+  type MaintenanceRulesConfig,
   type StageInfo,
   type UserPreference,
 } from '@shared'
@@ -52,6 +53,16 @@ export const settingsApi = {
 
   setMaintenanceMode: (on: boolean): Promise<MaintenanceState> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsSetMaintenanceMode, on),
+
+  // Bakım modu hatırlatması — DEVAM ET (mod kapalıysa reject)
+  continueMaintenanceMode: (): Promise<MaintenanceState> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsContinueMaintenance),
+
+  // Bakım kuralları — okuma serbest, kayıt ADMIN+ (token main'de eklenir; 401/403/400 reject)
+  getMaintenanceRules: (): Promise<MaintenanceRulesConfig> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsGetMaintenanceRules),
+  updateMaintenanceRules: (body: Partial<MaintenanceRulesConfig>): Promise<MaintenanceRulesConfig> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsUpdateMaintenanceRules, body),
 
   // Kullanıcı tercihleri — kayıt yoksa null
   getUserPreference: (userKey: string, prefKey: string): Promise<UserPreference | null> =>

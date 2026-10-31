@@ -87,3 +87,9 @@
   color: var(--color-text);
   letter-spacing: 0.04em;
 }
+
+/* ── Aktif kullanıcı + rol rozeti ── */
+.userRow {
+  margin-top: 8px;
+  display: flex;
+}

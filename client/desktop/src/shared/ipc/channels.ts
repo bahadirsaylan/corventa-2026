@@ -70,6 +70,10 @@ export const IpcInvoke = {
   SettingsGetMaintenance: 'settings:get-maintenance',
   SettingsMarkMaintenanceCompleted: 'settings:mark-maintenance-completed',
   SettingsSetMaintenanceMode: 'settings:set-maintenance-mode',
+  // Bakım modu kuralları — hatırlatmada DEVAM ET + min süre / hatırlatma / otomatik kapanma (PUT ADMIN+)
+  SettingsContinueMaintenance: 'settings:continue-maintenance',
+  SettingsGetMaintenanceRules: 'settings:get-maintenance-rules',
+  SettingsUpdateMaintenanceRules: 'settings:update-maintenance-rules',
   SettingsGetUserPreference: 'settings:get-user-preference',
   SettingsPutUserPreference: 'settings:put-user-preference',
   SettingsGetStages: 'settings:get-stages',
@@ -91,6 +95,17 @@ export const IpcInvoke = {
 
   // DataApi — Kullanım süreleri (usage-time)
   UsageGetSummary: 'usage:get-summary',
+
+  // DataApi — Rol sistemi (giriş / ilk kurulum / kullanıcı yönetimi). Token main süreçte kalır.
+  AuthGetSetupStatus: 'auth:get-setup-status',
+  AuthSetup: 'auth:setup',
+  AuthLogin: 'auth:login',
+  AuthLogout: 'auth:logout',
+  AuthGetCurrent: 'auth:get-current',
+  UsersList: 'users:list',
+  UsersCreate: 'users:create',
+  UsersUpdate: 'users:update',
+  UsersDeactivate: 'users:deactivate',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

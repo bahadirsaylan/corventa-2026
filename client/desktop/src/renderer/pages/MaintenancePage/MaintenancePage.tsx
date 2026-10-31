@@ -2,16 +2,21 @@
 // 5 periyot kartı (Günlük/Haftalık/Aylık/6 Aylık/12 Aylık) — her biri son yapılma tarihi ve
 // sonraki tarih gösterir; "Bakım tamamlandı" butonuyla now'a set edilir.
 // Ayrıca "Bakım Modu" (IsInMaintenanceMode) toggle — servis öncesi/sonrası aç/kapa.
+// BAKIM KURALLARI (2026-11-01): "BAKIM YAPILDI" sadece bakım modu açıkken ve periyodun minimum bakım
+// süresi dolduktan sonra kabul edilir (DataApi 409). Mod kapalıyken düğmeler soluk — basılınca
+// "önce bakım modunu açın" uyarısı (backend'e gidilmez); min süre dolmadan "{n} DK SONRA".
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MAINTENANCE_PERIODS, type MaintenancePeriodInfo } from '@shared/types'
+import { useMaintenanceModeTiming, useNowTick } from '@/hooks/useMaintenance'
 import {
   computeMaintenanceStatus,
   maintenanceTierTitle,
   type MaintenanceSeverity,
 } from '@/services/maintenanceStatus'
 import {
+  maintenanceErrorMessage,
   markMaintenancePeriodCompleted,
   refreshMaintenance,
   setMaintenanceModeOn,
@@ -54,6 +59,11 @@ export default function MaintenancePage() {
   const storeError = useMaintenanceStore((s) => s.error)
   const [loading, setLoading] = useState(true)
   const [pendingKey, setPendingKey] = useState<string | null>(null)  // hangi buton işleniyor
+  // İşlem sonucu / uyarı satırı (alert yerine) — 409 mesajları burada
+  const [notice, setNotice] = useState<{ kind: 'ok' | 'warn' | 'err'; text: string } | null>(null)
+  // Bakım modu açıkken kalan minimum süre için saniyelik sayaç
+  const now = useNowTick(state?.isInMaintenanceMode === true)
+  const timing = useMaintenanceModeTiming(now)
   // İlk yükleme hatası — state hiç gelmediyse gösterilir (sonraki 30 sn yenileme hataları son veriyi bozmaz)
   const error = !state ? storeError : null
 
@@ -63,13 +73,27 @@ export default function MaintenancePage() {
     return () => { cancelled = true }
   }, [])
 
+  useEffect(() => {
+    if (!notice) return
+    const id = setTimeout(() => setNotice(null), 8000)
+    return () => clearTimeout(id)
+  }, [notice])
+
   const handleMarkCompleted = async (info: MaintenancePeriodInfo) => {
-    if (pendingKey) return
+    if (pendingKey || !state) return
+    if (!state.isInMaintenanceMode) {
+      // Backend de 409 döner — istek atmadan uyar
+      setNotice({ kind: 'warn', text: t('BAKIM YAPILDI demek için önce BAKIM MODUNU açın.') })
+      return
+    }
     setPendingKey(info.key)
+    setNotice(null)
     try {
       await markMaintenancePeriodCompleted(info.key)
+      setNotice({ kind: 'ok', text: t('{period} BAKIM TAMAMLANDI OLARAK KAYDEDİLDİ', { period: t(info.label).toLocaleUpperCase(locale) }) })
     } catch (err) {
-      alert(t('Bakım işaretlenemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
+      // 409: mod kapalı / minimum bakım süresi dolmadı — backend mesajı aynen
+      setNotice({ kind: 'err', text: t('Bakım işaretlenemedi: {err}', { err: maintenanceErrorMessage(err) || t('bilinmeyen hata') }) })
     } finally {
       setPendingKey(null)
     }
@@ -78,10 +102,11 @@ export default function MaintenancePage() {
   const handleToggleMode = async () => {
     if (!state || pendingKey) return
     setPendingKey('mode')
+    setNotice(null)
     try {
       await setMaintenanceModeOn(!state.isInMaintenanceMode)
     } catch (err) {
-      alert(t('Bakım modu değiştirilemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
+      setNotice({ kind: 'err', text: t('Bakım modu değiştirilemedi: {err}', { err: maintenanceErrorMessage(err) || t('bilinmeyen hata') }) })
     } finally {
       setPendingKey(null)
     }
@@ -129,10 +154,25 @@ export default function MaintenancePage() {
               </button>
             </div>
 
+            {!state.isInMaintenanceMode && (
+              <div className={styles.notice} data-kind="warn">
+                {t('BAKIM YAPILDI işaretlemek için önce BAKIM MODUNU açın. Her bakımın minimum süresi bakım modu açıldıktan sonra dolmalıdır.')}
+              </div>
+            )}
+            {notice && (
+              <div className={styles.notice} data-kind={notice.kind}>
+                {notice.text}
+              </div>
+            )}
+
             {/* ── 5 periyot kartı ────────────────────── */}
             <div className={styles.periodGrid}>
               {MAINTENANCE_PERIODS.map((p) => {
                 const st = computeMaintenanceStatus(p, state)
+                const minMin = timing.minMinutes(p.key)
+                const remaining = timing.remainingMinutes(p.key)
+                // Soluk: mod kapalı veya minimum süre dolmadı (basılabilir — uyarı / backend mesajı gösterilir)
+                const blocked = !state.isInMaintenanceMode || (remaining != null && remaining > 0)
                 // Gecikmiş kart hafta kademesinin rengini alır (tier_reminder/warning/critical)
                 const sevClass = st.tier ? styles[`tier_${st.tier}`] : styles[`sev_${st.severity}`]
                 return (
@@ -167,14 +207,24 @@ export default function MaintenancePage() {
                         <span>{t('SONRAKİ:')}</span>
                         <b>{formatDateShort(st.nextAt, locale)}</b>
                       </div>
+                      {minMin != null && (
+                        <div className={styles.periodDateRow}>
+                          <span>{t('MİN. BAKIM SÜRESİ:')}</span>
+                          <b>{t('{n} DK', { n: minMin })}</b>
+                        </div>
+                      )}
                     </div>
 
                     <button
-                      className={styles.markBtn}
+                      className={`${styles.markBtn} ${blocked ? styles.markBtnBlocked : ''}`}
                       onClick={() => handleMarkCompleted(p)}
                       disabled={pendingKey !== null}
                     >
-                      {pendingKey === p.key ? t('İŞARETLENİYOR…') : `✓ ${t('BAKIM YAPILDI')}`}
+                      {pendingKey === p.key
+                        ? t('İŞARETLENİYOR…')
+                        : remaining != null && remaining > 0
+                          ? t('{n} DK SONRA', { n: remaining })
+                          : `✓ ${t('BAKIM YAPILDI')}`}
                     </button>
                   </div>
                 )

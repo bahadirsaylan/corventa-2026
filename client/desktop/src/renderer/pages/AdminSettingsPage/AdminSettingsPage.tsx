@@ -3,12 +3,15 @@
 //   • Makine ayarları (Bending API MachineSettings) — sekmelere bölünmüş bölümler
 //   • Gönye ofsetleri + 5 stage yuvası (aktif/pasif, ofset, XA1/YA1, maksimum profil A)
 //   • Cetvel sıfırlama (gönye alma) girişi — GÖNYE & STAGE sekmesinde; sayfa /settings/encoder-reset
+//   • BAKIM KURALLARI sekmesi (DataApi /api/maintenance/rules) — periyot min bakım süreleri, hatırlatma ve
+//     otomatik kapanma süresi. Kayıt ADMIN+ (token main'de eklenir; 401/403 hata satırında görünür).
+//     Okunamazsa (eski DataApi) sadece bu sekme hata gösterir, diğer ayarlar etkilenmez.
 // Kayıt: sadece DEĞİŞEN alanlar gönderilir (main güncel kaydı okuyup üstüne yazar) ve önce
 // "eski → yeni" listesiyle onay alınır. Büküm sürerken kayıt kapalıdır (backend ayarları yeniden yükler).
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { StageInfo } from '@shared/types'
+import type { MaintenancePeriodKey, MaintenanceRulesConfig, StageInfo } from '@shared/types'
 import {
   ConfirmChangesModal,
   SettingsPageShell,
@@ -21,10 +24,14 @@ import {
   type Values,
 } from '@/components/SettingsForm/SettingsForm'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { maintenanceErrorMessage, refreshMaintenance } from '@/stores/maintenanceStore'
 import { useT } from '@/i18n'
 import {
   GONYE_SECTION,
   MACHINE_FIELDS,
+  MAINTENANCE_RULE_KEY_PREFIX,
+  MAINTENANCE_RULES_FIELDS,
+  MAINTENANCE_RULES_SECTIONS,
   MACHINE_SECTIONS,
   STAGE_ACTIVE_FIELD,
   STAGE_FIELDS,
@@ -32,6 +39,9 @@ import {
 } from './settingsFields'
 
 const TAB_GONYE = 'GÖNYE & STAGE'
+const TAB_MAINT = 'BAKIM KURALLARI'
+/** Bakım kuralı değişikliklerinin Change.key öneki (makine ayarlarından ayırmak için) */
+const MAINT_CHANGE_PREFIX = 'maint.'
 const ALL_STAGE_FIELDS = [STAGE_ACTIVE_FIELD, ...STAGE_FIELDS]
 const FIXED_STAGES = 3
 const OFFSET_KEYS = ['leftOffsetMm', 'rightOffsetMm', 'lowerOffsetMm']
@@ -46,6 +56,30 @@ function stageToValues(rec: StageInfo | undefined): Values {
 }
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
+
+/** GET /api/maintenance/rules → form değerleri (rule.<periodKey> + zamanlama alanları) */
+function rulesToValues(cfg: MaintenanceRulesConfig): Values {
+  const v: Values = {
+    reminderAfterMinutes: cfg.reminderAfterMinutes,
+    autoCloseAfterMinutes: cfg.autoCloseAfterMinutes,
+  }
+  for (const r of cfg.rules) v[`${MAINTENANCE_RULE_KEY_PREFIX}${r.periodKey}`] = r.minDurationMinutes
+  return v
+}
+
+/** Değişen bakım kuralı alanları → PUT /api/maintenance/rules gövdesi (sadece değişenler) */
+function rulesPatchBody(patch: Record<string, SettingValue>): Partial<MaintenanceRulesConfig> {
+  const body: Partial<MaintenanceRulesConfig> = {}
+  const rules: MaintenanceRulesConfig['rules'] = []
+  for (const [k, v] of Object.entries(patch)) {
+    if (k.startsWith(MAINTENANCE_RULE_KEY_PREFIX)) {
+      rules.push({ periodKey: k.slice(MAINTENANCE_RULE_KEY_PREFIX.length) as MaintenancePeriodKey, minDurationMinutes: Number(v) })
+    } else if (k === 'reminderAfterMinutes') body.reminderAfterMinutes = Number(v)
+    else if (k === 'autoCloseAfterMinutes') body.autoCloseAfterMinutes = Number(v)
+  }
+  if (rules.length) body.rules = rules
+  return body
+}
 
 export default function AdminSettingsPage() {
   const navigate = useNavigate()
@@ -69,7 +103,7 @@ type StageVals = Record<number, Values>
 function AdminEditor() {
   const t = useT()
   const bendingActive = useBendingActive()
-  const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE]
+  const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE, TAB_MAINT]
   // Cetvel sıfırlama sayfasından geri dönüşte GÖNYE & STAGE sekmesi açık gelsin (navigate state.tab)
   const location = useLocation()
   const initialTab = (location.state as { tab?: string } | null)?.tab === 'gonye' ? TAB_GONYE : tabs[0]
@@ -84,15 +118,33 @@ function AdminEditor() {
   const [stages, setStages] = useState<StageInfo[]>([])
   const [stage0, setStage0] = useState<StageVals>({})
   const [stageVals, setStageVals] = useState<StageVals>({})
+  // Bakım kuralları — ayrı yüklenir; okunamazsa sadece BAKIM KURALLARI sekmesi hata gösterir
+  const [rules0, setRules0] = useState<Values>({})
+  const [rules, setRules] = useState<Values>({})
+  const [rulesError, setRulesError] = useState<string | null>(null)
 
   const [confirm, setConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
 
+  const loadRules = useCallback(async () => {
+    setRulesError(null)
+    try {
+      const v = rulesToValues(await window.corventa.settings.getMaintenanceRules())
+      setRules0(v)
+      setRules(v)
+    } catch (e) {
+      setRules0({})
+      setRules({})
+      setRulesError(maintenanceErrorMessage(e))
+    }
+  }, [])
+
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(null)
+    void loadRules()
     try {
       const [m, g, s] = await Promise.all([
         window.corventa.settings.getMachine(),
@@ -114,7 +166,7 @@ function AdminEditor() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [loadRules])
 
   useEffect(() => {
     void load()
@@ -128,13 +180,28 @@ function AdminEditor() {
       for (const c of diffValues(ALL_STAGE_FIELDS, stage0[n] ?? {}, stageVals[n] ?? {}, t))
         out.push({ ...c, key: `stage${n}.${c.key}`, label: `STAGE ${n} · ${c.label}` })
     }
+    for (const c of diffValues(MAINTENANCE_RULES_FIELDS, rules0, rules, t))
+      out.push({ ...c, key: `${MAINT_CHANGE_PREFIX}${c.key}`, label: `${t(TAB_MAINT)} · ${c.label}` })
     return out
-  }, [machine0, machine, gonye0, gonye, stages, stage0, stageVals, t])
+  }, [machine0, machine, gonye0, gonye, stages, stage0, stageVals, rules0, rules, t])
+
+  // Bakım kuralları büküm hesabını etkilemez → büküm sürerken de kaydedilebilir
+  const machineChangeCount = changes.filter((c) => !c.key.startsWith(MAINT_CHANGE_PREFIX)).length
 
   async function save() {
     setSaving(true)
     setSaveError(null)
+    // Bakım kuralları EN ÖNCE gider (tek yetki isteyen + aralık doğrulamalı çağrı). 401/403/400 dönerse
+    // henüz hiçbir şey kaydedilmemiştir → sayfa yeniden yüklenmez, operatörün tüm düzenlemeleri korunur.
+    let anySaved = false
     try {
+      const rp = patchOf(MAINTENANCE_RULES_FIELDS, rules0, rules)
+      if (Object.keys(rp).length) {
+        await window.corventa.settings.updateMaintenanceRules(rulesPatchBody(rp))
+        // Bakım ekranları yeni min süre / hatırlatma değerlerini hemen görsün
+        void refreshMaintenance()
+      }
+      anySaved = true // buradan sonrası kısmi kayıt olabilir → hata halinde sunucu durumunu yeniden yükle
       const mp = patchOf(MACHINE_FIELDS, machine0, machine)
       if (Object.keys(mp).length) await window.corventa.settings.updateMachine(mp)
       const gp = patchOf(GONYE_SECTION.fields, gonye0, gonye)
@@ -166,8 +233,9 @@ function AdminEditor() {
       setMessage(t('{n} ayar kaydedildi', { n: changes.length }))
       await load()
     } catch (e) {
-      setSaveError(errMsg(e))
-      await load().catch(() => undefined)
+      // 401 (oturum yok) / 403 (yetki yok) / 400 (aralık dışı) — backend mesajı
+      setSaveError(maintenanceErrorMessage(e) || errMsg(e))
+      if (anySaved) await load().catch(() => undefined)
     } finally {
       setSaving(false)
     }
@@ -177,6 +245,7 @@ function AdminEditor() {
     setMachine(machine0)
     setGonye(gonye0)
     setStageVals(stage0)
+    setRules(rules0)
     setMessage(null)
   }
 
@@ -224,6 +293,27 @@ function AdminEditor() {
       {group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}
+
+      {tab === TAB_MAINT && (
+        <>
+          {rulesError ? (
+            <div className={styles.card}>
+              <p className={styles.message} data-kind="err">
+                {t('Bakım kuralları okunamadı')}: {rulesError}
+              </p>
+              <div>
+                <button type="button" className={styles.resetBtn} onClick={() => void loadRules()}>
+                  {t('TEKRAR DENE')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            MAINTENANCE_RULES_SECTIONS.map((s) => (
+              <SettingsSection key={s.title} section={s} values={rules} original={rules0} onChange={set(setRules)} />
+            ))
+          )}
+        </>
+      )}
 
       {tab === TAB_GONYE && (
         <>
@@ -302,7 +392,7 @@ function AdminEditor() {
           <button
             type="button"
             className={styles.saveBtn}
-            disabled={!changes.length || bendingActive}
+            disabled={!changes.length || (bendingActive && machineChangeCount > 0)}
             onClick={() => {
               setSaveError(null)
               setConfirm(true)
@@ -318,7 +408,11 @@ function AdminEditor() {
           changes={changes}
           busy={saving}
           error={saveError}
-          warning="Bu değerler büküm hesabını ve makine hareketlerini doğrudan etkiler. Emin değilseniz VAZGEÇ'e basın."
+          warning={
+            machineChangeCount > 0
+              ? "Bu değerler büküm hesabını ve makine hareketlerini doğrudan etkiler. Emin değilseniz VAZGEÇ'e basın."
+              : 'Bakım kuralları tüm kullanıcılar için hemen geçerli olur.'
+          }
           onConfirm={() => void save()}
           onCancel={() => setConfirm(false)}
         />

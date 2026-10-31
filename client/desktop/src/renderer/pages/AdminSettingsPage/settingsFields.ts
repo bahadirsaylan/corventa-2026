@@ -186,3 +186,32 @@ export const STAGE_FIELDS: FieldDef[] = [
   { key: 'yA1Mm', label: 'YA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true },
   { key: 'maxProfileAMm', label: 'MAKSİMUM PROFİL A', unit: 'mm', min: 0, max: 1000, nullable: true, desc: 'Otomatik stage önerisi. Boş = öneride kullanılmaz.' },
 ]
+
+// ── Bakım kuralları (DataApi /api/maintenance/rules — kayıt ADMIN+) ──
+// Anahtarlar: periyot min süreleri `rule.<periodKey>` (MAINTENANCE_PERIODS anahtarları), zamanlama alanları
+// backend JSON adıyla aynı. Aralıklar MaintenanceController ile birebir (MAINTENANCE_RULE_LIMITS).
+export const MAINTENANCE_RULE_KEY_PREFIX = 'rule.'
+
+export const MAINTENANCE_RULES_SECTIONS: SectionDef[] = [
+  {
+    title: 'MİNİMUM BAKIM SÜRELERİ',
+    note: 'Bakım modu en az bu kadar açık kalmadan ilgili bakım TAMAMLANDI olarak işaretlenemez (modu açıp hemen kapatmayı önler).',
+    fields: [
+      { key: 'rule.daily', label: 'GÜNLÜK BAKIM', unit: 'dk', min: 1, max: 1440, integer: true },
+      { key: 'rule.weekly', label: 'HAFTALIK BAKIM', unit: 'dk', min: 1, max: 1440, integer: true },
+      { key: 'rule.monthly', label: 'AYLIK BAKIM', unit: 'dk', min: 1, max: 1440, integer: true },
+      { key: 'rule.six-monthly', label: '6 AYLIK BAKIM', unit: 'dk', min: 1, max: 1440, integer: true },
+      { key: 'rule.twelve-monthly', label: '12 AYLIK BAKIM', unit: 'dk', min: 1, max: 1440, integer: true },
+    ],
+  },
+  {
+    title: 'BAKIM MODU HATIRLATMASI',
+    note: 'Bakım modu bu süre kadar açık kalınca "DEVAM EDİYOR MUSUNUZ?" penceresi açılır. Cevap verilmezse otomatik kapanma süresi sonunda bakım modu kendiliğinden kapanır.',
+    fields: [
+      { key: 'reminderAfterMinutes', label: 'HATIRLATMA SÜRESİ', unit: 'dk', min: 15, max: 1440, integer: true, desc: 'Bakım modu açıldıktan veya DEVAM ET ile uzatıldıktan sonra.' },
+      { key: 'autoCloseAfterMinutes', label: 'OTOMATİK KAPANMA SÜRESİ', unit: 'dk', min: 1, max: 120, integer: true, desc: 'Hatırlatma açıldıktan sonra cevap beklenen süre.' },
+    ],
+  },
+]
+
+export const MAINTENANCE_RULES_FIELDS: FieldDef[] = MAINTENANCE_RULES_SECTIONS.flatMap((s) => s.fields)

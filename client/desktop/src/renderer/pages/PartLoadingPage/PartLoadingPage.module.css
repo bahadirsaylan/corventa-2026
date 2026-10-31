@@ -223,3 +223,42 @@
   max-height: 100%;
   object-fit: contain;
 }
+
+/* ── Elle konumlandırma (sensör arızalı) ─────── */
+.manualRow {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 24px 10px;
+}
+
+.manualBtn {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px;
+  background: #fdf3c4;
+  border: 3px solid #b45309;
+  border-radius: var(--radius-md);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #7c2d12;
+  cursor: pointer;
+}
+
+.manualBtn:active {
+  filter: brightness(0.94);
+}
+
+.manualBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.manualIcon {
+  width: 26px;
+  height: 26px;
+  color: #b45309;
+}

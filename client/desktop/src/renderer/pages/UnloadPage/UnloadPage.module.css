@@ -226,6 +226,25 @@
   letter-spacing: 0.08em;
 }
 
+/* Hatalı / durdurulan işte: makinede parça yoksa tahliyesiz çıkış (ikincil, küçük) */
+.skipBtn {
+  flex: none;
+  width: 100%;
+  min-height: 72px;
+  background: #f3f4f6;
+  border: 2px solid #6b7280;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #374151;
+  cursor: pointer;
+}
+
+.skipBtn:active {
+  filter: brightness(0.94);
+}
+
 /* Durduruldu: TEKRAR DENE + PARÇAYI ALDIM yan yana */
 .stoppedRow {
   flex: 1;
@@ -315,4 +334,43 @@
   font-size: 34px;
   font-weight: 900;
   color: var(--color-text);
+}
+
+/* Bitiş durumuna göre başlık şeridi: uyarı → amber oklar, hata/durduruldu → kırmızı şerit + beyaz yazı */
+.doneBand[data-outcome='warning'] .chevrons span {
+  background: #f59e0b;
+  filter: drop-shadow(0 0 1px #92400e);
+}
+
+.doneBand[data-outcome='warning'] .doneText {
+  color: #b45309;
+}
+
+.doneBand[data-outcome='failed'],
+.doneBand[data-outcome='cancelled'] {
+  background: #fee2e2;
+  border-color: #b91c1c;
+}
+
+.doneBand[data-outcome='failed'] .chevrons span,
+.doneBand[data-outcome='cancelled'] .chevrons span {
+  background: #dc2626;
+  filter: drop-shadow(0 0 1px #7f1d1d);
+}
+
+.doneBand[data-outcome='failed'] .doneText,
+.doneBand[data-outcome='cancelled'] .doneText {
+  color: #b91c1c;
+}
+
+/* Uzun başlıklar (BÜKÜM HATAYLA BİTTİ…) şeride sığsın */
+.doneBand:not([data-outcome='completed']) .doneText {
+  font-size: 46px;
+  text-align: center;
+}
+
+.hintBad {
+  background: #fee2e2;
+  border-color: #b91c1c;
+  color: #7f1d1d;
 }

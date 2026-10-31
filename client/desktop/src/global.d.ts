@@ -3,6 +3,7 @@
 
 import type { ElectronAPI } from '@electron-toolkit/preload'
 
+import type { AuthApi } from './preload/api/auth'
 import type { BendingApi } from './preload/api/bending'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
@@ -21,6 +22,7 @@ declare global {
     settings: SettingsApi
     system: SystemApi
     usage: UsageApi
+    auth: AuthApi
   }
 
   interface Window {

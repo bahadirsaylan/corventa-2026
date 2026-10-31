@@ -4,16 +4,21 @@
 // Kenar şeridi 28 px — tuş takımının sağ tuşlarından (REEL) daha sağda, onları engellemez.
 // Seçenekler kullanıcıya özel: katalog constants/sideMenuCatalog.ts, düzen DataApi'de (Ayarlar > Hızlı Menü).
 // Otomatik büküm sürerken lockWhileBending seçenekleri (yeni büküm, oturumu kapat) pasif.
-// Oturum: gerçek kimlik doğrulama henüz yok — "oturumu kapat" büküm seçimlerini ve oturum kullanıcısını
-// temizleyip giriş ekranına döner.
+// Oturum (rol sistemi 2026-11-01): "oturumu kapat" büküm seçimlerini temizler, main'deki token'ı siler
+// (DataApi /api/auth/logout) ve giriş ekranına döner. Rol isteyen rotalar (permissions.ts) yetkisizse
+// soluk + kilitli görünür, dokununca yetki uyarısı verir.
 
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { LockIcon } from '@/components/RoleNotice/LockIcon'
+import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
+import UserBadge from '@/components/UserBadge/UserBadge'
+import { hasRole, requiredRoleForPath } from '@/constants/permissions'
 import { catalogItem, type SideMenuCatalogItem } from '@/constants/sideMenuCatalog'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
-import { useSessionStore, useUserKey } from '@/stores/sessionStore'
+import { endSession, useRole, useUserKey } from '@/stores/sessionStore'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
 import { useT } from '@/i18n'
 import { SideMenuIcon, GearIcon } from './SideMenuIcons'
@@ -27,7 +32,7 @@ export default function SideMenu() {
   const bendingActive = useBendingActive()
   const resetJob = useBendingJobStore((s) => s.resetJob)
   const setJobParams = useBendingJobStore((s) => s.setParams)
-  const clearSession = useSessionStore((s) => s.clear)
+  const role = useRole()
   const userKey = useUserKey()
   const itemIds = useSideMenuStore((s) => s.items)
   const loadMenu = useSideMenuStore((s) => s.load)
@@ -76,7 +81,18 @@ export default function SideMenu() {
     railSwipe.current = null
   }
 
+  /** Seçeneğin istediği rol (sadece rota seçenekleri — yetki matrisi permissions.ts) */
+  function requiredRole(item: SideMenuCatalogItem) {
+    const need = item.action.type === 'route' ? requiredRoleForPath(item.action.to) : null
+    return need && !hasRole(role, need) ? need : null
+  }
+
   function select(item: SideMenuCatalogItem) {
+    const need = requiredRole(item)
+    if (need) {
+      showRoleNotice(need)
+      return
+    }
     setOpen(false)
     const a = item.action
     if (a.type === 'route') navigate(a.to)
@@ -86,8 +102,7 @@ export default function SideMenu() {
       navigate('/bending/ai')
     } else if (a.type === 'logout') {
       resetJob()
-      clearSession()
-      navigate('/login', { replace: true })
+      void endSession().then(() => navigate('/login', { replace: true }))
     }
   }
 
@@ -133,19 +148,23 @@ export default function SideMenu() {
         <div className={styles.logo}>
           <CorventaLogo size="compact" />
         </div>
+        <div className={styles.user}>
+          <UserBadge layout="stacked" />
+        </div>
 
         <div className={styles.items}>
           {items.map((it) => (
             <button
               key={it.id}
               type="button"
-              className={styles.item}
+              className={`${styles.item} ${requiredRole(it) ? styles.itemLocked : ''}`}
               onClick={() => select(it)}
               disabled={bendingActive && it.lockWhileBending}
               tabIndex={open ? 0 : -1}
             >
               <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
               <span className={styles.label}>{t(it.label)}</span>
+              {requiredRole(it) && <LockIcon className={styles.itemLock} />}
             </button>
           ))}
           {bendingActive && <span className={styles.lockNote}>{t('BÜKÜM SÜRÜYOR')}</span>}

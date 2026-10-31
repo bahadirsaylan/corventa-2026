@@ -12,6 +12,7 @@ import type {
   UserPreference,
   MaintenancePeriodKey,
   MaintenanceState,
+  MaintenanceRulesConfig,
   StageInfo,
   ServiceRequest,
   ServiceRequestCreateRequest,
@@ -21,6 +22,9 @@ import type {
   SimilarBendingJobRequest,
   SimilarBendingJobResponse,
   UsageTimeSummary,
+  CreateUserBody,
+  UpdateUserBody,
+  UserListItem,
 } from '@shared/types'
 
 export class DataApiClient {
@@ -257,11 +261,69 @@ export class DataApiClient {
     )
   }
 
+  /** Hatırlatmada DEVAM ET — hatırlatma süresi yeniden başlar. 409 = mod kapalı. */
+  continueMaintenanceMode(): Promise<MaintenanceState> {
+    return http.post<MaintenanceState>(`${this.baseUrl}/api/maintenance/continue`, {})
+  }
+
+  getMaintenanceRules(): Promise<MaintenanceRulesConfig> {
+    return http.get<MaintenanceRulesConfig>(`${this.baseUrl}/api/maintenance/rules`)
+  }
+
+  /** ADMIN+ — Bearer başlığını http katmanı ekler. Alanlar opsiyonel; aralık dışı 400. */
+  updateMaintenanceRules(body: Partial<MaintenanceRulesConfig>): Promise<MaintenanceRulesConfig> {
+    return http.put<MaintenanceRulesConfig>(`${this.baseUrl}/api/maintenance/rules`, body)
+  }
+
   // ---------- Kullanım süreleri (usage-time) ----------
   // Kategori anahtarları BÜYÜK HARF, değerler saniye. days 1..366.
   getUsageTimeSummary(days = 30): Promise<UsageTimeSummary> {
     return http.get<UsageTimeSummary>(`${this.baseUrl}/api/usage-time/summary?days=${days}`)
   }
+
+  // ---------- Rol sistemi (auth + users) ----------
+  // Bearer başlığını http katmanı ekler (authSession başlık sağlayıcısı) — burada token yok.
+  // Hatalar HttpError (status + body.error / body.lockedUntil) — IPC handler sonuç zarfına çevirir.
+
+  getAuthSetupStatus(): Promise<{ needsSetup: boolean }> {
+    return http.get<{ needsSetup: boolean }>(`${this.baseUrl}/api/auth/setup-status`)
+  }
+
+  authSetup(body: { username: string; displayName?: string; password: string }): Promise<AuthLoginResponse> {
+    return http.post<AuthLoginResponse>(`${this.baseUrl}/api/auth/setup`, body)
+  }
+
+  authLogin(username: string, password: string): Promise<AuthLoginResponse> {
+    return http.post<AuthLoginResponse>(`${this.baseUrl}/api/auth/login`, { username, password })
+  }
+
+  authLogout(): Promise<{ ok: boolean }> {
+    return http.post<{ ok: boolean }>(`${this.baseUrl}/api/auth/logout`, {})
+  }
+
+  listUsers(): Promise<UserListItem[]> {
+    return http.get<UserListItem[]>(`${this.baseUrl}/api/users`)
+  }
+
+  createUser(body: CreateUserBody): Promise<UserListItem> {
+    return http.post<UserListItem>(`${this.baseUrl}/api/users`, body)
+  }
+
+  updateUser(id: number, body: UpdateUserBody): Promise<UserListItem> {
+    return http.put<UserListItem>(`${this.baseUrl}/api/users/${id}`, body)
+  }
+
+  /** Silmez — pasifleştirir (backend DELETE sözleşmesi) */
+  deactivateUser(id: number): Promise<unknown> {
+    return http.delete<unknown>(`${this.baseUrl}/api/users/${id}`)
+  }
+}
+
+/** POST /api/auth/login ve /api/auth/setup cevabı (token SADECE main'de kalır) */
+export interface AuthLoginResponse {
+  token: string
+  expiresAt: string | null
+  user: { id: number; username: string; displayName: string | null; role: string }
 }
 
 export const dataApi = new DataApiClient()

@@ -4,9 +4,13 @@
 //   - 5sn kesintisiz basili tutma → cikis
 // Global klavye kisayolu Ctrl+Alt+Shift+X main process'te (bu component'ten bagimsiz).
 //
-// Simdilik sifresiz — rol/sifre yapisi sonraki fazda eklenecek.
+// Rol sistemi (2026-11-01): sadece ADMIN+ (yetki matrisi constants/permissions.ts 'kiosk-exit').
+// Yetkisiz kullanıcıda çıkış yapılmaz, "BU İŞLEM İÇİN ADMİN YETKİSİ GEREKLİ" uyarısı gösterilir.
 
 import { useEffect, useRef, useState } from 'react'
+import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
+import { PERMISSIONS, roleCan } from '@/constants/permissions'
+import { useSessionStore } from '@/stores/sessionStore'
 import { t } from '@/i18n'
 import styles from './KioskExitCorner.module.css'
 
@@ -24,6 +28,10 @@ export default function KioskExitCorner() {
 
   const triggerExit = (reason: string) => {
     if (exitedRef.current) return
+    if (!roleCan(useSessionStore.getState().role, 'kiosk-exit')) {
+      showRoleNotice(PERMISSIONS['kiosk-exit'])
+      return
+    }
     exitedRef.current = true
     setToast(t('Kioskdan cikiliyor ({reason})...', { reason }))
     setTimeout(() => {

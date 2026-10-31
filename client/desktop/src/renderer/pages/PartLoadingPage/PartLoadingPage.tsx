@@ -12,6 +12,7 @@ import {
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
 import styles from './PartLoadingPage.module.css'
+import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import readyBanner from '@/assets/images/itsready.png'
 import partIllustration from '@/assets/images/blend8-tasvir.png'
@@ -86,8 +87,14 @@ function PartLoadingContent() {
   const canStart = phase === 'loaded' || sensorActive
   const isBusy = phase === 'starting'
 
-  async function handleStart() {
-    if (!canStart || isBusy) return
+  // ELLE KONUMLANDIRMA (sensörsüz) — sensör arızalıyken ayrı yol: modal → taraf + onay → start
+  // manualPlacement=true ile (pipeline parça sensörünü beklemez, Zero'da sensör aramasını atlar).
+  // Varsayılan sensörlü akış (handleStart parametresiz) birebir aynı kalır.
+  const [manualOpen, setManualOpen] = useState(false)
+
+  async function handleStart(manualSide?: PlacementSide) {
+    if ((!manualSide && !canStart) || isBusy) return
+    setManualOpen(false)
     setPhase('starting')
     setActiveStep(null)
     setErrorStep(null)
@@ -95,9 +102,11 @@ function PartLoadingContent() {
 
     try {
       await executeBendingFlow({
-        activeSensorSide: 'Left',
+        // Elle konumlandırmada job operatörün seçtiği tarafla kaydedilir (backend taraf eşleşmesi şart)
+        activeSensorSide: manualSide ?? 'Left',
         operatorName: null,
         skipAutoCorrect: !useAutoCorrect,
+        manualPlacement: !!manualSide,
         onStep: (step) => setActiveStep(step),
       })
       setPhase('started')
@@ -154,7 +163,7 @@ function PartLoadingContent() {
           <button
             className={styles.startBtn}
             disabled={isBusy || !params.profileId}
-            onClick={handleStart}
+            onClick={() => void handleStart()}
           >
             <span className={styles.startLabel}>{t('KIVRIMI')}</span>
             <img src={touchIcon} alt="touch" className={styles.startIcon} />
@@ -186,6 +195,33 @@ function PartLoadingContent() {
           </>
         )}
       </div>
+
+      {/* Sensör arızalıysa elle konumlandırma — alt paneldeki mesafe notunun hemen üstünde */}
+      {phase !== 'starting' && phase !== 'started' && (
+        <div className={styles.manualRow}>
+          <button
+            type="button"
+            className={styles.manualBtn}
+            disabled={isBusy || !params.profileId}
+            onClick={() => setManualOpen(true)}
+          >
+            <svg viewBox="0 0 24 24" className={styles.manualIcon} aria-hidden>
+              <path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+              <path d="M12 10v5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              <circle cx="12" cy="18" r="1.3" fill="currentColor" />
+            </svg>
+            {t('SENSÖR ÇALIŞMIYOR — ELLE KONUMLANDIR')}
+          </button>
+        </div>
+      )}
+
+      {manualOpen && (
+        <ManualPlacementModal
+          distanceMm={zeroResetMm}
+          onCancel={() => setManualOpen(false)}
+          onConfirm={(side) => void handleStart(side)}
+        />
+      )}
 
       <StatusBar
         backTo={backTo}

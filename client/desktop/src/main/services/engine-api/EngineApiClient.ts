@@ -147,9 +147,21 @@ export class EngineApiClient {
     }
   }
 
-  startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {
+  // ELLE KONUMLANDIRMA (sensörsüz): manualPlacement=true → backend Clamp'ta parça sensörünü beklemez,
+  // Zero'da sensör arama adımını atlar (parça ucu operatör tarafından merkezden ZeroResetDistanceMm'e konur).
+  // manualPlacementSide zorunlu ve job.ActiveSensorSide ile aynı olmalı — değilse backend 400 döner.
+  // Varsayılan (false) → query'ye hiçbir şey eklenmez, eski sözleşme birebir.
+  startBendingJob(
+    jobId: number,
+    skipAutoCorrect = false,
+    manualPlacementSide: 'Left' | 'Right' | null = null,
+  ): Promise<StartJobResponse> {
     const u = new URL(`${this.baseUrl}/api/bending-job/${jobId}/start`)
     if (skipAutoCorrect) u.searchParams.set('skipAutoCorrect', 'true')
+    if (manualPlacementSide) {
+      u.searchParams.set('manualPlacement', 'true')
+      u.searchParams.set('manualPlacementSide', manualPlacementSide)
+    }
     return http.post<StartJobResponse>(u.toString())
   }
 

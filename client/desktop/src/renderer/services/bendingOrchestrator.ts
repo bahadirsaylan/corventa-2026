@@ -49,6 +49,12 @@ export interface OrchestrationOptions extends MapOptions {
   onStep?: (step: OrchestrationStep) => void
   /** True ise pipeline'in 4. adimi (geri esneme auto-correct) atlanir; pipeline 3 adimda biter. */
   skipAutoCorrect?: boolean
+  /**
+   * ELLE KONUMLANDIRMA (sensörsüz): true ise start çağrısı manualPlacement=true + manualPlacementSide
+   * ile gider — backend Clamp'ta parça sensörünü beklemez, Zero'da sensör aramasını atlar.
+   * Taraf = activeSensorSide (job'a yazılan tarafla aynı olmalı; backend farklıysa 400 verir).
+   */
+  manualPlacement?: boolean
 }
 
 /**
@@ -167,7 +173,13 @@ export async function executeBendingFlow(
   notify('start')
   let startResponse
   try {
-    const r = await window.corventa.bending.startJob(job.id, opts.skipAutoCorrect)
+    const r = opts.manualPlacement
+      ? await window.corventa.bending.startJob(
+          job.id,
+          opts.skipAutoCorrect,
+          createReq.activeSensorSide === 'Right' ? 'Right' : 'Left',
+        )
+      : await window.corventa.bending.startJob(job.id, opts.skipAutoCorrect)
     startResponse = { success: r.success, message: r.message, error: r.error }
     if (!r.success) {
       throw new BendingOrchestratorError(

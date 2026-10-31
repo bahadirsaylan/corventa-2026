@@ -7,6 +7,8 @@ import MeasurementErrorModal from '@/components/MeasurementErrorModal/Measuremen
 import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
 import VirtualKeyboard from '@/components/KeyboardModal/VirtualKeyboard'
+import RoleNotice from '@/components/RoleNotice/RoleNotice'
+import RequireRole, { RequireAuth } from '@/components/RequireRole/RequireRole'
 import { subscribeToBackend } from '@/bootstrap/subscribeToBackend'
 
 import SplashPage from '@/pages/SplashPage/SplashPage'
@@ -76,6 +78,8 @@ export default function App() {
       {/* Global sanal klavye — her text/textarea odaklanınca otomatik açılır.
           Bypass: input'a data-no-keyboard="true" koy. Number input'lar NumpadModal'a bırakılır. */}
       <VirtualKeyboard />
+      {/* Yetki uyarısı — "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ" (yetki matrisi: constants/permissions.ts) */}
+      <RoleNotice />
       <HashRouter>
         <Routes>
           {/* Auth / pre-login screens — full screen, no chrome */}
@@ -83,27 +87,28 @@ export default function App() {
           <Route path="/splash" element={<SplashPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Authenticated 3-zone shell */}
-          <Route path="/" element={<AppLayout />}>
+          {/* Authenticated 3-zone shell — oturum yoksa girişe döner (RequireAuth).
+              Rol isteyen rotalar RequireRole ile sarılı; yetkisizse /settings'e yönlenir + uyarı. */}
+          <Route path="/" element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="settings" element={<SettingsPage />} />
-            <Route path="settings/welcome-message" element={<WelcomeMessagePage />} />
-            <Route path="settings/warranty" element={<WarrantyPage />} />
+            <Route path="settings/welcome-message" element={<RequireRole permission="welcome-message"><WelcomeMessagePage /></RequireRole>} />
+            <Route path="settings/warranty" element={<RequireRole permission="warranty"><WarrantyPage /></RequireRole>} />
             <Route path="settings/maintenance" element={<MaintenancePage />} />
-            <Route path="settings/checklist" element={<ChecklistPage />} />
-            <Route path="settings/big-data" element={<BigDataConnectionPage />} />
-            <Route path="settings/users" element={<UserManagementPage />} />
+            <Route path="settings/checklist" element={<RequireRole permission="checklist"><ChecklistPage /></RequireRole>} />
+            <Route path="settings/big-data" element={<RequireRole permission="big-data"><BigDataConnectionPage /></RequireRole>} />
+            <Route path="settings/users" element={<RequireRole permission="user-management"><UserManagementPage /></RequireRole>} />
             <Route path="settings/operator" element={<OperatorSettingsPage />} />
-            <Route path="settings/admin" element={<AdminSettingsPage />} />
-            <Route path="settings/encoder-reset" element={<EncoderResetPage />} />
+            <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
+            <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />
             <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
             <Route path="settings/bending-count" element={<BendingCountReportPage />} />
             <Route path="settings/language" element={<LanguagePage />} />
             <Route path="settings/certificate" element={<CertificateQueryPage />} />
-            <Route path="settings/customer-change" element={<CustomerChangePage />} />
+            <Route path="settings/customer-change" element={<RequireRole permission="customer-change"><CustomerChangePage /></RequireRole>} />
             {/* Satış / takas / hibe artık müşteri değişikliğinin içinde (neden seçimi) — eski rota yönlendirilir */}
             <Route path="settings/machine-transfer" element={<Navigate to="/settings/customer-change" replace />} />
             <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />

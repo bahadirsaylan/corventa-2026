@@ -65,8 +65,18 @@ export const bendingApi = {
   getJob: (id: number): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.GetBendingJob, id),
 
-  startJob: (jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> =>
-    ipcRenderer.invoke(Ipc.IpcInvoke.StartBendingJob, { jobId, skipAutoCorrect }),
+  // manualPlacementSide verilirse ELLE KONUMLANDIRMA (sensörsüz) başlatma — taraf job tarafıyla aynı olmalı.
+  startJob: (
+    jobId: number,
+    skipAutoCorrect = false,
+    manualPlacementSide?: 'Left' | 'Right',
+  ): Promise<StartJobResponse> =>
+    ipcRenderer.invoke(
+      Ipc.IpcInvoke.StartBendingJob,
+      manualPlacementSide
+        ? { jobId, skipAutoCorrect, manualPlacement: true, manualPlacementSide }
+        : { jobId, skipAutoCorrect },
+    ),
 
   cancelJob: (jobId: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CancelBendingJob, jobId),

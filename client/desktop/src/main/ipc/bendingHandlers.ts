@@ -101,12 +101,34 @@ export function registerBendingHandlers(): void {
 
   ipcMain.handle(
     Ipc.IpcInvoke.StartBendingJob,
-    async (_evt, payload: number | { jobId: number; skipAutoCorrect?: boolean }) => {
+    async (
+      _evt,
+      payload:
+        | number
+        | {
+            jobId: number
+            skipAutoCorrect?: boolean
+            manualPlacement?: boolean
+            manualPlacementSide?: 'Left' | 'Right'
+          },
+    ) => {
       // Eski sozlesme number ile gelirdi; backward compat icin dual-shape destek.
       const jobId = typeof payload === 'number' ? payload : payload.jobId
       const skipAutoCorrect = typeof payload === 'number' ? false : !!payload.skipAutoCorrect
-      log.info('start-bending-job', { jobId, skipAutoCorrect })
-      return engineApi.startBendingJob(jobId, skipAutoCorrect)
+      // Elle konumlandırma (sensörsüz) — sadece taraf da geldiyse; taraf yoksa backend zaten 400 verirdi
+      const manualSide =
+        typeof payload !== 'number' && payload.manualPlacement
+          ? payload.manualPlacementSide === 'Right'
+            ? 'Right'
+            : payload.manualPlacementSide === 'Left'
+              ? 'Left'
+              : null
+          : null
+      if (typeof payload !== 'number' && payload.manualPlacement && !manualSide) {
+        return { success: false, error: 'Elle konumlandırmada taraf (Left/Right) seçilmeli' }
+      }
+      log.info('start-bending-job', { jobId, skipAutoCorrect, manualPlacementSide: manualSide })
+      return engineApi.startBendingJob(jobId, skipAutoCorrect, manualSide)
     },
   )
 

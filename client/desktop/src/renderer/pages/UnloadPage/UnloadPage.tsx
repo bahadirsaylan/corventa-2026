@@ -1,4 +1,6 @@
-// Tahliye ekranı (SEKIL-18) — büküm hatasız bitince açılır.
+// Tahliye ekranı (SEKIL-18) — büküm BİTİNCE açılır (Completed, Failed, Cancelled — hatalı/durdurulmuş
+// bitse bile parça çıkarılmalı). Başlık şeridi sonuca göre: hatasız → İŞLEM TAMAM (yeşil oklar),
+// Completed+errorMessage → BÜKÜM UYARISI, Failed → BÜKÜM HATAYLA BİTTİ, Cancelled → BÜKÜM DURDURULDU (kırmızı).
 // Operatör parçayı tutma süresini seçer (3/5/8/10/15 sn veya kalemle değiştirdiği süre),
 // "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda üst top seçilen mm kadar geri çekilir, ardından
 // seçilen mm (ve yönde) rotasyon yapılır → parça alınır
@@ -43,13 +45,39 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 type Phase = 'select' | 'countdown' | 'opening' | 'ready' | 'stopped' | 'error'
 
+/** AppLayout → navigate state.jobOutcome: job'un bitiş durumu (başlık + şerit rengi) */
+export type UnloadJobOutcome = 'completed' | 'warning' | 'failed' | 'cancelled'
+
+const OUTCOME_TITLE: Record<UnloadJobOutcome, string> = {
+  completed: 'İŞLEM TAMAM',
+  warning: 'BÜKÜM UYARISI',
+  failed: 'BÜKÜM HATAYLA BİTTİ',
+  cancelled: 'BÜKÜM DURDURULDU',
+}
+
+function readNavState(navState: unknown): { outcome: UnloadJobOutcome; message: string | null } {
+  const s = navState && typeof navState === 'object' ? (navState as Record<string, unknown>) : {}
+  const message =
+    typeof s.jobMessage === 'string' && s.jobMessage
+      ? s.jobMessage
+      : typeof s.jobWarning === 'string' && s.jobWarning
+        ? s.jobWarning
+        : null
+  const o = s.jobOutcome
+  const outcome: UnloadJobOutcome =
+    o === 'completed' || o === 'warning' || o === 'failed' || o === 'cancelled'
+      ? o
+      : message
+        ? 'warning' // eski sözleşme: sadece jobWarning geldi
+        : 'completed'
+  return { outcome, message }
+}
+
 export default function UnloadPage() {
   const navigate = useNavigate()
   const { state: navState } = useLocation()
-  const jobWarning =
-    navState && typeof navState === 'object' && typeof (navState as { jobWarning?: unknown }).jobWarning === 'string'
-      ? (navState as { jobWarning: string }).jobWarning
-      : null
+  const { outcome, message: jobMessage } = readNavState(navState)
+  const isBad = outcome === 'failed' || outcome === 'cancelled'
   const t = useT()
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
@@ -177,19 +205,30 @@ export default function UnloadPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.doneBand}>
+      <div className={styles.doneBand} data-outcome={outcome}>
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.doneText}>{t('İŞLEM TAMAM')}</span>
+        <span className={styles.doneText}>{t(OUTCOME_TITLE[outcome])}</span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>
       </div>
 
-      {jobWarning && (
+      {outcome === 'warning' && jobMessage && (
         <div className={styles.hint} role="alert">
-          {t('BÜKÜM UYARISI: {warning}', { warning: t(jobWarning) })}
+          {t('BÜKÜM UYARISI: {warning}', { warning: t(jobMessage) })}
+        </div>
+      )}
+      {isBad && (
+        <div className={`${styles.hint} ${styles.hintBad}`} role="alert">
+          {outcome === 'failed'
+            ? jobMessage
+              ? t('HATA: {error}', { error: t(jobMessage) })
+              : t('BÜKÜM HATAYLA BİTTİ — PARÇAYI GÜVENLE ÇIKARTIN')
+            : jobMessage
+              ? t('BÜKÜM DURDURULDU: {reason}', { reason: t(jobMessage) })
+              : t('BÜKÜM DURDURULDU — PARÇAYI GÜVENLE ÇIKARTIN')}
         </div>
       )}
 
@@ -319,6 +358,14 @@ export default function UnloadPage() {
           <span>{t('PARÇAYI')}</span>
           <HandIcon />
           <span>{t('ÇIKART')}</span>
+        </button>
+      )}
+
+      {/* Hatalı / durdurulan iş parça sıkılmadan (ör. Clamp'ta sensör beklerken) bitmiş olabilir —
+          makinede parça yoksa tahliye hareketi yapmadan çıkış. Ekran yine her bitişte açılır. */}
+      {phase === 'select' && !editing && isBad && (
+        <button type="button" className={styles.skipBtn} onClick={() => navigate('/bending/next')}>
+          {t('MAKİNEDE PARÇA YOK — TAHLİYESİZ DEVAM')}
         </button>
       )}
 

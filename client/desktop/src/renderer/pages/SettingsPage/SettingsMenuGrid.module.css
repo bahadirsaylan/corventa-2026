@@ -166,3 +166,20 @@
 .sendCodeBtn:hover {
   filter: brightness(0.95);
 }
+
+/* ── Yetkisiz (rol yetmiyor): soluk + kilit — dokununca yetki uyarısı ── */
+.locked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.locked:active {
+  filter: grayscale(0.6) brightness(0.92);
+}
+
+.lockIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-text);
+}

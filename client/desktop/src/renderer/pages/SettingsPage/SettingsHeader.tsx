@@ -1,3 +1,4 @@
+import UserBadge from '@/components/UserBadge/UserBadge'
 import { useT } from '@/i18n'
 import styles from './SettingsHeader.module.css'
 
@@ -29,6 +30,10 @@ export default function SettingsHeader({ onBack }: Props) {
       <div className={styles.customerBlock}>
         <span className={styles.customerLabel}>{t('MÜŞTERİ ADI :')}</span>
         <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>{/* i18n-ignore */}
+        {/* Aktif kullanıcı + rol rozeti (rol sistemi) */}
+        <div className={styles.userRow}>
+          <UserBadge />
+        </div>
       </div>
     </div>
   )

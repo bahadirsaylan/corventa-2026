@@ -1,0 +1,79 @@
+// YETKİ MATRİSİ — rol sistemi (2026-11-01). Tek kaynak: hangi işlem hangi en düşük rolü ister.
+// Rol sırası OPERATOR < ADMIN < SUPERADMIN; üst rol alttakinin her şeyini yapabilir.
+// Kullanıldığı yerler: Ayarlar ızgarası (SettingsMenuGrid), rota koruması (RequireRole / App.tsx),
+// sağ hızlı menü (SideMenu), kiosk çıkışı (KioskExitCorner), Kullanıcı Yönetimi rol seçimi.
+// Yetkisiz düğmeler gizlenmez: soluk + kilit + dokununca "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ".
+// DİKKAT: Backend'de şimdilik SADECE /api/users, /api/auth/logout|me, PUT /api/maintenance/rules ve
+// PUT /api/maintenance [RequireRole] ile korunuyor. Admin ayarları, cetvel/encoder sıfırlama (Bending API),
+// müşteri değişikliği, garanti, karşılama mesajı, checklist, büyük veri vb. için kilit ŞİMDİLİK SADECE UI'da
+// (servis token'ı tasarlanınca backend'e taşınacak — YAPILACAKLAR "Rol sistemi — bilinen açıklar").
+
+import { ROLE_RANK, type UserRole } from '@shared/types'
+
+export const PERMISSIONS = {
+  // ── OPERATOR ──
+  'bending': 'OPERATOR',            // otomatik / yarı oto büküm akışları
+  'manual': 'OPERATOR',             // manuel mod + manuel programlar
+  'service': 'OPERATOR',            // servis modülü + servis talebi
+  'operator-settings': 'OPERATOR',
+  'language': 'OPERATOR',
+  'pdf-guide': 'OPERATOR',
+  'side-menu': 'OPERATOR',          // Hızlı Menü düzeni
+  'machine-hours': 'OPERATOR',      // Kullanma Süreleri
+  'bending-count': 'OPERATOR',      // Kıvrım Adetleri raporu
+  'error-reports': 'OPERATOR',
+  'certificate': 'OPERATOR',        // Sertifika Sorgula
+  'maintenance': 'OPERATOR',        // Bakım Süresi: görüntüle + bakım modu aç/kapat + tamamlandı
+  // ── ADMIN ──
+  'admin-settings': 'ADMIN',        // Admin Ayarları (cetvel sıfırlama dahil)
+  'encoder-reset': 'ADMIN',
+  'user-management': 'ADMIN',       // Kullanıcı Yönetimi (ADMIN → sadece operatörler)
+  'welcome-message': 'ADMIN',
+  'checklist': 'ADMIN',
+  'warranty': 'ADMIN',
+  'customer-change': 'ADMIN',
+  'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
+  'kiosk-exit': 'ADMIN',
+  // ── SUPERADMIN ──
+  'big-data': 'SUPERADMIN',
+  'manage-admins': 'SUPERADMIN',    // ADMIN / SUPERADMIN kullanıcı ekleme-düzenleme
+} as const satisfies Record<string, UserRole>
+
+export type Permission = keyof typeof PERMISSIONS
+
+/** Rota (önek) → yetki. Listede olmayan rotalar OPERATOR'a açıktır. Uzun önek önce eşleşir. */
+export const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, Permission]> = [
+  ['/settings/welcome-message', 'welcome-message'],
+  ['/settings/warranty', 'warranty'],
+  ['/settings/checklist', 'checklist'],
+  ['/settings/big-data', 'big-data'],
+  ['/settings/users', 'user-management'],
+  ['/settings/admin', 'admin-settings'],
+  ['/settings/encoder-reset', 'encoder-reset'],
+  ['/settings/customer-change', 'customer-change'],
+  ['/settings/machine-transfer', 'customer-change'],
+]
+
+/** Rol bu yetkiye sahip mi (oturum yoksa hiçbir yetki yok) */
+export function roleCan(role: UserRole | null | undefined, permission: Permission): boolean {
+  return hasRole(role, PERMISSIONS[permission])
+}
+
+/** role ≥ min mi */
+export function hasRole(role: UserRole | null | undefined, min: UserRole): boolean {
+  if (!role) return false
+  return ROLE_RANK[role] >= ROLE_RANK[min]
+}
+
+/** Rotanın istediği en düşük rol (korumasız rota → null) */
+export function requiredRoleForPath(pathname: string): UserRole | null {
+  const hit = ROUTE_PERMISSIONS.find(([prefix]) => pathname === prefix || pathname.startsWith(prefix + '/'))
+  return hit ? PERMISSIONS[hit[1]] : null
+}
+
+/** Ekranda gösterilen rol adı (t() ile çevrilir — sözlük en/roles.ts) */
+export const ROLE_LABELS: Record<UserRole, string> = {
+  OPERATOR: 'OPERATÖR',
+  ADMIN: 'ADMİN',
+  SUPERADMIN: 'SÜPERADMİN',
+}
