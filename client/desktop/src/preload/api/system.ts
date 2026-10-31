@@ -20,9 +20,9 @@ export const systemApi = {
   // Demo modu (CORVENTA_DEMO=1) açık mı
   isDemo: (): Promise<boolean> => ipcRenderer.invoke(Ipc.IpcInvoke.SystemIsDemo),
 
-  // 2026-09-04 — Kiosk mode gizli cikis. Rol/sifre yapisi sonraki fazda eklenecek.
-  // Renderer 5-tap logo veya 5sn uzun basis tetikleyicisi bunu cagirir.
-  exitKiosk: (): Promise<{ ok: boolean }> =>
+  // 2026-09-04 — Kiosk mode gizli cikis. Renderer 5-tap / 5sn uzun basis tetikleyicisi cagirir.
+  // Main ADMIN+ oturum yoksa reddeder (ok: false).
+  exitKiosk: (): Promise<{ ok: boolean; error?: string }> =>
     ipcRenderer.invoke('kiosk:exit'),
 }
 

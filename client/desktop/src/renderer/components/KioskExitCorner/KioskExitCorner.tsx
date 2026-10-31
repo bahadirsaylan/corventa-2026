@@ -37,6 +37,14 @@ export default function KioskExitCorner() {
     setTimeout(() => {
       window.corventa?.system
         ?.exitKiosk()
+        .then((res) => {
+          if (res?.ok === false) {
+            // Main oturumu reddetti (renderer rolü eski kalmış olabilir)
+            setToast(null)
+            exitedRef.current = false
+            showRoleNotice(PERMISSIONS['kiosk-exit'])
+          }
+        })
         .catch((err) => {
           console.error('kiosk exit fail', err)
           setToast(t('Cikis basarisiz: {err}', { err: String(err) }))

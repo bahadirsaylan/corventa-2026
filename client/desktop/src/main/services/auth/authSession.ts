@@ -10,7 +10,7 @@
 
 import { getConfig } from '@main/config/runtime-config'
 import { setRequestHeaderProvider } from '@main/lib/http'
-import type { AuthUser } from '@shared/types'
+import { ROLE_RANK, type AuthUser, type UserRole } from '@shared/types'
 
 interface Session {
   token: string
@@ -47,6 +47,12 @@ export function getAuthToken(): string | null {
 
 export function getAuthUser(): AuthUser | null {
   return activeSession()?.user ?? null
+}
+
+/** Açık oturumun rolü en az `min` mi — main'de verilen kararlar için (örn. kiosk çıkışı) */
+export function sessionHasRole(min: UserRole): boolean {
+  const user = getAuthUser()
+  return !!user && ROLE_RANK[user.role] >= ROLE_RANK[min]
 }
 
 /** http katmanına kaydet — sadece DataApi adresine giden isteklere Bearer eklenir */

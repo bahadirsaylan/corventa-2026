@@ -9,6 +9,7 @@ import { registerIpcHandlers } from '@main/ipc/registerHandlers'
 import { backendSupervisor, SupervisorStatus } from '@main/services/backend-supervisor/BackendSupervisor'
 import { setHttpInterceptor } from '@main/lib/http'
 import { IS_DEMO, demoMachine } from '@main/demo/DemoMachine'
+import { getAuthUser, sessionHasRole } from '@main/services/auth/authSession'
 
 const log = childLogger('app')
 
@@ -16,8 +17,8 @@ let mainWindow: BrowserWindow | null = null
 let splashWindow: BrowserWindow | null = null
 
 // 2026-09-04 — Kiosk mode: uygulama menu, F-key, Alt+F4 vs. blocklanir.
-// Sifresiz cikis 3 gizli tetikleyiciden biriyle olur (Ctrl+Alt+Shift+X global veya
-// UI icinden 5-tap/uzun-basis). Rol/sifre yapisi sonraki fazda eklenecek.
+// Cikis 3 gizli tetikleyiciden biriyle olur (Ctrl+Alt+Shift+X global veya
+// UI icinden 5-tap/uzun-basis); hepsi ADMIN+ oturum ister (2026-11-01).
 const IS_KIOSK = !process.env.CORVENTA_NO_KIOSK // Test icin CORVENTA_NO_KIOSK=1 ile devre disi
 
 // ─────────────────────────────────────────────────────────────
@@ -176,13 +177,21 @@ function createWindow(): void {
 // Kiosk cikis — 3 gizli tetikleyici
 //   1. Global shortcut: Ctrl+Alt+Shift+X (klavye)
 //   2. IPC 'kiosk:exit' (renderer'dan: 5-tap logo veya 5sn uzun basis)
-// Simdilik sifresiz — rol/sifre yapisi sonraki fazda eklenecek.
+// Rol sistemi (2026-11-01): ikisi de main'deki oturumu kontrol eder — ADMIN+ yoksa cikis yok.
+// Renderer'daki kontrol (KioskExitCorner) sadece uyari gostermek icin; asil karar burada.
 // ─────────────────────────────────────────────────────────────
+
+function canExitKiosk(trigger: string): boolean {
+  if (sessionHasRole('ADMIN')) return true
+  log.warn(`KIOSK EXIT reddedildi: ${trigger} — ADMIN+ oturum yok`, { username: getAuthUser()?.username ?? null })
+  return false
+}
 
 function registerKioskExitHandlers(): void {
   // 1) Global klavye kisayolu (uygulama focus'ta olmasa da calisir)
   const shortcutRegistered = globalShortcut.register('Control+Alt+Shift+X', () => {
-    log.info('KIOSK EXIT: Ctrl+Alt+Shift+X tetiklendi')
+    if (!canExitKiosk('Ctrl+Alt+Shift+X')) return
+    log.info('KIOSK EXIT: Ctrl+Alt+Shift+X tetiklendi', { username: getAuthUser()?.username })
     app.quit()
   })
   if (!shortcutRegistered) {
@@ -191,7 +200,8 @@ function registerKioskExitHandlers(): void {
 
   // 2) Renderer'dan IPC (5-tap logo, uzun basis)
   ipcMain.handle('kiosk:exit', () => {
-    log.info('KIOSK EXIT: renderer IPC tetiklendi')
+    if (!canExitKiosk('renderer IPC')) return { ok: false, error: 'ADMIN yetkisi gerekli' }
+    log.info('KIOSK EXIT: renderer IPC tetiklendi', { username: getAuthUser()?.username })
     app.quit()
     return { ok: true }
   })
