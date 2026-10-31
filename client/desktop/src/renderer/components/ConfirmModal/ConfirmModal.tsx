@@ -3,6 +3,7 @@
 
 import type { ReactNode } from 'react'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './ConfirmModal.module.css'
 
 interface Props {
@@ -28,7 +29,7 @@ export default function ConfirmModal({
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <p className={styles.message}>
           {typeof message === 'string' ? t(message) : message}
-          <span className={styles.qmark}>?</span>
+          <span className={styles.qmark}><Icon name="help" size={28} /></span>
         </p>
         <div className={styles.actions}>
           <button className={`${styles.btn} ${styles.cancel}`} onClick={onCancel}>

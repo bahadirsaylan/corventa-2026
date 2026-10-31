@@ -13,6 +13,7 @@ import { LockIcon } from '@/components/RoleNotice/LockIcon'
 import { ROLE_LABELS, hasRole, roleCan } from '@/constants/permissions'
 import { endSession, useRole, useSessionStore } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './UserManagementPage.module.css'
 
 const MIN_PASSWORD = 6
@@ -132,7 +133,7 @@ export default function UserManagementPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('KULLANICI YÖNETİMİ')}</h1>
         <button className={styles.addBtn} onClick={() => setEditor({ mode: 'create' })}>
           + {t('YENİ KULLANICI')}

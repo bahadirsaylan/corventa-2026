@@ -10,6 +10,7 @@ import {
   type ServiceTicket,
 } from '@shared/types'
 
+import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
@@ -108,7 +109,11 @@ export default function ServiceHomePage() {
                 </span>
                 <span className={styles.recentStatus}>{t(statusLabel(tk.status))}</span>
                 <span className={styles.recentTitle}>{tk.title.toUpperCase()}</span>
-                <span className={styles.recentStars}>{stars(tk)}</span>
+                <span className={styles.recentStars}>
+                  {Array.from({ length: stars(tk) }, (_, i) => (
+                    <Icon key={i} name="star" size="xs" fill="currentColor" />
+                  ))}
+                </span>
               </button>
             ))}
           </div>
@@ -152,10 +157,10 @@ function statusLabel(s: ServiceTicketStatus): string {
   }
 }
 
-function stars(t: ServiceTicket): string {
+function stars(t: ServiceTicket): number {
   // SEKIL-31'deki * * * * * gösterimi — burada konu uzunluğu/öncelik proxy'si
   // Şimdilik sabit; gelecekte rating-like alan eklenirse buradan beslenir
-  if (t.status === ServiceTicketStatus.Resolved) return '✦✦✦✦✦'
-  if (t.status === ServiceTicketStatus.Answered) return '✦✦✦✦'
-  return '✦✦✦'
+  if (t.status === ServiceTicketStatus.Resolved) return 5
+  if (t.status === ServiceTicketStatus.Answered) return 4
+  return 3
 }

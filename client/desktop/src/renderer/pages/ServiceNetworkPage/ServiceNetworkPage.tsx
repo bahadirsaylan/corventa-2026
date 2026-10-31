@@ -10,6 +10,7 @@ import {
   projectToScene,
 } from '@/constants/serviceNetwork'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import mapImage from '@/assets/images/service-map-bursa.jpg'
 import styles from './ServiceNetworkPage.module.css'
 
@@ -86,11 +87,7 @@ export default function ServiceNetworkPage() {
 
       {/* Ana ekrana dön */}
       <button type="button" className={styles.homeBtn} onClick={() => navigate('/dashboard')} aria-label={t('Ana ekran')}>
-        <svg viewBox="0 0 100 90" fill="currentColor">
-          <polygon points="50,4 4,44 14,44 50,13 86,44 96,44" />
-          <polygon points="18,46 50,18 82,46 82,86 60,86 60,60 40,60 40,86 18,86" />
-          <rect x="68" y="10" width="10" height="22" />
-        </svg>
+        <Icon name="home" size="hero" strokeWidth={2.5} />
       </button>
 
       <span className={styles.attribution}>{t('© OpenStreetMap katkıda bulunanlar')}</span>

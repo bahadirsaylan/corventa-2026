@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import styles from './AiRecipePreviewModal.module.css'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import type { SimilarBendingJobRequest, SimilarBendingJobResponse } from '@shared/types'
 
 interface Props {
@@ -65,12 +66,12 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Kapatma X butonu */}
         <button className={styles.closeX} onClick={onClose} aria-label={t('Kapat')}>
-          ×
+          <Icon name="close" size="md" />
         </button>
 
         {/* Baslik */}
         <h2 className={styles.title}>
-          <span className={styles.icon}>🤖</span> {t('AI ÖĞRENME KONTROLÜ')}
+          <span className={styles.icon}><Icon name="ai" size="lg" /></span> {t('AI ÖĞRENME KONTROLÜ')}
         </h2>
 
         {/* Icerik — 4 phase */}
@@ -84,7 +85,7 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
 
           {phase.kind === 'error' && (
             <div className={styles.stateError}>
-              <p className={styles.errorHead}>⚠ {t('Kontrol edilemedi')}</p>
+              <p className={styles.errorHead}><IconLabel icon="warning">{t('Kontrol edilemedi')}</IconLabel></p>
               <p className={styles.errorDetail}>{phase.message}</p>
               <p className={styles.errorNote}>
                 {t('Sorun yok — büküm klasik akışta çalışacak, sonuç kaydedilecek.')}
@@ -94,7 +95,7 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
 
           {phase.kind === 'no-match' && (
             <div className={styles.stateNoMatch}>
-              <p className={styles.noMatchHead}>📋 {t('İLK BÜKÜM')}</p>
+              <p className={styles.noMatchHead}><IconLabel icon="clipboard">{t('İLK BÜKÜM')}</IconLabel></p>
               <p className={styles.noMatchDetail}>
                 {t('Bu parametre kombinasyonunu daha önce bükmedik. Büküm klasik akışta çalışacak ve')}{' '}
                 <b>{t('kayıt oluşturulacak')}</b>.{' '}
@@ -111,7 +112,7 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
 
           {phase.kind === 'match' && phase.data.match && (
             <div className={styles.stateMatch}>
-              <p className={styles.matchHead}>⚡ {t('AI HIZLANDIRMA HAZIR')}</p>
+              <p className={styles.matchHead}><IconLabel icon="energy">{t('AI HIZLANDIRMA HAZIR')}</IconLabel></p>
               <p className={styles.matchDetail}>
                 {t('Bu parametreleri daha önce büktük. Kayıttaki ilk düzeltme adımı atlanacak —')}{' '}
                 <b>{t('1 iterasyon kazanç')}</b> {t('beklentisi.')}

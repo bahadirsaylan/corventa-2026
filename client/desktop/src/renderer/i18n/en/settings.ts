@@ -42,8 +42,6 @@ const en: Record<string, string> = {
   'ÜST TOP GERİ ÇEKME': 'UPPER ROLL RETRACT',
   'ROTASYON MESAFESİ': 'ROTATION DISTANCE',
   'ROTASYON YÖNÜ': 'ROTATION DIRECTION',
-  '◀ GERİ': '◀ BACKWARD',
-  'İLERİ ▶': 'FORWARD ▶',
   'GERİ ESNEME': 'SPRINGBACK',
   'Makinede saklanır — tüm kullanıcılar için geçerlidir.': 'Stored on the machine — applies to all users.',
   'ÇAP TOLERANSI': 'DIAMETER TOLERANCE',

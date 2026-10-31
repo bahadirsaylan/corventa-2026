@@ -3,6 +3,7 @@ import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import LiveClock from './LiveClock'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './DashboardPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
@@ -68,11 +69,7 @@ export default function DashboardPage() {
           onClick={() => navigate('/settings')}
           aria-label={t('AYARLAR')}
         >
-          <svg className={styles.gearIcon} viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path d="M32 4v8M32 52v8M4 32h8M52 32h8M11.03 11.03l5.66 5.66M47.31 47.31l5.66 5.66M52.97 11.03l-5.66 5.66M16.69 47.31l-5.66 5.66"
-              stroke="currentColor" strokeWidth="4" strokeLinecap="round"/>
-          </svg>
+          <Icon name="settings" size={80} strokeWidth={1.75} className={styles.gearIcon} />
           <span className={styles.iconBtnLabel}>{t('AYARLAR')}</span>
         </button>
 
@@ -81,13 +78,7 @@ export default function DashboardPage() {
           onClick={() => navigate('/service')}
           aria-label={t('SERVİS')}
         >
-          <svg className={styles.serviceIcon} viewBox="0 0 64 64" fill="none">
-            <path d="M10 30C10 18.95 19.4 10 31 10s21 8.95 21 20" stroke="currentColor" strokeWidth="4" fill="none"/>
-            <rect x="6" y="30" width="10" height="18" rx="4" stroke="currentColor" strokeWidth="3"/>
-            <rect x="48" y="30" width="10" height="18" rx="4" stroke="currentColor" strokeWidth="3"/>
-            <path d="M58 48c0 6-4 10-10 10H36" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-            <circle cx="32" cy="58" r="4" stroke="currentColor" strokeWidth="3"/>
-          </svg>
+          <Icon name="service" size={80} strokeWidth={1.75} className={styles.serviceIcon} />
           <span className={styles.iconBtnLabel}>{t('SERVİS')}</span>
         </button>
       </div>

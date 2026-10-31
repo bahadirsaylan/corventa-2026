@@ -2,6 +2,7 @@
 // Üstte aşağı/yukarı navigasyon okları (geri/ileri) ile.
 
 import { useNavigate } from 'react-router-dom'
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import styles from './ManuelHeader.module.css'
 
@@ -23,9 +24,7 @@ export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
         onClick={onDown ?? (() => navigate(-1))}
         aria-label={t('Geri / Aşağı')}
       >
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 4v16M5 13l7 7 7-7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <Icon name="down" size={56} />
       </button>
 
       <div className={styles.titleBlock}>
@@ -39,9 +38,7 @@ export default function ManuelHeader({ onUp, onDown, subtitle }: Props) {
         onClick={onUp ?? (() => navigate('/dashboard'))}
         aria-label={t('İleri / Yukarı')}
       >
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 20V4M5 11l7-7 7 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <Icon name="up" size={56} />
       </button>
     </div>
   )

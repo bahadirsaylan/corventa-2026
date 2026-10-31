@@ -15,7 +15,10 @@
 .card.tier_warning  { border-top-color: #f0a545; }
 .card.tier_critical { border-top-color: #e3121b; }
 
-.icon { font-size: 56px; line-height: 1; }
+.icon { display: flex; justify-content: center; line-height: 1; color: #2a2a2a; }
+.tier_reminder .icon { color: #2f8a48; }
+.tier_warning  .icon { color: #b86a12; }
+.tier_critical .icon { color: #c40f17; }
 .title { font-size: 34px; font-weight: 900; letter-spacing: 0.05em; color: #2a2a2a; }
 .tier_reminder .title { color: #2f8a48; }
 .tier_warning  .title { color: #b86a12; }

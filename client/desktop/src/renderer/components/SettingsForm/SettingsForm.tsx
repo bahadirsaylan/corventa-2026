@@ -7,6 +7,7 @@
 import { useState, type ReactNode } from 'react'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './SettingsForm.module.css'
 
 export type SettingValue = number | string | boolean | null
@@ -114,7 +115,7 @@ export function SettingsPageShell({
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={onBack} aria-label={t('Geri')}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{title}</h1>
         {badge}

@@ -10,6 +10,7 @@ import { useSessionStore } from '@/stores/sessionStore'
 import { useMaintenanceAlerts } from '@/hooks/useMaintenance'
 import { maintenanceTierTitle } from '@/services/maintenanceStatus'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './MaintenanceAlertOverlay.module.css'
 
 export default function MaintenanceAlertOverlay() {
@@ -35,7 +36,7 @@ export default function MaintenanceAlertOverlay() {
   return (
     <div className={styles.overlay} role="dialog" aria-modal="true">
       <div className={`${styles.card} ${styles[`tier_${top.tier}`]}`}>
-        <div className={styles.icon}>🔧</div>
+        <div className={styles.icon}><Icon name="maintenance" size="xxl" /></div>
         <div className={styles.title}>{t(maintenanceTierTitle(top.tier!))}</div>
         <div className={styles.subtitle}>{t('Bakım zamanı geçti. Lütfen bakımı yapıp Bakım Süresi sayfasından işaretleyin.')}</div>
 

@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { getTrainingTopic, type QuizQuestion } from '@/constants/trainingTopics'
+import { IconLabel } from '@/components/Icon'
 import { useT } from '@/i18n'
 
 import ServicePageShell from './ServicePageShell'
@@ -52,7 +53,7 @@ export default function TrainingQuizPage() {
             .filter(Boolean)
             .join(' ')}
           >
-            {passed ? t('✦ EĞİTİM TAMAMLANDI ✦') : t('TEKRAR DENEYİN')}
+            {passed ? <IconLabel icon="award">{t('EĞİTİM TAMAMLANDI')}</IconLabel> : t('TEKRAR DENEYİN')}
           </div>
           <div className={styles.resultScore}>
             <span className={styles.resultScoreNum}>{score}</span>

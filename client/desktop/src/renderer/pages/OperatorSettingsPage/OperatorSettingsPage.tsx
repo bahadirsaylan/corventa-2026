@@ -38,6 +38,7 @@ import {
 } from '@/services/operatorPrefs'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
+import { IconLabel } from '@/components/Icon'
 
 const LOCAL_SECTIONS: SectionDef[] = [
   {
@@ -90,8 +91,8 @@ const LOCAL_SECTIONS: SectionDef[] = [
         key: 'unloadRotationDir',
         label: 'ROTASYON YÖNÜ',
         options: [
-          { value: '-1', label: '◀ GERİ' },
-          { value: '1', label: 'İLERİ ▶' },
+          { value: '-1', label: 'GERİ' },
+          { value: '1', label: 'İLERİ' },
         ],
       },
     ],
@@ -280,7 +281,7 @@ export default function OperatorSettingsPage() {
         <div className={styles.tabs}>
           {SHORTCUTS.map(([label, path]) => (
             <button key={path} type="button" className={styles.tab} onClick={() => navigate(path)}>
-              {t(label)} →
+              <IconLabel icon="next" trailing>{t(label)}</IconLabel>
             </button>
           ))}
         </div>

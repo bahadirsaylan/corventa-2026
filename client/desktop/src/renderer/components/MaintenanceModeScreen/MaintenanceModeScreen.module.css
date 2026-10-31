@@ -166,7 +166,7 @@
   background: repeating-linear-gradient(-45deg, #f5d76e 0 18px, #f0c64a 18px 36px);
   border-bottom: 3px solid #9a5b00;
 }
-.stripIcon { font-size: 24px; }
+.stripIcon { display: inline-flex; align-items: center; color: #4a2c00; }
 .stripTitle { font-size: 20px; font-weight: 900; letter-spacing: 0.06em; color: #4a2c00; }
 .stripElapsed {
   font-size: 20px;

@@ -4,6 +4,7 @@ import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import { SpiralDirection } from '@/store/bendingJobStore'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-4-buyuk.png'
@@ -109,7 +110,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -126,7 +127,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
             aria-label="Spiral direction left"
             aria-pressed={values.Y === 'left'}
           >
-            《
+            <Icon name="chevronLeft" size="lg" />
           </button>
           <button
             className={`${styles.dirBtn} ${values.Y === 'right' ? styles.dirBtnActive : ''}`}
@@ -134,7 +135,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
             aria-label="Spiral direction right"
             aria-pressed={values.Y === 'right'}
           >
-            》
+            <Icon name="chevronRight" size="lg" />
           </button>
         </div>
         <button
@@ -142,7 +143,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
           onClick={() => setOpenInfo('Y')}
           aria-label="Info for Y"
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -178,7 +179,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ {t('SIFIRLA')}
+          <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
         </button>
       </div>
 

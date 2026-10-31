@@ -16,6 +16,7 @@ import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import { useHoldAction } from './useHoldAction'
 import { readManualSpeed } from '@/services/operatorPrefs'
 import styles from './ManualControlPad.module.css'
@@ -99,7 +100,7 @@ export default function ManualControlPad() {
           onClick={() => setSpeed((v) => Math.max(SPEED_MIN, v - SPEED_STEP))}
           aria-label={t('Hızı azalt')}
         >
-          −
+          <Icon name="minus" size="xl" />
         </button>
         <div className={styles.speedValue}>
           <span className={styles.speedPct}>%{speed}</span>
@@ -112,7 +113,7 @@ export default function ManualControlPad() {
           onClick={() => setSpeed((v) => Math.min(SPEED_MAX, v + SPEED_STEP))}
           aria-label={t('Hızı artır')}
         >
-          +
+          <Icon name="plus" size="xl" />
         </button>
       </div>
 
@@ -174,13 +175,9 @@ export default function ManualControlPad() {
 
 // ─────────────────────────────────────────────────────────────
 
+// Yön oku — ortak "next" (ArrowRight) ikonu, deg kadar döndürülür (0 = sağ, -90 = yukarı).
 function Arrow({ deg }: { deg: number }) {
-  return (
-    <svg className={styles.arrow} viewBox="0 0 24 24" style={{ transform: `rotate(${deg}deg)` }} aria-hidden>
-      <path d="M3 12h14M12 6l7 6-7 6" fill="none" stroke="currentColor" strokeWidth="3.2"
-        strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+  return <Icon name="next" size="xl" className={styles.arrow} style={{ transform: `rotate(${deg}deg)` }} />
 }
 
 interface SideBtnProps {
@@ -245,12 +242,7 @@ function RotationBtn({ dir, speed, locked, cls, label }: RotationBtnProps) {
       aria-label={t(label)}
       {...handlers}
     >
-      <svg className={styles.rotIcon} viewBox="0 0 100 100" aria-hidden
-        style={dir === -1 ? { transform: 'scaleX(-1)' } : undefined}>
-        {/* 270° yay: sağdan başlar, saat yönünde döner, tepede sağa bakan ok ucu */}
-        <path d="M82 50 A32 32 0 1 1 46 18" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
-        <polygon points="44,4 66,18 44,32" fill="currentColor" />
-      </svg>
+      <Icon name={dir === 1 ? 'rotateCw' : 'rotateCcw'} size="hero" className={styles.rotIcon} />
       <span className={styles.rotLabel}>{dir === 1 ? 'CW' : 'CCW'}</span>
     </button>
   )

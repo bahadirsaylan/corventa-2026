@@ -3,6 +3,7 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import MachineCodeBar from '@/pages/SettingsPage/MachineCodeBar'
 import styles from './ServicePageShell.module.css'
 
@@ -26,7 +27,7 @@ export default function ServicePageShell({ title, subtitle, onBack, children }: 
       <div className={styles.header}>
         <div className={styles.titleBlock}>
           <button className={styles.backBtn} onClick={handleBack} aria-label={t('Geri')}>
-            ←
+            <Icon name="back" size="xl" />
           </button>
           <div className={styles.titleText}>
             <span className={styles.titleTop}>{t(title)}</span>

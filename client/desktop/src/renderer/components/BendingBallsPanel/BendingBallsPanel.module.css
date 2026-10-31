@@ -167,7 +167,9 @@
 }
 
 .tolCaret {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
   color: var(--color-text-muted);
 }
 
@@ -230,8 +232,8 @@
   right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 26px;
-  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
   color: #16a34a;
 }
 

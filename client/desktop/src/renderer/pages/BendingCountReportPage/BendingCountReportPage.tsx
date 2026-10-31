@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './BendingCountReportPage.module.css'
 
 type Period = 'week' | 'month' | 'year'
@@ -50,7 +51,7 @@ export default function BendingCountReportPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('KIVRIM ADETLERİ RAPORU')}</h1>
         <div className={styles.periodTabs}>
           <PeriodTab active={period === 'week'} onClick={() => setPeriod('week')}>{t('{n} GÜN', { n: 7 })}</PeriodTab>

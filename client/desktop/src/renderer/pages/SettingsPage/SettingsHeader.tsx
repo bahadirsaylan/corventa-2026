@@ -1,5 +1,6 @@
 import UserBadge from '@/components/UserBadge/UserBadge'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './SettingsHeader.module.css'
 
 interface Props {
@@ -12,8 +13,8 @@ export default function SettingsHeader({ onBack }: Props) {
     <div className={styles.header}>
       {/* Left — title */}
       <div className={styles.titleBlock}>
-        <button className={styles.backBtn} onClick={onBack} aria-label="Back to dashboard">
-          ←
+        <button className={styles.backBtn} onClick={onBack} aria-label={t('Geri')}>
+          <Icon name="back" size="xl" />
         </button>
         <div className={styles.titleText}>
           <span className={styles.titleTop}>{t('CORVENTA BÜKÜM')}</span>

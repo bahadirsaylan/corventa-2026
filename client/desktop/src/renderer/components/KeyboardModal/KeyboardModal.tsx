@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import styles from './KeyboardModal.module.css'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 
 interface Props {
   initialValue: string
@@ -125,7 +126,6 @@ export default function KeyboardModal({
   }
 
   const showUpper = mode !== 'sym' && shift !== 'off'
-  const shiftLabel = shift === 'caps' ? '⇪' : '⇧'
   const modeToggleLabel = mode === 'en' ? 'EN' : mode === 'sym' ? 'TR' : 'TR'
   const symToggleLabel = mode === 'sym' ? 'ABC' : '?123'
 
@@ -176,7 +176,7 @@ export default function KeyboardModal({
                     shift === 'caps' ? t('Caps Lock aktif') : shift === 'shift' ? t('Shift aktif') : 'Shift'
                   }
                 >
-                  {shiftLabel}
+                  <Icon name={shift === 'caps' ? 'capsLock' : 'shift'} size="xl" />
                 </button>
               )}
               {row.map((k) => (
@@ -196,7 +196,7 @@ export default function KeyboardModal({
                   type="button"
                   aria-label={t('Sil')}
                 >
-                  ⌫
+                  <Icon name="backspace" size="xl" />
                 </button>
               )}
             </div>
@@ -220,7 +220,7 @@ export default function KeyboardModal({
             type="button"
             aria-label={t('Dil değiştir')}
           >
-            🌐 {modeToggleLabel}
+            <IconLabel icon="language">{modeToggleLabel}</IconLabel>
           </button>
           <button
             className={`${styles.key} ${styles.spaceKey}`}
@@ -242,7 +242,7 @@ export default function KeyboardModal({
             onClick={() => onConfirm(value)}
             type="button"
           >
-            ✓ {t('ONAYLA')}
+            <IconLabel icon="confirm">{t('ONAYLA')}</IconLabel>
           </button>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { normalizeCertificateCode, type Certificate } from '@shared/types'
 import { useLang, useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './CertificateQueryPage.module.css'
 
 type Status = 'idle' | 'searching' | 'found' | 'notfound' | 'expired' | 'error'
@@ -63,7 +64,7 @@ export default function CertificateQueryPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('SERTİFİKA SORGULA')}</h1>
       </div>
 
@@ -86,7 +87,7 @@ export default function CertificateQueryPage() {
               onClick={() => void handleSearch()}
               disabled={!code.trim() || status === 'searching'}
             >
-              {status === 'searching' ? t('SORGULANIYOR...') : `🔍 ${t('SORGULA')}`}
+              {status === 'searching' ? t('SORGULANIYOR...') : <IconLabel icon="search">{t('SORGULA')}</IconLabel>}
             </button>
             <button className={styles.clearBtn} onClick={reset} disabled={status === 'idle' && !code}>
               {t('TEMİZLE')}
@@ -98,7 +99,7 @@ export default function CertificateQueryPage() {
         {/* Result */}
         {status === 'notfound' && (
           <div className={`${styles.resultCard} ${styles.resultNotFound}`}>
-            <div className={styles.resultIcon}>✕</div>
+            <div className={styles.resultIcon}><Icon name="failure" size="xl" /></div>
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>{t('SERTİFİKA BULUNAMADI')}</h2>
               <p className={styles.resultText}>
@@ -111,7 +112,7 @@ export default function CertificateQueryPage() {
 
         {status === 'error' && (
           <div className={`${styles.resultCard} ${styles.resultError}`}>
-            <div className={styles.resultIcon}>!</div>
+            <div className={styles.resultIcon}><Icon name="error" size="xl" /></div>
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>{t('SORGULAMA YAPILAMADI')}</h2>
               <p className={styles.resultText}>
@@ -124,7 +125,7 @@ export default function CertificateQueryPage() {
 
         {result && (status === 'found' || status === 'expired') && (
           <div className={`${styles.resultCard} ${status === 'expired' ? styles.resultExpired : styles.resultFound}`}>
-            <div className={styles.resultIcon}>{status === 'expired' ? '⚠' : '✓'}</div>
+            <div className={styles.resultIcon}><Icon name={status === 'expired' ? 'warning' : 'success'} size="xl" /></div>
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>
                 {status === 'expired' ? t('SERTİFİKA SÜRESİ DOLMUŞ') : t('SERTİFİKA GEÇERLİ')}

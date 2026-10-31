@@ -12,6 +12,7 @@ import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import type { BendingJob } from '@shared/types'
 import { useT } from '@/i18n'
+import { IconLabel } from '@/components/Icon'
 import styles from './ArcNextSegmentModal.module.css'
 
 type InputMode = 'angle' | 'arcLen'
@@ -279,12 +280,12 @@ export default function ArcNextSegmentModal() {
               </div>
               {wouldExceed && (
                 <div className={styles.budgetWarning}>
-                  ⚠ {t('Parça boyu yetersiz — R, α/Yay veya L değerini küçültün')}
+                  <IconLabel icon="warning">{t('Parça boyu yetersiz — R, α/Yay veya L değerini küçültün')}</IconLabel>
                 </div>
               )}
               {isSonSegment && arcRaw > 0 && (
                 <div className={styles.budgetInfo}>
-                  ℹ {t('SON SEGMENT: yay uzunluğu {n}mm kısaltılacak (parça sonu güvenlik payı)', { n: safety.toFixed(0) })}
+                  <IconLabel icon="info">{t('SON SEGMENT: yay uzunluğu {n}mm kısaltılacak (parça sonu güvenlik payı)', { n: safety.toFixed(0) })}</IconLabel>
                 </div>
               )}
             </div>

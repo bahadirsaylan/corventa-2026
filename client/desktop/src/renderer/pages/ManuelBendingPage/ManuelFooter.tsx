@@ -1,5 +1,6 @@
 // SEKIL-22 alt: Uyarı + sinyal + Geometrik çap + Touch icon
 
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import styles from './ManuelFooter.module.css'
 import alertIcon from '@/assets/images/alert.png'
@@ -22,7 +23,7 @@ export default function ManuelFooter({
     <div className={styles.footer}>
       <div className={styles.left}>
         <img src={alertIcon} alt={t('Uyarı')} className={styles.alertIcon} />
-        <SignalIcon />
+        <Icon name="signal" size="xxl" />
       </div>
 
       <div className={styles.diameterBox}>
@@ -40,20 +41,5 @@ export default function ManuelFooter({
         <img src={touchIcon} alt="Touch" className={styles.touchIcon} />
       </button>
     </div>
-  )
-}
-
-function SignalIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="signal" fill="none" width={48} height={48}>
-      <circle cx="12" cy="20" r="2" fill="currentColor" />
-      <path
-        d="M5 14a10 10 0 0114 0M2 11a14 14 0 0120 0"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
   )
 }

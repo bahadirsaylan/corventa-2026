@@ -116,8 +116,9 @@
 
 .speedBtn {
   width: 64px;
-  font-size: 36px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   color: var(--color-primary);
   background: transparent;

@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { MachineIdentity } from '@shared/types'
+import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
 import styles from './WarrantyPage.module.css'
 
@@ -70,7 +71,7 @@ export default function WarrantyPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{t('GARANTİ SÜRESİ')}</h1>
       </div>
@@ -153,7 +154,7 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
         <ul className={styles.exclusionList}>
           {EXCLUSIONS.map((item) => (
             <li key={item} className={styles.exclusionItem}>
-              <span className={styles.exclusionBullet}>✕</span>
+              <span className={styles.exclusionBullet}><Icon name="failure" size="md" /></span>
               <span>{t(item)}</span>
             </li>
           ))}

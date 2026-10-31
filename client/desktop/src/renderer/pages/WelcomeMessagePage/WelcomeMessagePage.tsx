@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
 import {
   WELCOME_DEFAULT_MESSAGE as DEFAULT_MESSAGE,
@@ -36,7 +37,7 @@ export default function WelcomeMessagePage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{t('KARŞILAMA MESAJI')}</h1>
       </div>

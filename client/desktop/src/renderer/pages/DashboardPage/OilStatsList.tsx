@@ -3,6 +3,7 @@
 
 import { useSafety, useSensors } from '@/hooks/useMachineState'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './OilStatsList.module.css'
 
 interface StatRow {
@@ -73,7 +74,7 @@ export default function OilStatsList() {
           className={`${styles.box} ${row.ok ? styles.boxOk : styles.boxFail}`}
         >
           <span className={`${styles.icon} ${row.ok ? styles.iconOk : styles.iconFail}`}>
-            {row.ok ? '✓' : '✕'}
+            <Icon name={row.ok ? 'check' : 'close'} size="lg" strokeWidth={3} />
           </span>
           <span className={styles.label}>{row.label}</span>
           <span className={`${styles.value} ${row.ok ? '' : styles.valueFail}`}>

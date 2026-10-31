@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang, useT, type TVars } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './BigDataConnectionPage.module.css'
 
 type ConnStatus = 'connected' | 'disconnected' | 'error' | 'testing'
@@ -37,7 +38,7 @@ export default function BigDataConnectionPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('BİG DATA BAĞLANTI AYARLARI')}</h1>
       </div>
 

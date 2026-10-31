@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { StageInfo } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import { Icon, IconLabel } from '@/components/Icon'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
@@ -112,15 +113,18 @@ export default function EncoderResetPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings/admin', { state: { tab: 'gonye' } })} aria-label={t('Geri')} disabled={busy}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{t('CETVEL SIFIRLAMA — GÖNYE ALMA')}</h1>
       </div>
 
       <div className={styles.body}>
         <div className={styles.warnBar}>
-          ⚠ {t('GÖNYE TÜM PİSTONLARI HAREKET ETTİRİR VE MAKİNENİN POZİSYON REFERANSINI YENİDEN BELİRLER.')}
-          &nbsp;{t('BAŞLATMADAN ÖNCE MAKİNEDE PARÇA OLMADIĞINDAN VE ÇEVRENİN GÜVENLİ OLDUĞUNDAN EMİN OLUN.')}
+          <Icon name="warning" size="lg" className={styles.warnIcon} />
+          <span>
+            {t('GÖNYE TÜM PİSTONLARI HAREKET ETTİRİR VE MAKİNENİN POZİSYON REFERANSINI YENİDEN BELİRLER.')}
+            &nbsp;{t('BAŞLATMADAN ÖNCE MAKİNEDE PARÇA OLMADIĞINDAN VE ÇEVRENİN GÜVENLİ OLDUĞUNDAN EMİN OLUN.')}
+          </span>
         </div>
 
         <div className={styles.card}>
@@ -173,7 +177,7 @@ export default function EncoderResetPage() {
                   <span className={styles.stageOffsets}>
                     {t('SOL')} {st.leftOffsetMm.toFixed(2)} · {t('ALT')} {st.lowerOffsetMm.toFixed(2)} · {t('SAĞ')} {st.rightOffsetMm.toFixed(2)}
                   </span>
-                  {current && <span className={styles.stageCurrent}>✓ {t('AKTİF')}</span>}
+                  {current && <span className={styles.stageCurrent}><IconLabel icon="check">{t('AKTİF')}</IconLabel></span>}
                 </button>
               )
             })}
@@ -205,7 +209,7 @@ export default function EncoderResetPage() {
             onClick={() => setConfirming(true)}
             disabled={busy || blockedReason != null}
           >
-            {running ? t('GÖNYE ALINIYOR…') : `↻ ${t('GÖNYE AL')}`}
+            {running ? t('GÖNYE ALINIYOR…') : <IconLabel icon="reference" size="md">{t('GÖNYE AL')}</IconLabel>}
           </button>
         </div>
       </div>

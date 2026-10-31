@@ -1,6 +1,7 @@
 // Manuel rotasyon kontrolü — ↺ CCW (-1) / ↻ CW (1) press-and-hold jog.
 // Backend rotation jog: { direction: -1|0|1, speedPercent }.
 
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import styles from './RotationControl.module.css'
 
@@ -32,7 +33,7 @@ export default function RotationControl({
           onPointerLeave={onRelease}
           aria-label="ccw"
         >
-          ↺
+          <Icon name="rotateCcw" size="xl" />
         </button>
         <span className={styles.value}>{positionMm.toFixed(1)}</span>
         <button
@@ -45,7 +46,7 @@ export default function RotationControl({
           onPointerLeave={onRelease}
           aria-label="cw"
         >
-          ↻
+          <Icon name="rotateCw" size="xl" />
         </button>
       </div>
     </div>

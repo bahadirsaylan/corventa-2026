@@ -68,7 +68,9 @@
 }
 
 .icon {
-  font-size: 26px;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .content {

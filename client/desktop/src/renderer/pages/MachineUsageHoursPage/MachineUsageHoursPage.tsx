@@ -12,6 +12,7 @@ import {
   type UsageTimeSummary,
 } from '@shared/types'
 import { useLang, useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './MachineUsageHoursPage.module.css'
 
 const RANGE_DAYS = 30
@@ -115,7 +116,7 @@ export default function MachineUsageHoursPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('KULLANMA SÜRELERİ')}</h1>
       </div>
 

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './StatusBar.module.css'
 import touchIcon from '@/assets/images/touch.png'
+import { Icon } from '@/components/Icon'
 
 interface StatusBarProps {
   backTo?: string
@@ -28,7 +29,7 @@ export default function StatusBar({ backTo, onBack, onConfirm, confirmDisabled =
           onClick={handleBack}
           aria-label="Go back"
         >
-          ←
+          <Icon name="back" size="xxl" />
         </button>
         {hint && <div className={styles.hint}>{hint}</div>}
       </div>

@@ -180,10 +180,9 @@
 
 .playIcon {
   color: var(--color-primary);
-  font-size: 28px;
+  fill: currentColor;
 }
 
 .repeatIcon {
   color: var(--color-primary);
-  font-size: 24px;
 }

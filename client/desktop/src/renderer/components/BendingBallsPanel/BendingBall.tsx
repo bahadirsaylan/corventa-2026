@@ -4,6 +4,7 @@
 
 import { useCallback, useRef } from 'react'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './BendingBall.module.css'
 
 interface BendingBallProps {
@@ -91,7 +92,7 @@ function HoldButton({ label, disabled, onStart, onStop }: HoldButtonProps) {
       onContextMenu={(e) => e.preventDefault()}
       aria-label={label === '+' ? t('jog ileri') : t('jog geri')}
     >
-      {label}
+      <Icon name={label === '+' ? 'plus' : 'minus'} size="xl" />
     </button>
   )
 }

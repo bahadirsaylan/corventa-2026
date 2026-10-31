@@ -17,6 +17,7 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { PRODUCTION_TOLERANCES, readProductionTolerance, saveProductionTolerance } from '@/services/operatorPrefs'
 import { t as tr, translateProgress, useLang, useT, type LangCode } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
@@ -115,7 +116,7 @@ function ControlPanel() {
               onClick={() => setShowCancelModal(true)}
               aria-label={t('Bukumu iptal et')}
             >
-              {t('■ İPTAL')}
+              <IconLabel icon="stop">{t('İPTAL')}</IconLabel>
             </button>
           )}
           <button
@@ -127,7 +128,7 @@ function ControlPanel() {
             <span className={styles.headerLabel}>{t('TOLERANS')}</span>
             <span className={styles.headerValue}>{tolerance}</span>
             <span className={styles.headerUnit}>mm</span>
-            <span className={styles.tolCaret} aria-hidden>▾</span>
+            <span className={styles.tolCaret}><Icon name="chevronDown" size="md" /></span>
           </button>
         </div>
       </div>
@@ -148,7 +149,7 @@ function ControlPanel() {
               >
                 <span className={styles.tolOptionValue}>{o.mm} mm</span>
                 <span className={styles.tolOptionLabel}>{t(o.label)}</span>
-                {tolerance === o.mm && <span className={styles.tolCheck} aria-hidden>✓</span>}
+                {tolerance === o.mm && <span className={styles.tolCheck}><Icon name="check" size="lg" /></span>}
               </button>
             ))}
           </div>
@@ -166,7 +167,7 @@ function ControlPanel() {
             onClick={handleConfirmSideSupport}
             disabled={confirming}
           >
-            {confirming ? '...' : t('▶ DEVAM')}
+            {confirming ? '...' : <IconLabel icon="play">{t('DEVAM')}</IconLabel>}
           </button>
         </div>
       )}

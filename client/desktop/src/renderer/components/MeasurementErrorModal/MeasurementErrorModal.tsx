@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import styles from './MeasurementErrorModal.module.css'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 
 export default function MeasurementErrorModal() {
   const t = useT()
@@ -70,7 +71,7 @@ export default function MeasurementErrorModal() {
       <div className={styles.modal}>
         {modal1Open && (
           <>
-            <h2 className={styles.title}>⚠ {t('ÖLÇÜM HATASI')}</h2>
+            <h2 className={styles.title}><IconLabel icon="warning">{t('ÖLÇÜM HATASI')}</IconLabel></h2>
             <p className={styles.subtitle}>
               {t('Segment {seg}, iterasyon {iter}: sensör beklenmedik değer okudu (kötüleşme)', { seg: String(segNo ?? ''), iter: String(iter ?? '') })}
             </p>
@@ -88,7 +89,9 @@ export default function MeasurementErrorModal() {
                 <span>{t('Şimdi ölçülen:')}</span>
                 <strong>
                   {last != null ? `${last.toFixed(2)} mm` : '—'}{' '}
-                  {prev != null && last != null && last >= prev ? t('(arttı ▲)') : ''}
+                  {prev != null && last != null && last >= prev ? (
+                    <>({t('arttı')} <Icon name="up" size="text" />)</>
+                  ) : ''}
                 </strong>
               </div>
             </div>
@@ -113,7 +116,7 @@ export default function MeasurementErrorModal() {
                 {submitting === 'retract'
                   ? t('Gönderiliyor…')
                   : retracted
-                    ? t('✓ Pnömatik Geri Çekildi')
+                    ? <IconLabel icon="check">{t('Pnömatik Geri Çekildi')}</IconLabel>
                     : t('① Pnömatiği Geri Çek')}
               </button>
               <button
@@ -130,7 +133,7 @@ export default function MeasurementErrorModal() {
 
         {modal2Open && (
           <>
-            <h2 className={styles.title}>⚠ {t('ÖLÇÜM TEKRARLANAMIYOR')}</h2>
+            <h2 className={styles.title}><IconLabel icon="warning">{t('ÖLÇÜM TEKRARLANAMIYOR')}</IconLabel></h2>
             <p className={styles.subtitle}>
               {t("Segment {seg}, iterasyon {iter}: tekrar ölçümde de sonuç önceki'den yüksek. Fiziksel bir sorun olabilir (parça kayması, sensör hatası, vb.)", { seg: String(segNo ?? ''), iter: String(iter ?? '') })}
             </p>
@@ -161,7 +164,7 @@ export default function MeasurementErrorModal() {
                 disabled={submitting !== null}
                 onClick={() => sendAction('finish_all')}
               >
-                {submitting === 'finish_all' ? t('Gönderiliyor…') : t('⏹ Tüm Bükümü Bitir')}
+                {submitting === 'finish_all' ? t('Gönderiliyor…') : <IconLabel icon="stop">{t('Tüm Bükümü Bitir')}</IconLabel>}
               </button>
               <button
                 type="button"
@@ -169,7 +172,7 @@ export default function MeasurementErrorModal() {
                 disabled={submitting !== null}
                 onClick={() => sendAction('skip_segment')}
               >
-                {submitting === 'skip_segment' ? t('Gönderiliyor…') : t('⏭ Bu Segmenti Atla')}
+                {submitting === 'skip_segment' ? t('Gönderiliyor…') : <IconLabel icon="skip">{t('Bu Segmenti Atla')}</IconLabel>}
               </button>
             </div>
           </>

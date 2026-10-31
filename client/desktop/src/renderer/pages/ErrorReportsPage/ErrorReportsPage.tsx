@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './ErrorReportsPage.module.css'
 
 type Severity = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO'
@@ -71,10 +72,10 @@ export default function ErrorReportsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('HATA RAPORLARI')}</h1>
         <button className={styles.exportBtn} onClick={() => alert(t('CSV dışa aktar (mock)'))}>
-          ↓ {t('CSV DIŞA AKTAR')}
+          <IconLabel icon="download">{t('CSV DIŞA AKTAR')}</IconLabel>
         </button>
       </div>
 

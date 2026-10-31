@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MAINTENANCE_PERIODS, type MaintenancePeriodInfo } from '@shared/types'
 import { useMaintenanceModeTiming, useNowTick } from '@/hooks/useMaintenance'
+import { Icon, IconLabel } from '@/components/Icon'
 import {
   computeMaintenanceStatus,
   maintenanceTierTitle,
@@ -116,7 +117,7 @@ export default function MaintenancePage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{t('BAKIM SÜRESİ')}</h1>
       </div>
@@ -224,7 +225,7 @@ export default function MaintenancePage() {
                         ? t('İŞARETLENİYOR…')
                         : remaining != null && remaining > 0
                           ? t('{n} DK SONRA', { n: remaining })
-                          : `✓ ${t('BAKIM YAPILDI')}`}
+                          : <IconLabel icon="check" size="md">{t('BAKIM YAPILDI')}</IconLabel>}
                     </button>
                   </div>
                 )

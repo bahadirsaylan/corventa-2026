@@ -118,13 +118,13 @@ const en: Record<string, string> = {
   'Hedef radyüs:': 'Target radius:',
   'Önceki ölçüm:': 'Previous measurement:',
   'Şimdi ölçülen:': 'Measured now:',
-  '(arttı ▲)': '(increased ▲)',
+  'arttı': 'increased',
   "1) Önce <b>Pnömatiği Geri Çek</b> ile SLPIS'i güvenli konuma çekin.":
     '1) First use <b>Retract Pneumatic</b> to move the SLPIS to a safe position.',
   '2) Sonra <b>Tekrar Ölç</b> ile yeniden ölçüm yapın.':
     '2) Then use <b>Re-measure</b> to take a new measurement.',
   'Gönderiliyor…': 'Sending…',
-  '✓ Pnömatik Geri Çekildi': '✓ Pneumatic Retracted',
+  'Pnömatik Geri Çekildi': 'Pneumatic Retracted',
   '① Pnömatiği Geri Çek': '① Retract Pneumatic',
   'Ölçülüyor…': 'Measuring…',
   '② Tekrar Ölç': '② Re-measure',
@@ -134,8 +134,8 @@ const en: Record<string, string> = {
   'Son ölçüm:': 'Last measurement:',
   'Bu segment için düzeltme başarısız. Aşağıdaki iki seçenekten birini seçin:':
     'Correction failed for this segment. Choose one of the two options below:',
-  '⏹ Tüm Bükümü Bitir': '⏹ Finish All Bending',
-  '⏭ Bu Segmenti Atla': '⏭ Skip This Segment',
+  'Tüm Bükümü Bitir': 'Finish All Bending',
+  'Bu Segmenti Atla': 'Skip This Segment',
 }
 
 export default en

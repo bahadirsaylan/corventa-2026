@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
+import { IconLabel } from '@/components/Icon'
 import ArcMeasurementForm, {
   ArcFormStage,
   ArcInputMode,
@@ -286,7 +287,9 @@ export default function ArcBendingMeasurementsPage() {
       {validationError && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingBox}>
-            <div className={styles.errorHead}>⚠ {t('HESAPLAMA HATASI')}</div>
+            <div className={styles.errorHead}>
+              <IconLabel icon="error">{t('HESAPLAMA HATASI')}</IconLabel>
+            </div>
             <div className={styles.errorBody}>{validationError}</div>
             <button className={styles.errorBtn} onClick={() => setValidationError(null)}>
               {t('TAMAM')}

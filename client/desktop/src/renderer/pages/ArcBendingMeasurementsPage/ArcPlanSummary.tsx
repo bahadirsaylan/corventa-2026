@@ -3,6 +3,7 @@ import ArcProfileDiagram from './ArcProfileDiagram'
 import type { ArcMeasurementValues } from './ArcMeasurementForm'
 import type { ValidateArcPlanResponse } from '@shared/types'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 
 interface Props {
   values: ArcMeasurementValues
@@ -96,7 +97,9 @@ export default function ArcPlanSummary({ values, plan }: Props) {
       {/* ── Info banner'lar ───────────────────────────── */}
       {isReversed && (
         <div className={styles.banner + ' ' + styles.bannerReverse}>
-          <span className={styles.bannerIcon}>🔄</span>
+          <span className={styles.bannerIcon}>
+            <Icon name="reverse" />
+          </span>
           <span>
             <b>{t('TERS SIRA')}</b> — {t('Bükümler parça sonundan başlayıp parça başına doğru yapılacak (Seg{p} → Seg1).', { p })}
           </span>
@@ -104,7 +107,9 @@ export default function ArcPlanSummary({ values, plan }: Props) {
       )}
       {extension > 0 && (
         <div className={styles.banner + ' ' + styles.bannerExtend}>
-          <span className={styles.bannerIcon}>⚠</span>
+          <span className={styles.bannerIcon}>
+            <Icon name="warning" />
+          </span>
           <span>
             <b>{t('PARÇA UZATILDI')}</b> — {plan.side === 'Leading' ? t('PARÇA BAŞINA') : t('PARÇA SONUNA')}{' '}
             <b>+{extension.toFixed(0)}mm</b> {t('eklendi')} ({plan.isMeasurementOnly ? t('ölçüm için') : t('büküm için')}).

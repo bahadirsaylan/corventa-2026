@@ -9,6 +9,7 @@ import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useManuelProgramsStore } from '@/stores/manuelProgramsStore'
 import { readManualRunPrefs } from '@/services/operatorPrefs'
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import { MachineMode, type PistonName, type PneumaticSide } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
@@ -173,14 +174,16 @@ export default function ManuelBendingRunPage() {
               <button
                 className={styles.speedBtn}
                 onClick={() => setSpeedPercent((s) => Math.max(0, s - 10))}
+                aria-label={t('Azalt')}
               >
-                −
+                <Icon name="minus" size="md" />
               </button>
               <button
                 className={styles.speedBtn}
                 onClick={() => setSpeedPercent((s) => Math.min(100, s + 10))}
+                aria-label={t('Arttır')}
               >
-                +
+                <Icon name="plus" size="md" />
               </button>
             </div>
             <button

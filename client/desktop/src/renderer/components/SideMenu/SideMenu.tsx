@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { Icon } from '@/components/Icon'
 import { LockIcon } from '@/components/RoleNotice/LockIcon'
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import UserBadge from '@/components/UserBadge/UserBadge'
@@ -177,10 +178,7 @@ export default function SideMenu() {
           aria-label={t('Menüyü kapat')}
           tabIndex={open ? 0 : -1}
         >
-          <svg viewBox="0 0 64 64" aria-hidden>
-            <circle cx="32" cy="32" r="28" />
-            <path d="M21 21 L43 43 M43 21 L21 43" />
-          </svg>
+          <Icon name="close" size={40} />
         </button>
       </nav>
     </>

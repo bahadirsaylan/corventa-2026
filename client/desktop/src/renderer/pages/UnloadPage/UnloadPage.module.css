@@ -25,6 +25,14 @@
 .chevrons {
   display: flex;
   gap: 6px;
+  /* Uzun başlıkta (BÜKÜM HATAYLA BİTTİ) oklar daralır/kırpılır, başlık tek satırda kalır */
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chevrons span {
+  flex-shrink: 0;
 }
 
 .chevrons span {
@@ -40,10 +48,17 @@
 }
 
 .doneText {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  white-space: nowrap;
   font-size: 64px;
   font-weight: 900;
   letter-spacing: 0.04em;
   color: #e3121b;
+}
+
+.doneText[data-long] {
+  font-size: 46px;
 }
 
 .hint {
@@ -122,6 +137,9 @@
 }
 
 .stepBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 84px;
   height: 84px;
   border-radius: 14px;
@@ -301,6 +319,10 @@
 
 .motionStep,
 .dirBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 58px;
   height: 58px;
   border-radius: 12px;

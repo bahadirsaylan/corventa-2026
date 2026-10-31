@@ -6,6 +6,7 @@ import { useCallback, useRef } from 'react'
 
 import type { SideSupportSide, SideSupportType } from '@shared/types'
 import { useT } from '@/i18n'
+import { Icon, type IconName } from '@/components/Icon'
 import styles from './SideSupportControls.module.css'
 
 interface SideSupportControlsProps {
@@ -42,8 +43,8 @@ interface SideSupportRowProps {
 function SideSupportRow({ side, type, label }: SideSupportRowProps) {
   // "İleri" hep iş parçasına doğru — sol panelde ok sağa, sağ panelde ok sola.
   const t = useT()
-  const forwardArrow = side === 'left' ? '▶' : '◀'
-  const backwardArrow = side === 'left' ? '◀' : '▶'
+  const forwardArrow: IconName = side === 'left' ? 'chevronRight' : 'chevronLeft'
+  const backwardArrow: IconName = side === 'left' ? 'chevronLeft' : 'chevronRight'
 
   // İleri buton sol panelde sağda, sağ panelde solda (ok yönüne uygun).
   const forwardBtn = <HoldButton side={side} type={type} direction={1} label={t('İLERİ')} arrow={forwardArrow} arrowSide="right" />
@@ -74,7 +75,7 @@ interface HoldButtonProps {
   type: SideSupportType
   direction: 1 | -1
   label: string
-  arrow: string
+  arrow: IconName
   arrowSide: 'left' | 'right'
 }
 
@@ -116,9 +117,9 @@ function HoldButton({ side, type, direction, label, arrow, arrowSide }: HoldButt
       onPointerLeave={stop}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {arrowSide === 'left' && <span className={styles.arrow}>{arrow}</span>}
+      {arrowSide === 'left' && <span className={styles.arrow}><Icon name={arrow} size="sm" /></span>}
       <span className={styles.btnLabel}>{label}</span>
-      {arrowSide === 'right' && <span className={styles.arrow}>{arrow}</span>}
+      {arrowSide === 'right' && <span className={styles.arrow}><Icon name={arrow} size="sm" /></span>}
     </button>
   )
 }

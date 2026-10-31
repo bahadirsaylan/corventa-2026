@@ -4,6 +4,7 @@
 // RotationJogButtons'a prop olarak gecirilir.
 
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './JogSpeedControl.module.css'
 
 interface Props {
@@ -32,7 +33,7 @@ export default function JogSpeedControl({ value, onChange, disabled = false }: P
           disabled={disabled || value <= MIN}
           aria-label={t('hızı azalt')}
         >
-          −
+          <Icon name="minus" size="md" />
         </button>
         <div className={styles.valueBox}>
           <span className={styles.valueNum}>%{value}</span>
@@ -45,7 +46,7 @@ export default function JogSpeedControl({ value, onChange, disabled = false }: P
           disabled={disabled || value >= MAX}
           aria-label={t('hızı artır')}
         >
-          +
+          <Icon name="plus" size="md" />
         </button>
       </div>
     </div>

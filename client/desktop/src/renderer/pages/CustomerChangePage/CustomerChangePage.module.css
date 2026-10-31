@@ -27,7 +27,10 @@
   color: #7f1d1d;
   font-size: 12px; font-weight: 800; letter-spacing: 0.05em;
   line-height: 1.4;
+  display: flex; align-items: flex-start; gap: 10px;
 }
+
+.warnIcon { color: #dc2626; margin-top: -2px; }
 
 .card {
   background: #fff;
@@ -146,6 +149,7 @@
   border: 1.5px solid #cbd5e1; border-radius: 6px;
   background: #fff; color: #374151;
   font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .kbBtn:active { background: #f3f4f6; }
@@ -161,6 +165,7 @@
   border: none; border-radius: 10px;
   font-size: 15px; font-weight: 800; letter-spacing: 0.06em;
   cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .primaryBtn:disabled { opacity: 0.45; cursor: not-allowed; }

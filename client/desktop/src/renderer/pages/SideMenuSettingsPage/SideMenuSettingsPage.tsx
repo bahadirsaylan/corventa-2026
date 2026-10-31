@@ -15,6 +15,7 @@ import { SideMenuIcon } from '@/components/SideMenu/SideMenuIcons'
 import { useSessionStore, useUserKey } from '@/stores/sessionStore'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './SideMenuSettingsPage.module.css'
 
 type Status = { kind: 'ok' | 'error'; text: string } | null
@@ -71,7 +72,7 @@ export default function SideMenuSettingsPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('HIZLI MENÜ')}</h1>
         <span className={styles.user}>{t('KULLANICI: {name}', { name: username ? username.toUpperCase() : t('VARSAYILAN') })}</span>
       </div>
@@ -85,8 +86,8 @@ export default function SideMenuSettingsPage() {
               <span className={styles.label}>{t(it.label)}</span>
               {it.fixed && <span className={styles.fixed}>{t('SABİT')}</span>}
               <div className={styles.actions}>
-                <button className={styles.smallBtn} onClick={() => move(i, -1)} disabled={i === 0} aria-label={t('Yukarı')}>▲</button>
-                <button className={styles.smallBtn} onClick={() => move(i, 1)} disabled={i === enabled.length - 1} aria-label={t('Aşağı')}>▼</button>
+                <button className={styles.smallBtn} onClick={() => move(i, -1)} disabled={i === 0} aria-label={t('Yukarı')}><Icon name="chevronUp" size="lg" /></button>
+                <button className={styles.smallBtn} onClick={() => move(i, 1)} disabled={i === enabled.length - 1} aria-label={t('Aşağı')}><Icon name="chevronDown" size="lg" /></button>
                 <button className={styles.removeBtn} onClick={() => remove(it.id)} disabled={it.fixed}>{t('KALDIR')}</button>
               </div>
             </div>

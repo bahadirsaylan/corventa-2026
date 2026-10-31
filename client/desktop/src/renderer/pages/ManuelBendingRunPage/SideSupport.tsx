@@ -1,6 +1,7 @@
 // SEKIL-26 yan dayama göstergesi — açı + pozisyon değeri + dikey çubuk simgesi.
 // Press-and-hold: ↑ = ileri (direction=1), ↓ = geri (direction=-1).
 
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import styles from './SideSupport.module.css'
 
@@ -28,12 +29,13 @@ export default function SideSupport({
     <div className={`${styles.box} ${side === 'left' ? styles.left : styles.right}`}>
       <span className={styles.angle}>
         {angleDeg}°
-        {side === 'left' ? ' ↻' : ' ↺'}
+        {' '}
+        <Icon name={side === 'left' ? 'rotateCw' : 'rotateCcw'} size="text" />
       </span>
       <div className={`${styles.bar} ${active ? styles.barActive : ''}`} />
       <span className={styles.position}>
         {position.toFixed(1)}
-        <span className={styles.arrow}>↑</span>
+        <Icon name="up" size="text" className={styles.arrow} />
       </span>
       <div className={styles.btnCol}>
         <button
@@ -46,7 +48,7 @@ export default function SideSupport({
           onPointerLeave={onRelease}
           aria-label={t('ileri')}
         >
-          ▲
+          <Icon name="jogUp" size="lg" />
         </button>
         <button
           className={styles.btn}
@@ -58,7 +60,7 @@ export default function SideSupport({
           onPointerLeave={onRelease}
           aria-label={t('geri')}
         >
-          ▼
+          <Icon name="jogDown" size="lg" />
         </button>
       </div>
     </div>

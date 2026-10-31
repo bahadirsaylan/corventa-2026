@@ -24,6 +24,7 @@ import {
 } from '@/stores/maintenanceStore'
 import type { MaintenancePeriodStatus } from '@/services/maintenanceStatus'
 import { useLang, useT, type TVars } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './MaintenanceModeScreen.module.css'
 
 /** Geçen süre — sa:dk:sn (24 saati aşarsa "2 GÜN 03:15:00") */
@@ -102,7 +103,7 @@ export default function MaintenanceModeScreen() {
   if (collapsed) {
     return (
       <div className={styles.strip}>
-        <span className={styles.stripIcon}>🔧</span>
+        <span className={styles.stripIcon}><Icon name="maintenance" size="lg" /></span>
         <span className={styles.stripTitle}>{t('BAKIM MODU AKTİF')}</span>
         <span className={styles.stripElapsed}>{elapsed}</span>
         <span className={styles.spacer} />
@@ -118,7 +119,7 @@ export default function MaintenanceModeScreen() {
     <div className={styles.screen}>
       <div className={styles.header}>
         <div className={styles.headInfo}>
-          <span className={styles.title}>🔧 {t('BAKIM MODU AKTİF')}</span>
+          <span className={styles.title}><IconLabel icon="maintenance">{t('BAKIM MODU AKTİF')}</IconLabel></span>
           <span className={styles.hint}>{t('Bakım modunda geçen süre "BAKIM" kullanım süresine yazılır.')}</span>
         </div>
         <div className={styles.elapsedBox}>
@@ -214,7 +215,7 @@ function PeriodRow({
           ? t('İŞARETLENİYOR…')
           : waiting
             ? t('{n} DK SONRA', { n: remainingMinutes! })
-            : `✓ ${t('BAKIM TAMAMLANDI')}`}
+            : <IconLabel icon="check">{t('BAKIM TAMAMLANDI')}</IconLabel>}
       </button>
     </div>
   )

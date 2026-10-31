@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import {
   UNLOAD_ROT,
   UNLOAD_SECONDS,
@@ -209,7 +210,7 @@ export default function UnloadPage() {
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.doneText}>{t(OUTCOME_TITLE[outcome])}</span>
+        <span className={styles.doneText} data-long={outcome !== 'completed' || undefined}>{t(OUTCOME_TITLE[outcome])}</span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>
@@ -274,12 +275,24 @@ export default function UnloadPage() {
 
       {editing && phase === 'select' && (
         <div className={styles.editRow}>
-          <button type="button" className={styles.stepBtn} onClick={() => adjust(-1)} disabled={presets[selected] <= MIN_S}>
-            −
+          <button
+            type="button"
+            className={styles.stepBtn}
+            onClick={() => adjust(-1)}
+            disabled={presets[selected] <= MIN_S}
+            aria-label={t('Azalt')}
+          >
+            <Icon name="minus" size="xxl" />
           </button>
           <span className={styles.editValue}>{t('{n} SN', { n: presets[selected] })}</span>
-          <button type="button" className={styles.stepBtn} onClick={() => adjust(+1)} disabled={presets[selected] >= MAX_S}>
-            +
+          <button
+            type="button"
+            className={styles.stepBtn}
+            onClick={() => adjust(+1)}
+            disabled={presets[selected] >= MAX_S}
+            aria-label={t('Arttır')}
+          >
+            <Icon name="plus" size="xxl" />
           </button>
         </div>
       )}
@@ -294,8 +307,9 @@ export default function UnloadPage() {
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.upperRetractMm <= UPPER.min}
               onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm - UPPER.step, UPPER.min, UPPER.max) })}
+              aria-label={t('Azalt')}
             >
-              −
+              <Icon name="minus" size="xl" />
             </button>
             <span className={styles.motionValue}>{motion.upperRetractMm} mm</span>
             <button
@@ -303,8 +317,9 @@ export default function UnloadPage() {
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.upperRetractMm >= UPPER.max}
               onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm + UPPER.step, UPPER.min, UPPER.max) })}
+              aria-label={t('Arttır')}
             >
-              +
+              <Icon name="plus" size="xl" />
             </button>
           </div>
         </div>
@@ -320,15 +335,16 @@ export default function UnloadPage() {
               onClick={() => updateMotion({ rotationDir: -1 })}
               aria-label={t('Rotasyon geri yön')}
             >
-              ◀
+              <Icon name="chevronLeft" size="xl" />
             </button>
             <button
               type="button"
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.rotationMm <= ROT.min}
               onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm - ROT.step, ROT.min, ROT.max) })}
+              aria-label={t('Azalt')}
             >
-              −
+              <Icon name="minus" size="xl" />
             </button>
             <span className={styles.motionValue}>{motion.rotationMm} mm</span>
             <button
@@ -336,8 +352,9 @@ export default function UnloadPage() {
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.rotationMm >= ROT.max}
               onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm + ROT.step, ROT.min, ROT.max) })}
+              aria-label={t('Arttır')}
             >
-              +
+              <Icon name="plus" size="xl" />
             </button>
             <button
               type="button"
@@ -347,7 +364,7 @@ export default function UnloadPage() {
               onClick={() => updateMotion({ rotationDir: 1 })}
               aria-label={t('Rotasyon ileri yön')}
             >
-              ▶
+              <Icon name="chevronRight" size="xl" />
             </button>
           </div>
         </div>
@@ -394,14 +411,14 @@ export default function UnloadPage() {
             <span>{t('TEKRAR DENE')}</span>
           </button>
           <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
-            <span>✓ {t('PARÇAYI ALDIM')}</span>
+            <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
           </button>
         </div>
       )}
 
       {phase === 'ready' && (
         <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
-          <span>✓ {t('PARÇAYI ALDIM')}</span>
+          <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
         </button>
       )}
 
@@ -415,14 +432,7 @@ export default function UnloadPage() {
 }
 
 function EditIcon() {
-  return (
-    <svg viewBox="0 0 48 48" className={styles.editIcon} aria-hidden>
-      <rect x="9" y="8" width="24" height="32" rx="2" fill="#fff" stroke="currentColor" strokeWidth="2.5" />
-      <path d="M14 8V4M19 8V4M24 8V4M29 8V4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M14 16h14M14 22h14M14 28h9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M41 14l3 3-15 15-4 1 1-4z" fill="currentColor" />
-    </svg>
-  )
+  return <Icon name="edit" size={66} className={styles.editIcon} />
 }
 
 function HandIcon() {

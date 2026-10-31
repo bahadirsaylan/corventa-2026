@@ -76,7 +76,8 @@
 }
 
 .arrow {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 

@@ -20,6 +20,7 @@ import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActiv
 import { useMaintenanceAlerts } from '@/hooks/useMaintenance'
 import { maintenanceTierTitle, type MaintenancePeriodStatus } from '@/services/maintenanceStatus'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BottomStatsPanel.module.css'
 
 type WarningLevel = 'none' | 'warning' | 'error'
@@ -94,7 +95,7 @@ export default function BottomStatsPanel() {
           {warning.level === 'none' && maint ? (
             // Makine uyarısı yok → şerit bakım uyarısı (dokununca Bakım Süresi sayfası)
             <button type="button" className={styles.maintArea} onClick={openMaintenance}>
-              <span className={styles.warnIcon}>🔧</span>
+              <span className={styles.warnIcon}><Icon name="maintenance" size="md" /></span>
               <span className={styles.warnText}>{maintText}</span>
             </button>
           ) : warning.level === 'none' ? (
@@ -102,7 +103,7 @@ export default function BottomStatsPanel() {
           ) : (
             <>
               <span className={styles.warnIcon}>
-                {warning.level === 'error' ? '⛔' : '⚠'}
+                <Icon name={warning.level === 'error' ? 'blocked' : 'warning'} size="md" />
               </span>
               <span className={styles.warnText}>{warning.text}</span>
             </>
@@ -117,7 +118,7 @@ export default function BottomStatsPanel() {
             onClick={openMaintenance}
             title={maintText}
           >
-            🔧 {t('BAKIM: {n} GÜN GECİKME', { n: maint.overdueDays ?? 0 })}
+            <IconLabel icon="maintenance">{t('BAKIM: {n} GÜN GECİKME', { n: maint.overdueDays ?? 0 })}</IconLabel>
           </button>
         )}
 
@@ -127,7 +128,7 @@ export default function BottomStatsPanel() {
           onClick={() => setShowLogs(true)}
           aria-label={t('Hata kayıtlarını aç')}
         >
-          <span className={styles.logsIcon}>📋</span>
+          <span className={styles.logsIcon}><Icon name="clipboard" size="sm" /></span>
           {t('HATA KAYITLARI')}
         </button>
       </div>

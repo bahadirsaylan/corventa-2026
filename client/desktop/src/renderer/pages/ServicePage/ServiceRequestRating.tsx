@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import type { ServiceRequest } from '@shared/types'
 
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 
 import styles from './ServiceRequestRating.module.css'
@@ -55,7 +56,7 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
             onClick={() => setRating(clamp(rating + 1))}
             aria-label={t('Arttır')}
           >
-            ▲
+            <Icon name="chevronUp" size="xl" />
           </button>
           <div className={styles.spinnerNumbers}>
             <span className={styles.spinnerSide}>{rating - 1 < 1 ? '' : rating - 1}</span>
@@ -68,7 +69,7 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
             onClick={() => setRating(clamp(rating - 1))}
             aria-label={t('Azalt')}
           >
-            ▼
+            <Icon name="chevronDown" size="xl" />
           </button>
         </div>
       </div>

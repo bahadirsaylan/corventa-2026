@@ -7,6 +7,7 @@ import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
 import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
@@ -279,7 +280,7 @@ export default function ArcMeasurementForm({
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -320,7 +321,7 @@ export default function ArcMeasurementForm({
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={22} />
         </button>
       </div>
     )
@@ -404,7 +405,7 @@ export default function ArcMeasurementForm({
             </div>
 
             <button className={styles.resetBtn} onClick={onReset}>
-              ↺ {t('SIFIRLA')}
+              <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
             </button>
           </>
         ) : (
@@ -442,7 +443,7 @@ export default function ArcMeasurementForm({
             <div className={styles.segmentsList}>
               {values.segments.length === 0 && (
                 <div className={styles.segmentsHint}>
-                  ⚠ {t('Önce P (segment sayısı) giriniz — kartlar otomatik açılır.')}
+                  <IconLabel icon="warning">{t('Önce P (segment sayısı) giriniz — kartlar otomatik açılır.')}</IconLabel>
                 </div>
               )}
               {values.segments.map((_, i) => {
@@ -482,7 +483,9 @@ export default function ArcMeasurementForm({
                     {minArcViolation && (
                       <div className={styles.segmentInfeasibleWarn}>
                         <div className={styles.warnHead}>
-                          ⚠ {t('Yay uzunluğu minimum sınırın altında ({arc}mm < {min}mm)', { arc: b.arc.toFixed(1), min: MIN_ARC_LENGTH_MM })}
+                          <IconLabel icon="warning">
+                            {t('Yay uzunluğu minimum sınırın altında ({arc}mm < {min}mm)', { arc: b.arc.toFixed(1), min: MIN_ARC_LENGTH_MM })}
+                          </IconLabel>
                         </div>
                         <div className={styles.warnDetail}>{t('Yay uzunluğunu veya Açı değerini arttırın')}</div>
                       </div>
@@ -510,8 +513,18 @@ export default function ArcMeasurementForm({
                 {ltValid && (
                   <span>
                     {t('Kalan')}: <b>{remaining.toFixed(1)}mm</b>
-                    {remainingOverflow && ` ⚠ ${t('AŞIM')}`}
-                    {!remainingOverflow && anyMinArcViolation && ` ⚠ ${t('YAY MİNİMUM ALTINDA')}`}
+                    {remainingOverflow && (
+                      <>
+                        {' '}
+                        <IconLabel icon="warning">{t('AŞIM')}</IconLabel>
+                      </>
+                    )}
+                    {!remainingOverflow && anyMinArcViolation && (
+                      <>
+                        {' '}
+                        <IconLabel icon="warning">{t('YAY MİNİMUM ALTINDA')}</IconLabel>
+                      </>
+                    )}
                   </span>
                 )}
                 {!ltValid && <span className={styles.budgetNote}>{t('LT giriniz')}</span>}

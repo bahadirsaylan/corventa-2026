@@ -11,6 +11,7 @@ import {
 } from '@/services/bendingOrchestrator'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './PartLoadingPage.module.css'
 import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -155,7 +156,9 @@ function PartLoadingContent() {
 
       {phase !== 'starting' && phase !== 'started' && isSemiAuto && (
         <div className={styles.loadedBar} style={{ background: '#27ae60', color: '#fff' }}>
-          🧑‍🔧 {t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
+          <IconLabel icon="technician" size="lg">
+            {t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
+          </IconLabel>
         </div>
       )}
       <div className={styles.content}>
@@ -205,11 +208,7 @@ function PartLoadingContent() {
             disabled={isBusy || !params.profileId}
             onClick={() => setManualOpen(true)}
           >
-            <svg viewBox="0 0 24 24" className={styles.manualIcon} aria-hidden>
-              <path d="M12 3 2 21h20L12 3z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
-              <path d="M12 10v5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-              <circle cx="12" cy="18" r="1.3" fill="currentColor" />
-            </svg>
+            <Icon name="warning" size={26} className={styles.manualIcon} />
             {t('SENSÖR ÇALIŞMIYOR — ELLE KONUMLANDIR')}
           </button>
         </div>

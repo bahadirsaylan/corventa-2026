@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { TRAINING_TOPICS } from '@/constants/trainingTopics'
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 
 import CategoryBadge from './CategoryBadge'
@@ -72,7 +73,7 @@ export default function TrainingPage() {
             }
             disabled={!participant.name.trim()}
           >
-            <span className={styles.playIcon}>▶</span>
+            <Icon name="play" size="lg" className={styles.playIcon} />
             <span>{t('YENİ EĞİTİM BAŞLAT')}</span>
           </button>
 
@@ -88,7 +89,7 @@ export default function TrainingPage() {
             className={styles.actionBigBtn}
             onClick={() => navigate(`/service/training/topic/${topic.id}`)}
           >
-            <span className={styles.repeatIcon}>↻</span>
+            <Icon name="repeat" size="lg" className={styles.repeatIcon} />
             <span>{t('EĞİTİMİ TEKRARLA')}</span>
           </button>
         </div>

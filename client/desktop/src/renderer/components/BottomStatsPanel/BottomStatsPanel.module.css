@@ -52,7 +52,8 @@
 }
 
 .warnIcon {
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
   line-height: 1;
 }
@@ -119,7 +120,8 @@
 }
 
 .logsIcon {
-  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 

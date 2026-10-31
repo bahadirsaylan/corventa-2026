@@ -37,7 +37,8 @@
 }
 
 .bannerIcon {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
 }
 

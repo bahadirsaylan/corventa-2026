@@ -3,6 +3,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { t } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './ErrorBoundary.module.css'
 
 interface Props {
@@ -34,7 +35,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div className={styles.box}>
-        <div className={styles.icon}>!</div>
+        <div className={styles.icon}><Icon name="error" size="hero" /></div>
         <h2 className={styles.title}>{t('BİR HATA OLUŞTU')}</h2>
         <p className={styles.message}>{this.state.error.message}</p>
         <button className={styles.retry} onClick={this.handleReset}>

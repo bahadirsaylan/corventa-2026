@@ -3,6 +3,7 @@ import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/pro
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
@@ -105,7 +106,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -136,7 +137,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
         </div>
 
         <button className={styles.resetBtn} onClick={onReset}>
-          ↺ {t('SIFIRLA')}
+          <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
         </button>
       </div>
 

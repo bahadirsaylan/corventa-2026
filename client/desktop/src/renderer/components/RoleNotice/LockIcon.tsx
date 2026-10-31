@@ -1,19 +1,8 @@
-// Kilit simgesi — yetkisiz işlem göstergesi (çizgi ikon, currentColor; Lucide "lock" geometrisi, ISC lisans).
+// Kilit simgesi — yetkisiz işlem göstergesi. Ortak ikon modülüne bağlı (lucide "Lock", currentColor).
+// Dış API korunur: <LockIcon className=... /> — boyut çağıranın CSS'inden (width/height) gelir.
+
+import { Icon } from '@/components/Icon'
 
 export function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  )
+  return <Icon name="lock" className={className} />
 }

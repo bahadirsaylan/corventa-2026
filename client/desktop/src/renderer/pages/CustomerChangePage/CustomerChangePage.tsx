@@ -11,6 +11,7 @@ import type {
   CustomerChangeRequestBody,
   MachineIdentity,
 } from '@shared/types'
+import { Icon, IconLabel, type IconName } from '@/components/Icon'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
@@ -44,10 +45,10 @@ const FIELDS: { key: keyof CustomerForm; label: string; max: number; full?: bool
   { key: 'note',               label: 'AÇIKLAMA / NOT', max: 1000, full: true },
 ]
 
-const REASONS: { key: CustomerChangeReason; label: string; badge: string; color: string; desc: string }[] = [
-  { key: 'SALE',  label: 'SATIŞ', badge: '💰', color: '#1a6fd4', desc: 'Makine yeni müşteriye satılıyor.' },
-  { key: 'TRADE', label: 'TAKAS', badge: '↔️', color: '#f59e0b', desc: 'Makine başka bir makine ile takas ediliyor.' },
-  { key: 'GRANT', label: 'HİBE',  badge: '🎁', color: '#16a34a', desc: 'Makine bedelsiz olarak yeni sahibine devrediliyor.' },
+const REASONS: { key: CustomerChangeReason; label: string; badge: IconName; color: string; desc: string }[] = [
+  { key: 'SALE',  label: 'SATIŞ', badge: 'sale', color: '#1a6fd4', desc: 'Makine yeni müşteriye satılıyor.' },
+  { key: 'TRADE', label: 'TAKAS', badge: 'swap', color: '#f59e0b', desc: 'Makine başka bir makine ile takas ediliyor.' },
+  { key: 'GRANT', label: 'HİBE',  badge: 'gift', color: '#16a34a', desc: 'Makine bedelsiz olarak yeni sahibine devrediliyor.' },
 ]
 
 /** DB'deki OwnershipType (SATIS/TAKAS/HIBE) → ekran etiketi */
@@ -262,14 +263,17 @@ export default function CustomerChangePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={goBack} disabled={busy} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={goBack} disabled={busy} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('MÜŞTERİ DEĞİŞİKLİĞİ')}</h1>
       </div>
 
       <div className={styles.body}>
         <div className={styles.warnBar}>
-          ⚠ {t('BU İŞLEM KRİTİKTİR — GARANTİ VE SERTİFİKA SAHİPLİĞİ YENİ MÜŞTERİYE DEVREDİLİR.')}
-          &nbsp;{t('İŞLEM GERİ ALINAMAZ.')}
+          <Icon name="warning" size="lg" className={styles.warnIcon} />
+          <span>
+            {t('BU İŞLEM KRİTİKTİR — GARANTİ VE SERTİFİKA SAHİPLİĞİ YENİ MÜŞTERİYE DEVREDİLİR.')}
+            &nbsp;{t('İŞLEM GERİ ALINAMAZ.')}
+          </span>
         </div>
 
         {/* Mevcut müşteri (gerçek veri: DataApi machine-identity) */}
@@ -302,7 +306,7 @@ export default function CustomerChangePage() {
                 key={label}
                 className={`${styles.stepItem} ${i + 1 === stepIndex ? styles.stepActive : ''} ${i + 1 < stepIndex ? styles.stepDone : ''}`}
               >
-                <span className={styles.stepNo}>{i + 1 < stepIndex ? '✓' : i + 1}</span>
+                <span className={styles.stepNo}>{i + 1 < stepIndex ? <Icon name="check" size="sm" /> : i + 1}</span>
                 <span className={styles.stepLabel}>{label}</span>
               </div>
             ))}
@@ -323,7 +327,7 @@ export default function CustomerChangePage() {
                     onClick={() => chooseReason(r.key)}
                     style={active ? { borderColor: r.color, background: r.color + '22' } : { borderColor: r.color }}
                   >
-                    <span className={styles.reasonBadge}>{r.badge}</span>
+                    <span className={styles.reasonBadge} style={{ color: r.color }}><Icon name={r.badge} size="xxl" /></span>
                     <span className={styles.reasonName} style={{ color: r.color }}>{t(r.label)}</span>
                     <span className={styles.reasonDesc}>{t(r.desc)}</span>
                   </button>
@@ -343,7 +347,7 @@ export default function CustomerChangePage() {
                 style={{ borderColor: reasonInfo.color, color: reasonInfo.color }}
                 onClick={() => setStep('reason')}
               >
-                {reasonInfo.badge} {t(reasonInfo.label)} · {t('DEĞİŞTİR')}
+                <IconLabel icon={reasonInfo.badge}>{t(reasonInfo.label)} · {t('DEĞİŞTİR')}</IconLabel>
               </button>
             </div>
             <div className={styles.formGrid}>
@@ -367,7 +371,7 @@ export default function CustomerChangePage() {
               {t('Onay kodu kayıtlı onay e-posta adresine gönderilir; gönderilen adres bir sonraki adımda gösterilir. Kod 10 dakika geçerlidir, en fazla 5 deneme hakkı vardır.')}
             </p>
             <button className={styles.primaryBtn} onClick={sendCode} disabled={!isFormValid || busy}>
-              {busy ? t('GÖNDERİLİYOR…') : `✉ ${t('ONAY KODU GÖNDER')}`}
+              {busy ? t('GÖNDERİLİYOR…') : <IconLabel icon="send" size="md">{t('ONAY KODU GÖNDER')}</IconLabel>}
             </button>
           </div>
         )}
@@ -380,7 +384,7 @@ export default function CustomerChangePage() {
               {t('Onay kodu {email} adresine gönderildi.', { email: sentTo || '—' })}
             </div>
             <div className={styles.otpSummary}>
-              {reasonInfo && <span style={{ color: reasonInfo.color }}>{reasonInfo.badge} {t(reasonInfo.label)}</span>}
+              {reasonInfo && <span style={{ color: reasonInfo.color }}><IconLabel icon={reasonInfo.badge}>{t(reasonInfo.label)}</IconLabel></span>}
               <span>{dash(identity?.customerName)} → <b>{form.newCustomerName.trim()}</b></span>
             </div>
 
@@ -439,7 +443,7 @@ export default function CustomerChangePage() {
         {/* ── Başarı ── */}
         {step === 'done' && (
           <div className={styles.successCard}>
-            <div className={styles.successTitle}>✓ {t('MÜŞTERİ DEĞİŞİKLİĞİ TAMAMLANDI')}</div>
+            <div className={styles.successTitle}><IconLabel icon="success" size="lg">{t('MÜŞTERİ DEĞİŞİKLİĞİ TAMAMLANDI')}</IconLabel></div>
             <div className={styles.successText}>
               {t('Makine artık {name} adına kayıtlı. Sahiplik tipi: {type}.', {
                 name: dash(identity?.customerName),
@@ -512,7 +516,7 @@ function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
         />
-        <button type="button" className={styles.kbBtn} onClick={onKeyboard} aria-label={keyboardLabel}>⌨</button>
+        <button type="button" className={styles.kbBtn} onClick={onKeyboard} aria-label={keyboardLabel}><Icon name="keyboard" size="lg" /></button>
       </div>
     </div>
   )

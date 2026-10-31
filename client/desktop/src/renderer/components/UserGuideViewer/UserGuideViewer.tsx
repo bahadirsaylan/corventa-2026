@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useT } from '@/i18n'
+import { IconLabel } from '@/components/Icon'
 import styles from './UserGuideViewer.module.css'
 
 export default function UserGuideViewer({ onClose }: { onClose: () => void }) {
@@ -32,7 +33,7 @@ export default function UserGuideViewer({ onClose }: { onClose: () => void }) {
       <div className={styles.header}>
         <span className={styles.title}>{t('PDF KULLANIM KİTABI')}</span>
         <button type="button" className={styles.closeBtn} onClick={onClose}>
-          {t('KAPAT')} ✕
+          <IconLabel icon="close" trailing>{t('KAPAT')}</IconLabel>
         </button>
       </div>
       <div className={styles.body}>

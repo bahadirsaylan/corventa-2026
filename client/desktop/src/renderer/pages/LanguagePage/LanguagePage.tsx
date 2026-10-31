@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Flag, { type FlagCode } from './Flag'
 import { translate, useLangStore, useT, type LangCode } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './LanguagePage.module.css'
 
 interface LangOption {
@@ -51,7 +52,7 @@ export default function LanguagePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>←</button>
+        <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}><Icon name="back" size="lg" /></button>
         <h1 className={styles.title}>{t('DİL SEÇİMİ')}</h1>
       </div>
 

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import styles from './NumpadModal.module.css'
+import { Icon } from '@/components/Icon'
+import { useT } from '@/i18n'
 
 interface NumpadModalProps {
   /** Label shown above the value display, e.g. "A" */
@@ -27,6 +29,7 @@ const KEYS = [
 ]
 
 export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative, digitsOnly, maxLength }: NumpadModalProps) {
+  const t = useT()
   const [display, setDisplay] = useState(initialValue || '')
 
   useEffect(() => {
@@ -96,10 +99,11 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
               key={key}
               className={`${styles.key} ${key === '⌫' ? styles.keyBackspace : ''}`}
               onClick={() => press(key)}
+              aria-label={key === '⌫' ? t('Sil') : undefined}
               disabled={digitsOnly && key === '.'}
               style={digitsOnly && key === '.' ? { visibility: 'hidden' } : undefined}
             >
-              {key}
+              {key === '⌫' ? <Icon name="backspace" size="lg" /> : key}
             </button>
           ))}
         </div>
@@ -114,8 +118,8 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
               ±
             </button>
           )}
-          <button className={styles.confirmBtn} onClick={handleConfirm}>
-            ✓
+          <button className={styles.confirmBtn} onClick={handleConfirm} aria-label={t('ONAYLA')}>
+            <Icon name="confirm" size="xl" />
           </button>
         </div>
 

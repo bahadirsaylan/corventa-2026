@@ -6,6 +6,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './ErrorLogsModal.module.css'
 
 type Severity = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO'
@@ -91,7 +92,7 @@ export default function ErrorLogsModal({ onClose }: Props) {
             onClick={onClose}
             aria-label={t('Kapat')}
           >
-            ✕
+            <Icon name="close" size="sm" />
           </button>
         </div>
 
@@ -134,7 +135,7 @@ export default function ErrorLogsModal({ onClose }: Props) {
             className={styles.secondaryBtn}
             onClick={handleOpenFullPage}
           >
-            {t('TÜM RAPORLAR →')}
+            <IconLabel icon="next" trailing>{t('TÜM RAPORLAR')}</IconLabel>
           </button>
           <button
             type="button"

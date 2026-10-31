@@ -25,7 +25,10 @@
   color: #78350f;
   font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
   line-height: 1.4;
+  display: flex; align-items: flex-start; gap: 10px;
 }
+
+.warnIcon { color: #d97706; margin-top: -2px; }
 
 .card {
   background: #fff; border: 1.5px solid #d07070; border-radius: 12px;

@@ -5,6 +5,7 @@
 import { useCallback, useRef } from 'react'
 import { useBendingProgress } from '@/hooks/useMachineState'
 import { useT } from '@/i18n'
+import { Icon, type IconName } from '@/components/Icon'
 import styles from './RotationJogButtons.module.css'
 
 interface Props {
@@ -31,8 +32,8 @@ export default function RotationJogButtons({ speedPercent }: Props) {
         {bendingActive && <span className={styles.disabledHint}> {t('(BÜKÜM AKTİF)')}</span>}
       </div>
       <div className={styles.btnRow}>
-        <JogButton direction={-1} label="CCW" arrow="◀" disabled={bendingActive} speedPercent={speedPercent} />
-        <JogButton direction={+1} label="CW" arrow="▶" disabled={bendingActive} speedPercent={speedPercent} />
+        <JogButton direction={-1} label="CCW" arrow="rotateCcw" disabled={bendingActive} speedPercent={speedPercent} />
+        <JogButton direction={+1} label="CW" arrow="rotateCw" disabled={bendingActive} speedPercent={speedPercent} />
       </div>
     </div>
   )
@@ -41,7 +42,7 @@ export default function RotationJogButtons({ speedPercent }: Props) {
 interface JogButtonProps {
   direction: 1 | -1
   label: string
-  arrow: string
+  arrow: IconName
   disabled: boolean
   speedPercent: number
 }
@@ -84,7 +85,7 @@ function JogButton({ direction, label, arrow, disabled, speedPercent }: JogButto
       onPointerLeave={stop}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <span className={styles.arrow}>{arrow}</span>
+      <span className={styles.arrow}><Icon name={arrow} size="md" /></span>
       <span className={styles.text}>{label}</span>
     </button>
   )

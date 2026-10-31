@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
 import styles from './ChecklistPage.module.css'
 
@@ -95,7 +96,7 @@ export default function ChecklistPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/settings')} aria-label={t('Geri')}>
-          ←
+          <Icon name="back" size="lg" />
         </button>
         <h1 className={styles.title}>{t('GÜNLÜK CHECK LIST')}</h1>
         <span className={styles.dateBadge}>{new Date().toLocaleDateString(locale)}</span>
@@ -142,7 +143,7 @@ export default function ChecklistPage() {
                       onChange={() => toggle(item.id)}
                     />
                     <span className={styles.checkBox}>
-                      {state.checked[item.id] && <span className={styles.checkMark}>✓</span>}
+                      {state.checked[item.id] && <Icon name="check" size="md" strokeWidth={3} className={styles.checkMark} />}
                     </span>
                     <span className={styles.itemLabel}>{t(item.label)}</span>
                   </label>

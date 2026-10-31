@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import ManuelHeader from '@/pages/ManuelBendingPage/ManuelHeader'
 import InfoModal from '@/pages/RingBendingMeasurementsPage/InfoModal'
 import StatusBar from '@/components/StatusBar/StatusBar'
@@ -84,7 +85,7 @@ function ModeCard({
         <span className={styles.cardSub}>{subtitle}</span>
       </button>
       <button type="button" className={styles.infoBtn} onClick={onInfo} aria-label={t('{title} açıklaması', { title })}>
-        ?
+        <Icon name="help" size={40} />
       </button>
     </div>
   )
