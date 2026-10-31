@@ -21,7 +21,9 @@ import type {
   RotationPositionRequest,
   SideSupportRequest,
   StartJobResponse,
+  StopUnloadResponse,
   UnloadPartRequest,
+  UnloadPartResponse,
   ValidateArcPlanRequest,
   ValidateArcPlanResponse,
 } from '@shared/types'
@@ -109,11 +111,40 @@ export class EngineApiClient {
     }
   }
 
-  // Tahliye (SEKIL-18) — toplar baskıyı bırakıp açılır. Backend endpoint'i henüz YOK:
-  // şimdilik sadece demo modunda karşılanıyor (UI ekranı da sadece demoda açılır).
+  // Tahliye (SEKIL-18) — üst top geri çekilir, ardından rotasyon (Bending API POST /api/preparation/unload).
   // upperRetractMm: üst top kaç mm geri çekilsin · rotationMm: işaretli rotasyon mesafesi (+ / − yön)
-  unloadPart(req: UnloadPartRequest): Promise<{ success: boolean; errorMessage?: string | null }> {
-    return http.post(`${this.baseUrl}/api/preparation/unload`, req, { timeoutMs: 120_000 })
+  // Backend 400/409'da da aynı gövdeyi döner; mesajı kaybetmemek için HttpError body'si normalize edilir.
+  async unloadPart(req: UnloadPartRequest): Promise<UnloadPartResponse> {
+    try {
+      const res = await http.post<Partial<UnloadPartResponse>>(`${this.baseUrl}/api/preparation/unload`, req, {
+        timeoutMs: unloadTimeoutMs(req.rotationMm),
+      })
+      return normalizeUnload(res, true)
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
+        const r = normalizeUnload(err.body as Partial<UnloadPartResponse>, false)
+        return { ...r, success: false, errorMessage: r.errorMessage ?? err.message }
+      }
+      // Sözleşme dışı hata gövdesi (ör. ProblemDetails) — yine aynı şekle çevir (success=false)
+      if (err instanceof HttpError) {
+        return { ...normalizeUnload(null, false), errorMessage: err.message }
+      }
+      throw err
+    }
+  }
+
+  // Tahliye DURDUR — devam eden tahliyeyi keser, üst top + rotasyonu durdurur. Tahliye yoksa da success=true.
+  async stopUnload(): Promise<StopUnloadResponse> {
+    try {
+      const res = await http.post<Partial<StopUnloadResponse>>(`${this.baseUrl}/api/preparation/unload/stop`)
+      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
+        const body = err.body as { errorMessage?: string | null }
+        return { success: false, errorMessage: body.errorMessage ?? err.message }
+      }
+      throw err
+    }
   }
 
   startBendingJob(jobId: number, skipAutoCorrect = false): Promise<StartJobResponse> {
@@ -236,6 +267,23 @@ export class EngineApiClient {
   // Hidrolik motor aç/kapat — backend POST /api/machine/motor { value }
   setHydraulicMotor(on: boolean): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/machine/motor`, { value: on })
+  }
+}
+
+// Tahliye HTTP timeout'u — backend'in en kötü toplamının (UnloadPartHandler: DataApi kontrolü 30sn +
+// üst top 30sn + rotasyon 30sn + mesafe / 5 mm/sn) belirgin üstünde. Backend sabitleri değişirse burası da.
+function unloadTimeoutMs(rotationMm: number): number {
+  const rot = Math.abs(Number(rotationMm)) || 0
+  return 150_000 + Math.ceil(rot / 5) * 1000
+}
+
+function normalizeUnload(res: Partial<UnloadPartResponse> | null | undefined, okDefault: boolean): UnloadPartResponse {
+  return {
+    success: res?.success ?? okDefault,
+    errorMessage: res?.errorMessage ?? null,
+    appliedUpperRetractMm: Number(res?.appliedUpperRetractMm) || 0,
+    appliedRotationMm: Number(res?.appliedRotationMm) || 0,
+    cancelled: !!res?.cancelled,
   }
 }
 

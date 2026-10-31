@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import SpiralMeasurementForm, { SpiralMeasurementValues } from './SpiralMeasurementForm'
 import styles from './SpiralBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -41,6 +42,7 @@ function fromStore(
 
 export default function SpiralBendingMeasurementsPage() {
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const navigate     = useNavigate()
   const spiralBending = useBendingJobStore((s) => s.params.spiralBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
@@ -78,7 +80,7 @@ export default function SpiralBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

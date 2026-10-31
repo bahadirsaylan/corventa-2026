@@ -90,6 +90,8 @@ const ADAPTIVE_JOG_PCT = 20 // BendingHandlers.AdaptiveJogSpeedPercent
 const ADAPTIVE_WINDOW_MM = 10 // RollingWindowSampleCount × PistonSampleIntervalMm
 const CORRECTION_COEF = 0.25 // SpringbackCalculator.CorrectionCoefficient
 const ROTATION_ONLY_MAX_OVERRUN = 50 // SpringbackAutoCorrectHandler.RotationOnlyMaxOverrunMm
+const UNLOAD_MAX_UPPER_MM = 150 // tahliye üst top geri çekme üst sınırı (UI operatorPrefs UNLOAD_UPPER.max ile aynı)
+const UNLOAD_MAX_ROTATION_MM = 3000 // tahliye rotasyon üst sınırı (UI operatorPrefs UNLOAD_ROT.max ile aynı)
 // Demo senaryosu (kullanıcı isteği): çemberde adaptif temas piston 120mm'de tespit edilir,
 // büküm 2 pasoda biter (paso 1 = temas konumu, paso 2 = son hedef).
 const DEMO_CONTACT_MM = Number(process.env.CORVENTA_DEMO_CONTACT) || 120
@@ -203,6 +205,7 @@ export class DemoMachine extends EventEmitter {
   private nextJobId = 1001
   private activeJobId: number | null = null
   private runToken = 0
+  private unloadRunning = false // tahliye hareketi sürüyor (POST /api/preparation/unload/stop bunu keser)
   private progress: BendingProgress | null = null
   private prefs = new Map<string, unknown>()
   // Ayar ekranları (Operatör / Admin) için bellek içi kayıtlar — sadece ekranda görünür,
@@ -1038,19 +1041,61 @@ export class DemoMachine extends EventEmitter {
       await this.applyStage(Number(b.targetStage) || 1, Number(b.speedPercent) || 50)
       return { success: true }
     }
+    if (path === '/api/preparation/unload/stop') {
+      // Tahliye DURDUR — devam eden tahliyeyi keser (runToken), üst top + rotasyon yerinde durur.
+      // Tahliye yoksa success=true döner ama hiçbir ekseni durdurmaz (bilinçli fark): gerçek backend
+      // tahliye yokken çalışan büküm varsa stop GÖNDERMEZ, yoksa üst top + rotasyona stop gönderir —
+      // demoda tahliye/job dışında süren hareket olmadığından sonuç aynı. Çalışan job'a dokunmaz.
+      if (this.unloadRunning) this.stopMotion()
+      return { success: true, errorMessage: null }
+    }
     if (path === '/api/preparation/unload') {
       // Tahliye (SEKIL-18): üst top seçilen mm kadar GERİ çekilir (baskı biter), ardından
       // seçilen mesafe kadar rotasyon (işaret = yön). Yan toplar oynamaz.
-      const token = this.runToken
-      const retract = Math.max(0, Number(b.upperRetractMm) || 0)
-      const rot = Number(b.rotationMm) || 0
-      this.pressureHold = null
-      if (retract > 0) {
-        const target = Math.max(0, this.state.upperPiston.positionMm - retract) // gönye referansının altına inmez
-        await this.movePistons({ upperPiston: target }, token, 50)
+      // Cevap sözleşmesi: { success, errorMessage, appliedUpperRetractMm, appliedRotationMm, cancelled }
+      // Hatalar gerçek backend gibi 400/409 + aynı gövde (EngineApiClient body'yi normalize eder).
+      const fail = (status: number, errorMessage: string): never => {
+        throw new HttpError(status, rawUrl, errorMessage, {
+          success: false, errorMessage, appliedUpperRetractMm: 0, appliedRotationMm: 0, cancelled: false,
+        })
       }
-      if (Math.abs(rot) > 0.5) await this.rotateTo(this.state.rotation.positionMm + rot, token, 60)
-      return { success: true, errorMessage: null }
+      const retract = Number(b.upperRetractMm)
+      const rot = Number(b.rotationMm)
+      if (!Number.isFinite(retract) || retract < 0 || retract > UNLOAD_MAX_UPPER_MM)
+        fail(400, `Üst top geri çekme 0-${UNLOAD_MAX_UPPER_MM} mm arasında olmalı`)
+      if (!Number.isFinite(rot) || Math.abs(rot) > UNLOAD_MAX_ROTATION_MM)
+        fail(400, `Rotasyon mesafesi en fazla ${UNLOAD_MAX_ROTATION_MM} mm olabilir`)
+      if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3)
+        fail(409, 'Çalışan bir büküm var — tahliye yapılamaz')
+      if (this.unloadRunning) fail(409, 'Tahliye zaten devam ediyor')
+
+      const token = this.runToken
+      const upper0 = this.state.upperPiston.positionMm
+      const rot0 = this.state.rotation.positionMm
+      // NOT: demo applied* = ÖLÇÜLEN gerçekleşen hareket (iptalde kısmi); gerçek backend
+      // appliedRotationMm = KOMUT (tam mm) ve üst topu gönye güvenli geri sınırına kırpar (demo 0'a).
+      // UI bu alanları göstermiyor — fark kabul edildi.
+      const applied = () => ({
+        appliedUpperRetractMm: Math.round(Math.max(0, upper0 - this.state.upperPiston.positionMm) * 100) / 100,
+        appliedRotationMm: Math.round((this.state.rotation.positionMm - rot0) * 100) / 100,
+      })
+      this.unloadRunning = true
+      this.pressureHold = null
+      try {
+        if (retract > 0) {
+          const target = Math.max(0, upper0 - retract) // gönye referansının altına inmez (kırpılır, applied'da görünür)
+          await this.movePistons({ upperPiston: target }, token, 50)
+        }
+        if (Math.abs(rot) > 0.5) await this.rotateTo(rot0 + rot, token, 60)
+        return { success: true, errorMessage: null, ...applied(), cancelled: false }
+      } catch (err) {
+        if (err instanceof Cancelled) {
+          return { success: false, errorMessage: 'Tahliye durduruldu', ...applied(), cancelled: true }
+        }
+        throw err
+      } finally {
+        this.unloadRunning = false
+      }
     }
     if (path === '/api/preparation/gonye') {
       const token = this.runToken
@@ -1213,10 +1258,15 @@ export class DemoMachine extends EventEmitter {
     return this.state.rotation.positionMm + (Math.sign(v) * v * v) / (2 * ROTATION_ACCEL)
   }
 
-  private abort(): void {
+  /** Hareketi kes: bekleyen pipeline/tahliye adımları Cancelled ile düşer, toplar yerinde durur */
+  private stopMotion(): void {
     this.runToken++
     for (const k of Object.keys(this.targets) as PistonKey[]) this.targets[k] = this.state[k].positionMm
     this.rotationTarget = this.glideStop()
+  }
+
+  private abort(): void {
+    this.stopMotion()
     if (this.activeJobId != null) {
       const id = this.activeJobId
       this.setProgress(id, this.progress?.completedPasos ?? 0, this.progress?.totalPasos ?? 0, 'İptal edildi')

@@ -7,10 +7,12 @@ import BendingMethodGrid from './BendingMethodGrid'
 import styles from './BendingMethodPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 
 export default function BendingMethodPage() {
   const navigate = useNavigate()
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
@@ -24,7 +26,7 @@ export default function BendingMethodPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

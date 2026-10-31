@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import styles from './RollArrangementPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import rollProfile from '@/assets/images/vals-topu-1.png'
@@ -18,6 +19,7 @@ import rollAssembly from '@/assets/images/vals-topu-3.png'
 export default function RollArrangementPage() {
   const navigate = useNavigate()
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const method = useBendingJobStore((s) => s.params.bendingMethod)
   const setParams = useBendingJobStore((s) => s.setParams)
 
@@ -35,7 +37,7 @@ export default function RollArrangementPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Artificial Intelligence" label={t('YAPAY ZEKA MODU')} />
+      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Artificial Intelligence" label={modeLabel} />
 
       <h2 className={styles.title}>{t('VALS TOPU DİZİLİMİ')}</h2>
       <p className={styles.hint}>{t('VALS TOPLARINI GÖRSELDEKİ GİBİ DİZİP ONAYLAYIN')}</p>

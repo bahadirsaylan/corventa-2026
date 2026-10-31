@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
 import PipeTypeModal from './PipeTypeModal'
@@ -14,6 +15,7 @@ import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 export default function AiBendingPage() {
   const navigate = useNavigate()
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -30,7 +32,7 @@ export default function AiBendingPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

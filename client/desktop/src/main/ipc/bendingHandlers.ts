@@ -40,6 +40,12 @@ export function registerBendingHandlers(): void {
     return engineApi.unloadPart(req)
   })
 
+  // Tahliye DURDUR — POST /api/preparation/unload/stop (devam eden tahliyeyi keser)
+  ipcMain.handle(Ipc.IpcInvoke.StopUnload, async () => {
+    log.warn('stop-unload')
+    return engineApi.stopUnload()
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
     log.info('execute-gonye')
     return engineApi.executeGonye()

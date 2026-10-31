@@ -32,6 +32,7 @@ const INFO: Record<ModeKey, { title: string; description: string }> = {
 export default function ManualModeSelectPage() {
   const navigate = useNavigate()
   const t = useT()
+  const resetJob = useBendingJobStore((s) => s.resetJob)
   const setParams = useBendingJobStore((s) => s.setParams)
   const [info, setInfo] = useState<ModeKey | null>(null)
 
@@ -39,7 +40,9 @@ export default function ManualModeSelectPage() {
     navigate('/bending/manual')
   }
 
+  // Dashboard AI yolundaki desen: önceki işin parametreleri temizlenir, sonra mod yazılır
   function selectSemi() {
+    resetJob()
     setParams({ bendingMode: 'semi' })
     navigate('/bending/ai')
   }

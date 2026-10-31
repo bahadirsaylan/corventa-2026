@@ -203,6 +203,43 @@
   cursor: default;
 }
 
+/* Tahliye hareketi sırasında DURDUR — büyük kırmızı */
+.stop {
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  background: #dc2626;
+  border-color: #7f1d1d;
+  color: #fff;
+  font-size: 88px;
+  font-weight: 900;
+}
+
+.stop:disabled {
+  filter: brightness(0.85);
+  cursor: default;
+}
+
+.stopSub {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* Durduruldu: TEKRAR DENE + PARÇAYI ALDIM yan yana */
+.stoppedRow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+}
+
+.stoppedRow .bigBtn {
+  font-size: 48px;
+  font-weight: 800;
+  justify-content: center;
+}
+
 .ready {
   justify-content: center;
   background: #b8e6c5;

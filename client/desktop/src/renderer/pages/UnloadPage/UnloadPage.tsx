@@ -3,11 +3,16 @@
 // "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda üst top seçilen mm kadar geri çekilir, ardından
 // seçilen mm (ve yönde) rotasyon yapılır → parça alınır
 // → SEKIL-20 (yeni büküm / tekrar).
-// Süreler bu cihazda hatırlanır (localStorage, services/operatorPrefs). Şimdilik SADECE DEMO modunda açılıyor —
-// gerçek backend'de tahliye komutu (POST /api/preparation/unload) henüz yok.
+// Süreler bu cihazda hatırlanır (localStorage, services/operatorPrefs).
+// Ekran AppLayout'tan açılır: otomatik / yarı oto job DataApi'de Completed olunca. Job errorMessage
+// ile tamamlandıysa (ör. geri esneme düzeltmesi yakınsamadı — büküm bitti, parça hâlâ sıkılı) mesaj
+// navigate state'iyle gelir ve üstte uyarı olarak gösterilir.
+// Hareket: POST /api/preparation/unload · hareket sırasında DURDUR: POST /api/preparation/unload/stop
+// (cevap cancelled=true → "TAHLİYE DURDURULDU": tekrar dene veya PARÇAYI ALDIM).
+// Tahliye sürerken sayfadan çıkılırsa (yan menü) tahliye otomatik durdurulur — DURDUR'a erişim kalmaz.
 
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
 import {
   UNLOAD_ROT,
@@ -36,10 +41,15 @@ const readSelected = readUnloadSelected
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
-type Phase = 'select' | 'countdown' | 'opening' | 'ready' | 'error'
+type Phase = 'select' | 'countdown' | 'opening' | 'ready' | 'stopped' | 'error'
 
 export default function UnloadPage() {
   const navigate = useNavigate()
+  const { state: navState } = useLocation()
+  const jobWarning =
+    navState && typeof navState === 'object' && typeof (navState as { jobWarning?: unknown }).jobWarning === 'string'
+      ? (navState as { jobWarning: string }).jobWarning
+      : null
   const t = useT()
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
@@ -48,7 +58,14 @@ export default function UnloadPage() {
   const [remaining, setRemaining] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [motion, setMotion] = useState<Motion>(readMotion)
+  const [stopping, setStopping] = useState(false)
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
+  // DURDUR başarıyla gönderildi mi — unload isteği gövdesiz (ağ) hatayla dönse bile "durduruldu" gösterilir.
+  // Stop başarısızsa geri false'a çekilir (gerçek hata "durduruldu" diye gizlenmesin).
+  const stopRequested = useRef(false)
+  // Unmount temizliği için güncel faz (closure'daki eski değer değil)
+  const phaseRef = useRef<Phase>('select')
+  phaseRef.current = phase
 
   function updateMotion(patch: Partial<Motion>) {
     const next = { ...motion, ...patch }
@@ -58,6 +75,10 @@ export default function UnloadPage() {
 
   useEffect(() => () => {
     if (timer.current) clearInterval(timer.current)
+    // Tahliye sürerken sayfadan çıkıldı → DURDUR butonu kayboluyor; hareketi yarıda bırakmamak için durdur
+    if (phaseRef.current === 'opening') {
+      void window.corventa.bending.stopUnload().catch(() => {})
+    }
   }, [])
 
   function save(next: number[], sel: number) {
@@ -78,17 +99,56 @@ export default function UnloadPage() {
   }
 
   async function openRolls() {
+    stopRequested.current = false
+    setStopping(false)
+    setError(null)
     setPhase('opening')
     try {
       const r = await window.corventa.bending.unloadPart({
-        upperRetractMm: motion.upperRetractMm,
-        rotationMm: motion.rotationDir * motion.rotationMm,
+        upperRetractMm: clamp(motion.upperRetractMm, UPPER.min, UPPER.max),
+        rotationMm: motion.rotationDir * clamp(motion.rotationMm, ROT.min, ROT.max),
       })
-      if (r && r.success === false) throw new Error(r.errorMessage ?? t('Tahliye başarısız'))
+      if (r?.cancelled) {
+        setPhase('stopped')
+        return
+      }
+      if (r && r.success === false) {
+        // Backend gövdeli hata (cancelled=false) — DURDUR'a basılmış olsa bile gerçek hata gösterilir
+        setError(r.errorMessage ? t(r.errorMessage) : t('Tahliye başarısız'))
+        setPhase('error')
+        return
+      }
       setPhase('ready')
     } catch (e) {
+      // Gövdesiz hata (IPC / ağ) — DURDUR başarıyla gönderildiyse istek kesilmiş sayılır
+      if (stopRequested.current) {
+        setPhase('stopped')
+        return
+      }
       setError(e instanceof Error ? e.message : String(e))
       setPhase('error')
+    } finally {
+      setStopping(false)
+    }
+  }
+
+  // Hareket sırasında DURDUR — backend tahliyeyi keser; bekleyen unloadPart cancelled=true ile döner
+  // Stop başarısızsa buton tekrar basılabilir olur (operatör yeniden DURDUR deneyebilmeli).
+  async function stopUnload() {
+    if (stopping) return
+    stopRequested.current = true
+    setStopping(true)
+    try {
+      const r = await window.corventa.bending.stopUnload()
+      if (r && r.success === false) {
+        stopRequested.current = false
+        setStopping(false)
+        setError(r.errorMessage ? t(r.errorMessage) : t('TAHLİYE DURDURULAMADI'))
+      }
+    } catch (e) {
+      stopRequested.current = false
+      setStopping(false)
+      setError(e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -127,13 +187,22 @@ export default function UnloadPage() {
         </div>
       </div>
 
+      {jobWarning && (
+        <div className={styles.hint} role="alert">
+          {t('BÜKÜM UYARISI: {warning}', { warning: t(jobWarning) })}
+        </div>
+      )}
+
       <div className={styles.hint}>
         {phase === 'select' && (editing
           ? t('DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN')
           : t('PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ'))}
         {phase === 'countdown' && t('PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK')}
-        {phase === 'opening' && t('TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON')}
+        {phase === 'opening' && (error
+          ? t('TAHLİYE YAPILAMADI: {error}', { error })
+          : t('TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON'))}
         {phase === 'ready' && t('TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ')}
+        {phase === 'stopped' && t('TAHLİYE DURDURULDU')}
         {phase === 'error' && t('TAHLİYE YAPILAMADI: {error}', { error: error ?? '' })}
       </div>
 
@@ -261,8 +330,25 @@ export default function UnloadPage() {
       )}
 
       {phase === 'opening' && (
-        <div className={`${styles.bigBtn} ${styles.opening}`}>
-          <span>{t('TAHLİYE YAPILIYOR…')}</span>
+        <button
+          type="button"
+          className={`${styles.bigBtn} ${styles.stop}`}
+          onClick={() => void stopUnload()}
+          disabled={stopping}
+        >
+          <span>{stopping ? t('DURDURULUYOR…') : t('DURDUR')}</span>
+          <span className={styles.stopSub}>{t('TAHLİYE YAPILIYOR…')}</span>
+        </button>
+      )}
+
+      {phase === 'stopped' && (
+        <div className={styles.stoppedRow}>
+          <button type="button" className={styles.bigBtn} onClick={() => setPhase('select')}>
+            <span>{t('TEKRAR DENE')}</span>
+          </button>
+          <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
+            <span>✓ {t('PARÇAYI ALDIM')}</span>
+          </button>
         </div>
       )}
 

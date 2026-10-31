@@ -14,6 +14,7 @@ import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
@@ -36,6 +37,7 @@ function fromStore(stored: ReturnType<typeof useBendingJobStore.getState>['param
 
 export default function RingBendingMeasurementsPage() {
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const navigate = useNavigate()
   const ringBending = useBendingJobStore((s) => s.params.ringBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -123,7 +125,7 @@ export default function RingBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

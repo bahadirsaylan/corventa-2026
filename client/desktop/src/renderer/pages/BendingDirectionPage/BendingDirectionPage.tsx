@@ -8,10 +8,12 @@ import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { directionOptionsFor } from '@/constants/profileDirections'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 
 export default function BendingDirectionPage() {
   const navigate = useNavigate()
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
@@ -30,7 +32,7 @@ export default function BendingDirectionPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

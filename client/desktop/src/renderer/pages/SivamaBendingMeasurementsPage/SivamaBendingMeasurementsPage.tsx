@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import SivamaMeasurementForm, { SivamaMeasurementValues } from './SivamaMeasurementForm'
 import styles from './SivamaBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -43,6 +44,7 @@ function fromStore(
 
 export default function SivamaBendingMeasurementsPage() {
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const navigate      = useNavigate()
   const sivamaBending = useBendingJobStore((s) => s.params.sivamaBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
@@ -81,7 +83,7 @@ export default function SivamaBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}

@@ -5,6 +5,7 @@
 // ── Tahliye (SEKIL-18) ──────────────────────────────────────────────
 export const UNLOAD_DEFAULT_PRESETS = [3, 5, 8, 10, 15]
 export const UNLOAD_SECONDS = { min: 1, max: 60 }
+// Üst sınırlar backend POST /api/preparation/unload doğrulamasıyla aynı (üst top ≤ 150 mm, rotasyon ≤ 3000 mm)
 export const UNLOAD_UPPER = { min: 0, max: 150, step: 5, def: 50 }
 export const UNLOAD_ROT = { min: 0, max: 3000, step: 50, def: 300 }
 
@@ -58,7 +59,12 @@ export function saveUnloadPresets(presets: number[], selected: number): void {
 export function readUnloadMotion(): UnloadMotion {
   const v = readJson(MOTION_KEY) as UnloadMotion | null
   if (v && Number.isFinite(v.upperRetractMm) && Number.isFinite(v.rotationMm) && (v.rotationDir === 1 || v.rotationDir === -1))
-    return v
+    // Eski / elle bozulmuş kayıt sınır dışı olabilir — backend reddetmesin diye sınırlara kırp
+    return {
+      upperRetractMm: Math.min(UNLOAD_UPPER.max, Math.max(UNLOAD_UPPER.min, v.upperRetractMm)),
+      rotationMm: Math.min(UNLOAD_ROT.max, Math.max(UNLOAD_ROT.min, v.rotationMm)),
+      rotationDir: v.rotationDir,
+    }
   return { upperRetractMm: UNLOAD_UPPER.def, rotationMm: UNLOAD_ROT.def, rotationDir: 1 }
 }
 

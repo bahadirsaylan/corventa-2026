@@ -121,6 +121,25 @@ export interface UnloadPartRequest {
   rotationMm: number
 }
 
+// POST /api/preparation/unload cevabı — 200 / 400 / 409'da hep bu şekil (hata → success=false + errorMessage).
+export interface UnloadPartResponse {
+  success: boolean
+  errorMessage: string | null
+  /** Gerçekte uygulanan üst top geri çekme (mm) — güvenli limite göre kırpılmış olabilir */
+  appliedUpperRetractMm: number
+  /** Gerçekte uygulanan işaretli rotasyon (mm) */
+  appliedRotationMm: number
+  /** Tahliye POST /api/preparation/unload/stop ile yarıda kesildi */
+  cancelled: boolean
+}
+
+// POST /api/preparation/unload/stop (gövde yok) — devam eden tahliyeyi keser, üst top + rotasyonu durdurur.
+// Tahliye yoksa da güvenle durdurur (success=true).
+export interface StopUnloadResponse {
+  success: boolean
+  errorMessage: string | null
+}
+
 // POST /api/bending-job/{id}/start  (no body)
 export interface StartJobResponse {
   success: boolean

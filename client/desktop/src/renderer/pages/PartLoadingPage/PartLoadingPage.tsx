@@ -51,13 +51,13 @@ function PartLoadingContent() {
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)
   const [errorStep, setErrorStep] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  // 2026-09-05: bendingMode'a gore useAutoCorrect otomatik.
-  //   mode='ai'   → true  (tam otomatik + geri esneme)
+  // bendingMode'a gore useAutoCorrect SABIT (operator toggle'i kaldirildi):
+  //   mode='ai'   → true  (tam otomatik + geri esneme duzeltmesi)
   //   mode='semi' → false (yari oto, geri esneme USTAYA)
-  //   mode=null   → false (backward compat: mevcut default)
+  //   mode=null   → true  (AI gibi davran — duzeltme acik)
   // Mod: ana ekran OTOMATİK BÜKÜM → 'ai', Manuel > Yarı Oto → 'semi' (ManualModeSelectPage).
   const isSemiAuto = params.bendingMode === 'semi'
-  const [useAutoCorrect, setUseAutoCorrect] = useState(params.bendingMode === 'ai')
+  const useAutoCorrect = !isSemiAuto
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
 
@@ -129,24 +129,6 @@ function PartLoadingContent() {
           🧑‍🔧 {t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
         </div>
       )}
-      {phase !== 'starting' && phase !== 'started' && !isSemiAuto && (
-        <button
-          type="button"
-          className={`${styles.autoCorrectToggle} ${
-            useAutoCorrect ? styles.autoCorrectToggleActive : ''
-          }`}
-          onClick={() => setUseAutoCorrect((v) => !v)}
-          aria-pressed={useAutoCorrect}
-        >
-          {useAutoCorrect ? '☑' : '☐'} {t('OTOMATİK GERİ ESNEME DÜZELTMESİ')}
-          {!useAutoCorrect && (
-            <span className={styles.autoCorrectHint}>
-              &nbsp;— {t('SLPIS KAPALI (3 ADIM PIPELINE)')}
-            </span>
-          )}
-        </button>
-      )}
-
       <div className={styles.content}>
         {canStart ? (
           <button

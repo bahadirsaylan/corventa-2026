@@ -14,8 +14,9 @@ export const IpcInvoke = {
   RecommendStage: 'preparation:recommend-stage',
   ApplyStage: 'preparation:apply-stage',
   ExecuteGonye: 'preparation:execute-gonye',
-  // Tahliye (SEKIL-18): geri sayım sonrası toplar baskıyı bırakıp açılır — şimdilik sadece demo
+  // Tahliye (SEKIL-18): geri sayım sonrası üst top geri + rotasyon; durdur = devam eden tahliyeyi keser
   UnloadPart: 'preparation:unload-part',
+  StopUnload: 'preparation:stop-unload',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   ConfirmSideSupport: 'bending-job:confirm-side-support',

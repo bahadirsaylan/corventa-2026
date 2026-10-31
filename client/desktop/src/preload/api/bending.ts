@@ -16,7 +16,9 @@ import {
   type SimilarBendingJobRequest,
   type SimilarBendingJobResponse,
   type StartJobResponse,
+  type StopUnloadResponse,
   type UnloadPartRequest,
+  type UnloadPartResponse,
   type ValidateArcPlanRequest,
   type ValidateArcPlanResponse,
 } from '@shared'
@@ -41,9 +43,14 @@ export const bendingApi = {
   executeGonye: (): Promise<GonyeResult> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ExecuteGonye),
 
-  // Tahliye (SEKIL-18) — üst top geri + rotasyon. Şimdilik sadece demo modunda karşılanıyor.
-  unloadPart: (req: UnloadPartRequest): Promise<{ success: boolean; errorMessage?: string | null }> =>
+  // Tahliye (SEKIL-18) — üst top geri + rotasyon (POST /api/preparation/unload).
+  // Hata / durdurma da cevap gövdesiyle gelir (success=false, cancelled=true durdurulduysa).
+  unloadPart: (req: UnloadPartRequest): Promise<UnloadPartResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.UnloadPart, req),
+
+  // Tahliye DURDUR — devam eden tahliyeyi keser, üst top + rotasyonu durdurur.
+  stopUnload: (): Promise<StopUnloadResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.StopUnload),
 
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),

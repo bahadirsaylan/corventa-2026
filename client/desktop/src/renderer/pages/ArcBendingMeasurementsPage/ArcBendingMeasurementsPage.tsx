@@ -19,6 +19,7 @@ import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 
 const EMPTY: ArcMeasurementValues = {
   A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
@@ -103,6 +104,7 @@ function fromStore(
 
 export default function ArcBendingMeasurementsPage() {
   const t = useT()
+  const modeLabel = useBendingModeLabel()
   const navigate = useNavigate()
   const arcBending = useBendingJobStore((s) => s.params.arcBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -229,7 +231,7 @@ export default function ArcBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label={t('YAPAY ZEKA MODU')}
+        label={modeLabel}
       />
       <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 
