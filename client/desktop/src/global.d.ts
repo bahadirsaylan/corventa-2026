@@ -7,6 +7,7 @@ import type { AuthApi } from './preload/api/auth'
 import type { BendingApi } from './preload/api/bending'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
+import type { MacroApi } from './preload/api/macro'
 import type { ServiceApi } from './preload/api/service'
 import type { SettingsApi } from './preload/api/settings'
 import type { SystemApi } from './preload/api/system'
@@ -23,6 +24,7 @@ declare global {
     system: SystemApi
     usage: UsageApi
     auth: AuthApi
+    macro: MacroApi
   }
 
   interface Window {

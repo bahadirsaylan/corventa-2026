@@ -23,6 +23,7 @@ import { EventEmitter } from 'node:events'
 import { app, type BrowserWindow } from 'electron'
 
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
+import { demoMacros } from '@main/demo/demoMacros'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -213,6 +214,8 @@ export class DemoMachine extends EventEmitter {
   private rotationTarget = 0
   private rotationSpeedPct = 100
   private rotationVel = 0 // mm/s, işaretli
+  // Manuel pnömatik (yan dayama ölçüm kolu) basılı-tut yönü — EXCEL 28 makro kaydı/oynatması için hareket eder
+  private manualPneuDir: Record<'left' | 'right', number> = { left: 0, right: 0 }
   private pressureHold: number | null = null // sıkıştırma basıncı (bar) — üst top basınçla tutuyorken
   private timer: NodeJS.Timeout | null = null
   private sensorTimer: NodeJS.Timeout | null = null
@@ -530,6 +533,23 @@ export class DemoMachine extends EventEmitter {
       s.rotation.inPosition = false
     }
     s.rotation.encoderRaw = Math.round(s.rotation.positionMm)
+
+    // Manuel pnömatik (basılı-tut): 60 birim/sn, 0..120 aralığında; uçta durur
+    for (const side of ['left', 'right'] as const) {
+      const dir = this.manualPneuDir[side]
+      if (dir === 0) continue
+      const pn = side === 'left' ? s.leftPneumatic : s.rightPneumatic
+      const next = Math.max(0, Math.min(120, pn.encoderPosition + dir * 60 * dt))
+      pn.encoderPosition = Math.round(next * 10) / 10
+      pn.extended = next >= 120
+      pn.retracted = next <= 0
+      if ((dir > 0 && pn.extended) || (dir < 0 && pn.retracted)) {
+        this.manualPneuDir[side] = 0
+        pn.activeDirection = 0
+      } else {
+        pn.activeDirection = dir
+      }
+    }
 
     // Basınç: hareket varken yükselir, dururken bekleme basıncına iner (görsel canlılık)
     const anyMoving = (Object.keys(this.targets) as PistonKey[]).some((k) => s[k].moving) || !s.rotation.inPosition
@@ -1433,9 +1453,14 @@ export class DemoMachine extends EventEmitter {
         this.rotationTarget = dir === 0 ? this.glideStop() : r.positionMm + dir * 100_000
         this.rotationSpeedPct = Number(b.speedPercent) || 30
       } else if (m[1] === 'position') {
-        this.rotationTarget = Number(b.position) || 0
+        // Gerçek sözleşme { positionMm: int } (eski demo çağrıları 'position' gönderiyordu)
+        this.rotationTarget = Number(b.positionMm ?? b.position) || 0
+        this.rotationSpeedPct = Number(b.speedPercent) || 50
       } else if (m[1] === 'distance') {
-        this.rotationTarget = r.positionMm + (Number(b.distance) || 0)
+        // Gerçek sözleşme { direction, distanceMm }: PLC'de CW (1) encoder AZALTIR, CCW (-1) ARTIRIR
+        const dist = b.distanceMm != null ? (Number(b.direction) === -1 ? 1 : -1) * (Number(b.distanceMm) || 0) : Number(b.distance) || 0
+        this.rotationTarget = r.positionMm + dist
+        this.rotationSpeedPct = Number(b.speedPercent) || 50
       } else {
         this.rotationTarget = this.glideStop()
       }
@@ -1443,6 +1468,15 @@ export class DemoMachine extends EventEmitter {
     }
     if (path === '/api/machine/motor') {
       this.state.hydraulicMotorState = b.value ? 2 : 0
+      return ok
+    }
+    if ((m = /^\/api\/pneumatic\/(left|right)\/(control|forward|backward|stop)$/.exec(path))) {
+      // Manuel pnömatik basılı-tut: yön verilince tick'te hareket eder (0..120), stop'ta durur
+      const side = m[1] as 'left' | 'right'
+      const dir = m[2] === 'forward' ? 1 : m[2] === 'backward' ? -1 : m[2] === 'stop' ? 0 : Math.sign(Number(b.direction) || 0)
+      this.manualPneuDir[side] = dir
+      const pn = side === 'left' ? this.state.leftPneumatic : this.state.rightPneumatic
+      pn.activeDirection = dir
       return ok
     }
     if (/^\/api\/(machine|pneumatic|side-support)\//.test(path)) return ok
@@ -1550,6 +1584,8 @@ export class DemoMachine extends EventEmitter {
       return demoAuth(rawUrl, path, method, b)
     }
     if (/^\/api\/service\/(tickets|requests|reports)$/.test(path) && method === 'GET') return []
+    // EXCEL 28 — usta öğrenme programı / makro (demoMacros.ts)
+    if (path === '/api/macros' || path.startsWith('/api/macros/')) return demoMacros(rawUrl, path, method, b)
 
     log.warn('DEMO: karşılanmayan istek', { method, path })
     throw new HttpError(404, rawUrl, 'Demo modunda desteklenmiyor')
@@ -1566,6 +1602,10 @@ export class DemoMachine extends EventEmitter {
     this.runToken++
     for (const k of Object.keys(this.targets) as PistonKey[]) this.targets[k] = this.state[k].positionMm
     this.rotationTarget = this.glideStop()
+    for (const side of ['left', 'right'] as const) {
+      this.manualPneuDir[side] = 0
+      ;(side === 'left' ? this.state.leftPneumatic : this.state.rightPneumatic).activeDirection = 0
+    }
   }
 
   private abort(): void {

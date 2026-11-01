@@ -46,6 +46,9 @@ import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage
 import ManuelBendingPage from '@/pages/ManuelBendingPage/ManuelBendingPage'
 import ManuelProgramEditorPage from '@/pages/ManuelProgramEditorPage/ManuelProgramEditorPage'
 import ManuelBendingRunPage from '@/pages/ManuelBendingRunPage/ManuelBendingRunPage'
+import MacroListPage from '@/pages/MacroPages/MacroListPage'
+import MacroEditorPage from '@/pages/MacroPages/MacroEditorPage'
+import MacroRunPage from '@/pages/MacroPages/MacroRunPage'
 import ServiceHomePage from '@/pages/ServicePage/ServiceHomePage'
 import TicketListPage from '@/pages/ServicePage/TicketListPage'
 import ServiceRequestsPage from '@/pages/ServicePage/ServiceRequestsPage'
@@ -135,6 +138,12 @@ export default function App() {
               path="bending/manual/run/:programNo"
               element={<ManuelBendingRunPage />}
             />
+
+            {/* Usta öğrenme programı / makro (EXCEL 28) — kayıt manuel ekranda (programsız) */}
+            <Route path="bending/macros" element={<RequireRole permission="macro"><MacroListPage /></RequireRole>} />
+            <Route path="bending/macros/record" element={<RequireRole permission="macro"><ManuelBendingRunPage /></RequireRole>} />
+            <Route path="bending/macros/:id/edit" element={<RequireRole permission="macro"><MacroEditorPage /></RequireRole>} />
+            <Route path="bending/macros/:id/run" element={<RequireRole permission="macro"><MacroRunPage /></RequireRole>} />
 
             {/* Service modülü — SEKIL 31-53 */}
             <Route path="service" element={<ServiceHomePage />} />

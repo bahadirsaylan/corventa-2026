@@ -110,6 +110,13 @@ export const IpcInvoke = {
   UsersUpdate: 'users:update',
   UsersDeactivate: 'users:deactivate',
 
+  // DataApi — Usta öğrenme programı / makro (EXCEL 28). Silme ADMIN+ (DataApi [RequireRole]).
+  MacroList: 'macro:list',
+  MacroGet: 'macro:get',
+  MacroCreate: 'macro:create',
+  MacroUpdate: 'macro:update',
+  MacroDelete: 'macro:delete',
+
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',

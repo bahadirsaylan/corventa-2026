@@ -23,6 +23,7 @@ import {
   ChevronUp,
   CircleAlert,
   CircleCheck,
+  CircleDot,
   CircleQuestionMark,
   CircleX,
   ClipboardList,
@@ -39,6 +40,7 @@ import {
   Info,
   Keyboard,
   LayoutDashboard,
+  ListOrdered,
   Lock,
   LogOut,
   Mail,
@@ -143,6 +145,8 @@ export const ICONS = {
   star: Star,
   sparkle: Sparkles, //      ✦
   award: Award,
+  record: CircleDot, //       ⏺ makro kaydı (EXCEL 28)
+  macro: ListOrdered, //      usta öğrenme programı / makro adımları
 } as const satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof ICONS

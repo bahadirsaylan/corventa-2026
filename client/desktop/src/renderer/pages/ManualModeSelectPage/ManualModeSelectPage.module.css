@@ -22,9 +22,9 @@
 .cardGrid {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  padding: 24px 40px 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 24px 32px 40px;
   min-height: 0;
 }
 

@@ -1,6 +1,9 @@
 // SEKIL-26: Manuel Bending çalışma ekranı — operatör kıvrım sırasında 4 piston'u
 // + / - ile manuel ileri/geri alır, rotasyonu CW/CCW jog'lar, yan dayamaları
 // ileri/geri ittirir, hızı ayarlar. Tüm komutlar IPC üzerinden Engine API'ye gider.
+// EXCEL 28: MAKRO KAYDI açıkken her hareket başlangıcı kayıt store'una bildirilir (noteMotion) —
+// farklı eksen hareket edince önceki eksenin gerçek son değeri adım olur. Hareket komutları değişmez.
+// Aynı ekran /bending/macros/record rotasında programsız açılır (YENİ KAYIT).
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -9,6 +12,8 @@ import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useManuelProgramsStore } from '@/stores/manuelProgramsStore'
 import { readManualRunPrefs } from '@/services/operatorPrefs'
+import { pistonAxis, pneumaticAxis } from '@/services/macroAxes'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import { MachineMode, type PistonName, type PneumaticSide } from '@shared/types'
@@ -16,6 +21,7 @@ import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
 import JogBall from './JogBall'
 import RotationControl from './RotationControl'
 import SideSupport from './SideSupport'
+import MacroRecordBar from '../MacroPages/MacroRecordBar'
 import styles from './ManuelBendingRunPage.module.css'
 
 // Manuel komutlar için güvenli başlangıç hızı Ayarlar > Operatör
@@ -42,6 +48,7 @@ export default function ManuelBendingRunPage() {
 
   const [speedPercent, setSpeedPercent] = useState(() => readManualRunPrefs().speedPercent)
   const [autoSideSupport, setAutoSideSupport] = useState(true)
+  const noteMotion = useMacroRecorderStore((s) => s.noteMotion)
 
   // Sayfaya girer girmez backend'i Manuel mod'a al — operatör panelden mode
   // ayarlamayı unutursa SemiAuto/Auto'da kalır ve manuel jog komutları
@@ -64,6 +71,7 @@ export default function ManuelBendingRunPage() {
 
   function handlePistonJog(piston: PistonName, direction: 1 | -1) {
     if (!canControl) return
+    noteMotion(pistonAxis(piston), speedPercent)
     void window.corventa.machine.pistonJog({ piston, direction, speedPercent })
   }
   function handlePistonStop(piston: PistonName) {
@@ -71,6 +79,7 @@ export default function ManuelBendingRunPage() {
   }
   function handleRotationJog(direction: 1 | -1) {
     if (!canControl) return
+    noteMotion('Rotation', speedPercent)
     void window.corventa.machine.rotationJog({ direction, speedPercent })
   }
   function handleRotationStop() {
@@ -78,6 +87,7 @@ export default function ManuelBendingRunPage() {
   }
   function handlePneumaticJog(side: PneumaticSide, direction: 1 | -1) {
     if (!canControl) return
+    noteMotion(pneumaticAxis(side), 0)
     void window.corventa.machine.pneumaticControl({ side, direction })
   }
   function handlePneumaticStop(side: PneumaticSide) {
@@ -100,6 +110,8 @@ export default function ManuelBendingRunPage() {
         </div>
 
         {blockReason && <div className={styles.blockBanner}>{t(blockReason)}</div>}
+
+        <MacroRecordBar disabled={!canControl} />
 
         <div className={`${styles.body} ${!canControl ? styles.bodyDisabled : ''}`}>
           {/* Sol yan dayama */}

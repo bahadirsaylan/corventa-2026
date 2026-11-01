@@ -3,8 +3,8 @@
 // Kullanıldığı yerler: Ayarlar ızgarası (SettingsMenuGrid), rota koruması (RequireRole / App.tsx),
 // sağ hızlı menü (SideMenu), kiosk çıkışı (KioskExitCorner), Kullanıcı Yönetimi rol seçimi.
 // Yetkisiz düğmeler gizlenmez: soluk + kilit + dokununca "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ".
-// DİKKAT: Backend'de şimdilik SADECE /api/users, /api/auth/logout|me, PUT /api/maintenance/rules ve
-// PUT /api/maintenance [RequireRole] ile korunuyor. Admin ayarları, cetvel/encoder sıfırlama (Bending API),
+// DİKKAT: Backend'de şimdilik SADECE /api/users, /api/auth/logout|me, PUT /api/maintenance/rules,
+// PUT /api/maintenance ve /api/macros yazma uçları (POST/PUT OPERATOR, DELETE ADMIN) [RequireRole] ile korunuyor. Admin ayarları, cetvel/encoder sıfırlama (Bending API),
 // müşteri değişikliği, garanti, karşılama mesajı, checklist, büyük veri vb. için kilit ŞİMDİLİK SADECE UI'da
 // (servis token'ı tasarlanınca backend'e taşınacak — YAPILACAKLAR "Rol sistemi — bilinen açıklar").
 
@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   'error-reports': 'OPERATOR',
   'certificate': 'OPERATOR',        // Sertifika Sorgula
   'maintenance': 'OPERATOR',        // Bakım Süresi: görüntüle + bakım modu aç/kapat + tamamlandı
+  'macro': 'OPERATOR',              // usta öğrenme programı (EXCEL 28): makro kaydı / düzenleme / oynatma
   // ── ADMIN ──
   'admin-settings': 'ADMIN',        // Admin Ayarları (cetvel sıfırlama dahil)
   'encoder-reset': 'ADMIN',
@@ -33,6 +34,7 @@ export const PERMISSIONS = {
   'warranty': 'ADMIN',
   'customer-change': 'ADMIN',
   'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
+  'macro-delete': 'ADMIN',          // makro silme (DataApi DELETE /api/macros/{id} [RequireRole(Admin)])
   // ── SUPERADMIN ──
   'big-data': 'SUPERADMIN',
   'kiosk-exit': 'SUPERADMIN',     // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)

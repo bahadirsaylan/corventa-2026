@@ -4,6 +4,7 @@
 //              (bendingMode='semi' → skipAutoCorrect=true, AI reçete önerisi yok)
 // Her kartta "?" → mod açıklaması (ölçü ekranlarındaki bilgi penceresiyle aynı).
 // AI (tam otomatik) artık ana ekrandaki OTOMATİK BÜKÜM'den doğrudan başlar.
+//   Makro    → usta öğrenme programları (EXCEL 28): manuel hareketleri kaydet, düzenle, oynat
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -15,7 +16,7 @@ import InfoModal from '@/pages/RingBendingMeasurementsPage/InfoModal'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './ManualModeSelectPage.module.css'
 
-type ModeKey = 'manual' | 'semi'
+type ModeKey = 'manual' | 'semi' | 'macro'
 
 const INFO: Record<ModeKey, { title: string; description: string }> = {
   manual: {
@@ -27,6 +28,11 @@ const INFO: Record<ModeKey, { title: string; description: string }> = {
     title: 'YARI OTOMATİK BÜKÜM',
     description:
       'PROFİL, KIVRIM YÖNÜ, BÜKÜM METODU VE ÖLÇÜLERİ SİZ GİRERSİNİZ; MAKİNE BÜKÜMÜ OTOMATİK OLARAK YAPAR. BÜKÜM SONUNDA GERİ ESNEME ÖLÇÜMÜ VE DÜZELTMESİ YAPILMAZ — PARÇANIN SON KONTROLÜ VE GEREKİRSE DÜZELTMESİ USTAYA AİTTİR. YAPAY ZEKA REÇETE ÖNERİSİ KULLANILMAZ.',
+  },
+  macro: {
+    title: 'USTA ÖĞRENME (MAKRO)',
+    description:
+      'USTA MANUEL EKRANDA MAKRO KAYDINI BAŞLATIR VE TUŞLARLA HAREKET EDER. FARKLI BİR EKSEN HAREKET ETMEYE BAŞLADIĞINDA ÖNCEKİ EKSENİN SON GERÇEK DEĞERİ OTOMATİK OLARAK ADIM OLARAK KAYDEDİLİR. KAYIT BİTİNCE MAKROYA İSİM VE AÇIKLAMA VERİLİR. ADIMLAR SONRADAN DÜZENLENEBİLİR (DEĞER, HIZ, EKLE, SİL, SIRALA) VE MAKRO SÜREKLİ VEYA ADIM ADIM OYNATILABİLİR. DURDUR TUŞU TÜM HAREKETİ HEMEN DURDURUR.',
   },
 }
 
@@ -57,6 +63,7 @@ export default function ManualModeSelectPage() {
       <div className={styles.cardGrid}>
         <ModeCard title={t('MANUEL BÜKÜM')} subtitle={t('KAYITLI PROGRAMLAR')} onSelect={selectManual} onInfo={() => setInfo('manual')} />
         <ModeCard title={t('YARI OTO BÜKÜM')} subtitle={t('GERİ ESNEME USTADA')} onSelect={selectSemi} onInfo={() => setInfo('semi')} />
+        <ModeCard title={t('MAKRO')} subtitle={t('USTA ÖĞRENME PROGRAMI')} onSelect={() => navigate('/bending/macros')} onInfo={() => setInfo('macro')} />
       </div>
 
       <StatusBar backTo="/dashboard" confirmDisabled />

@@ -1,0 +1,570 @@
+/* EXCEL 28 — makro ekranları (liste / düzenleme / oynatma) ortak stilleri.
+   Manuel program ekranlarıyla (ManuelBendingPage / ManuelProgramEditorPage) aynı görsel dil. */
+
+.page {
+  width: 100%;
+  height: 750px;
+  display: flex;
+  flex-direction: column;
+  background-color: #fdf8e8;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 24px 8px;
+  gap: 12px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: 18px;
+}
+
+/* ── meta (isim / açıklama) ── */
+.metaRow {
+  flex-shrink: 0;
+  background: #cfd1d3;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font: inherit;
+  transition: filter 0.15s;
+}
+
+.metaRow:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+
+.metaRow:disabled {
+  cursor: default;
+}
+
+.metaLabel {
+  flex-shrink: 0;
+  min-width: 110px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.metaValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metaPlaceholder {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* ── tablo ── */
+.scroll {
+  flex: 1;
+  background: #fff;
+  border-radius: var(--radius-md);
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  min-height: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #fdf8e8;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(110, 167, 214, 0.08);
+}
+
+.table tbody tr.selected {
+  background-color: #cfe1f4;
+}
+
+.table tbody tr.selected td {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.table tbody tr.current {
+  background-color: #fff1c2;
+}
+
+.table tbody tr.current td {
+  color: var(--color-text);
+  font-weight: 800;
+}
+
+.table tbody tr.done td {
+  color: #2e7d4f;
+}
+
+.table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0e9d2;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.num {
+  font-family: var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.desc {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}
+
+.emptyRow {
+  text-align: center;
+  padding: 48px;
+  color: var(--color-text-muted);
+}
+
+.stateIcon {
+  width: 28px;
+  text-align: center;
+}
+
+/* ── aksiyon butonları ── */
+.actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.actions3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.actions6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.actionBtn {
+  position: relative;
+  height: 56px;
+  background-color: #f8d4d4;
+  border: 2px solid #f0a0a0;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: filter 0.15s;
+}
+
+.actionBtn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.actionBtn:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionBtnPrimary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+.actionBtnStop {
+  background-color: #c62828;
+  border-color: #8e1c1c;
+  color: #fff;
+  font-size: 18px;
+}
+
+.locked {
+  opacity: 0.45;
+}
+
+.lockIcon {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+}
+
+/* ── durum şeritleri ── */
+.banner {
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bannerInfo {
+  background: #e3eef9;
+  color: #1d4f7a;
+}
+
+.bannerOk {
+  background: #dcf2e3;
+  color: #1f6b3d;
+}
+
+.bannerWarn {
+  background: #fff1c2;
+  color: #7a5a00;
+}
+
+.bannerError {
+  background: #fbd9d9;
+  color: #8e1c1c;
+}
+
+/* ── oynatma ── */
+.modeRow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.toggle {
+  height: 44px;
+  padding: 0 18px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+.progressText {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ── kayıt çubuğu (manuel ekran) ── */
+.recordBar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: #eef0f2;
+}
+
+.recordBarActive {
+  background: #fbd9d9;
+}
+
+.recordDot {
+  color: #c62828;
+  animation: recordBlink 1s steps(2, start) infinite;
+}
+
+@keyframes recordBlink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.recordText {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+}
+
+.recordLast {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.recordBtn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-border);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recordBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.recordBtnStart {
+  margin-left: auto;
+}
+
+.recordBtnStop {
+  background: #c62828;
+  border-color: #8e1c1c;
+  color: #fff;
+}
+
+/* ── dialog (adım ekle / makroyu kaydet) ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 270;
+}
+
+.modal {
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  background: #fdf8e8;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.choiceBtn {
+  min-height: 48px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.choiceBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.choiceActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+.fieldBtn {
+  min-height: 52px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  padding: 8px 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fieldNum {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.fieldBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.fieldBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.modalBtn {
+  height: 56px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.modalBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.modalBtn:hover:not(:disabled) {
+  filter: brightness(0.93);
+}
+
+.modalCancel {
+  background: #b8e6c5;
+  color: #2a2a2a;
+}
+
+.modalConfirm {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.modalError {
+  color: #8e1c1c;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}

@@ -239,12 +239,24 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/rotation/jog`, req)
   }
 
+  // Backend RotationPositionRequest { positionMm: int, speedPercent } — UI alanı 'position' olduğu için
+  // eşlenir (eşlenmezse backend PositionMm=0 alır → rotasyon 0'a gider). Backend tamsayı mm kabul eder.
   rotationPosition(req: RotationPositionRequest): Promise<unknown> {
-    return http.post(`${this.baseUrl}/api/rotation/position`, req)
+    return http.post(`${this.baseUrl}/api/rotation/position`, {
+      positionMm: Math.round(req.position),
+      speedPercent: req.speedPercent,
+    })
   }
 
+  // Backend RotationDistanceRequest { direction: -1|1, distanceMm: int > 0, speedPercent } —
+  // UI işaretli 'distance' gönderir: + = encoder ARTAR. PLC'de CW (1) encoder'ı azaltır, CCW (-1) artırır
+  // (FB_RotationControl mode 4; UnloadPartHandler ile aynı eşleme: + → -1).
   rotationDistance(req: RotationDistanceRequest): Promise<unknown> {
-    return http.post(`${this.baseUrl}/api/rotation/distance`, req)
+    return http.post(`${this.baseUrl}/api/rotation/distance`, {
+      direction: req.distance > 0 ? -1 : 1,
+      distanceMm: Math.round(Math.abs(req.distance)),
+      speedPercent: req.speedPercent,
+    })
   }
 
   rotationStop(): Promise<unknown> {

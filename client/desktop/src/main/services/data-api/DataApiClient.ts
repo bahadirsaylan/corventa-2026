@@ -11,6 +11,9 @@ import type {
   ErrorSnapshotDetail,
   ErrorSnapshotListQuery,
   ErrorSnapshotPage,
+  Macro,
+  MacroSaveBody,
+  MacroSummary,
   MachineIdentity,
   UserPreference,
   MaintenancePeriodKey,
@@ -297,6 +300,29 @@ export class DataApiClient {
 
   getErrorSnapshot(id: number): Promise<ErrorSnapshotDetail> {
     return http.get<ErrorSnapshotDetail>(`${this.baseUrl}/api/error-snapshots/${id}`)
+  }
+
+  // ---------- Usta öğrenme programı / makro (EXCEL 28) ----------
+  // POST/PUT OPERATOR+, DELETE ADMIN+ — Bearer başlığını http katmanı ekler.
+
+  listMacros(): Promise<MacroSummary[]> {
+    return http.get<MacroSummary[]>(`${this.baseUrl}/api/macros`)
+  }
+
+  getMacro(id: number): Promise<Macro> {
+    return http.get<Macro>(`${this.baseUrl}/api/macros/${id}`)
+  }
+
+  createMacro(body: MacroSaveBody): Promise<Macro> {
+    return http.post<Macro>(`${this.baseUrl}/api/macros`, body)
+  }
+
+  updateMacro(id: number, body: MacroSaveBody): Promise<Macro> {
+    return http.put<Macro>(`${this.baseUrl}/api/macros/${id}`, body)
+  }
+
+  deleteMacro(id: number): Promise<unknown> {
+    return http.delete<unknown>(`${this.baseUrl}/api/macros/${id}`)
   }
 
   // ---------- Rol sistemi (auth + users) ----------

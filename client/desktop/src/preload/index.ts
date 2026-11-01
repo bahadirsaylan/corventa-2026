@@ -5,6 +5,7 @@ import { authApi } from './api/auth'
 import { bendingApi } from './api/bending'
 import { eventsApi } from './api/events'
 import { machineApi } from './api/machine'
+import { macroApi } from './api/macro'
 import { serviceApi } from './api/service'
 import { settingsApi } from './api/settings'
 import { systemApi } from './api/system'
@@ -24,6 +25,7 @@ if (process.contextIsolated) {
       system: systemApi,
       usage: usageApi,
       auth: authApi,
+      macro: macroApi,
     })
   } catch (error) {
     console.error('preload: contextBridge.exposeInMainWorld failed', error)
