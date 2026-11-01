@@ -34,7 +34,10 @@ export default function BendingBallsPanel({ variant }: Props) {
 // ─────────────────────────────────────────────────────────────
 
 function ControlPanel() {
-  const progress = useBendingProgress()
+  // Sadece kullanılan alanlar (primitive) dinlenir — BendingProgress büküm sırasında her 100 ms yeni
+  // nesne geldiği için tüm nesneye abone olmak paneli (ve ManualControlPad'i) 10 Hz yeniden çizdiriyordu.
+  const progressJobId = useMachineStateStore((s) => s.bendingProgress?.jobId ?? null)
+  const awaitingSideSupport = useMachineStateStore((s) => s.bendingProgress?.awaitingSideSupportConfirmation === true)
   const bendingActive = useBendingActive()
   const s1Pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
   const t = useT()
@@ -66,7 +69,7 @@ function ControlPanel() {
       await window.corventa.machine.emergencyStop()
       // EXCEL 24 — job kaydını da kapat: backend /bending-job/{id}/cancel → iş Cancelled
       // (pipeline durur, bekleyen segment/onay iptal). Başarısızsa eski uyarı gösterilir.
-      const jobId = useBendingActivityStore.getState().runningJobId ?? progress?.jobId ?? null
+      const jobId = useBendingActivityStore.getState().runningJobId ?? progressJobId
       let jobCancelled = false
       if (jobId != null) {
         try {
@@ -90,10 +93,10 @@ function ControlPanel() {
   // Pipeline ilk 3/4 rotasyondan sonra durur, operatör yan dayama ayarını yapıp onaylar.
   const [confirming, setConfirming] = useState(false)
   async function handleConfirmSideSupport() {
-    if (!progress || confirming) return
+    if (progressJobId == null || confirming) return
     setConfirming(true)
     try {
-      await window.corventa.bending.confirmSideSupport(progress.jobId)
+      await window.corventa.bending.confirmSideSupport(progressJobId)
     } catch (e) {
       setCancelInfo(t('ONAY BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }))
     } finally {
@@ -172,7 +175,7 @@ function ControlPanel() {
 
       {cancelInfo && <div className={styles.cancelInfoBar}>{cancelInfo}</div>}
 
-      {progress?.awaitingSideSupportConfirmation && (
+      {awaitingSideSupport && (
         <div className={styles.confirmBar}>
           <span className={styles.confirmText}>{t('YAN DAYAMA HAZIR MI?')}</span>
           <button

@@ -1,6 +1,8 @@
 // Yağ + sensör + emniyet durumu — dashboard alt panelinde sürekli görünür.
 // Backend MachineState selector'larından beslenir; bağlantı kapalıyken 0 değerleriyle render eder.
 
+import { memo } from 'react'
+
 import { useSafety, useSensors } from '@/hooks/useMachineState'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -16,7 +18,7 @@ interface StatRow {
 const OIL_TEMP_OK_C = 75
 const OIL_LEVEL_OK_PERCENT = 30
 
-export default function OilStatsList() {
+function OilStatsList() {
   const sensors = useSensors()
   const safety = useSafety()
   const t = useT()
@@ -85,3 +87,6 @@ export default function OilStatsList() {
     </ul>
   )
 }
+
+// Prop'suz — üst panel (BottomStatsPanel) yeniden çizilince kartlar boşuna çizilmesin.
+export default memo(OilStatsList)

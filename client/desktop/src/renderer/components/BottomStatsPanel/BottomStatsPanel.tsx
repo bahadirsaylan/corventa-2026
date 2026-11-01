@@ -15,13 +15,14 @@
 // EXCEL 37: HATA KAYITLARI butonunun solunda internet erişim ikonu (Google generate_204, 30 sn) — sadece bilgi.
 
 import { useMemo, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useNavigate } from 'react-router-dom'
 import OilStatsList from '@/pages/DashboardPage/OilStatsList'
 import ErrorLogsModal from './ErrorLogsModal'
 import ArcBendingStrip from './ArcBendingStrip'
 import InternetStatusChip from '@/components/InternetStatus/InternetStatusChip'
 import { BendingMethod } from '@shared/types'
-import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
+import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useMaintenanceAlerts, useMaintenanceLock } from '@/hooks/useMaintenance'
 import {
@@ -46,8 +47,19 @@ interface ActiveWarning {
 
 export default function BottomStatsPanel() {
   const [showLogs, setShowLogs] = useState(false)
-  const sensors = useSensors()
-  const safety = useSafety()
+  // Sadece uyarı hesabında kullanılan alanlar (shallow) — tüm sensör/emniyet nesnesi her 10 Hz tick'te
+  // yeni referans geldiği için panel ve uyarı memo'su her tick'te yeniden çalışıyordu.
+  const sensors = useMachineStateStore(useShallow((s) => ({
+    oilTempC: s.state.sensors.oilTempC,
+    s1PressureBar: s.state.sensors.s1PressureBar,
+    oilLevelPercent: s.state.sensors.oilLevelPercent,
+    oilHumidityPercent: s.state.sensors.oilHumidityPercent,
+  })))
+  const safety = useMachineStateStore(useShallow((s) => ({
+    emergencyStopOK: s.state.safety.emergencyStopOK,
+    motorThermalOK: s.state.safety.motorThermalOK,
+    fanThermalOK: s.state.safety.fanThermalOK,
+  })))
   const t = useT()
   const navigate = useNavigate()
   const { top: maint } = useMaintenanceAlerts()
@@ -62,11 +74,12 @@ export default function BottomStatsPanel() {
   const bendingActive = useBendingActive()
   const runningJob = useBendingActivityStore((s) => s.runningJob)
   const runningJobId = useBendingActivityStore((s) => s.runningJobId)
-  const rawProgress = useBendingProgress()
   const arcJob =
     bendingActive && runningJob && runningJob.method === BendingMethod.Arc && (runningJob.segments?.length ?? 0) > 0
       ? runningJob
       : null
+  // İlerleme sadece Arc şeridi gösterilirken dinlenir (aksi halde büküm boyunca 10 Hz boşa çizim)
+  const rawProgress = useMachineStateStore((s) => (arcJob ? s.bendingProgress : null))
   const arcProgress = rawProgress && rawProgress.jobId === runningJobId ? rawProgress : null
 
   //   Aktif uyarı: sensor/safety state'inden ilk kritik durumu bul.

@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import type { StageInfo } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { Icon, IconLabel } from '@/components/Icon'
@@ -34,7 +35,8 @@ export default function EncoderResetPage() {
   const navigate = useNavigate()
   const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
-  const physical = useMachineStateStore((s) => s.state.physicalInfo)
+  // Shallow — physicalInfo her 10 Hz tick'te yeni nesne geliyor, alanlar değişmediyse sayfa çizilmez
+  const physical = useMachineStateStore(useShallow((s) => s.state.physicalInfo))
   const bendingActive = useBendingActive()
 
   const [confirming, setConfirming] = useState(false)

@@ -3,7 +3,8 @@
 
 import type { ReactElement } from 'react'
 
-import { useStaleMs, useOverallConnectionState } from '@/hooks/useConnectionStatus'
+import { useOverallConnectionState } from '@/hooks/useConnectionStatus'
+import { useConnectionStore } from '@/stores/connectionStore'
 import { useT } from '@/i18n'
 import styles from './ConnectionBanner.module.css'
 
@@ -11,11 +12,16 @@ const STALE_THRESHOLD_MS = 5_000
 
 export default function ConnectionBanner(): ReactElement | null {
   const overall = useOverallConnectionState()
-  const staleMs = useStaleMs()
+  // Watchdog staleMs'i her saniye farklı değerle yazar; banner sadece eşik/saniye değişince çizilsin.
+  // 0 = taze (< eşik), sonsuz = henüz state gelmedi, aksi halde bayat geçen saniye.
+  const staleSec = useConnectionStore((s) =>
+    !Number.isFinite(s.staleMs) ? Number.POSITIVE_INFINITY
+      : s.staleMs < STALE_THRESHOLD_MS ? 0
+        : Math.floor(s.staleMs / 1000))
   const t = useT()
 
   // Bağlantı tam ve veri taze → banner yok
-  if (overall === 'connected' && Number.isFinite(staleMs) && staleMs < STALE_THRESHOLD_MS) {
+  if (overall === 'connected' && staleSec === 0) {
     return null
   }
 
@@ -29,8 +35,8 @@ export default function ConnectionBanner(): ReactElement | null {
   } else if (overall === 'disconnected' || overall === 'error') {
     label = t('MAKİNEYE BAĞLANILAMIYOR')
     variant = 'error'
-  } else if (Number.isFinite(staleMs) && staleMs >= STALE_THRESHOLD_MS) {
-    const sec = Math.floor(staleMs / 1000)
+  } else if (Number.isFinite(staleSec) && staleSec > 0) {
+    const sec = staleSec
     label = t('VERİ AKMIYOR — {sec}sn ÖNCESİNE AİT DURUM GÖSTERİLİYOR', { sec })
     variant = 'error'
   }

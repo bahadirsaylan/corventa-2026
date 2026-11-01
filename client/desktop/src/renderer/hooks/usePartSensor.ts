@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { selectPartSensor, useEventsStore } from '@/stores/eventsStore'
 import type { PartSensorPayload } from '@shared/types'
 
@@ -6,5 +7,6 @@ import type { PartSensorPayload } from '@shared/types'
  * Backend yokken null döner; UI bunu "henüz veri yok" olarak gösterebilir.
  */
 export function usePartSensor(): PartSensorPayload | null {
-  return useEventsStore((s) => selectPartSensor(s.byType))
+  // Shallow — her /corventa event'i (1 sn) payload'ı yeni nesne getirir; değer aynıysa yeniden çizim yok
+  return useEventsStore(useShallow((s) => selectPartSensor(s.byType)))
 }

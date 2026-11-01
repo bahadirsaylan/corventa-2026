@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
-import { useSensors } from '@/hooks/useMachineState'
+import { useMachineStateStore } from '@/stores/machineStateStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
@@ -49,7 +49,6 @@ export default function RingBendingMeasurementsPage() {
   const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
-  const sensors = useSensors()
   const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)
 
   // Kapasite kataloğu kontrolü (min. çap / deformasyon / pekleşme) — İLERİ öncesi
@@ -105,6 +104,8 @@ export default function RingBendingMeasurementsPage() {
     }
 
     // AI mod: parametreler tamsa AI eşleşme modalını aç.
+    // Yağ sıcaklığı sadece burada lazım — abone olmadan anlık okunur (form 10 Hz yeniden çizilmesin)
+    const oilTempC = useMachineStateStore.getState().state.sensors.oilTempC
     const req: SimilarBendingJobRequest = {
       targetDiameterMm: parseFloat(values.R),
       partLengthMm: parseFloat(values.L),
@@ -113,7 +114,7 @@ export default function RingBendingMeasurementsPage() {
       profileB: parseFloat(values.B),
       profileS: parseFloat(values.S),
       ballDiameterMm: 220,
-      oilTempC: sensors.oilTempC > 0 ? sensors.oilTempC : undefined,
+      oilTempC: oilTempC > 0 ? oilTempC : undefined,
     }
     setAiModalRequest(req)
   }

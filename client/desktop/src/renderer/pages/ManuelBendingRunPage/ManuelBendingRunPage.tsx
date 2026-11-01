@@ -6,6 +6,7 @@
 // Aynı ekran /bending/macros/record rotasında programsız açılır (YENİ KAYIT).
 
 import { useEffect, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useParams } from 'react-router-dom'
 
 import { usePiston } from '@/hooks/useMachineState'
@@ -40,9 +41,10 @@ export default function ManuelBendingRunPage() {
   const right = usePiston('rightPiston')
   const bottom = usePiston('lowerPiston')
   const pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
-  const leftPneu = useMachineStateStore((s) => s.state.leftPneumatic)
-  const rightPneu = useMachineStateStore((s) => s.state.rightPneumatic)
-  const rotation = useMachineStateStore((s) => s.state.rotation)
+  // Nesne slice'ları shallow — her 10 Hz tick'te yeni referans geldiğinden sayfa boşuna çiziliyordu
+  const leftPneu = useMachineStateStore(useShallow((s) => s.state.leftPneumatic))
+  const rightPneu = useMachineStateStore(useShallow((s) => s.state.rightPneumatic))
+  const rotation = useMachineStateStore(useShallow((s) => s.state.rotation))
   const machineMode = useMachineStateStore((s) => s.state.mode)
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
 

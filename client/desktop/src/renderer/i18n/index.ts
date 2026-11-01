@@ -10,6 +10,7 @@
 // Seçili dil LanguagePage'den kaydedilir (localStorage 'corventa.language') ve canlı değişir.
 
 import { create } from 'zustand'
+import { useCallback } from 'react'
 
 export type LangCode = 'tr' | 'en' | 'de' | 'ru' | 'ar' | 'fr'
 
@@ -70,7 +71,9 @@ export function t(source: string, vars?: TVars): string {
 /** Bileşenlerde: const t = useT() — dil değişince bileşen yeniden çizilir. */
 export function useT(): (source: string, vars?: TVars) => string {
   const lang = useLangStore((s) => s.lang)
-  return (source, vars) => translate(source, lang, vars)
+  // Kararlı referans — sadece dil değişince yeni fonksiyon. Aksi halde t'yi bağımlılık listesine koyan
+  // useMemo/useEffect/useCallback her render'da yeniden çalışıyordu.
+  return useCallback((source: string, vars?: TVars) => translate(source, lang, vars), [lang])
 }
 
 export function useLang(): LangCode {

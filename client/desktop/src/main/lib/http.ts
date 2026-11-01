@@ -59,9 +59,9 @@ async function request<T>(
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs)
 
-  if (opts.signal) {
-    opts.signal.addEventListener('abort', () => controller.abort(opts.signal!.reason))
-  }
+  // Dış iptal sinyali — dinleyici istek bitince kaldırılır (uzun ömürlü sinyal tekrar kullanılırsa birikmesin)
+  const onExternalAbort = () => controller.abort(opts.signal!.reason)
+  opts.signal?.addEventListener('abort', onExternalAbort, { once: true })
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
@@ -82,6 +82,7 @@ async function request<T>(
     })
   } catch (err) {
     clearTimeout(timeoutId)
+    opts.signal?.removeEventListener('abort', onExternalAbort)
     if (controller.signal.aborted && controller.signal.reason instanceof Error
         && controller.signal.reason.message === 'timeout') {
       throw new HttpTimeoutError(url, timeoutMs)
@@ -90,6 +91,7 @@ async function request<T>(
     throw err
   }
   clearTimeout(timeoutId)
+  opts.signal?.removeEventListener('abort', onExternalAbort)
 
   // 204 No Content → return undefined as T
   if (response.status === 204) return undefined as T

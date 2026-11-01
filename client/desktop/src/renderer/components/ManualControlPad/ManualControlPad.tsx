@@ -9,10 +9,9 @@
 // Yan dayama tuş eşleşmesi (TAHMİNİ — sahada doğrulanacak):
 //   dikey çift = REEL, yatay çift = JOINT, eğik çift = BODY.
 
-import { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 
 import type { PistonName, SideSupportSide, SideSupportType } from '@shared/types'
-import { usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
@@ -29,7 +28,7 @@ const SPEED_MAX = 100
 // Tekrar kilitlemek için true yap — kilit rozeti + disabled davranışı geri gelir.
 const LOCK_DURING_BENDING = false
 
-export default function ManualControlPad() {
+function ManualControlPad() {
   const bendingActive = useBendingActive()
   const locked = LOCK_DURING_BENDING && bendingActive
   const t = useT()
@@ -37,10 +36,12 @@ export default function ManualControlPad() {
   const [speed, setSpeed] = useState(readManualSpeed)
   const [motorBusy, setMotorBusy] = useState(false)
 
-  const upper = usePiston('upperPiston')
-  const lower = usePiston('lowerPiston')
-  const left = usePiston('leftPiston')
-  const right = usePiston('rightPiston')
+  // Sadece pozisyon (primitive) dinlenir — piston nesnesinin tamamı her SignalR tick'inde (10 Hz)
+  // yeni referans olduğundan tüm tuş takımını boşuna yeniden çizdiriyordu.
+  const upperPos = useMachineStateStore((s) => s.state.upperPiston.positionMm)
+  const lowerPos = useMachineStateStore((s) => s.state.lowerPiston.positionMm)
+  const leftPos = useMachineStateStore((s) => s.state.leftPiston.positionMm)
+  const rightPos = useMachineStateStore((s) => s.state.rightPiston.positionMm)
 
   async function setMotor(on: boolean) {
     if (motorBusy) return
@@ -125,22 +126,22 @@ export default function ManualControlPad() {
       {/* Dört pistonda da (makinede doğrulandı, 2026-10-05): ÜST ok = İLERİ (direction -1, parçaya),
           ALT ok = GERİ (direction +1). Backend polaritesi: -1 ileri, +1 geri. */}
       <PistonPill
-        piston="upper" title="ÜST" value={upper.positionMm} speed={speed} locked={locked}
+        piston="upper" title="ÜST" value={upperPos} speed={speed} locked={locked}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pUpper}
       />
       <PistonPill
-        piston="lower" title="ALT" value={lower.positionMm} speed={speed} locked={locked}
+        piston="lower" title="ALT" value={lowerPos} speed={speed} locked={locked}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pLower}
       />
       <PistonPill
-        piston="left" title="SOL" value={left.positionMm} speed={speed} locked={locked}
+        piston="left" title="SOL" value={leftPos} speed={speed} locked={locked}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pLeft}
       />
       <PistonPill
-        piston="right" title="SAĞ" value={right.positionMm} speed={speed} locked={locked}
+        piston="right" title="SAĞ" value={rightPos} speed={speed} locked={locked}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pRight}
       />
@@ -309,3 +310,6 @@ function PistonHalf({ piston, dir, arrow, speed, locked, pos }: PistonHalfProps)
     </button>
   )
 }
+
+// Prop'suz bileşen — üst panel (ControlPanel) başlık değerleri yüzünden yeniden çizilince tuş takımı çizilmesin.
+export default memo(ManualControlPad)
