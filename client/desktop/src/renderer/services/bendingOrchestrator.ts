@@ -3,6 +3,8 @@
 
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { setExpectedPasoRadii } from '@/stores/bendingActivityStore'
+import { refreshMaintenance, useMaintenanceStore } from '@/stores/maintenanceStore'
+import { maintenanceLockActive } from '@/services/maintenanceStatus'
 import {
   JobMappingError,
   mapToCreateRequest,
@@ -164,6 +166,20 @@ export async function executeBendingFlow(
     } catch (err) {
       throw new BendingOrchestratorError('recommend-stage', toMessage(err), err)
     }
+  }
+
+  // ---------- BAKIM KİLİDİ taze kontrol (EXCEL 34) ----------
+  // Bakım store'u 30 sn'de bir yenilenir; bayat önbellekle job kaydı + stage geçişi (piston hareketi)
+  // yapılıp ancak StartJob'da 409 alınmasın diye, job oluşturmadan ÖNCE durum tazelenir.
+  // Okuma hatasında refreshMaintenance son state'i korur (kilit yoksa akış aynen sürer — asıl engel backend'de).
+  // Ayar kapalıyken lockActive=false → akış eskisiyle aynı (sadece bir GET eklenir).
+  await refreshMaintenance()
+  const maintState = useMaintenanceStore.getState().state
+  if (maintenanceLockActive(maintState)) {
+    throw new BendingOrchestratorError(
+      'create-job',
+      maintState?.lockMessage ?? 'BAKIM KİLİDİ — BÜKÜM BAŞLATILAMAZ',
+    )
   }
 
   // ---------- Step 4: Create job (DataApi DİREKT) ----------
