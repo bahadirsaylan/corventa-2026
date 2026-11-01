@@ -223,6 +223,20 @@ function ControlPanel() {
 
 // ─────────────────────────────────────────────────────────────
 // Üst alan (büküm sırasında) — top pozisyonları + ilerleme
+
+/**
+ * 2026-11-02 — SADECE GÖSTERİM. Çok açılı (Arc) bükümde parça sıfırlamada rotasyon encoder'ı İLK DÜZLÜĞÜN
+ * SONUNDA (1. radyüs başı) sıfırlanır (ZeroPartArcHandler: zeroAdditionalForward = 1. düzlük − güvenlik payı).
+ * Ör. 1. düzlük 500, parça 3000 → parça sonunda encoder 2500. Gösterilen = encoder + yön × max(1. düzlük,
+ * güvenlik payı) → parçanın başından gerçek yol (3000). Hareket / manuel ekran / makro ham encoder'ı kullanır.
+ */
+function arcRotationDisplayOffset(job: BendingJob | null): number {
+  if (!job || job.method !== BendingMethod.Arc || !job.segments?.length) return 0
+  const seg1 = job.segments.find((s) => s.segmentOrder === 1) ?? job.segments[0]
+  const offset = Math.max(seg1.straightAfterMm ?? 0, job.safetyMarginMm ?? 0)
+  // Sol sensörde parça ilerlerken encoder artar, sağda azalır (backend rotForward)
+  return (job.activeSensorSide === 'Right' ? -1 : 1) * offset
+}
 // ─────────────────────────────────────────────────────────────
 
 function MonitorPanel() {
@@ -240,6 +254,8 @@ function MonitorPanel() {
 
   const runningJob = useBendingActivityStore((s) => s.runningJob)
   const pasoView = describePaso(progress, lang)
+  // Çok açılıda encoder ilk düzlüğün sonunda sıfırlanır → gösterimde parçanın baştan gerçek yolu
+  const rotationShown = rotationMm + arcRotationDisplayOffset(runningJob)
   const radiusLabel = formatRadiusLabel(runningJob, progress)
 
   return (
@@ -253,7 +269,7 @@ function MonitorPanel() {
       <div className={styles.statsBar}>
         <div className={styles.statsCol}>
           <p className={styles.finishLabel}>{t('ROTASYON')}</p>
-          <p className={styles.posCurrent}>{rotationMm.toFixed(1)}</p>
+          <p className={styles.posCurrent}>{rotationShown.toFixed(1)}</p>
           <p className={styles.posSmall}>mm</p>
         </div>
 

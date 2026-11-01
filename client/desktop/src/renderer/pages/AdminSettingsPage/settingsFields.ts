@@ -144,6 +144,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         title: 'ADAPTİF TEMAS (PASO 1)',
         note: PENDING,
         fields: [
+          {
+            // 2026-11-02 — backend CircularSinglePassPreBend (makine yazılımına BAĞLI; PENDING notu bu alan için geçerli değil)
+            type: 'select',
+            key: 'circularSinglePassPreBend',
+            label: 'ÖN BÜKÜM TEK ROTASYON (DAİRESEL)',
+            desc: 'AÇIK: 1. pasoda temas + adımdan sonra aktif top basılıyken parça tek seferde diğer uca sürülür (kısa rotasyon / vals değişimi yok); 2. paso diğer topu bükme konumu + adıma götürür, sonrası aynı. KAPALI: eski akış.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
           { key: 'adaptiveJogSpeedPercent', label: 'TEMAS ARAMA HIZI', unit: '%', min: 5, max: 100, integer: true },
           { key: 'adaptiveSampleIntervalMm', label: 'ÖRNEK ARALIĞI', unit: 'mm', min: 0.1, max: 10, desc: 'Piston her bu kadar ilerlediğinde bir encoder örneği alınır.' },
           { key: 'adaptiveWindowSampleCount', label: 'PENCERE ÖRNEK SAYISI', min: 2, max: 50, integer: true, desc: 'Karşılaştırılan son örnek sayısı.' },
