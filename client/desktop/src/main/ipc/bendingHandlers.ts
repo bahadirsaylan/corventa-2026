@@ -1,11 +1,23 @@
 // Bending pipeline IPC handler'ları — UI'dan gelen istekleri Engine + DataApi'ye yönlendirir.
 
-import { ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { writeFile } from 'fs/promises'
+import { extname, join } from 'path'
 
 import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
-import { Ipc, type BendingJob, type BendingJobCreateRequest, type SimilarBendingJobRequest, type UnloadPartRequest } from '@shared'
+import {
+  Ipc,
+  type BendingJob,
+  type BendingJobCreateRequest,
+  type BendingJobListQuery,
+  type BendingLogExportRequest,
+  type BendingLogExportResult,
+  type BendingLogQuery,
+  type SimilarBendingJobRequest,
+  type UnloadPartRequest,
+} from '@shared'
 
 const log = childLogger('ipc:bending')
 
@@ -65,6 +77,57 @@ export function registerBendingHandlers(): void {
   ipcMain.handle(Ipc.IpcInvoke.GetBendingJob, async (_evt, id: number) => {
     return dataApi.getBendingJob(id)
   })
+
+  // ---------- BÜKÜM GEÇMİŞİ (Ayarlar > Büküm Geçmişi) ----------
+
+  ipcMain.handle(Ipc.IpcInvoke.ListBendingJobs, async (_evt, q?: BendingJobListQuery) => {
+    // Backend limit'i 1..1000'e sıkıştırır; burada da sınırla (geçersiz sayı → 50)
+    const limit = Math.min(1000, Math.max(1, Math.round(Number(q?.limit) || 50)))
+    const status = q?.status != null && Number.isInteger(Number(q.status)) ? q.status : undefined
+    return dataApi.listBendingJobs({ limit, status })
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.GetBendingLogs, async (_evt, q: BendingLogQuery) => {
+    const jobId = Math.round(Number(q?.jobId))
+    if (!Number.isFinite(jobId) || jobId <= 0) throw new Error('jobId zorunlu')
+    const limit = Math.min(20_000, Math.max(1, Math.round(Number(q?.limit) || 20_000)))
+    return dataApi.getBendingLogs({
+      jobId,
+      category: q?.category || undefined,
+      errorsOnly: q?.errorsOnly === true || undefined,
+      limit,
+    })
+  })
+
+  // Log dışa aktarma — kayıt penceresi (USB dahil istenen klasör). Uzantı .csv seçilirse CSV, aksi halde TXT yazılır.
+  ipcMain.handle(
+    Ipc.IpcInvoke.ExportBendingLogs,
+    async (evt, req: BendingLogExportRequest): Promise<BendingLogExportResult> => {
+      try {
+        const safeName = String(req?.defaultFileName || 'bukum-loglari.txt').replace(/[\\/:*?"<>|]+/g, '_')
+        const win = BrowserWindow.fromWebContents(evt.sender) ?? undefined
+        const opts: Electron.SaveDialogOptions = {
+          title: req?.dialogTitle || 'Büküm loglarını kaydet',
+          defaultPath: join(app.getPath('documents'), safeName),
+          filters: [
+            { name: 'Metin (.txt)', extensions: ['txt'] },
+            { name: 'CSV (.csv)', extensions: ['csv'] },
+          ],
+        }
+        const res = win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
+        if (res.canceled || !res.filePath) return { ok: false, cancelled: true }
+        const isCsv = extname(res.filePath).toLowerCase() === '.csv'
+        // UTF-8 BOM — Excel / Not Defteri Türkçe karakterleri doğru açsın
+        await writeFile(res.filePath, '\uFEFF' + String((isCsv ? req.csv : req.txt) ?? ''), 'utf8')
+        log.info('bending logs exported', { path: res.filePath, format: isCsv ? 'csv' : 'txt' })
+        return { ok: true, path: res.filePath }
+      } catch (err) {
+        const msg = (err as Error).message
+        log.error('bending logs export failed', { error: msg })
+        return { ok: false, error: msg }
+      }
+    },
+  )
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukum eslesme kontrolu (read-only, side-effect yok)
   ipcMain.handle(

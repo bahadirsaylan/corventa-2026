@@ -82,6 +82,8 @@ export default function AppLayout() {
           navigate('/bending/unload', {
             state: {
               jobOutcome,
+              // Tahliye ekranındaki "LOGLARI GÖR" → Büküm Geçmişi > bu işin detayı
+              jobId,
               // Geriye uyum: Completed + errorMessage eski 'jobWarning' anahtarıyla da gider
               ...(completed && job.errorMessage ? { jobWarning: job.errorMessage } : {}),
               ...(job.errorMessage ? { jobMessage: job.errorMessage } : {}),

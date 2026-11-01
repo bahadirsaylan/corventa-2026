@@ -22,6 +22,7 @@ export const PERMISSIONS = {
   'machine-hours': 'OPERATOR',      // Kullanma Süreleri
   'bending-count': 'OPERATOR',      // Kıvrım Adetleri raporu
   'error-reports': 'OPERATOR',
+  'bending-history': 'OPERATOR',    // Büküm Geçmişi (iş listesi + büküm logları + dışa aktarma)
   'certificate': 'OPERATOR',        // Sertifika Sorgula
   'maintenance': 'OPERATOR',        // Bakım Süresi: görüntüle + bakım modu aç/kapat + tamamlandı
   'macro': 'OPERATOR',              // usta öğrenme programı (EXCEL 28): makro kaydı / düzenleme / oynatma

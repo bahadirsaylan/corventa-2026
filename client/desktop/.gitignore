@@ -8,3 +8,5 @@ release/
 engine-dataapi/**/bin/
 engine-dataapi/**/obj/
 *.db, *.db-shm, *.db-wal
+backend-dist/
+

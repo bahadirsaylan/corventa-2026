@@ -82,6 +82,9 @@ export default function UnloadPage() {
   // EXCEL 33 — bu işte hatalı/geçersiz ölçüm oldu → bulut senkronu bu işi göndermez (sadece bilgi)
   const measurementFlagged =
     !!navState && typeof navState === 'object' && (navState as Record<string, unknown>).measurementFlagged === true
+  // Biten işin numarası (AppLayout state.jobId) — "LOGLARI GÖR" → Büküm Geçmişi detayı
+  const rawJobId = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).jobId : undefined
+  const jobId = typeof rawJobId === 'number' && Number.isInteger(rawJobId) && rawJobId > 0 ? rawJobId : null
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
@@ -252,17 +255,31 @@ export default function UnloadPage() {
         </div>
       )}
 
-      <div className={styles.hint}>
-        {phase === 'select' && (editing
-          ? t('DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN')
-          : t('PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ'))}
-        {phase === 'countdown' && t('PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK')}
-        {phase === 'opening' && (error
-          ? t('TAHLİYE YAPILAMADI: {error}', { error })
-          : t('TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON'))}
-        {phase === 'ready' && t('TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ')}
-        {phase === 'stopped' && t('TAHLİYE DURDURULDU')}
-        {phase === 'error' && t('TAHLİYE YAPILAMADI: {error}', { error: error ?? '' })}
+      {/* Faz ipucu + (iş numarası biliniyorsa) küçük "LOGLARI GÖR" — aynı satırda, büyük düğmeden yer çalmaz.
+          LOGLARI GÖR → Büküm Geçmişi > bu işin detayı; geri tuşu buraya döner (ekran baştan açılır). Hareket
+          yokken gösterilir; tahliye bittiyse ('ready') gösterilmez — dönüşte tekrar çıkartma sorulmasın. */}
+      <div className={styles.hintRow}>
+        <div className={styles.hint}>
+          {phase === 'select' && (editing
+            ? t('DEĞİŞTİRMEK İSTEDİĞİNİZ SÜREYİ SEÇİP − / + İLE AYARLAYIN')
+            : t('PARÇAYI GÜVENLE ÇIKARTMAK İÇİN AŞAĞIDAN SİZE GEREKEN SÜREYİ SEÇİNİZ'))}
+          {phase === 'countdown' && t('PARÇAYI TUTUN — SÜRE BİTİNCE ÜST TOP GERİ ÇEKİLİP ROTASYON YAPILACAK')}
+          {phase === 'opening' && (error
+            ? t('TAHLİYE YAPILAMADI: {error}', { error })
+            : t('TAHLİYE YAPILIYOR — ÜST TOP GERİ ÇEKİLİYOR, ARDINDAN ROTASYON'))}
+          {phase === 'ready' && t('TAHLİYE TAMAMLANDI — PARÇAYI ALABİLİRSİNİZ')}
+          {phase === 'stopped' && t('TAHLİYE DURDURULDU')}
+          {phase === 'error' && t('TAHLİYE YAPILAMADI: {error}', { error: error ?? '' })}
+        </div>
+        {jobId != null && !editing && (phase === 'select' || phase === 'stopped' || phase === 'error') && (
+          <button
+            type="button"
+            className={styles.logsBtn}
+            onClick={() => navigate(`/settings/bending-history/${jobId}`, { state: { from: 'unload' } })}
+          >
+            {t('LOGLAR #{id}', { id: jobId })}
+          </button>
+        )}
       </div>
 
       <div className={styles.presetRow}>

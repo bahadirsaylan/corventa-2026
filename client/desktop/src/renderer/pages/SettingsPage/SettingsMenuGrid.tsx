@@ -33,6 +33,7 @@ export default function SettingsMenuGrid() {
       {/* ── RIGHT COLUMN ──────────────────────────── */}
       <div className={styles.col}>
         <SettingsBtn label="HATA RAPORLARI" permission="error-reports" onClick={() => navigate('/settings/error-reports')} />
+        <SettingsBtn label="BÜKÜM GEÇMİŞİ" permission="bending-history" onClick={() => navigate('/settings/bending-history')} />
         <SettingsBtn label="KULLANMA SÜRELERİ" permission="machine-hours" onClick={() => navigate('/settings/machine-hours')} />
         <SettingsBtn label="KIVRIM ADETLERİ RAPORU" permission="bending-count" onClick={() => navigate('/settings/bending-count')} />
         <SettingsBtn label="DİL SEÇİMİ" permission="language" onClick={() => navigate('/settings/language')} />

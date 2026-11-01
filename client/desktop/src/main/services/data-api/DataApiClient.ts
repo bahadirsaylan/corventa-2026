@@ -4,6 +4,9 @@ import { getConfig } from '@main/config/runtime-config'
 import { http, HttpError } from '@main/lib/http'
 import type {
   BendingJob,
+  BendingJobListQuery,
+  BendingLogQuery,
+  BendingLogsResponse,
   Certificate,
   CustomerChangeConfirmResponse,
   CustomerChangeRequestBody,
@@ -55,6 +58,25 @@ export class DataApiClient {
 
   getBendingJob(id: number): Promise<BendingJob> {
     return http.get<BendingJob>(`${this.baseUrl}/api/bending-jobs/${id}`)
+  }
+
+  /** Büküm geçmişi — en yeni önce (CreatedAt desc), limit 1..1000 (backend sıkıştırır) */
+  listBendingJobs(q: BendingJobListQuery = {}): Promise<BendingJob[]> {
+    const p = new URLSearchParams()
+    p.set('limit', String(q.limit ?? 50))
+    if (q.status != null) p.set('status', String(q.status))
+    return http.get<BendingJob[]>(`${this.baseUrl}/api/bending-jobs?${p.toString()}`)
+  }
+
+  /** İş logları — kronolojik (en eski → en yeni), limit 1..20000 (backend sıkıştırır) */
+  getBendingLogs(q: BendingLogQuery): Promise<BendingLogsResponse> {
+    const p = new URLSearchParams()
+    p.set('jobId', String(q.jobId))
+    if (q.category) p.set('category', q.category)
+    if (q.errorsOnly) p.set('errorsOnly', 'true')
+    p.set('limit', String(q.limit ?? 20_000))
+    // 20000 satır (Detay logları dahil) varsayılan 10 sn'den uzun sürebilir
+    return http.get<BendingLogsResponse>(`${this.baseUrl}/api/bending-logs?${p.toString()}`, { timeoutMs: 30_000 })
   }
 
   getActiveBendingJob(): Promise<BendingJob | null> {

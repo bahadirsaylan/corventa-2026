@@ -10,6 +10,11 @@ import {
   type BendingCalculateResponse,
   type BendingJob,
   type BendingJobCreateRequest,
+  type BendingJobListQuery,
+  type BendingLogExportRequest,
+  type BendingLogExportResult,
+  type BendingLogQuery,
+  type BendingLogsResponse,
   type BendingPreviewRequest,
   type BendingPreviewResponse,
   type RecommendStageResponse,
@@ -64,6 +69,17 @@ export const bendingApi = {
 
   getJob: (id: number): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.GetBendingJob, id),
+
+  // BÜKÜM GEÇMİŞİ — iş listesi (en yeni önce, limit ≤ 1000) + iş logları (kronolojik, limit ≤ 20000)
+  listJobs: (q: BendingJobListQuery = {}): Promise<BendingJob[]> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ListBendingJobs, q),
+
+  getJobLogs: (q: BendingLogQuery): Promise<BendingLogsResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.GetBendingLogs, q),
+
+  /** Logları dosyaya kaydet — main kayıt penceresi açar (.txt / .csv) */
+  exportJobLogs: (req: BendingLogExportRequest): Promise<BendingLogExportResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ExportBendingLogs, req),
 
   // manualPlacementSide verilirse ELLE KONUMLANDIRMA (sensörsüz) başlatma — taraf job tarafıyla aynı olmalı.
   startJob: (

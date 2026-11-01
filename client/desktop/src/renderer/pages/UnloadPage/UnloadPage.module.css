@@ -396,3 +396,36 @@
   border-color: #b91c1c;
   color: #7f1d1d;
 }
+
+/* Faz ipucu + LOGLARI GÖR aynı satırda (büyük düğmeden yükseklik çalmasın) */
+.hintRow {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.hintRow .hint {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Büküm Geçmişi > bu işin logları — küçük ikincil düğme (eldivenle basılabilir yükseklik) */
+.logsBtn {
+  flex: none;
+  min-height: 52px;
+  padding: 0 14px;
+  background: #fff;
+  border: 2px solid #6b7280;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #374151;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.logsBtn:active {
+  filter: brightness(0.94);
+}

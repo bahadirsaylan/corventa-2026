@@ -26,6 +26,7 @@ import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
+import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
 import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
 import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountReportPage'
 import LanguagePage from '@/pages/LanguagePage/LanguagePage'
@@ -107,6 +108,8 @@ export default function App() {
             <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />
+            <Route path="settings/bending-history" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
+            <Route path="settings/bending-history/:jobId" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
             <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
             <Route path="settings/bending-count" element={<BendingCountReportPage />} />
             <Route path="settings/language" element={<LanguagePage />} />

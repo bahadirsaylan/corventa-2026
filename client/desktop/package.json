@@ -10,6 +10,8 @@
     "demo": "set CORVENTA_DEMO=1&& set CORVENTA_NO_KIOSK=1&& electron-vite dev",
     "build": "electron-vite build",
     "package": "npm run build && electron-builder",
+    "build:backend": "node scripts/build-backend.mjs",
+    "package:win": "node scripts/build-backend.mjs && npm run build && electron-builder --win nsis",
     "preview": "electron-vite preview",
     "type-check": "tsc --noEmit",
     "i18n:check": "node scripts/i18n-check.mjs"
@@ -37,7 +39,7 @@
   },
   "build": {
     "appId": "com.corventa.desktop",
-    "productName": "Corventa Desktop",
+    "productName": "Corventa",
     "directories": {
       "output": "release"
     },
@@ -48,6 +50,13 @@
       {
         "from": "resources",
         "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "backend-dist",
+        "to": "backend",
         "filter": [
           "**/*"
         ]
@@ -62,8 +71,7 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        "nsis"
       ]
     },
     "linux": {
@@ -71,6 +79,15 @@
         "AppImage",
         "deb"
       ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Corventa",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     }
   }
 }

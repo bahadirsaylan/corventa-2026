@@ -29,6 +29,7 @@ import { childLogger } from '@main/lib/logger'
 import {
   emptyMachineState,
   ProfileType,
+  type BendingLogEntry,
   type BendingProgress,
   type ErrorSnapshotDetail,
   type ErrorSnapshotSeverity,
@@ -241,6 +242,11 @@ export class DemoMachine extends EventEmitter {
   private nextErrorSnapshotId = 1
   private errorSnapshotsSeeded = false
   private errorSnapshotLastKey = new Map<string, number>()
+  // BÜKÜM GEÇMİŞİ — iş logları (gerçek DataApi /api/bending-logs sözleşmesi; Bending API BendingLogService +
+  // iş süresince ILogger çıktıları Category="Detay"). Geçmiş örnek işler ilk liste isteğinde eklenir.
+  private jobLogs = new Map<number, BendingLogEntry[]>()
+  private nextLogId = 1
+  private historySeeded = false
 
   // ── yaşam döngüsü ──
 
@@ -628,6 +634,10 @@ export class DemoMachine extends EventEmitter {
 
   private setProgress(jobId: number, completed: number, total: number, message: string, extra: Partial<BendingProgress> = {}): void {
     const keepR = this.progress?.jobId === jobId ? this.progress.currentRadiusMm : null
+    if (message && (this.progress?.jobId !== jobId || this.progress?.message !== message)) {
+      this.addJobLog(jobId, 'Step', message)
+      this.addJobLog(jobId, 'Detay', `BendingJobController: progress ${completed}/${total} — ${message}`)
+    }
     this.progress = {
       jobId,
       completedPasos: completed,
@@ -679,6 +689,12 @@ export class DemoMachine extends EventEmitter {
     job.status = 3
     this.activeJobId = job.id
     this.progress = null
+    job.startedAt = new Date().toISOString()
+    job.completedAt = null
+    job.errorMessage = null
+    this.addJobLog(job.id, 'General', `İş #${job.id} başladı`, [Number(job.targetDiameterMm), Number(job.partLengthMm)], 'targetDiameterMm|partLengthMm')
+    this.addJobLog(job.id, 'Detay', `Starting bending pipeline for job ${job.id} (method=${job.method}, stage=${st.stageNumber})`)
+    if (job.manualPlacement) this.addJobLog(job.id, 'Detay', '[UYARI] Elle konumlandırma — parça sensörü kontrolü atlandı')
     // Parça makinede — temas sensörü aktif (bitince operatör alır → pasif)
     // Elle konumlandırmada sensör arızalı kabul edilir → açılmaz
     if (!this.partSensor && !job.manualPlacement) this.togglePartSensor()
@@ -690,16 +706,24 @@ export class DemoMachine extends EventEmitter {
         job.failedMeasurementReason = 'Demo: SLPIS ölçüm hatası'
       }
       job.status = 4
+      this.addJobLog(job.id, 'General', 'Büküm tamamlandı', [(this.progress as BendingProgress | null)?.completedPasos ?? 0], 'completedPasos')
     } catch (err) {
       if (err instanceof Cancelled) {
         job.status = 6
+        job.errorMessage = 'İptal edildi'
+        this.addJobLog(job.id, 'General', 'İş operatör tarafından durduruldu', null, null, true)
         log.info('DEMO job iptal', { id: job.id })
       } else {
         job.status = 5
+        job.errorMessage = (err as Error).message || 'İş başarısız'
+        this.addJobLog(job.id, 'General', `İş başarısız: ${job.errorMessage}`, null, null, true)
+        this.addJobLog(job.id, 'Detay', `System.Exception: ${job.errorMessage}\n   at BendingJobController.RunPipelineAsync()`, null, null, true)
         log.error('DEMO job hata', { error: (err as Error).message })
         this.captureErrorSnapshot('JobFailed', (err as Error).message || 'İş başarısız', 'error', job.id)
       }
     }
+    job.completedAt = new Date().toISOString()
+    job.durationSeconds = Math.round((Date.parse(job.completedAt as string) - Date.parse(job.startedAt as string)) / 1000)
     // Son mesaj birkaç saniye ekranda kalsın, sonra monitör kapanır
     setTimeout(() => {
       if (this.activeJobId === job.id) {
@@ -708,6 +732,86 @@ export class DemoMachine extends EventEmitter {
         if (this.partSensor) this.togglePartSensor()
       }
     }, 4000)
+  }
+
+  /** BÜKÜM GEÇMİŞİ — iş log satırı (gerçekte Bending API BendingLogService → DataApi bending_logs) */
+  private addJobLog(
+    jobId: number,
+    category: string,
+    message: string,
+    values: (number | null)[] | null = null,
+    labels: string | null = null,
+    isError = false,
+    at: Date = new Date(),
+  ): void {
+    let arr = this.jobLogs.get(jobId)
+    if (!arr) this.jobLogs.set(jobId, (arr = []))
+    arr.push({
+      id: this.nextLogId++,
+      bendingJobId: jobId,
+      // Gerçek DataApi gibi "Z" eksiz UTC (SQLite DateTimeKind.Unspecified) — UI UTC kabul etmeli
+      timestamp: at.toISOString().replace('Z', ''),
+      category,
+      message,
+      value1: values?.[0] ?? null,
+      value2: values?.[1] ?? null,
+      value3: values?.[2] ?? null,
+      valueLabels: labels,
+      isError,
+    })
+    if (arr.length > 20_000) arr.splice(0, arr.length - 20_000)
+  }
+
+  /** İlk geçmiş isteğinde birkaç bitmiş örnek iş (Completed / Failed / Cancelled) + logları */
+  private seedJobHistory(): void {
+    if (this.historySeeded) return
+    this.historySeeded = true
+    const now = Date.now()
+    const mk = (id: number, method: number, status: number, startMin: number, durSec: number, d: number, err: string | null) => {
+      const start = new Date(now - startMin * 60_000)
+      const end = new Date(start.getTime() + durSec * 1000)
+      const job: DemoJob = {
+        id, status, method, profileType: 0, profileSubType: null, direction: 0,
+        profileA: 40, profileB: 40, profileS: 2, targetDiameterMm: d, partLengthMm: 3000, stepDistanceMm: 10,
+        safetyMarginMm: 50, totalPasos: 6, completedPasos: status === 4 ? 6 : 3, activeSensorSide: 'Left',
+        createdAt: new Date(start.getTime() - 40_000).toISOString().replace('Z', ''),
+        startedAt: start.toISOString().replace('Z', ''), completedAt: end.toISOString().replace('Z', ''),
+        durationSeconds: durSec, errorMessage: err, failedAtPaso: status === 5 ? 4 : null,
+        measuredDiameterMm: status === 4 ? d + 1.8 : null, operatorName: 'operator',
+        hasFailedMeasurement: false, failedMeasurementReason: null,
+      }
+      this.jobs.set(id, job)
+      const at = (sec: number) => new Date(start.getTime() + sec * 1000)
+      this.addJobLog(id, 'General', `İş #${id} başladı`, [d, 3000], 'targetDiameterMm|partLengthMm', false, at(0))
+      this.addJobLog(id, 'Detay', `Starting bending pipeline for job ${id} (method=${method}, stage=1)`, null, null, false, at(0.05))
+      this.addJobLog(id, 'Step', 'Parça sıkıştırılıyor...', null, null, false, at(0.2))
+      this.addJobLog(id, 'Piston', 'Üst piston basınç modunda iniyor', [150, 30], 'pressureBar|speedPercent', false, at(0.4))
+      this.addJobLog(id, 'Valve', 'S1 valf açıldı', null, null, false, at(0.45))
+      // Detay gürültüsü — "TÜMÜ" sekmesinde çok satır olsun (daha fazla göster denenebilsin)
+      for (let i = 0; i < 1400; i++) {
+        const t = 1 + (i * (durSec - 4)) / 1400
+        this.addJobLog(id, 'Detay', `ModbusPlcDriver: poll ok (${(i % 7) + 2} ms) — upper=${(96 + (i % 10) * 0.01).toFixed(2)} mm`, null, null, false, at(t))
+        if (i % 230 === 0 && i > 0) {
+          const paso = i / 230
+          this.addJobLog(id, 'Step', `PASO ${paso} BÜKÜLÜYOR`, null, null, false, at(t + 0.01))
+          this.addJobLog(id, 'Piston', 'Aktif piston hedefe gidiyor', [100 + paso * 9.5, 100], 'positionMm|speedPercent', false, at(t + 0.02))
+          this.addJobLog(id, 'Rotation', 'Rotasyon paso mesafesi', [10 * paso, 100], 'distanceMm|speedPercent', false, at(t + 0.03))
+        }
+        if (i === 700) this.addJobLog(id, 'Detay', '[UYARI] Encoder durması şüphesi: Rotation — 2000 ms içinde 0,04 mm', null, null, false, at(t + 0.04))
+      }
+      if (status === 4) {
+        this.addJobLog(id, 'Springback', 'SLPIS ölçümü', [d + 1.8, d], 'measuredDiameterMm|targetDiameterMm', false, at(durSec - 2))
+        this.addJobLog(id, 'General', 'Büküm tamamlandı', [6], 'completedPasos', false, at(durSec))
+      } else if (status === 5) {
+        this.addJobLog(id, 'Safety', `İş başarısız: ${err}`, [4], 'failedAtPaso', true, at(durSec - 0.5))
+        this.addJobLog(id, 'Detay', `System.InvalidOperationException: ${err}\n   at BendingJobController.RunPipelineAsync()`, null, null, true, at(durSec))
+      } else {
+        this.addJobLog(id, 'General', 'İş operatör tarafından durduruldu', null, null, true, at(durSec))
+      }
+    }
+    mk(998, 0, 5, 26 * 60, 214, 1200, 'Piston hedefe ulaşamadı (timeout 30 sn)')
+    mk(999, 1, 6, 5 * 60, 95, 900, 'İptal edildi')
+    mk(1000, 0, 4, 45, 372, 1000, null)
   }
 
   /** Gerçek push derinliği → ekranda gösterilecek encoder konumu (son hedef = MAX_PISTON_MM) */
@@ -1372,6 +1476,28 @@ export class DemoMachine extends EventEmitter {
       this.jobs.set(id, job)
       return job
     }
+    if (path === '/api/bending-jobs' && method === 'GET') {
+      // BÜKÜM GEÇMİŞİ — gerçek DataApi gibi CreatedAt desc, limit 1..1000, opsiyonel status
+      this.seedJobHistory()
+      const limit = Math.min(1000, Math.max(1, Number(u.searchParams.get('limit') ?? 50) || 50))
+      const st = u.searchParams.get('status')
+      return [...this.jobs.values()]
+        .filter((j) => st == null || j.status === Number(st))
+        .sort((a, b) => utcMs(b.createdAt) - utcMs(a.createdAt))
+        .slice(0, limit)
+    }
+    if (path === '/api/bending-logs' && method === 'GET') {
+      this.seedJobHistory()
+      const jobId = Number(u.searchParams.get('jobId'))
+      if (!(jobId > 0)) demoFail(400, rawUrl, 'jobId zorunlu')
+      const cat = u.searchParams.get('category')
+      const errorsOnly = u.searchParams.get('errorsOnly') === 'true'
+      const limit = Math.min(20_000, Math.max(1, Number(u.searchParams.get('limit') ?? 500) || 500))
+      const logs = (this.jobLogs.get(jobId) ?? [])
+        .filter((l) => (!cat || l.category === cat) && (!errorsOnly || l.isError))
+        .slice(0, limit)
+      return { jobId, count: logs.length, logs }
+    }
     if (path === '/api/bending-jobs/active') {
       return this.activeJobId != null ? (this.jobs.get(this.activeJobId) ?? null) : null
     }
@@ -1870,6 +1996,12 @@ type DemoChangeRequest = {
 
 const demoChangeRequests = new Map<string, DemoChangeRequest>()
 const DEMO_CUSTOMER_CHANGE_LOGS: Record<string, unknown>[] = []
+
+/** ISO zaman → ms; "Z"/ofset eksikse UTC kabul edilir (DataApi SQLite tarihleri eksiz gelir) */
+function utcMs(v: unknown): number {
+  const s = String(v ?? '')
+  return Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s + 'Z') || 0
+}
 
 function demoFail(status: number, rawUrl: string, error: string, extra: Record<string, unknown> = {}): never {
   throw new HttpError(status, rawUrl, error, { error, ...extra })

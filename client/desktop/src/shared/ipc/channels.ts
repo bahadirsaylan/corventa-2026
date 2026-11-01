@@ -30,6 +30,10 @@ export const IpcInvoke = {
   AddArcSegment: 'data:add-arc-segment',
   // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukumun onceden eslesme kontrolu (read-only)
   FindSimilarBendingJob: 'data:find-similar-bending-job',
+  // BÜKÜM GEÇMİŞİ (Ayarlar > Büküm Geçmişi) — iş listesi + iş logları + log dışa aktarma (kayıt penceresi)
+  ListBendingJobs: 'data:list-bending-jobs',
+  GetBendingLogs: 'data:get-bending-logs',
+  ExportBendingLogs: 'bending-history:export-logs',
 
   // Machine commands — Manuel mode kontrolleri
   PistonJog: 'piston:jog',

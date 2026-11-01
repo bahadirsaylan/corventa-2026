@@ -227,3 +227,64 @@ export interface BendingProgress {
   // null/undefined → adaptif paso 1, Arc/Serpantin, eski backend → statik etiket.
   currentPasoExpectedRadiusMm?: number | null
 }
+
+// ─────────────────────────────────────────────────────────────
+// BÜKÜM GEÇMİŞİ (Ayarlar > Büküm Geçmişi) — DataApi GET /api/bending-jobs + GET /api/bending-logs
+// ─────────────────────────────────────────────────────────────
+
+/** GET /api/bending-jobs sorgusu — en yeni önce (CreatedAt desc). limit backend'de 1..1000'e sıkıştırılır. */
+export interface BendingJobListQuery {
+  limit?: number
+  /** BendingJobStatus sayısal değeri (verilmezse hepsi) */
+  status?: BendingJobStatus
+}
+
+/**
+ * Backend BendingLog entity'si. Timestamp UTC'dir ama DataApi "Z" eki olmadan yazabilir
+ * (SQLite DateTimeKind.Unspecified) — ekranda UTC kabul edilip yerel saate çevrilir.
+ * Category: Piston/Rotation/Pneumatic/Valve/Springback/Safety/General/Step… özet loglar;
+ * "Detay" = iş süresince Bending API'nin tüm ILogger çıktıları (Warning → mesaj "[UYARI] " önekli).
+ */
+export interface BendingLogEntry {
+  id: number
+  bendingJobId: number
+  timestamp: string
+  category: string
+  message: string
+  value1: number | null
+  value2: number | null
+  value3: number | null
+  /** "positionMm|speedPercent" — Value1/2/3 etiketleri */
+  valueLabels: string | null
+  isError: boolean
+}
+
+/** GET /api/bending-logs?jobId=&category=&errorsOnly=&limit= — kronolojik (en eski → en yeni), limit ≤ 20000 */
+export interface BendingLogQuery {
+  jobId: number
+  category?: string
+  errorsOnly?: boolean
+  limit?: number
+}
+
+export interface BendingLogsResponse {
+  jobId: number
+  count: number
+  logs: BendingLogEntry[]
+}
+
+/** Log dışa aktarma — main süreç kayıt penceresi açar; seçilen uzantıya göre txt veya csv yazılır */
+export interface BendingLogExportRequest {
+  defaultFileName: string
+  /** Kayıt penceresi başlığı (renderer çevirir) */
+  dialogTitle?: string
+  txt: string
+  csv: string
+}
+
+export interface BendingLogExportResult {
+  ok: boolean
+  cancelled?: boolean
+  path?: string
+  error?: string
+}
