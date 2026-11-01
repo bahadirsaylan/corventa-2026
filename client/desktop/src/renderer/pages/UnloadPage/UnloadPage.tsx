@@ -3,7 +3,8 @@
 // Completed+errorMessage → BÜKÜM UYARISI, Failed → BÜKÜM HATAYLA BİTTİ, Cancelled → BÜKÜM DURDURULDU (kırmızı).
 // Operatör parçayı tutma süresini seçer (3/5/8/10/15 sn veya kalemle değiştirdiği süre),
 // "PARÇAYI ÇIKART"a basar → geri sayım → sıfırda üst top seçilen mm kadar geri çekilir, ardından
-// seçilen mm (ve yönde) rotasyon yapılır → parça alınır
+// seçilen SÜRE (sn, seçilen yönde) rotasyon yapılır → parça alınır. (2026-11-01: mm yerine sn — üst top
+// açıkken alt top dönmez, encoder alt topta olduğu için mesafe okunamaz.)
 // → SEKIL-20 (yeni büküm / tekrar).
 // Süreler bu cihazda hatırlanır (localStorage, services/operatorPrefs).
 // Ekran AppLayout'tan açılır: otomatik / yarı oto job DataApi'de Completed olunca. Job errorMessage
@@ -19,7 +20,7 @@ import { useT } from '@/i18n'
 import { CLAMP_ESTOP_RE, CLAMP_ESTOP_TEMPLATE } from '@/i18n/progress'
 import { Icon, IconLabel } from '@/components/Icon'
 import {
-  UNLOAD_ROT,
+  UNLOAD_ROT_SEC,
   UNLOAD_SECONDS,
   UNLOAD_UPPER,
   readUnloadMotion,
@@ -37,7 +38,7 @@ const MAX_S = UNLOAD_SECONDS.max
 // Tahliye hareketi: geri sayım bitince üst top X mm geri, sonra rotasyon Y mm (seçilen yönde)
 // Varsayılanlar Ayarlar > Operatör Ayarları'ndan da değiştirilebilir (services/operatorPrefs).
 const UPPER = UNLOAD_UPPER
-const ROT = UNLOAD_ROT
+const ROT = UNLOAD_ROT_SEC // rotasyon SÜRE (sn) — üst top açıkken encoder (alt top) ilerlemez
 type Motion = UnloadMotion
 const readMotion = readUnloadMotion
 const readPresets = readUnloadPresets
@@ -145,7 +146,8 @@ export default function UnloadPage() {
     try {
       const r = await window.corventa.bending.unloadPart({
         upperRetractMm: clamp(motion.upperRetractMm, UPPER.min, UPPER.max),
-        rotationMm: motion.rotationDir * clamp(motion.rotationMm, ROT.min, ROT.max),
+        rotationMm: 0,
+        rotationSeconds: motion.rotationDir * clamp(motion.rotationSec, ROT.min, ROT.max),
       })
       if (r?.cancelled) {
         setPhase('stopped')
@@ -376,18 +378,18 @@ export default function UnloadPage() {
             <button
               type="button"
               className={styles.motionStep}
-              disabled={phase !== 'select' || motion.rotationMm <= ROT.min}
-              onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm - ROT.step, ROT.min, ROT.max) })}
+              disabled={phase !== 'select' || motion.rotationSec <= ROT.min}
+              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec - ROT.step, ROT.min, ROT.max) })}
               aria-label={t('Azalt')}
             >
               <Icon name="minus" size="xl" />
             </button>
-            <span className={styles.motionValue}>{motion.rotationMm} mm</span>
+            <span className={styles.motionValue}>{motion.rotationSec.toFixed(1)} {t('sn')}</span>
             <button
               type="button"
               className={styles.motionStep}
-              disabled={phase !== 'select' || motion.rotationMm >= ROT.max}
-              onClick={() => updateMotion({ rotationMm: clamp(motion.rotationMm + ROT.step, ROT.min, ROT.max) })}
+              disabled={phase !== 'select' || motion.rotationSec >= ROT.max}
+              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec + ROT.step, ROT.min, ROT.max) })}
               aria-label={t('Arttır')}
             >
               <Icon name="plus" size="xl" />

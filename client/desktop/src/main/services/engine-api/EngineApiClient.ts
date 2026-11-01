@@ -117,7 +117,7 @@ export class EngineApiClient {
   async unloadPart(req: UnloadPartRequest): Promise<UnloadPartResponse> {
     try {
       const res = await http.post<Partial<UnloadPartResponse>>(`${this.baseUrl}/api/preparation/unload`, req, {
-        timeoutMs: unloadTimeoutMs(req.rotationMm),
+        timeoutMs: unloadTimeoutMs(req.rotationMm, req.rotationSeconds),
       })
       return normalizeUnload(res, true)
     } catch (err) {
@@ -299,8 +299,10 @@ export class EngineApiClient {
 
 // Tahliye HTTP timeout'u — backend'in en kötü toplamının (UnloadPartHandler: DataApi kontrolü 30sn +
 // üst top 30sn + rotasyon 30sn + mesafe / 5 mm/sn) belirgin üstünde. Backend sabitleri değişirse burası da.
-function unloadTimeoutMs(rotationMm: number): number {
+function unloadTimeoutMs(rotationMm: number, rotationSeconds?: number): number {
   const rot = Math.abs(Number(rotationMm)) || 0
+  const sec = Math.abs(Number(rotationSeconds)) || 0
+  if (sec > 0) return 150_000 + Math.ceil(sec) * 1000 // süreli rotasyon: mesafe yok sayılır
   return 150_000 + Math.ceil(rot / 5) * 1000
 }
 

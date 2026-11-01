@@ -41,6 +41,7 @@ const en: Record<string, string> = {
   'SÜRE 5': 'TIME 5',
   'ÜST TOP GERİ ÇEKME': 'UPPER ROLL RETRACT',
   'ROTASYON MESAFESİ': 'ROTATION DISTANCE',
+  'ROTASYON SÜRESİ': 'ROTATION TIME',
   'ROTASYON YÖNÜ': 'ROTATION DIRECTION',
   'GERİ ESNEME': 'SPRINGBACK',
   'Makinede saklanır — tüm kullanıcılar için geçerlidir.': 'Stored on the machine — applies to all users.',

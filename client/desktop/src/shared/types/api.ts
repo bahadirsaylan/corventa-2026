@@ -135,6 +135,9 @@ export interface UnloadPartRequest {
   upperRetractMm: number
   /** Rotasyon mesafesi (mm), işaret = yön (+ ileri / − geri) */
   rotationMm: number
+  /** (2026-11-01) SÜRELİ rotasyon (sn), işaret = yön. ≠ 0 ise rotationMm yok sayılır — üst top açıkken
+   *  alt top (encoder) dönmediği için mesafe ölçülemez. Backend |max| 60 sn. */
+  rotationSeconds?: number
 }
 
 // POST /api/preparation/unload cevabı — 200 / 400 / 409'da hep bu şekil (hata → success=false + errorMessage).

@@ -1,40 +1,33 @@
 // 2026-09-22: Alt panel şeridinden açılan Hata Kayıtları modalı.
 //   Kompakt liste görünümü (son N kayıt). Detay/filtre için Settings → Hata Raporları
-//   sayfasına yönlendiren buton var. Şimdilik mock veri — ileride DataApi error log
-//   endpoint'ine bağlanacak (backend'e dokunulmadı).
+//   sayfasına yönlendiren buton var.
+// 2026-11-01: mock veri kaldırıldı — kaynak Hata Raporları sayfasıyla aynı: DataApi
+//   GET /api/error-snapshots (window.corventa.service.listErrorSnapshots), en yeni 30 kayıt.
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useT } from '@/i18n'
+import { translateProgress, useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
+import type { ErrorSnapshotSummary } from '@shared'
 import styles from './ErrorLogsModal.module.css'
 
-type Severity = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO'
+const LIMIT = 30
 
-interface LogRow {
-  id: number
-  timestamp: string
-  severity: Severity
-  category: string
-  message: string
+const TRIGGER_LABELS: Record<string, string> = {
+  JobFailed: 'İŞ BAŞARISIZ',
+  EmergencyStop: 'ACİL STOP (YAZILIM)',
+  PhysicalEmergencyStop: 'ACİL STOP (FİZİKSEL)',
+  SafetyAlarm: 'GÜVENLİK ALARMI',
+  SafetyWarning: 'GÜVENLİK UYARISI',
+  EncoderStall: 'ENCODER DURMASI',
 }
 
-const MOCK_LOGS: LogRow[] = [
-  { id: 1, timestamp: '2026-09-22 09:22', severity: 'ERROR',    category: 'HİDROLİK', message: 'Hidrolik motor termal koruma tetiklendi' },
-  { id: 2, timestamp: '2026-09-22 08:05', severity: 'WARNING',  category: 'SENSÖR',   message: 'SLPIS sensör ADC dalgalanma (>50 raw)' },
-  { id: 3, timestamp: '2026-09-21 17:48', severity: 'CRITICAL', category: 'GÜVENLİK', message: 'Acil durdurma tetiklendi — Job #128 iptal' },
-  { id: 4, timestamp: '2026-09-21 16:12', severity: 'ERROR',    category: 'MODBUS',   message: 'PLC read timeout 3× (bağlantı yeniden kuruldu)' },
-  { id: 5, timestamp: '2026-09-21 14:33', severity: 'WARNING',  category: 'PIPELINE', message: 'Arc segment ölçüm tolerans dışı (0.24mm)' },
-  { id: 6, timestamp: '2026-09-21 11:07', severity: 'INFO',     category: 'GENEL',    message: 'Gönye tamamlandı — L:3.75 R:3.75 U:0 L:10.51' },
-  { id: 7, timestamp: '2026-09-20 15:20', severity: 'ERROR',    category: 'HİDROLİK', message: 'S1 basınç düştü (<10 bar / 3sn)' },
-  { id: 8, timestamp: '2026-09-20 09:00', severity: 'INFO',     category: 'GENEL',    message: 'Makine açıldı — versiyon 2026.5.15' },
-]
-
-const SEV_LABEL: Record<Severity, string> = {
-  CRITICAL: 'KRİTİK',
-  ERROR: 'HATA',
-  WARNING: 'UYARI',
-  INFO: 'BİLGİ',
+/** Yerel saat — "2026-11-01 14:05" */
+function fmtDateTime(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
 interface Props {
@@ -44,8 +37,12 @@ interface Props {
 export default function ErrorLogsModal({ onClose }: Props) {
   const navigate = useNavigate()
   const t = useT()
+  const lang = useLang()
+  const [rows, setRows] = useState<ErrorSnapshotSummary[] | null>(null)
+  const [total, setTotal] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
-  //   ESC ile kapat + modal açıkken body scroll'ü kilitle
+  //   ESC ile kapat
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -54,14 +51,23 @@ export default function ErrorLogsModal({ onClose }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  //   Özet sayıları
-  const counts = MOCK_LOGS.reduce(
-    (acc, r) => {
-      acc[r.severity]++
-      return acc
-    },
-    { CRITICAL: 0, ERROR: 0, WARNING: 0, INFO: 0 } as Record<Severity, number>,
-  )
+  useEffect(() => {
+    let alive = true
+    window.corventa.service
+      .listErrorSnapshots({ page: 1, pageSize: LIMIT })
+      .then((res) => {
+        if (!alive) return
+        setRows(res.items)
+        setTotal(res.total)
+      })
+      .catch((e: unknown) => {
+        if (alive) setError(e instanceof Error ? e.message : String(e))
+      })
+    return () => { alive = false }
+  }, [])
+
+  const errorCount = rows?.filter((r) => r.severity === 'error').length ?? 0
+  const warningCount = rows?.filter((r) => r.severity !== 'error').length ?? 0
 
   function handleOpenFullPage() {
     onClose()
@@ -84,7 +90,11 @@ export default function ErrorLogsModal({ onClose }: Props) {
         <div className={styles.header}>
           <div>
             <h2 className={styles.title}>{t('HATA KAYITLARI')}</h2>
-            <div className={styles.subtitle}>{t('Son {n} kayıt gösteriliyor', { n: MOCK_LOGS.length })}</div>
+            <div className={styles.subtitle}>
+              {rows == null
+                ? t('Yükleniyor...')
+                : t('Son {n} kayıt gösteriliyor', { n: rows.length }) + (total > rows.length ? ` / ${total}` : '')}
+            </div>
           </div>
           <button
             type="button"
@@ -98,32 +108,42 @@ export default function ErrorLogsModal({ onClose }: Props) {
 
         {/* Özet chip'ler */}
         <div className={styles.counters}>
-          <span className={`${styles.chip} ${styles.chipCritical}`}>{t('KRİTİK')} {counts.CRITICAL}</span>
-          <span className={`${styles.chip} ${styles.chipError}`}>{t('HATA')} {counts.ERROR}</span>
-          <span className={`${styles.chip} ${styles.chipWarning}`}>{t('UYARI')} {counts.WARNING}</span>
-          <span className={`${styles.chip} ${styles.chipInfo}`}>{t('BİLGİ')} {counts.INFO}</span>
+          <span className={`${styles.chip} ${styles.chipError}`}>{t('HATA')} {errorCount}</span>
+          <span className={`${styles.chip} ${styles.chipWarning}`}>{t('UYARI')} {warningCount}</span>
         </div>
 
         {/* Liste */}
         <div className={styles.listWrap}>
-          {MOCK_LOGS.length === 0 ? (
+          {error ? (
+            <div className={styles.empty}>{t('Kayıtlar okunamadı')}: {error}</div>
+          ) : rows == null ? (
+            <div className={styles.empty}>{t('Yükleniyor...')}</div>
+          ) : rows.length === 0 ? (
             <div className={styles.empty}>{t('Kayıt yok')}</div>
           ) : (
             <ul className={styles.list}>
-              {MOCK_LOGS.map((row) => (
-                <li key={row.id} className={styles.row}>
-                  <span className={`${styles.sev} ${styles['sev' + row.severity]}`}>
-                    {t(SEV_LABEL[row.severity])}
-                  </span>
-                  <div className={styles.rowBody}>
-                    <div className={styles.rowLine1}>
-                      <span className={styles.category}>{t(row.category)}</span>
-                      <span className={styles.timestamp}>{row.timestamp}</span>
+              {rows.map((row) => {
+                const sev = row.severity === 'error' ? 'ERROR' : 'WARNING'
+                return (
+                  <li key={row.id} className={styles.row}>
+                    <span className={`${styles.sev} ${styles['sev' + sev]}`}>
+                      {t(sev === 'ERROR' ? 'HATA' : 'UYARI')}
+                    </span>
+                    <div className={styles.rowBody}>
+                      <div className={styles.rowLine1}>
+                        <span className={styles.category}>
+                          {t(TRIGGER_LABELS[row.triggerType] ?? row.triggerType)}
+                          {row.bendingJobId != null ? ` · #${row.bendingJobId}` : ''}
+                        </span>
+                        <span className={styles.timestamp}>{fmtDateTime(row.capturedAt)}</span>
+                      </div>
+                      <div className={styles.message}>
+                        {row.reason.split(' | ').map((p) => translateProgress(p, lang)).join(' | ') || '—'}
+                      </div>
                     </div>
-                    <div className={styles.message}>{t(row.message)}</div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>

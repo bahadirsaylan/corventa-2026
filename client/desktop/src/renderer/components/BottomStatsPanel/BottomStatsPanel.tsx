@@ -60,6 +60,7 @@ export default function BottomStatsPanel() {
     motorThermalOK: s.state.safety.motorThermalOK,
     fanThermalOK: s.state.safety.fanThermalOK,
   })))
+  const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const t = useT()
   const navigate = useNavigate()
   const { top: maint } = useMaintenanceAlerts()
@@ -109,7 +110,8 @@ export default function BottomStatsPanel() {
       const text = checkAlertText(safetyCheck, t)
       if (text) return { level: 'warning', text, onDismiss: dismissCheck }
     }
-    if (sensors.s1PressureBar === 0) {
+    // Motor çalışmıyorken (0=kapalı, 1=başlıyor) basınç zaten 0 — uyarı sadece motor hazırken
+    if (motorState === 2 && sensors.s1PressureBar === 0) {
       return { level: 'warning', text: t('YAĞ BASINCI OKUMASI YOK') }
     }
     if (sensors.oilLevelPercent < 30) {
@@ -119,7 +121,7 @@ export default function BottomStatsPanel() {
       return { level: 'warning', text: t('YAĞ NEMİ YÜKSEK (%{v})', { v: sensors.oilHumidityPercent }) }
     }
     return { level: 'none', text: '' }
-  }, [safety, sensors, t, safetyCheck, safetyStalls, dismissCheck, dismissStall])
+  }, [safety, sensors, motorState, t, safetyCheck, safetyStalls, dismissCheck, dismissStall])
 
   const stripeClass = [
     styles.stripe,

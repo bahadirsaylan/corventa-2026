@@ -99,6 +99,7 @@ const en: Record<string, string> = {
   // ── ErrorLogsModal ──
   'Hata Kayıtları': 'Error logs',
   'Son {n} kayıt gösteriliyor': 'Showing last {n} records',
+  'Kayıtlar okunamadı': 'Could not load records',
   'Kapat': 'Close',
   'KRİTİK': 'CRITICAL',
   'HATA': 'ERROR',

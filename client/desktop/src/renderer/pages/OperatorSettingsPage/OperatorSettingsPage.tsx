@@ -21,7 +21,7 @@ import {
 import {
   MANUAL_SPEED,
   UNLOAD_DEFAULT_PRESETS,
-  UNLOAD_ROT,
+  UNLOAD_ROT_SEC,
   UNLOAD_SECONDS,
   UNLOAD_UPPER,
   readManualRunPrefs,
@@ -85,7 +85,7 @@ const LOCAL_SECTIONS: SectionDef[] = [
         integer: true,
       })),
       { key: 'unloadUpperMm', label: 'ÜST TOP GERİ ÇEKME', unit: 'mm', min: UNLOAD_UPPER.min, max: UNLOAD_UPPER.max },
-      { key: 'unloadRotationMm', label: 'ROTASYON MESAFESİ', unit: 'mm', min: UNLOAD_ROT.min, max: UNLOAD_ROT.max },
+      { key: 'unloadRotationSec', label: 'ROTASYON SÜRESİ', unit: 'sn', min: UNLOAD_ROT_SEC.min, max: UNLOAD_ROT_SEC.max },
       {
         type: 'select',
         key: 'unloadRotationDir',
@@ -134,7 +134,7 @@ function readLocal(): Values {
     measureH: d.H,
     measureG: d.G,
     unloadUpperMm: m.upperRetractMm,
-    unloadRotationMm: m.rotationMm,
+    unloadRotationSec: m.rotationSec,
     unloadRotationDir: String(m.rotationDir),
   }
   readUnloadPresets().forEach((s, i) => (v[`unloadPreset${i}`] = s))
@@ -147,7 +147,7 @@ function writeLocal(v: Values): void {
   saveMeasureDefaults({ H: (v.measureH as number | null) ?? null, G: (v.measureG as number | null) ?? null })
   saveUnloadMotion({
     upperRetractMm: Number(v.unloadUpperMm),
-    rotationMm: Number(v.unloadRotationMm),
+    rotationSec: Number(v.unloadRotationSec),
     rotationDir: v.unloadRotationDir === '-1' ? -1 : 1,
   })
   saveUnloadPresets(

@@ -1431,7 +1431,11 @@ export class DemoMachine extends EventEmitter {
           const target = Math.max(0, upper0 - retract) // gönye referansının altına inmez (kırpılır, applied'da görünür)
           await this.movePistons({ upperPiston: target }, token, 50)
         }
-        if (Math.abs(rot) > 0.5) await this.rotateTo(rot0 + rot, token, 60)
+        // Süreli rotasyon (gerçek makinede üst top açıkken encoder ilerlemez) — demo sadece süreyi bekler
+        const rotSec = Number(b.rotationSeconds) || 0
+        if (Math.abs(rotSec) > 60) fail(400, 'Rotasyon süresi en fazla 60 sn olabilir')
+        if (Math.abs(rotSec) >= 0.1) await this.sleep(Math.abs(rotSec) * 1000, token)
+        else if (Math.abs(rot) > 0.5) await this.rotateTo(rot0 + rot, token, 60)
         return { success: true, errorMessage: null, ...applied(), cancelled: false }
       } catch (err) {
         if (err instanceof Cancelled) {
