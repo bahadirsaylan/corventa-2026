@@ -27,6 +27,7 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
 
   const [finishing, setFinishing] = useState(false)
   const [saveSteps, setSaveSteps] = useState<MacroStep[] | null>(null)
+  const [saveContext, setSaveContext] = useState<{ stage: number; gonyeCompleted: boolean } | null>(null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [emptyNotice, setEmptyNotice] = useState(false)
 
@@ -38,6 +39,7 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
         discard()
         setEmptyNotice(true)
       } else {
+        setSaveContext(useMacroRecorderStore.getState().context)
         setSaveSteps(recorded)
       }
     } finally {
@@ -110,6 +112,7 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
       {saveSteps && (
         <MacroSaveDialog
           steps={saveSteps}
+          context={saveContext}
           onCancel={() => {
             discard()
             setSaveSteps(null)
@@ -128,10 +131,12 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
 /** Kayıt bitince: isim (zorunlu) + açıklama → POST /api/macros */
 function MacroSaveDialog({
   steps,
+  context,
   onCancel,
   onSaved,
 }: {
   steps: MacroStep[]
+  context: { stage: number; gonyeCompleted: boolean } | null
   onCancel: () => void
   onSaved: (id: number) => void
 }) {
@@ -152,6 +157,8 @@ function MacroSaveDialog({
         name: name.trim(),
         description: description.trim() || null,
         steps,
+        recordedStage: context?.stage ?? null,
+        recordedGonyeCompleted: context?.gonyeCompleted ?? null,
       })
       onSaved(m.id)
     } catch (err) {

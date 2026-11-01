@@ -7,6 +7,8 @@
 //   Rotasyon : STOP + 150 ms (UnloadPartHandler ile aynı desen) → pozisyon/mesafe komutu →
 //              InPosition && yön 0 && |konum − hedef| ≤ 2 mm. Hedef tamsayı mm (backend sözleşmesi).
 //   Pnömatik : hedefe doğru yön ver, hedef geçilince / uç sınırda / ilerleme durunca STOP.
+//              İlerleme durması SADECE hedefe yakınsa (uç sınıra dayandı) başarı sayılır; uzaktaysa
+//              (hava yok / valf arızası) "PNÖMATİK İLERLEMİYOR" hatasıyla makro durur.
 //              (Pnömatikte konum modu yok — hassasiyet 100 ms durum döngüsüyle sınırlı.)
 // DURDUR her an tüm eksenleri durdurur. Acil stop, hidrolik motor düşmesi, makine verisi kesilmesi,
 // ilerleme durması (stall) ve zaman aşımı → makro hata ile durur ve tüm eksenler durdurulur.
@@ -36,6 +38,10 @@ const STALL_MS = 10_000
 const STALL_MIN_PROGRESS = 0.2
 /** Pnömatik: bu süre boyunca encoder değişmezse uç sınıra dayandı sayılır */
 const PNEUMATIC_STALL_MS = 1500
+/** Pnömatik encoder gürültüsü: bundan küçük değişim hareket sayılmaz (gerçek makinede ~50 sayım/mm) */
+const PNEUMATIC_NOISE = 3
+/** İlerleme durduğunda hedefe bu kadar yakınsa "uç sınıra dayandı" kabul edilir (~1 mm); uzaksa hata */
+const PNEUMATIC_END_TOL = 50
 const PNEUMATIC_TIMEOUT_MS = 30_000
 const STEP_TIMEOUT_MS = 180_000
 /** Komuttan sonra tamamlanma bu süreden önce kabul edilmez (komut öncesi bayat durum okunmasın) */
@@ -97,6 +103,26 @@ export function macroStartBlockReason(): string | null {
   if (s.hydraulicMotorState !== 2) return 'HİDROLİK MOTOR HAZIR DEĞİL — BAŞLATMADAN HAREKET YAPILAMAZ'
   if (useBendingActivityStore.getState().active) return 'OTOMATİK BÜKÜM ÇALIŞIYOR — MAKRO BAŞLATILAMAZ'
   return null
+}
+
+/**
+ * Kayıt bağlamı uyarıları (sadece piston adımı içeren makrolarda). Piston değerleri gönye referanslı
+ * encoder değerleridir: stage geçişi encoder'ı sıfırlamaz (ChangeStageHandler), ama gönye yapılmadan
+ * referans belirsizdir. Gönye durumu Bending API belleğinde tutulur (yeniden başlatınca "yapılmadı"
+ * görünür) — bu yüzden engellenmez, oynatmadan önce operatöre güçlü onay sorulur.
+ * Boş dizi = uyarı yok (bağlamı bilinmeyen eski makrolar dahil).
+ */
+export function macroContextWarnings(macro: Macro): string[] {
+  if (!macro.steps.some((s) => PISTON_BY_AXIS[s.axis])) return []
+  const pi = state().physicalInfo
+  const out: string[] = []
+  if (macro.recordedGonyeCompleted === true && !pi.isGonyeCompleted) {
+    out.push('MAKRO GÖNYE SONRASI KAYDEDİLDİ — ŞU AN GÖNYE YAPILMAMIŞ GÖRÜNÜYOR')
+  }
+  if (macro.recordedStage != null && macro.recordedStage !== pi.currentStage) {
+    out.push('MAKRONUN KAYDEDİLDİĞİ STAGE ŞU ANKİ STAGE İLE AYNI DEĞİL — PİSTONLAR KAYITTAKİ MUTLAK DEĞERLERE GİDER')
+  }
+  return out
 }
 
 /** Tüm eksenleri durdur (hata yutulur — durdurma her koşulda denenir) */
@@ -205,11 +231,14 @@ async function runPneumaticStep(step: MacroStep, token: number): Promise<void> {
       const s = pn()
       if (direction > 0 ? v >= target : v <= target) break
       if (direction > 0 ? s.extended : s.retracted) break
-      if (Math.abs(v - last) > 0) {
+      if (Math.abs(v - last) >= PNEUMATIC_NOISE) {
         last = v
         lastChangeAt = Date.now()
       } else if (Date.now() - lastChangeAt > PNEUMATIC_STALL_MS) {
-        break // uç sınıra dayandı / ilerlemiyor — bulunduğu yerde bırak
+        // İlerleme durdu: hedefe yakınsa uç sınıra dayandı (kayıtta da uç sınır okunmuştu) — kabul.
+        // Uzaksa kol bilinmeyen yerde kalmış demektir (hava yok / valf arızası) — sonraki adıma GEÇİLMEZ.
+        if (Math.abs(v - target) <= PNEUMATIC_END_TOL) break
+        throw new Error('PNÖMATİK İLERLEMİYOR — MAKRO DURDURULDU')
       }
       if (Date.now() - t0 > PNEUMATIC_TIMEOUT_MS) throw new Error('PNÖMATİK ZAMAN AŞIMI — MAKRO DURDURULDU')
       await sleep(POLL_MS)

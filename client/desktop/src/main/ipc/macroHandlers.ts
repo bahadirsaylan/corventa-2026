@@ -21,6 +21,10 @@ function sanitize(body: MacroSaveBody): MacroSaveBody {
       value: Number(s.value),
       speedPercent: Math.round(Number(s.speedPercent) || 0),
     })),
+    // Kayıt bağlamı sadece geldiyse iletilir (PUT'ta yoksa backend mevcut değeri korur)
+    recordedStage: Number.isInteger(body?.recordedStage) ? body.recordedStage : undefined,
+    recordedGonyeCompleted:
+      typeof body?.recordedGonyeCompleted === 'boolean' ? body.recordedGonyeCompleted : undefined,
   }
 }
 

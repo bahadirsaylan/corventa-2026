@@ -46,6 +46,13 @@ export interface MacroSummary {
   updatedAt: string
   createdBy: string | null
   updatedBy: string | null
+  /**
+   * Kayıt bağlamı: kayıt anındaki aktif stage ve gönye durumu (MachineState.physicalInfo).
+   * Piston değerleri gönye referanslı encoder değerleridir — oynatmada mevcut bağlamla karşılaştırılır.
+   * null/yok = bilinmiyor (bu alan eklenmeden önce kaydedilmiş makro)
+   */
+  recordedStage?: number | null
+  recordedGonyeCompleted?: boolean | null
   stepCount: number
 }
 
@@ -58,6 +65,9 @@ export interface MacroSaveBody {
   name: string
   description?: string | null
   steps: MacroStep[]
+  /** Sadece kayıt (POST) gönderir; düzenleme (PUT) göndermezse backend mevcut değeri korur */
+  recordedStage?: number | null
+  recordedGonyeCompleted?: boolean | null
 }
 
 export function isPneumaticAxis(axis: MacroAxis): boolean {

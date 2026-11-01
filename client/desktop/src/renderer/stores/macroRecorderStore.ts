@@ -37,6 +37,8 @@ interface MacroRecorderState {
   steps: RecordedStep[]
   /** Şu an "açık" olan eksen (aynı eksende hareketler birleşir) */
   current: { axis: MacroAxis; speedPercent: number; startValue: number } | null
+  /** Kayıt başladığı andaki gönye/stage bağlamı (makroyla birlikte saklanır, oynatmada karşılaştırılır) */
+  context: { stage: number; gonyeCompleted: boolean } | null
 
   start: () => void
   /** Bir eksen hareketi başlarken çağrılır (jog / pozisyon / pnömatik). Kayıt kapalıysa etkisiz. */
@@ -100,10 +102,17 @@ export const useMacroRecorderStore = create<MacroRecorderState>((set, get) => {
     recording: false,
     steps: [],
     current: null,
+    context: null,
 
     start: () => {
       session++
-      set({ recording: true, steps: [], current: null })
+      const pi = useMachineStateStore.getState().state.physicalInfo
+      set({
+        recording: true,
+        steps: [],
+        current: null,
+        context: { stage: pi.currentStage, gonyeCompleted: pi.isGonyeCompleted },
+      })
     },
 
     noteMotion: (axis, speedPercent) => {
@@ -131,7 +140,7 @@ export const useMacroRecorderStore = create<MacroRecorderState>((set, get) => {
 
     discard: () => {
       session++
-      set({ recording: false, steps: [], current: null })
+      set({ recording: false, steps: [], current: null, context: null })
     },
   }
 })

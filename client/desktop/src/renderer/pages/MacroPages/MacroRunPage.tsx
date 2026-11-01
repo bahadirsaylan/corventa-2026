@@ -1,10 +1,12 @@
 // EXCEL 28 — Makro oynatma. SÜREKLİ (adımlar arka arkaya) veya ADIM ADIM (her adımdan önce onay).
 // DURDUR her an tüm eksenleri durdurur; acil stop / motor düşmesi / veri kesilmesi makroyu hata ile durdurur.
+// Kayıt bağlamı (gönye/stage) mevcut durumla uyuşmazsa BAŞLAT önce güçlü onay ister.
 // Hareketler services/macroRunner.ts'te mevcut manuel uçlarla yapılır — büküm akışlarına dokunmaz.
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { Icon, IconLabel } from '@/components/Icon'
 import { useT } from '@/i18n'
 import {
@@ -17,6 +19,7 @@ import {
 } from '@/services/macroAxes'
 import {
   confirmMacroStep,
+  macroContextWarnings,
   macroStartBlockReason,
   resetMacroRun,
   runMacro,
@@ -39,6 +42,8 @@ export default function MacroRunPage() {
   const [macro, setMacro] = useState<Macro | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [mode, setMode] = useState<MacroRunMode>('continuous')
+  /** Bağlam uyuşmazlığında başlatma onayı açık */
+  const [contextConfirm, setContextConfirm] = useState(false)
 
   const run = useMacroRunStore()
   const machine = useMachineStateStore((s) => s.state)
@@ -69,8 +74,12 @@ export default function MacroRunPage() {
     }
   }, [])
 
-  function start() {
+  function start(confirmed = false) {
     if (!macro || active) return
+    if (!confirmed && macroContextWarnings(macro).length > 0) {
+      setContextConfirm(true)
+      return
+    }
     void runMacro(macro, mode, 0)
   }
 
@@ -87,6 +96,12 @@ export default function MacroRunPage() {
   const currentIndex = ours ? run.currentIndex : -1
   const completed = ours ? run.completed : 0
   const current = currentIndex >= 0 ? macro.steps[currentIndex] : null
+  const contextWarnings = macroContextWarnings(macro)
+  const recordedContext =
+    macro.recordedStage == null && macro.recordedGonyeCompleted == null
+      ? t('BİLİNMİYOR')
+      : `${macro.recordedGonyeCompleted ? t('GÖNYE VAR') : t('GÖNYE YOK')} · ${t('STAGE')} ${macro.recordedStage ?? '—'}`
+  const currentContext = `${machine.physicalInfo.isGonyeCompleted ? t('GÖNYE VAR') : t('GÖNYE YOK')} · ${t('STAGE')} ${machine.physicalInfo.currentStage}`
 
   let banner: { cls: string; icon: 'info' | 'success' | 'warning' | 'error'; text: string } | null = null
   if (ours && run.status === 'awaiting-confirm' && current) {
@@ -152,6 +167,18 @@ export default function MacroRunPage() {
           </span>
         </div>
 
+        <div className={styles.modeRow}>
+          <span className={styles.modeLabel}>{t('KAYIT')}: {recordedContext}</span>
+          <span className={styles.modeLabel}>
+            {t('ŞU AN')}: {currentContext}
+          </span>
+        </div>
+        {contextWarnings.length > 0 && !active && (
+          <div className={`${styles.banner} ${styles.bannerWarn}`}>
+            <IconLabel icon="warning">{contextWarnings.map((w) => t(w)).join(' · ')}</IconLabel>
+          </div>
+        )}
+
         {banner && (
           <div className={`${styles.banner} ${banner.cls}`}>
             <IconLabel icon={banner.icon}>{banner.text}</IconLabel>
@@ -206,7 +233,7 @@ export default function MacroRunPage() {
             <button
               className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
               disabled={!!blockReason || macro.steps.length === 0}
-              onClick={start}
+              onClick={() => start()}
             >
               <IconLabel icon="play">{t('BAŞLAT')}</IconLabel>
             </button>
@@ -224,6 +251,20 @@ export default function MacroRunPage() {
           </button>
         </div>
       </div>
+
+      {contextConfirm && (
+        <ConfirmModal
+          message="KAYIT BAĞLAMI (GÖNYE / STAGE) ŞU ANKİ DURUMLA UYUŞMUYOR. PİSTONLAR KAYITTAKİ DEĞERLERE GİDECEK — PARÇA VE KALIP KONUMUNU KONTROL EDİN. YİNE DE BAŞLATILSIN MI?"
+          confirmLabel="YİNE DE BAŞLAT"
+          cancelLabel="VAZGEÇ"
+          variant="danger"
+          onCancel={() => setContextConfirm(false)}
+          onConfirm={() => {
+            setContextConfirm(false)
+            start(true)
+          }}
+        />
+      )}
     </div>
   )
 }

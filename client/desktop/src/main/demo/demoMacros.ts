@@ -22,6 +22,8 @@ const macros: Macro[] = [
     updatedAt: new Date(Date.now() - 86_400_000).toISOString(),
     createdBy: 'operator',
     updatedBy: 'operator',
+    recordedStage: null,
+    recordedGonyeCompleted: null,
     stepCount: 4,
     steps: [
       { id: 1, stepOrder: 1, axis: 'Left', stepType: 'Position', value: 40, speedPercent: 30 },
@@ -93,6 +95,8 @@ export function demoMacros(rawUrl: string, path: string, method: string, b: Reco
       updatedAt: now,
       createdBy: actor.username,
       updatedBy: actor.username,
+      recordedStage: typeof b.recordedStage === 'number' ? b.recordedStage : null,
+      recordedGonyeCompleted: typeof b.recordedGonyeCompleted === 'boolean' ? b.recordedGonyeCompleted : null,
       stepCount: v.steps.length,
       steps: v.steps,
     }
@@ -119,6 +123,10 @@ export function demoMacros(rawUrl: string, path: string, method: string, b: Reco
         description: v.description,
         updatedAt: new Date().toISOString(),
         updatedBy: actor.username,
+        // Backend gibi: kayıt bağlamı sadece gönderilirse değişir
+        recordedStage: typeof b.recordedStage === 'number' ? b.recordedStage : cur.recordedStage,
+        recordedGonyeCompleted:
+          typeof b.recordedGonyeCompleted === 'boolean' ? b.recordedGonyeCompleted : cur.recordedGonyeCompleted,
         stepCount: v.steps.length,
         steps: v.steps,
       }
