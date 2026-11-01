@@ -24,6 +24,8 @@ import {
   type StopUnloadResponse,
   type UnloadPartRequest,
   type UnloadPartResponse,
+  type ResumeStatusResponse,
+  type ResumeActionResponse,
   type ValidateArcPlanRequest,
   type ValidateArcPlanResponse,
 } from '@shared'
@@ -96,6 +98,14 @@ export const bendingApi = {
 
   cancelJob: (jobId: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CancelBendingJob, jobId),
+
+  // 2026-11-01 — acil stop kesintisi (Şekil 15-17)
+  getResumeStatus: (jobId: number): Promise<ResumeStatusResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.GetResumeStatus, jobId),
+  resumeJob: (jobId: number): Promise<ResumeActionResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ResumeBendingJob, jobId),
+  abandonJob: (jobId: number): Promise<ResumeActionResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AbandonBendingJob, jobId),
 
   // Arc interactive — pipeline çalışırken sıradaki segment'i ekler.
   addArcSegment: (

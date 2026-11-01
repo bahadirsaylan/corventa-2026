@@ -41,6 +41,7 @@ const JOB_STATUS_LABELS: Record<string, string> = {
   Completed: 'TAMAMLANDI',
   Failed: 'BAŞARISIZ',
   Cancelled: 'İPTAL EDİLDİ',
+  Interrupted: 'KESİLDİ (ACİL STOP)',
 }
 
 const METHOD_LABELS: Record<string, string> = {

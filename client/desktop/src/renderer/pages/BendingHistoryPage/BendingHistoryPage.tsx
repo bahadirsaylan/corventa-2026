@@ -23,7 +23,7 @@ const LOG_PAGE = 1000
 const DETAIL_CATEGORY = 'Detay'
 const WARN_PREFIX = '[UYARI]'
 
-const STATUS_NAMES = ['Created', 'Calculating', 'Ready', 'Running', 'Completed', 'Failed', 'Cancelled'] as const
+const STATUS_NAMES = ['Created', 'Calculating', 'Ready', 'Running', 'Completed', 'Failed', 'Cancelled', 'Interrupted'] as const
 const METHOD_NAMES = ['FullCircle', 'Arc', 'Serpantin', 'Sivama'] as const
 
 // Ekranda gösterilen etiketler (t() ile çevrilir)
@@ -35,12 +35,14 @@ const JOB_STATUS_LABELS: Record<string, string> = {
   Completed: 'TAMAMLANDI',
   Failed: 'BAŞARISIZ',
   Cancelled: 'İPTAL EDİLDİ',
+  Interrupted: 'KESİLDİ (ACİL STOP)',
 }
 
 const STATUS_COLORS: Record<string, string> = {
   Completed: '#16a34a',
   Failed: '#dc2626',
   Cancelled: '#ea580c',
+  Interrupted: '#b91c1c',
   Running: '#2563eb',
 }
 
@@ -57,6 +59,7 @@ const STATUS_FILTERS: { value: string; label: string }[] = [
   { value: String(BendingJobStatus.Completed), label: 'TAMAMLANDI' },
   { value: String(BendingJobStatus.Failed), label: 'BAŞARISIZ' },
   { value: String(BendingJobStatus.Cancelled), label: 'İPTAL EDİLDİ' },
+  { value: String(BendingJobStatus.Interrupted), label: 'KESİLDİ (ACİL STOP)' },
   { value: String(BendingJobStatus.Running), label: 'ÇALIŞIYOR' },
 ]
 

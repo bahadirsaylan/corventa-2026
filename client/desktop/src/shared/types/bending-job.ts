@@ -73,6 +73,12 @@ export interface BendingJob {
   failedAtPaso: number | null
   /** EXCEL 33 — kıvrımda hatalı/geçersiz ölçüm oldu → bulut senkronu bu işi göndermez (eski backend: alan yok) */
   hasFailedMeasurement?: boolean
+  /** 2026-11-01 — kesinti (Status=Interrupted): alarm kodu (536 acil stop, 537 termik, 538 faz, 111 basınç düşüşü) */
+  interruptAlertCode?: number | null
+  interruptedAt?: string | null
+  /** Kaldığı yerden devam edilebilir mi (bilgi; kesin karar GET resume-status) */
+  resumeAvailable?: boolean
+  resumeCount?: number
   failedMeasurementReason?: string | null
 
   // User

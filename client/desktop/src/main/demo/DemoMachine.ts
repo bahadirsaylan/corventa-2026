@@ -1556,6 +1556,9 @@ export class DemoMachine extends EventEmitter {
       this.abort()
       return ok
     }
+    // 2026-11-01 — acil stop kesintisi: demoda kesinti üretilmez, alarm sayfası açılırsa devam yok
+    if (/^\/api\/bending-job\/\d+\/resume-status$/.test(path))
+      return { canResume: false, reason: 'Demo modunda kaldığı yerden devam yok', alertCode: null, phase: null, completedPasos: 0, pendingChecks: [] }
     if (/^\/api\/bending-job\//.test(path)) return ok
 
     // ── manuel kontrol ──

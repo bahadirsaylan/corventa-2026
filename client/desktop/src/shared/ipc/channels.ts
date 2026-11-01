@@ -19,6 +19,10 @@ export const IpcInvoke = {
   StopUnload: 'preparation:stop-unload',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
+  // 2026-11-01 — acil stop kesintisi: devam durumu / DEVAM ET / MANUEL TAHLİYE (bırak)
+  GetResumeStatus: 'bending-job:resume-status',
+  ResumeBendingJob: 'bending-job:resume',
+  AbandonBendingJob: 'bending-job:abandon',
   ConfirmSideSupport: 'bending-job:confirm-side-support',
   MeasurementRetryAction: 'bending-job:measurement-retry-action',
   CancelMeasurementRetry: 'bending-job:cancel-measurement-retry',

@@ -42,6 +42,8 @@ import SpiralBendingMeasurementsPage from '@/pages/SpiralBendingMeasurementsPage
 import SivamaBendingMeasurementsPage from '@/pages/SivamaBendingMeasurementsPage/SivamaBendingMeasurementsPage'
 import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
 import UnloadPage from '@/pages/UnloadPage/UnloadPage'
+import AlarmPage from '@/pages/AlarmPage/AlarmPage'
+import TwoHandUnloadPage from '@/pages/AlarmPage/TwoHandUnloadPage'
 import NextActionPage from '@/pages/NextActionPage/NextActionPage'
 import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage'
 import MacroListPage from '@/pages/MacroPages/MacroListPage'
@@ -126,6 +128,9 @@ export default function App() {
             <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
             {/* Büküm sonrası: tahliye (SEKIL-18) → ne yapmak istiyorsunuz (SEKIL-20) */}
             <Route path="bending/unload" element={<UnloadPage />} />
+            {/* Büküm kesildi (acil stop / basınç düşüşü) — Şekil 15/17 alarm, Şekil 16 çift el onayı */}
+            <Route path="bending/alarm" element={<AlarmPage />} />
+            <Route path="bending/alarm/manual-unload" element={<TwoHandUnloadPage />} />
             <Route path="bending/next" element={<NextActionPage />} />
 
             {/* Manuel Büküm = usta öğrenme kayıtları (EXCEL 28, 2026-11-01). Eski manuel program ekranları

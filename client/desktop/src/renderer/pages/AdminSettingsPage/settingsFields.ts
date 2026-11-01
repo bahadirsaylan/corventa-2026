@@ -79,6 +79,36 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         ],
       },
       {
+        // 2026-11-01 — Şekil 15-17. Backend BendingInterruptMonitor + /bending-job/{id}/resume.
+        title: 'ACİL STOP / DEVAM',
+        note: 'Büküm sırasında acil stop, faz veya motor termik hatasında büküm hemen kesilir ve alarm sayfası açılır: MANUEL TAHLİYE veya DEVAM ET (dairesel bükümde kaldığı adımdan, sıkıştırma yapılmadan). Basınç düşüşü: parça bozulursa (basınç aniden düşerse) yazılım acil stop yapar.',
+        fields: [
+          {
+            type: 'select',
+            key: 'emergencyResumeEnabled',
+            label: 'KESİNTİ ALGILAMA / DEVAM',
+            desc: 'KAPALI: eski davranış — büküm zaman aşımıyla hata verir, devam yok.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
+          {
+            type: 'select',
+            key: 'pressureDropStopEnabled',
+            label: 'BASINÇ DÜŞÜŞÜNDE DURDUR',
+            desc: 'Eşikleri makinede loglara bakarak ayarlayın, sonra açın.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { key: 'pressureDropBar', label: 'BASINÇ DÜŞÜŞÜ EŞİĞİ', unit: 'bar', min: 1, max: 250, integer: true, desc: 'Pencere içindeki en yüksek basınçtan bu kadar düşüş.' },
+          { key: 'pressureDropWindowMs', label: 'BASINÇ DÜŞÜŞÜ PENCERESİ', unit: 'ms', min: 50, max: 5000, integer: true },
+          { key: 'pressureDropMinBaseBar', label: 'BASINÇ DÜŞÜŞÜ EN DÜŞÜK TABAN', unit: 'bar', min: 0, max: 250, integer: true, desc: 'Pencere tepe basıncı bunun altındaysa izlenmez (parçaya baskı yok).' },
+        ],
+      },
+      {
         // EXCEL 34 — backend MaintenanceLockRules / MaintenanceLockGuard. Varsayılan KAPALI.
         title: 'BAKIM KİLİDİ',
         note: 'Bir bakımın vadesinin üzerinden 21 gün geçince (4. haftanın 1. günü) otomatik / yarı otomatik büküm başlatılamaz. Manuel mod, tahliye ve bakım modu açık kalır; geciken bakım tamamlanınca kilit kalkar.',

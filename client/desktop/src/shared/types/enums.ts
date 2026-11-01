@@ -25,6 +25,8 @@ export const BendingJobStatus = {
   Completed: 4,
   Failed: 5,
   Cancelled: 6,
+  /** 2026-11-01 — büküm acil stop / güvenlik / basınç düşüşüyle KESİLDİ → alarm sayfası (DEVAM ET / MANUEL TAHLİYE) */
+  Interrupted: 7,
 } as const
 export type BendingJobStatus = (typeof BendingJobStatus)[keyof typeof BendingJobStatus]
 

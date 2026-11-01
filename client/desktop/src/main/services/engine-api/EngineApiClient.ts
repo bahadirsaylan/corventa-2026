@@ -24,6 +24,8 @@ import type {
   StopUnloadResponse,
   UnloadPartRequest,
   UnloadPartResponse,
+  ResumeStatusResponse,
+  ResumeActionResponse,
   ValidateArcPlanRequest,
   ValidateArcPlanResponse,
 } from '@shared/types'
@@ -171,6 +173,21 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/cancel`)
   }
 
+  // 2026-11-01 — acil stop kesintisi (Şekil 15-17)
+  getResumeStatus(jobId: number): Promise<ResumeStatusResponse> {
+    return http.get<ResumeStatusResponse>(`${this.baseUrl}/api/bending-job/${jobId}/resume-status`)
+  }
+
+  /** DEVAM ET — backend 400/409'da da { success:false, error } döner; hata metni kaybolmasın */
+  resumeBendingJob(jobId: number): Promise<ResumeActionResponse> {
+    return postAction(`${this.baseUrl}/api/bending-job/${jobId}/resume`)
+  }
+
+  /** MANUEL TAHLİYE seçildi — iş Cancelled, devam kaydı silinir */
+  abandonBendingJob(jobId: number): Promise<ResumeActionResponse> {
+    return postAction(`${this.baseUrl}/api/bending-job/${jobId}/abandon`)
+  }
+
   // Serpantin — operatör yan dayama ayarını bitirince "DEVAM ET" onayı.
   confirmSideSupport(jobId: number): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/confirm-side-support`)
@@ -304,6 +321,18 @@ function unloadTimeoutMs(rotationMm: number, rotationSeconds?: number): number {
   const sec = Math.abs(Number(rotationSeconds)) || 0
   if (sec > 0) return 150_000 + Math.ceil(sec) * 1000 // süreli rotasyon: mesafe yok sayılır
   return 150_000 + Math.ceil(rot / 5) * 1000
+}
+
+async function postAction(url: string): Promise<ResumeActionResponse> {
+  try {
+    return await http.post<ResumeActionResponse>(url)
+  } catch (err) {
+    if (err instanceof HttpError && err.body && typeof err.body === 'object') {
+      const b = err.body as Record<string, unknown>
+      return { success: false, error: String(b.error ?? b.Error ?? err.message) }
+    }
+    throw err
+  }
 }
 
 function normalizeUnload(res: Partial<UnloadPartResponse> | null | undefined, okDefault: boolean): UnloadPartResponse {

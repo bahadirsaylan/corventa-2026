@@ -48,6 +48,8 @@ export default function AppLayout() {
   const watchedJobId = useRef<number | null>(null)
   const handledJobId = useRef<number | null>(null)
   useEffect(() => {
+    // Kesilen iş DEVAM ET ile yeniden çalışmaya başladı → bitişi tekrar izlensin
+    if (runningJobId != null && handledJobId.current === runningJobId) handledJobId.current = null
     const prevId = watchedJobId.current
     const finished =
       prevId != null && (runningJobId !== prevId || (wasActive.current && !bendingActive))
@@ -67,7 +69,13 @@ export default function AppLayout() {
           if (!job) return retry()
           const status = job.status as unknown
           if (status === BendingJobStatus.Running || status === 'Running') return retry() // henüz bitmedi / gecikme
-          handledJobId.current = jobId // son durum (Completed / Failed / Cancelled) — bir daha bakma
+          handledJobId.current = jobId // son durum (Completed / Failed / Cancelled / Interrupted) — bir daha bakma
+          // 2026-11-01 — acil stop / basınç düşüşüyle KESİLDİ → alarm sayfası (DEVAM ET / MANUEL TAHLİYE).
+          // DEVAM ET sonrası iş yeniden Running olur; poller yeni bir izleme başlatır (handledJobId sıfırlanır).
+          if (status === BendingJobStatus.Interrupted || status === 'Interrupted') {
+            navigate('/bending/alarm', { state: { jobId } })
+            return
+          }
           const completed = status === BendingJobStatus.Completed || status === 'Completed'
           const failed = status === BendingJobStatus.Failed || status === 'Failed'
           const cancelled = status === BendingJobStatus.Cancelled || status === 'Cancelled'

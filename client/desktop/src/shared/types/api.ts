@@ -129,6 +129,25 @@ export interface ValidateArcPlanResponse {
   warningMessage?: string
 }
 
+// GET /api/bending-job/{id}/resume-status — acil stop kesintisi sonrası (2026-11-01)
+export interface ResumeStatusResponse {
+  canResume: boolean
+  /** Devam edilemiyorsa sebep */
+  reason: string | null
+  alertCode: number | null
+  /** Kesilen adım (backend ResumePhase) */
+  phase: string | null
+  completedPasos: number
+  /** DEVAM ET öncesi sağlanmamış koşullar (Türkçe, ekranda gösterilir) */
+  pendingChecks: string[]
+}
+
+export interface ResumeActionResponse {
+  success: boolean
+  error?: string | null
+  message?: string | null
+}
+
 // POST /api/preparation/unload — tahliye (SEKIL-18): geri sayım sonrası üst top geri + rotasyon
 export interface UnloadPartRequest {
   /** Üst top kaç mm geri çekilsin (≥ 0) */

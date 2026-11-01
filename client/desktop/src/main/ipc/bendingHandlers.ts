@@ -200,6 +200,17 @@ export function registerBendingHandlers(): void {
     return engineApi.cancelBendingJob(jobId)
   })
 
+  // 2026-11-01 — acil stop kesintisi: devam durumu / DEVAM ET / MANUEL TAHLİYE
+  ipcMain.handle(Ipc.IpcInvoke.GetResumeStatus, async (_evt, jobId: number) => engineApi.getResumeStatus(jobId))
+  ipcMain.handle(Ipc.IpcInvoke.ResumeBendingJob, async (_evt, jobId: number) => {
+    log.warn('resume-bending-job (DEVAM ET)', { jobId })
+    return engineApi.resumeBendingJob(jobId)
+  })
+  ipcMain.handle(Ipc.IpcInvoke.AbandonBendingJob, async (_evt, jobId: number) => {
+    log.warn('abandon-bending-job (MANUEL TAHLİYE)', { jobId })
+    return engineApi.abandonBendingJob(jobId)
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.ConfirmSideSupport, async (_evt, jobId: number) => {
     log.info('confirm-side-support (Serpantin operator confirmation)', { jobId })
     return engineApi.confirmSideSupport(jobId)
