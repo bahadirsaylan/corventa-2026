@@ -18,7 +18,7 @@ let splashWindow: BrowserWindow | null = null
 
 // 2026-09-04 — Kiosk mode: uygulama menu, F-key, Alt+F4 vs. blocklanir.
 // Cikis 3 gizli tetikleyiciden biriyle olur (Ctrl+Alt+Shift+X global veya
-// UI icinden 5-tap/uzun-basis); hepsi ADMIN+ oturum ister (2026-11-01).
+// UI icinden 5-tap/uzun-basis); hepsi SUPERADMIN oturum ister (2026-11-01, Excel madde 37).
 const IS_KIOSK = !process.env.CORVENTA_NO_KIOSK // Test icin CORVENTA_NO_KIOSK=1 ile devre disi
 
 // ─────────────────────────────────────────────────────────────
@@ -177,13 +177,13 @@ function createWindow(): void {
 // Kiosk cikis — 3 gizli tetikleyici
 //   1. Global shortcut: Ctrl+Alt+Shift+X (klavye)
 //   2. IPC 'kiosk:exit' (renderer'dan: 5-tap logo veya 5sn uzun basis)
-// Rol sistemi (2026-11-01): ikisi de main'deki oturumu kontrol eder — ADMIN+ yoksa cikis yok.
+// Rol sistemi (2026-11-01): ikisi de main'deki oturumu kontrol eder — SUPERADMIN yoksa cikis yok.
 // Renderer'daki kontrol (KioskExitCorner) sadece uyari gostermek icin; asil karar burada.
 // ─────────────────────────────────────────────────────────────
 
 function canExitKiosk(trigger: string): boolean {
-  if (sessionHasRole('ADMIN')) return true
-  log.warn(`KIOSK EXIT reddedildi: ${trigger} — ADMIN+ oturum yok`, { username: getAuthUser()?.username ?? null })
+  if (sessionHasRole('SUPERADMIN')) return true
+  log.warn(`KIOSK EXIT reddedildi: ${trigger} — SUPERADMIN oturum yok`, { username: getAuthUser()?.username ?? null })
   return false
 }
 
@@ -200,7 +200,7 @@ function registerKioskExitHandlers(): void {
 
   // 2) Renderer'dan IPC (5-tap logo, uzun basis)
   ipcMain.handle('kiosk:exit', () => {
-    if (!canExitKiosk('renderer IPC')) return { ok: false, error: 'ADMIN yetkisi gerekli' }
+    if (!canExitKiosk('renderer IPC')) return { ok: false, error: 'SÜPERADMİN yetkisi gerekli' }
     log.info('KIOSK EXIT: renderer IPC tetiklendi', { username: getAuthUser()?.username })
     app.quit()
     return { ok: true }

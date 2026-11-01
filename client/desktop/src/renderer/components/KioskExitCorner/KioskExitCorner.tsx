@@ -4,8 +4,8 @@
 //   - 5sn kesintisiz basili tutma → cikis
 // Global klavye kisayolu Ctrl+Alt+Shift+X main process'te (bu component'ten bagimsiz).
 //
-// Rol sistemi (2026-11-01): sadece ADMIN+ (yetki matrisi constants/permissions.ts 'kiosk-exit').
-// Yetkisiz kullanıcıda çıkış yapılmaz, "BU İŞLEM İÇİN ADMİN YETKİSİ GEREKLİ" uyarısı gösterilir.
+// Rol sistemi (2026-11-01): sadece SUPERADMIN (yetki matrisi constants/permissions.ts 'kiosk-exit').
+// Yetkisiz kullanıcıda çıkış yapılmaz, "BU İŞLEM İÇİN SÜPERADMİN YETKİSİ GEREKLİ" uyarısı gösterilir.
 
 import { useEffect, useRef, useState } from 'react'
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'

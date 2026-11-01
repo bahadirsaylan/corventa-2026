@@ -33,9 +33,9 @@ export const PERMISSIONS = {
   'warranty': 'ADMIN',
   'customer-change': 'ADMIN',
   'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
-  'kiosk-exit': 'ADMIN',
   // ── SUPERADMIN ──
   'big-data': 'SUPERADMIN',
+  'kiosk-exit': 'SUPERADMIN',     // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
   'manage-admins': 'SUPERADMIN',    // ADMIN / SUPERADMIN kullanıcı ekleme-düzenleme
 } as const satisfies Record<string, UserRole>
 
