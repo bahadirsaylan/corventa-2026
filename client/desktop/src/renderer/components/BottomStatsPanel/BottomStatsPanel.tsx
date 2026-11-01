@@ -12,12 +12,14 @@
 //   backend MachineEvent'lerinden (stores/safetyAlertsStore.ts) şeride gelir; termal / acil stop uyarılarından
 //   sonra, yağ basınç/seviye/nem uyarılarından önce. Operatör şeritteki KAPAT ile gizler. Sadece uyarı.
 // EXCEL 34: BAKIM KİLİDİ aktifken (backend lockActive) bakım şeridi / rozeti kilit simgesiyle "KİLİTLİ" yazar.
+// EXCEL 37: HATA KAYITLARI butonunun solunda internet erişim ikonu (Google generate_204, 30 sn) — sadece bilgi.
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OilStatsList from '@/pages/DashboardPage/OilStatsList'
 import ErrorLogsModal from './ErrorLogsModal'
 import ArcBendingStrip from './ArcBendingStrip'
+import InternetStatusChip from '@/components/InternetStatus/InternetStatusChip'
 import { BendingMethod } from '@shared/types'
 import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
@@ -164,6 +166,9 @@ export default function BottomStatsPanel() {
             )}
           </button>
         )}
+
+        {/* İnternet erişimi (EXCEL 37) — dokununca son kontrol bilgisi */}
+        <InternetStatusChip />
 
         <button
           type="button"

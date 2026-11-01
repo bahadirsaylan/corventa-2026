@@ -114,6 +114,9 @@ export const IpcInvoke = {
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',
   SystemIsDemo: 'system:is-demo',
+  // İnternet erişimi (EXCEL 37) — son durum / şimdi kontrol et
+  SystemGetInternetStatus: 'system:get-internet-status',
+  SystemCheckInternetNow: 'system:check-internet-now',
 } as const
 
 // send (main → renderer, push)
@@ -122,6 +125,8 @@ export const IpcEvent = {
   BendingProgress: 'machine:bending-progress',
   EventReceived: 'corventa:event-received',
   ConnectionStatusChanged: 'connection:status-changed',
+  // İnternet erişim durumu değişti / yeni kontrol tamamlandı (EXCEL 37)
+  InternetStatusChanged: 'system:internet-status-changed',
 } as const
 
 export type IpcInvokeChannel = (typeof IpcInvoke)[keyof typeof IpcInvoke]

@@ -3,6 +3,7 @@
 
 import { useConnectionStore } from '@/stores/connectionStore'
 import { useEventsStore } from '@/stores/eventsStore'
+import { useInternetStore } from '@/stores/internetStore'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useSafetyAlertsStore } from '@/stores/safetyAlertsStore'
 
@@ -40,6 +41,12 @@ export function subscribeToBackend(): () => void {
     .then((status) => useConnectionStore.getState().setStatus(status))
     .catch(() => {})
 
+  // İnternet erişim durumu (EXCEL 37) — backend'den bağımsız, main süreç kontrol eder
+  void window.corventa.system
+    .getInternetStatus()
+    .then((status) => useInternetStore.getState().setStatus(status))
+    .catch(() => {})
+
   // Push subscriptions
   cleanupFns.push(
     window.corventa.events.onStateUpdated((state) => {
@@ -65,6 +72,12 @@ export function subscribeToBackend(): () => void {
   cleanupFns.push(
     window.corventa.events.onConnectionStatusChanged((status) => {
       useConnectionStore.getState().setStatus(status)
+    }),
+  )
+
+  cleanupFns.push(
+    window.corventa.events.onInternetStatusChanged((status) => {
+      useInternetStore.getState().setStatus(status)
     }),
   )
 

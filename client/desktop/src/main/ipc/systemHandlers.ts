@@ -7,6 +7,7 @@ import { join } from 'path'
 
 import { IS_DEMO } from '@main/demo/DemoMachine'
 import { childLogger } from '@main/lib/logger'
+import { connectivityService } from '@main/services/connectivity/ConnectivityService'
 import { Ipc } from '@shared'
 
 const log = childLogger('ipc:system')
@@ -29,6 +30,10 @@ function resolveUserGuidePath(): string {
 export function registerSystemHandlers(): void {
   // Demo modu mu? (CORVENTA_DEMO=1) — demoya özel ekranlar (tahliye) bununla açılır
   ipcMain.handle(Ipc.IpcInvoke.SystemIsDemo, async () => IS_DEMO)
+
+  // İnternet erişimi (EXCEL 37) — son bilinen durum / şimdi kontrol et (Google generate_204)
+  ipcMain.handle(Ipc.IpcInvoke.SystemGetInternetStatus, async () => connectivityService.getStatus())
+  ipcMain.handle(Ipc.IpcInvoke.SystemCheckInternetNow, async () => connectivityService.checkNow())
 
   // Kılavuzu uygulama İÇİNDE göstermek için dosya içeriği (renderer blob URL ile PDF görüntüleyicide açar)
   ipcMain.handle(Ipc.IpcInvoke.ReadUserGuide, async () => {

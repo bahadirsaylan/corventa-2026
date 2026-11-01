@@ -5,6 +5,7 @@ import { BrowserWindow } from 'electron'
 
 import { childLogger } from '@main/lib/logger'
 import { connectionManager } from '@main/services/ConnectionManager'
+import { connectivityService } from '@main/services/connectivity/ConnectivityService'
 import { Ipc } from '@shared'
 
 const log = childLogger('ipc:events')
@@ -35,6 +36,13 @@ export function startEventsBroadcaster(): void {
   connectionManager.on('statusChanged', (status) => {
     broadcast(Ipc.IpcEvent.ConnectionStatusChanged, status)
   })
+
+  // İnternet erişim kontrolü (EXCEL 37) — index.ts'e dokunmadan buradan başlatılır.
+  // Sadece bilgi amaçlı; backend / büküm akışından bağımsız.
+  connectivityService.onStatusChanged((status) => {
+    broadcast(Ipc.IpcEvent.InternetStatusChanged, status)
+  })
+  connectivityService.start()
 }
 
 // Yeni pencere açılınca son state'i tek seferde dök — UI null check yapmak zorunda kalmasın.
@@ -42,6 +50,7 @@ export function dumpInitialState(window: BrowserWindow): void {
   if (window.isDestroyed()) return
   window.webContents.send(Ipc.IpcEvent.StateUpdated, connectionManager.getLatestState())
   window.webContents.send(Ipc.IpcEvent.ConnectionStatusChanged, connectionManager.getStatus())
+  window.webContents.send(Ipc.IpcEvent.InternetStatusChanged, connectivityService.getStatus())
   for (const evt of connectionManager.getCachedEvents()) {
     window.webContents.send(Ipc.IpcEvent.EventReceived, evt)
   }

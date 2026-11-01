@@ -2,7 +2,7 @@
 
 import { ipcRenderer } from 'electron'
 
-import { Ipc } from '@shared'
+import { Ipc, type InternetStatus } from '@shared'
 
 export interface OpenUserGuideResult {
   ok: boolean
@@ -19,6 +19,12 @@ export const systemApi = {
 
   // Demo modu (CORVENTA_DEMO=1) açık mı
   isDemo: (): Promise<boolean> => ipcRenderer.invoke(Ipc.IpcInvoke.SystemIsDemo),
+
+  // İnternet erişimi (EXCEL 37) — son durum / hemen kontrol (değişimler events.onInternetStatusChanged ile gelir)
+  getInternetStatus: (): Promise<InternetStatus> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SystemGetInternetStatus),
+  checkInternetNow: (): Promise<InternetStatus> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SystemCheckInternetNow),
 
   // 2026-09-04 — Kiosk mode gizli cikis. Renderer 5-tap / 5sn uzun basis tetikleyicisi cagirir.
   // Main ADMIN+ oturum yoksa reddeder (ok: false).

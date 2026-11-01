@@ -59,6 +59,7 @@ import {
   TriangleAlert,
   User,
   Wifi,
+  WifiOff,
   Wrench,
   X,
   Zap,
@@ -137,6 +138,7 @@ export const ICONS = {
   logout: LogOut,
   hand: Hand,
   signal: Wifi,
+  offline: WifiOff, //       internet erişimi yok (EXCEL 37)
   dashboard: LayoutDashboard,
   star: Star,
   sparkle: Sparkles, //      ✦

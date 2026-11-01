@@ -6,6 +6,7 @@ import {
   Ipc,
   type BendingProgress,
   type ConnectionStatus,
+  type InternetStatus,
   type MachineEvent,
   type MachineState,
 } from '@shared'
@@ -30,6 +31,10 @@ export const eventsApi = {
 
   onConnectionStatusChanged: (listener: (status: ConnectionStatus) => void): Unsubscribe =>
     subscribe(Ipc.IpcEvent.ConnectionStatusChanged, listener),
+
+  // İnternet erişim durumu (EXCEL 37) — 30 sn'de bir kontrol sonucu
+  onInternetStatusChanged: (listener: (status: InternetStatus) => void): Unsubscribe =>
+    subscribe(Ipc.IpcEvent.InternetStatusChanged, listener),
 }
 
 export type EventsApi = typeof eventsApi

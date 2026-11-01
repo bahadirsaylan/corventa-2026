@@ -1,10 +1,13 @@
 // Ayarlar > Big Data Bağlantı Ayarları — cloud endpoint + API key + connection status.
 // Şu an mock — DataApi/Big Data entegrasyonu Faz-7'de. Layout mekanikçi review'u için.
+// EXCEL 37: en üstte GERÇEK internet erişim kartı (main ConnectivityService — Google generate_204, 30 sn).
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLang, useT, type TVars } from '@/i18n'
 import { Icon } from '@/components/Icon'
+import { formatCheckTime, internetStateText } from '@/components/InternetStatus/InternetStatusChip'
+import { useInternetStore } from '@/stores/internetStore'
 import styles from './BigDataConnectionPage.module.css'
 
 type ConnStatus = 'connected' | 'disconnected' | 'error' | 'testing'
@@ -22,6 +25,11 @@ export default function BigDataConnectionPage() {
   const [enabled, setEnabled] = useState(true)
   const [status, setStatus] = useState<ConnStatus>('connected')
   const [lastSync, setLastSync] = useState<string>('2026-08-14 14:32')
+  // İnternet erişimi (EXCEL 37) — gerçek durum
+  const internet = useInternetStore((s) => s.status)
+  const checkInternetNow = useInternetStore((s) => s.checkNow)
+  const internetDot =
+    internet.state === 'online' ? 'connected' : internet.state === 'offline' ? 'error' : internet.checking ? 'testing' : 'disconnected'
 
   function handleTestConnection() {
     setStatus('testing')
@@ -43,6 +51,46 @@ export default function BigDataConnectionPage() {
       </div>
 
       <div className={styles.body}>
+        {/* ── İnternet Erişimi (EXCEL 37) — gerçek kontrol ── */}
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>{t('İNTERNET ERİŞİMİ')}</div>
+          <div className={styles.statusRow}>
+            <div className={`${styles.statusDot} ${styles[internetDot]}`} />
+            <div className={styles.statusText}>
+              <span className={styles.statusLabel}>{t('DURUM')}</span>
+              <span className={styles.statusValue}>{internetStateText(internet, t)}</span>
+            </div>
+            <div className={styles.statusText}>
+              <span className={styles.statusLabel}>{t('SON KONTROL')}</span>
+              <span className={styles.statusValue}>{formatCheckTime(internet.lastCheckedAt, locale)}</span>
+            </div>
+            <div className={styles.statusText}>
+              <span className={styles.statusLabel}>{t('GECİKME')}</span>
+              <span className={styles.statusValue}>{internet.latencyMs != null ? `${internet.latencyMs} ms` : '—'}</span>
+            </div>
+            <div className={styles.statusText}>
+              <span className={styles.statusLabel}>{t('SON ÇEVRİMİÇİ')}</span>
+              <span className={styles.statusValue}>{formatCheckTime(internet.lastOnlineAt, locale)}</span>
+            </div>
+            <button
+              type="button"
+              className={styles.testBtn}
+              onClick={() => void checkInternetNow()}
+              disabled={internet.checking}
+            >
+              {internet.checking ? t('KONTROL EDİLİYOR…') : t('ŞİMDİ KONTROL ET')}
+            </button>
+          </div>
+          {internet.state === 'offline' && internet.error && (
+            <p className={styles.note}>{t('HATA')}: {internet.error}</p>
+          )}
+          <p className={styles.note}>
+            {internet.simulated
+              ? t('DEMO MODU — kontrol yapılmıyor, çevrimiçi varsayılıyor')
+              : t('Her 30 saniyede bir Google sunucusuna bağlantı denenir. Makine çalışmasını etkilemez.')}
+          </p>
+        </div>
+
         {/* ── Bağlantı Durumu ─────────────────────── */}
         <div className={styles.card}>
           <div className={styles.sectionTitle}>{t('BAĞLANTI DURUMU')}</div>
