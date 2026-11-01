@@ -7,7 +7,7 @@
 
 import { spawn, ChildProcess } from 'child_process'
 import http from 'http'
-import { existsSync, mkdirSync } from 'fs'
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, unlinkSync, writeSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 import { app } from 'electron'
@@ -88,6 +88,19 @@ export class BackendSupervisor {
   private status: SupervisorStatus = { kind: 'idle' }
   private listeners: Set<StatusListener> = new Set()
 
+  /** Basarisiz acilis icin operatore gosterilecek metin (hata + paketli surumde konsol ciktisinin sonu). */
+  getFailureReport(): string {
+    const s = this.status
+    if (s.kind !== 'failed') return 'Bilinmeyen hata'
+    let text = `${s.service}: ${s.error}`
+    const svc = SERVICES.find((x) => x.name === s.service)
+    if (IS_PACKAGED && svc?.packaged) {
+      const tail = readTail(consoleLogPath(svc.packaged.logPrefix), 1500)
+      if (tail) text += `\n\n--- ${svc.packaged.logPrefix}-console.log (son satirlar) ---\n${tail}`
+    }
+    return text + `\n\nLoglar: ${join(DATA_DIR, 'logs')}`
+  }
+
   onStatus(listener: StatusListener): () => void {
     this.listeners.add(listener)
     listener(this.status)
@@ -118,6 +131,17 @@ export class BackendSupervisor {
           kind: 'failed',
           service: 'DataApi',
           error: `machine.db bulunamadi: ${dbPath} — mevcut makinenin machine.db dosyasini bu klasore kopyalayip programi yeniden acin.`,
+        })
+        return false
+      }
+      // SQLite DB dosyasina ve klasore (WAL/SHM dosyalari) yazabilmeli — elle olusturulan
+      // ProgramData klasorunde izin eksikse DataApi acilista coker; sebebi net soyle.
+      const writeError = checkWritable(dbPath)
+      if (writeError && !process.env.CORVENTA_ALLOW_NEW_DB) {
+        this.setStatus({
+          kind: 'failed',
+          service: 'DataApi',
+          error: `${writeError}\nCozum: yonetici PowerShell'de → icacls "${DATA_DIR}" /grant *S-1-5-32-545:(OI)(CI)M /T`,
         })
         return false
       }
@@ -180,16 +204,26 @@ export class BackendSupervisor {
     return join(process.resourcesPath, 'backend', svc.packaged!.dir, svc.packaged!.exe)
   }
 
-  /** Paketli surum: self-contained exe, Production; cikti Electron'dan gecmez (dosya logu backend'de). */
+  /** Paketli surum: self-contained exe, Production; cikti Electron'dan gecmez (dosya logu backend'de).
+   *  stdout/stderr her acilista <prefix>-console.log'a yazilir (uzerine) — backend dosya logu baslamadan
+   *  cokerse (DB izni, port dolu ...) sebep burada kalir. */
   private spawnPackaged(svc: BackendService): ChildProcess {
     const p = svc.packaged!
     const exe = this.packagedExePath(svc)
     log.info(`spawn (paketli) ${svc.name}`, { exe, url: svc.applicationUrl })
+    let outFd: number | null = null
+    try {
+      outFd = openSync(consoleLogPath(p.logPrefix), 'w')
+      writeSync(outFd, `=== ${new Date().toISOString()} ${svc.name} baslatiliyor: ${exe}\r\n`)
+    } catch (err) {
+      log.warn('konsol log dosyasi acilamadi', { error: (err as Error).message })
+      outFd = null
+    }
     const proc = spawn(exe, ['--urls', svc.applicationUrl], {
       // ContentRoot = cwd → appsettings.json exe yanindan okunur
       cwd: join(process.resourcesPath, 'backend', p.dir),
       shell: false,
-      stdio: 'ignore',
+      stdio: outFd !== null ? ['ignore', outFd, outFd] : 'ignore',
       detached: false,
       windowsHide: true,
       env: {
@@ -202,8 +236,14 @@ export class BackendSupervisor {
         Swagger__Enabled: 'true',
         // Makineye ozel ayarlar (PLC IP, SMTP ...) — dosya yoksa yok sayilir
         CORVENTA_CONFIG_FILE: join(DATA_DIR, 'config', p.configFile),
+        // Konsol dosyasi sismesin: konsola sadece uyari+ (tam log zaten <prefix>-yyyyMMdd.log'da);
+        // yakalanmamis istisnalar stderr'e her durumda yazilir
+        Logging__Console__LogLevel__Default: 'Warning',
       },
     })
+    if (outFd !== null) {
+      try { closeSync(outFd) } catch { /* child kendi kopyasini tutar */ }
+    }
     proc.on('exit', (code, signal) => {
       log.info(`${svc.name} exit`, { code, signal })
       this.processes.delete(svc.name)
@@ -324,6 +364,41 @@ export class BackendSupervisor {
 
   private sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms))
+  }
+}
+
+/** DB dosyasi ve klasoru yazilabilir mi; degilse hata metni, evetse null. */
+function checkWritable(dbPath: string): string | null {
+  try {
+    closeSync(openSync(dbPath, 'r+'))
+  } catch (err) {
+    return `machine.db yazilamiyor (${(err as NodeJS.ErrnoException).code ?? (err as Error).message}): ${dbPath}`
+  }
+  const probe = join(DATA_DIR, '.yazma-testi')
+  try {
+    closeSync(openSync(probe, 'w'))
+    unlinkSync(probe)
+  } catch (err) {
+    return `${DATA_DIR} klasorune yazilamiyor (${(err as NodeJS.ErrnoException).code ?? (err as Error).message})`
+  }
+  return null
+}
+
+function consoleLogPath(prefix: string): string {
+  return join(DATA_DIR, 'logs', `${prefix}-console.log`)
+}
+
+/** Dosyanin son maxChars karakteri, .NET stack satirlari ("   at ...") atilmis (yoksa / okunamazsa bos). */
+function readTail(path: string, maxChars: number): string {
+  try {
+    const text = readFileSync(path, 'utf8')
+      .split(/\r?\n/)
+      .filter((l) => !/^\s+at /.test(l) && !/^\s+--- End of/.test(l))
+      .join('\n')
+      .trim()
+    return text.length > maxChars ? '...' + text.slice(-maxChars) : text
+  } catch {
+    return ''
   }
 }
 

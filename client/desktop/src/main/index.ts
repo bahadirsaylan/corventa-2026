@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, globalShortcut, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, globalShortcut, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 
@@ -257,9 +257,10 @@ app.whenReady().then(async () => {
   const backendOk = IS_DEMO ? true : await backendSupervisor.start()
   if (!backendOk) {
     log.error('Backend baslatilamadi — UI acilmayacak')
-    updateSplashStatus('Backend baslatilamadi. Log dosyasina bakin.')
-    // 5sn splash'i acik tut ki hata gorulsun, sonra kapat
-    setTimeout(() => app.quit(), 5000)
+    // Gercek sebebi (supervisor hata metni + backend konsol ciktisi) operatore goster; Tamam → kapan
+    if (splashWindow && !splashWindow.isDestroyed()) splashWindow.setAlwaysOnTop(false)
+    dialog.showErrorBox('Corventa — backend baslatilamadi', backendSupervisor.getFailureReport())
+    app.quit()
     return
   }
 
