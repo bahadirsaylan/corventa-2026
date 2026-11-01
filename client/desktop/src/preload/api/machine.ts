@@ -50,7 +50,9 @@ export const machineApi = {
   sideSupportControl: (req: SideSupportRequest): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SideSupportControl, req),
 
-  emergencyStop: (): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.EmergencyStop),
+  // jobId: büküm iptalinden geliyorsa çalışan iş (backend iptali durdurmadan önce işaretler)
+  emergencyStop: (jobId?: number | null): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.EmergencyStop, jobId ?? null),
 
   setMode: (mode: number): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SetMachineMode, mode),

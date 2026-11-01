@@ -280,8 +280,11 @@ export class EngineApiClient {
     return http.post(`${this.baseUrl}/api/side-support/${req.side}/${req.type}/${path}`)
   }
 
-  emergencyStop(): Promise<unknown> {
-    return http.post(`${this.baseUrl}/api/machine/emergency-stop`)
+  // jobId (EXCEL 24): büküm İPTAL'inden geliyorsa backend iptali durdurmadan ÖNCE işaretler →
+  // pipeline'ın acil stop'la ürettiği sonuç Cancelled yazılır (cancel çağrısıyla yarış kalmaz).
+  emergencyStop(jobId?: number | null): Promise<unknown> {
+    const qs = jobId != null ? `?jobId=${jobId}` : ''
+    return http.post(`${this.baseUrl}/api/machine/emergency-stop${qs}`)
   }
 
   setMode(mode: number): Promise<unknown> {

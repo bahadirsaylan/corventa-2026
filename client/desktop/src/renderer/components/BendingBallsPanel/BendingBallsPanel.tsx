@@ -66,10 +66,12 @@ function ControlPanel() {
   async function confirmCancel() {
     setShowCancelModal(false)
     try {
-      await window.corventa.machine.emergencyStop()
-      // EXCEL 24 — job kaydını da kapat: backend /bending-job/{id}/cancel → iş Cancelled
-      // (pipeline durur, bekleyen segment/onay iptal). Başarısızsa eski uyarı gösterilir.
+      // EXCEL 24 — jobId acil stop'la birlikte gider: backend iptali makineyi durdurmadan ÖNCE işaretler,
+      // pipeline'ın acil stop'la ürettiği sonuç Failed değil Cancelled yazılır (yarış yok).
       const jobId = useBendingActivityStore.getState().runningJobId ?? progressJobId
+      await window.corventa.machine.emergencyStop(jobId)
+      // Job kaydını da kapat: backend /bending-job/{id}/cancel → iş Cancelled (zaten Cancelled ise 200)
+      // (pipeline durur, bekleyen segment/onay iptal). Başarısızsa eski uyarı gösterilir.
       let jobCancelled = false
       if (jobId != null) {
         try {

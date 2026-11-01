@@ -79,9 +79,9 @@ export function registerMachineHandlers(): void {
     return engineApi.sideSupportControl(req)
   })
 
-  ipcMain.handle(Ipc.IpcInvoke.EmergencyStop, async () => {
-    log.warn('EMERGENCY STOP triggered from UI')
-    return engineApi.emergencyStop()
+  ipcMain.handle(Ipc.IpcInvoke.EmergencyStop, async (_evt, jobId?: number | null) => {
+    log.warn('EMERGENCY STOP triggered from UI', { jobId })
+    return engineApi.emergencyStop(typeof jobId === 'number' ? jobId : null)
   })
 
   ipcMain.handle(Ipc.IpcInvoke.SetMachineMode, async (_evt, mode: number) => {
