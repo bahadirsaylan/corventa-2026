@@ -166,8 +166,8 @@ export class EngineApiClient {
   }
 
   cancelBendingJob(jobId: number): Promise<unknown> {
-    // NOT: Backend'de henüz cancel endpoint'i yok (CLAUDE.md "yapılacaklar"da listede).
-    // Eklendiğinde burayı tek noktadan değiştiririz.
+    // Backend: POST /api/bending-job/{id}/cancel (= /stop) → makine durur, job Cancelled (EXCEL 24).
+    // Job Running değilse 400 → HttpError.
     return http.post(`${this.baseUrl}/api/bending-job/${jobId}/cancel`)
   }
 

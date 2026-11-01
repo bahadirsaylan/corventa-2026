@@ -40,8 +40,8 @@ function ControlPanel() {
   const t = useT()
 
   // ── İptal butonu state'i ────────────────────────
-  // Backend'de dedicated cancel endpoint yok — emergency-stop makineyi durdurur ama
-  // job state otomatik temizlenmeyebilir; operatöre net uyarı verilir.
+  // Önce emergency-stop (makineyi durdurur), sonra job iptali (/bending-job/{id}/cancel → Cancelled).
+  // İptal çağrısı başarısızsa job state temizlenmeyebilir; operatöre net uyarı verilir.
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [cancelInfo, setCancelInfo] = useState<string | null>(null)
 
@@ -64,8 +64,22 @@ function ControlPanel() {
     setShowCancelModal(false)
     try {
       await window.corventa.machine.emergencyStop()
+      // EXCEL 24 — job kaydını da kapat: backend /bending-job/{id}/cancel → iş Cancelled
+      // (pipeline durur, bekleyen segment/onay iptal). Başarısızsa eski uyarı gösterilir.
+      const jobId = useBendingActivityStore.getState().runningJobId ?? progress?.jobId ?? null
+      let jobCancelled = false
+      if (jobId != null) {
+        try {
+          await window.corventa.bending.cancelJob(jobId)
+          jobCancelled = true
+        } catch {
+          // Job zaten bitmiş / Running değil (400) veya backend'e ulaşılamadı
+        }
+      }
       setCancelInfo(
-        t('BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.'),
+        jobCancelled
+          ? t('BÜKÜM İPTAL EDİLDİ.')
+          : t('BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.'),
       )
     } catch (e) {
       setCancelInfo(t('İPTAL ÇAĞRISI BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }))

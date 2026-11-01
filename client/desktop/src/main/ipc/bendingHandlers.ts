@@ -133,7 +133,7 @@ export function registerBendingHandlers(): void {
   )
 
   ipcMain.handle(Ipc.IpcInvoke.CancelBendingJob, async (_evt, jobId: number) => {
-    log.warn('cancel-bending-job (backend endpoint may not exist yet)', { jobId })
+    log.warn('cancel-bending-job', { jobId })
     return engineApi.cancelBendingJob(jobId)
   })
 
