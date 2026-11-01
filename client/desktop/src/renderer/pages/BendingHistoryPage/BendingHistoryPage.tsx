@@ -427,7 +427,7 @@ function JobDetailView({ id }: { id: number }) {
   const msgOf = (l: BendingLogEntry) => (l.category === DETAIL_CATEGORY ? l.message : translateProgress(l.message, lang))
 
   return (
-    <div className={styles.body}>
+    <div className={`${styles.body} ${styles.detailBody}`}>
       {/* İş özeti */}
       {jobError && (
         <div className={styles.errorBox}>
@@ -472,8 +472,8 @@ function JobDetailView({ id }: { id: number }) {
         </div>
       )}
 
-      {/* Loglar */}
-      <div className={styles.card}>
+      {/* Loglar — kalan yüksekliği doldurur; log tablosu bu kart içinde kayar */}
+      <div className={`${styles.card} ${styles.logCard}`}>
         <div className={styles.sectionTitle}>{t('BÜKÜM LOGLARI')}</div>
 
         <div className={styles.tabRow}>

@@ -1,7 +1,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .purposeBox {
@@ -84,7 +84,7 @@
 
 .descInput {
   width: 100%;
-  min-height: 220px;
+  min-height: 180px;
   border: none;
   outline: none;
   padding: 18px 22px;

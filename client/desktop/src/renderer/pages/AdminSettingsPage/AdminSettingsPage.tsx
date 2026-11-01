@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import type { MaintenancePeriodKey, MaintenanceRulesConfig, StageInfo } from '@shared/types'
 import {
   ConfirmChangesModal,
+  PagedColumns,
   SettingsPageShell,
   SettingsSection,
   diffValues,
@@ -290,6 +291,7 @@ function AdminEditor() {
         </p>
       )}
 
+      <PagedColumns resetKey={tab}>
       {group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}
@@ -333,7 +335,7 @@ function AdminEditor() {
             // (DB'de değişirse büküm hesabı ile hareket ayrışır). 4-5: ofsetler buradan tanımlanır.
             if (n <= FIXED_STAGES) {
               return (
-                <div key={n} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div key={n} style={{ display: 'contents' }}>
                   {n > 1 && (
                     <SettingsSection
                       section={{ title: `STAGE ${n}${on ? '' : ` — ${t('PASİF')}`}`, fields: [STAGE_ACTIVE_FIELD] }}
@@ -381,8 +383,10 @@ function AdminEditor() {
         </>
       )}
 
+      </PagedColumns>
+
       {(
-        <div className={styles.footer} style={{ position: 'sticky', bottom: -20, margin: '0 -24px -20px' }}>
+        <div className={`${styles.footer} ${styles.footerInBody}`}>
           <span className={styles.footerInfo}>
             {changes.length ? t('{n} değişiklik kaydedilmedi', { n: changes.length }) : t('Değişiklik yok')}
           </span>

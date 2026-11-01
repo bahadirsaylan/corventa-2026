@@ -2,7 +2,7 @@
 .page {
   position: relative;
   width: 1080px;
-  height: 750px;
+  height: 100%;
   overflow: hidden;
   background: #f2efe9;
 }

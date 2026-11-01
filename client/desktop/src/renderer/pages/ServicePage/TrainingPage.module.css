@@ -1,7 +1,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 /* ── Katılımcı bilgileri ──────────────────────── */
@@ -11,7 +11,7 @@
   background: #fcefd4;
   border: 1.5px solid #c5c1b6;
   border-radius: 12px;
-  padding: 14px;
+  padding: 10px 14px;
 }
 
 .badgeWrap {
@@ -25,7 +25,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .field {
@@ -35,7 +35,7 @@
   gap: 8px;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 5px 10px;
 }
 
 .fieldLabel {
@@ -76,7 +76,7 @@
 .topicHeader {
   background: #f5d76e;
   border-bottom: 1.5px solid #c5c1b6;
-  padding: 14px 18px;
+  padding: 8px 18px;
   display: flex;
   gap: 12px;
   align-items: baseline;
@@ -84,24 +84,24 @@
 }
 
 .topicHeaderLabel {
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 900;
   color: var(--color-text);
   letter-spacing: 0.06em;
 }
 
 .topicHeaderValue {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: 0.04em;
 }
 
 .topicBody {
-  padding: 18px 22px;
+  padding: 12px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
 }
 
 .topicSection {
@@ -112,14 +112,14 @@
 }
 
 .topicHeading {
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 800;
   color: var(--color-text);
 }
 
 .topicText {
-  font-size: 17px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.45;
   color: var(--color-text);
   letter-spacing: 0.02em;
 }
@@ -136,7 +136,7 @@
   background: #ffffff;
   border: 2px solid #c5c1b6;
   border-radius: 12px;
-  padding: 18px 22px;
+  padding: 10px 22px;
   font-size: 20px;
   font-weight: 800;
   color: var(--color-text);
@@ -146,7 +146,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  min-height: 90px;
+  min-height: 62px;
   touch-action: manipulation;
   transition: filter 0.12s, transform 0.08s;
 }
@@ -161,7 +161,7 @@
   color: var(--color-text);
   letter-spacing: 0.06em;
   cursor: pointer;
-  min-height: 192px;
+  min-height: 136px;
   touch-action: manipulation;
   transition: filter 0.12s, transform 0.08s;
 }

@@ -103,7 +103,7 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
   return (
     <>
       {/* ── Kalan garanti + info ─────────────────── */}
-      <div className={styles.card}>
+      <div className={`${styles.card} ${styles.statusCard}`}>
         <div className={styles.statusBlock}>
           <span className={styles.statusLabel}>{t('KALAN GARANTİ')}</span>
           <div
@@ -136,7 +136,7 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
       </div>
 
       {/* ── 4 kategori × 750 gün tablosu ─────────── */}
-      <div className={styles.card}>
+      <div className={`${styles.card} ${styles.catCard}`}>
         <div className={styles.sectionTitle}>{t('KAPSANAN ÜNİTELER (PDF s.15)')}</div>
         <div className={styles.categoryGrid}>
           {WARRANTY_CATEGORIES.map((cat) => (
@@ -149,7 +149,7 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
       </div>
 
       {/* ── Garanti dışı haller ──────────────────── */}
-      <div className={styles.card}>
+      <div className={`${styles.card} ${styles.exclCard}`}>
         <div className={styles.sectionTitle}>{t('GARANTİ KAPSAMI DIŞINDA')}</div>
         <ul className={styles.exclusionList}>
           {EXCLUSIONS.map((item) => (

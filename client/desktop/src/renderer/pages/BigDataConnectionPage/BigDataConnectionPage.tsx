@@ -92,7 +92,7 @@ export default function BigDataConnectionPage() {
         </div>
 
         {/* ── Bağlantı Durumu ─────────────────────── */}
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.connCard}`}>
           <div className={styles.sectionTitle}>{t('BAĞLANTI DURUMU')}</div>
           <div className={styles.statusRow}>
             <div className={`${styles.statusDot} ${styles[status]}`} />
@@ -148,7 +148,7 @@ export default function BigDataConnectionPage() {
         </div>
 
         {/* ── Veri gönderim aralığı + aktif toggle ── */}
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.sendCard}`}>
           <div className={styles.sectionTitle}>{t('GÖNDERİM AYARLARI')}</div>
 
           <div className={styles.rowSpaced}>

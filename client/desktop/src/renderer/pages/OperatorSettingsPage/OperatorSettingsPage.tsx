@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   ConfirmChangesModal,
   SettingsPageShell,
+  PagedColumns,
   SettingsSection,
   diffValues,
   patchOf,
@@ -278,6 +279,7 @@ export default function OperatorSettingsPage() {
         </p>
       )}
 
+      <PagedColumns>
       {LOCAL_SECTIONS.map((s) => (
         <SettingsSection key={s.title} section={s} values={local} original={local0} onChange={onChange(setLocal)} />
       ))}
@@ -315,6 +317,7 @@ export default function OperatorSettingsPage() {
           ))}
         </div>
       </div>
+      </PagedColumns>
 
       {confirm && (
         <ConfirmChangesModal

@@ -129,7 +129,7 @@ export default function EncoderResetPage() {
           </span>
         </div>
 
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.stateCard}`}>
           <div className={styles.sectionTitleRow}>
             <span className={styles.sectionTitle}>{t('MEVCUT DURUM')}</span>
           </div>
@@ -186,7 +186,7 @@ export default function EncoderResetPage() {
           </div>
         </div>
 
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.stepsCard}`}>
           <div className={styles.sectionTitleRow}>
             <span className={styles.sectionTitle}>{t('GÖNYE — İŞLEM ADIMLARI')}</span>
           </div>

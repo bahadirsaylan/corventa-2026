@@ -4,7 +4,7 @@
 //   ConfirmChangesModal — KAYDET öncesi "eski → yeni" listesi; onaylanmadan hiçbir şey yazılmaz
 // Değerler ham sayı olarak tutulur; satıra dokunulmadıkça backend'deki değer birebir korunur.
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -127,6 +127,96 @@ export function SettingsPageShell({
   )
 }
 
+/**
+ * Uzun ayar listeleri için kaydırmasız sayfalama: içerik iki sütunlu (CSS multi-column) akar,
+ * üst alana sığmayan sütunlar sağa taşar ve ‹ › düğmeleriyle sayfa sayfa gezilir.
+ * Kartlar sütun içinde bölünmez (sığmayan çok uzun kart satır aralarından bölünür).
+ * resetKey değişince (ör. sekme) ilk sayfaya döner.
+ */
+export function PagedColumns({ children, resetKey }: { children: ReactNode; resetKey?: string | number }) {
+  const t = useT()
+  const ref = useRef<HTMLDivElement>(null)
+  const [page, setPage] = useState(0)
+  const [pages, setPages] = useState(1)
+  const [pad, setPad] = useState(false)
+
+  const stride = (el: HTMLDivElement) => el.clientWidth + (parseFloat(getComputedStyle(el).columnGap) || 0)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      // Sütun sayısı tek ise son sayfa tam kaydırılamaz (scrollWidth yarım sayfada biter) →
+      // sona boş bir dolgu sütunu eklenir (colPad). Dolgu sayılmadan gerçek sütun sayısı bulunur.
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0
+      const colStride = (el.clientWidth - gap) / 2 + gap
+      const hasPad = !!el.querySelector(`.${styles.colPad}`)
+      const cols = Math.max(1, Math.round((el.scrollWidth + gap) / colStride)) - (hasPad ? 1 : 0)
+      const n = Math.max(1, Math.ceil(cols / 2))
+      setPad(cols > 1 && cols % 2 === 1)
+      setPages(n)
+      setPage((p) => Math.min(p, n - 1))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    const mo = new MutationObserver(measure)
+    mo.observe(el, { childList: true, subtree: true, characterData: true })
+    return () => {
+      ro.disconnect()
+      mo.disconnect()
+    }
+  }, [])
+
+  useEffect(() => setPage(0), [resetKey])
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (el) el.scrollLeft = page * stride(el)
+  }, [page, pages, pad])
+
+  return (
+    <div className={styles.paged}>
+      <div
+        ref={ref}
+        className={styles.columns}
+        // Odak (klavye / sekme) gizli sütuna kaydırırsa sayfayı hizala
+        onScroll={(e) => {
+          const el = e.currentTarget
+          const p = Math.round(el.scrollLeft / stride(el))
+          if (p !== page) setPage(p)
+        }}
+      >
+        {children}
+        {pad && <div className={styles.colPad} aria-hidden />}
+      </div>
+      {pages > 1 && (
+        <div className={styles.pager}>
+          <button
+            type="button"
+            className={styles.pagerBtn}
+            disabled={page === 0}
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            aria-label={t('Önceki sayfa')}
+          >
+            <Icon name="chevronLeft" size="lg" />
+          </button>
+          <span className={styles.pagerInfo}>{t('SAYFA {p} / {n}', { p: page + 1, n: pages })}</span>
+          <button
+            type="button"
+            className={styles.pagerBtn}
+            disabled={page >= pages - 1}
+            onClick={() => setPage((p) => Math.min(pages - 1, p + 1))}
+            aria-label={t('Sonraki sayfa')}
+          >
+            <Icon name="chevronRight" size="lg" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SettingsSection({
   section,
   values,
@@ -200,14 +290,17 @@ function FieldRow({
   return (
     <div className={styles.row} data-changed={changed || undefined}>
       <div className={styles.info}>
-        <span className={styles.label}>{t(field.label)}</span>
+        {/* Etiket + aralık aynı satırda (dikey yer kazancı — ayar listeleri üst alana sığsın) */}
+        <span className={styles.labelLine}>
+          <span className={styles.label}>{t(field.label)}</span>
+          {field.type !== 'select' && (field.min != null || field.max != null) && (
+            <span className={styles.range}>
+              {t('Aralık')}: {field.min ?? '…'} – {field.max ?? '…'}
+              {field.unit ? ` ${field.unit}` : ''}
+            </span>
+          )}
+        </span>
         {field.desc && <span className={styles.desc}>{t(field.desc)}</span>}
-        {field.type !== 'select' && (field.min != null || field.max != null) && (
-          <span className={styles.range}>
-            {t('Aralık')}: {field.min ?? '…'} – {field.max ?? '…'}
-            {field.unit ? ` ${field.unit}` : ''}
-          </span>
-        )}
         {error && <span className={styles.error}>{error}</span>}
       </div>
 

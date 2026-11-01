@@ -251,6 +251,8 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
   const lang = useLang()
   const [snap, setSnap] = useState<ErrorSnapshotDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Üst alana kaydırmasız sığması için rapor iki görünüme ayrılır (sadece gösterim)
+  const [view, setView] = useState<'machine' | 'job'>('machine')
 
   useEffect(() => {
     let alive = true
@@ -293,7 +295,7 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
   const plcName = typeof ms?.errorCode === 'string' ? ms.errorCode : null
 
   return (
-    <div className={styles.body}>
+    <div className={`${styles.body} ${styles.detailBody}`}>
       {/* Özet */}
       <div className={styles.card} style={{ borderColor: SEV_COLORS[snap.severity] ?? SEV_COLORS.error }}>
         <div className={styles.detailHead}>
@@ -314,11 +316,24 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
         </div>
       </div>
 
-      {ms == null && (
+      {/* Görünüm seçimi — makine durumu / aktif iş + loglar */}
+      <div className={styles.viewTabs}>
+        <button className={styles.viewTab} data-on={view === 'machine' || undefined} onClick={() => setView('machine')}>
+          {t('MAKİNE DURUMU')}
+        </button>
+        <button className={styles.viewTab} data-on={view === 'job' || undefined} onClick={() => setView('job')}>
+          {t('AKTİF İŞ VE LOGLAR')}
+        </button>
+        <button className={`${styles.refreshBtn} ${styles.viewBack}`} onClick={onBack}>
+          <IconLabel icon="back">{t('LİSTEYE DÖN')}</IconLabel>
+        </button>
+      </div>
+
+      {view === 'machine' && ms == null && (
         <div className={styles.errorBox}><IconLabel icon="warning">{t('Makine durumu kaydedilmemiş')}</IconLabel></div>
       )}
 
-      {ms != null && (
+      {view === 'machine' && ms != null && (
         <div className={styles.twoCol}>
           {/* Pistonlar + rotasyon */}
           <div className={styles.card}>
@@ -382,7 +397,7 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
         </div>
       )}
 
-      {ms != null && (
+      {view === 'machine' && ms != null && (
         <div className={styles.card}>
           <div className={styles.sectionTitle}>{t('GÜVENLİK GİRİŞLERİ')}</div>
           <div className={styles.safetyGrid}>
@@ -397,6 +412,7 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
       )}
 
       {/* Aktif iş */}
+      {view === 'job' && (
       <div className={styles.card}>
         <div className={styles.sectionTitle}>{t('AKTİF İŞ')}</div>
         {job == null
@@ -423,8 +439,11 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
           )}
       </div>
 
-      {/* Son loglar */}
-      <div className={styles.card}>
+      )}
+
+      {/* Son loglar — kalan yüksekliği doldurur, tablo kart içinde kayar */}
+      {view === 'job' && (
+      <div className={`${styles.card} ${styles.logCard}`}>
         <div className={styles.sectionTitle}>{t('SON LOG SATIRLARI ({n})', { n: snap.logs?.length ?? 0 })}</div>
         {!snap.logs || snap.logs.length === 0
           ? <div className={styles.empty}>{t('Log satırı yok')}</div>
@@ -451,10 +470,7 @@ function SnapshotDetailView({ id, onBack }: { id: number; onBack: () => void }) 
             </div>
           )}
       </div>
-
-      <button className={styles.refreshBtn} onClick={onBack}>
-        <IconLabel icon="back">{t('LİSTEYE DÖN')}</IconLabel>
-      </button>
+      )}
     </div>
   )
 }
