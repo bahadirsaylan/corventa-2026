@@ -20,7 +20,7 @@ export default function SettingsMenuGrid() {
       {/* ── LEFT COLUMN ───────────────────────────── */}
       <div className={styles.col}>
         <SettingsBtn label="GARANTİ SÜRESİ" permission="warranty" onClick={() => navigate('/settings/warranty')} />
-        <SettingsBtn label="BİG DATA BAĞLANTI AYARLARI" permission="big-data" onClick={() => navigate('/settings/big-data')} />
+        <SettingsBtn label="BULUT BAĞLANTISI" permission="big-data" onClick={() => navigate('/settings/big-data')} />
         <SettingsBtn label="KULLANICI YÖNETİMİ" permission="user-management" onClick={() => navigate('/settings/users')} />
         <SettingsBtn label="OPERATÖR AYARLARI" permission="operator-settings" onClick={() => navigate('/settings/operator')} />
         <SettingsBtn label="KARŞILAMA MESAJI" permission="welcome-message" onClick={() => navigate('/settings/welcome-message')} />

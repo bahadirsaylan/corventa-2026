@@ -125,6 +125,16 @@ export const IpcInvoke = {
   MacroUpdate: 'macro:update',
   MacroDelete: 'macro:delete',
 
+  // DataApi — Bulut bağlantısı (BULUT_API.md §4) + güncelleme kurulumu (§5, main setup'ı başlatıp kapanır)
+  CloudGetStatus: 'cloud:get-status',
+  CloudActivate: 'cloud:activate',
+  CloudSyncNow: 'cloud:sync-now',
+  CloudDownloadUpdate: 'cloud:download-update',
+  CloudSetShare: 'cloud:set-share',
+  CloudDeactivate: 'cloud:deactivate',
+  CloudGetInstallBlockers: 'cloud:get-install-blockers',
+  CloudInstallUpdate: 'cloud:install-update',
+
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',

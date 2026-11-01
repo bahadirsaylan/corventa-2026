@@ -36,8 +36,9 @@ export const PERMISSIONS = {
   'customer-change': 'ADMIN',
   'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
   'macro-delete': 'ADMIN',          // makro silme (DataApi DELETE /api/macros/{id} [RequireRole(Admin)])
+  'big-data': 'ADMIN',              // Bulut Bağlantısı sayfası: durum, aktivasyon, reçete paylaşımı, güncelleme (main de kontrol eder)
   // ── SUPERADMIN ──
-  'big-data': 'SUPERADMIN',
+  'cloud-deactivate': 'SUPERADMIN', // BULUT BAĞLANTISINI KALDIR (main de kontrol eder)
   'kiosk-exit': 'SUPERADMIN',     // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
   'manage-admins': 'SUPERADMIN',    // ADMIN / SUPERADMIN kullanıcı ekleme-düzenleme
 } as const satisfies Record<string, UserRole>

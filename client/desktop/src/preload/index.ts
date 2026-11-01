@@ -3,6 +3,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 import { authApi } from './api/auth'
 import { bendingApi } from './api/bending'
+import { cloudApi } from './api/cloud'
 import { eventsApi } from './api/events'
 import { machineApi } from './api/machine'
 import { macroApi } from './api/macro'
@@ -26,6 +27,7 @@ if (process.contextIsolated) {
       usage: usageApi,
       auth: authApi,
       macro: macroApi,
+      cloud: cloudApi,
     })
   } catch (error) {
     console.error('preload: contextBridge.exposeInMainWorld failed', error)

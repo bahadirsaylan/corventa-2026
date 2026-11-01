@@ -21,6 +21,7 @@ import OilStatsList from '@/pages/DashboardPage/OilStatsList'
 import ErrorLogsModal from './ErrorLogsModal'
 import ArcBendingStrip from './ArcBendingStrip'
 import InternetStatusChip from '@/components/InternetStatus/InternetStatusChip'
+import CloudUpdateChip from '@/components/CloudUpdate/CloudUpdateChip'
 import { BendingMethod } from '@shared/types'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
@@ -181,6 +182,9 @@ export default function BottomStatsPanel() {
             )}
           </button>
         )}
+
+        {/* Bulut: yeni yazılım sürümü varsa "GÜNCELLEME VAR" (dokununca Bulut Bağlantısı sayfası) */}
+        <CloudUpdateChip />
 
         {/* İnternet erişimi (EXCEL 37) — dokununca son kontrol bilgisi */}
         <InternetStatusChip />

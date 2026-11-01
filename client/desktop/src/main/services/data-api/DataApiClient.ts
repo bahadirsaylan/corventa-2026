@@ -8,6 +8,7 @@ import type {
   BendingLogQuery,
   BendingLogsResponse,
   Certificate,
+  CloudStatus,
   CustomerChangeConfirmResponse,
   CustomerChangeRequestBody,
   CustomerChangeRequestResponse,
@@ -345,6 +346,34 @@ export class DataApiClient {
 
   deleteMacro(id: number): Promise<unknown> {
     return http.delete<unknown>(`${this.baseUrl}/api/macros/${id}`)
+  }
+
+  // ---------- Bulut bağlantısı (BULUT_API.md §4) ----------
+  // Hatalar HttpError (400 { error }) — IPC handler sonuç zarfına çevirir.
+
+  getCloudStatus(): Promise<CloudStatus> {
+    return http.get<CloudStatus>(`${this.baseUrl}/api/cloud/status`)
+  }
+
+  /** Aktivasyon buluta gider (Supabase RPC) — internet yavaşsa varsayılandan uzun sürebilir */
+  activateCloud(code: string): Promise<CloudStatus> {
+    return http.post<CloudStatus>(`${this.baseUrl}/api/cloud/activate`, { code }, { timeoutMs: 30_000 })
+  }
+
+  syncCloudNow(): Promise<unknown> {
+    return http.post<unknown>(`${this.baseUrl}/api/cloud/sync-now`, {})
+  }
+
+  downloadCloudUpdate(): Promise<unknown> {
+    return http.post<unknown>(`${this.baseUrl}/api/cloud/update/download`, {})
+  }
+
+  setCloudShare(shareRecipes: boolean): Promise<unknown> {
+    return http.put<unknown>(`${this.baseUrl}/api/cloud/share`, { shareRecipes })
+  }
+
+  deactivateCloud(): Promise<CloudStatus> {
+    return http.post<CloudStatus>(`${this.baseUrl}/api/cloud/deactivate`, {})
   }
 
   // ---------- Rol sistemi (auth + users) ----------

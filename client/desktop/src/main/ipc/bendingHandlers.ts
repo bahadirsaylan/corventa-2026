@@ -5,6 +5,7 @@ import { writeFile } from 'fs/promises'
 import { extname, join } from 'path'
 
 import { childLogger } from '@main/lib/logger'
+import { trackUnload } from '@main/services/activity/unloadActivity'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import { engineApi } from '@main/services/engine-api/EngineApiClient'
 import {
@@ -49,7 +50,8 @@ export function registerBendingHandlers(): void {
 
   ipcMain.handle(Ipc.IpcInvoke.UnloadPart, async (_evt, req: UnloadPartRequest) => {
     log.info('unload-part', { req })
-    return engineApi.unloadPart(req)
+    // Sürerken güncelleme kurulumu reddedilir (cloudHandlers)
+    return trackUnload(() => engineApi.unloadPart(req))
   })
 
   // Tahliye DURDUR — POST /api/preparation/unload/stop (devam eden tahliyeyi keser)

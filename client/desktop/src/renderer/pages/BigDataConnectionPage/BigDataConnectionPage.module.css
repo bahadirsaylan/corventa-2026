@@ -1,4 +1,6 @@
+/* Ayarlar > BULUT BAĞLANTISI — 1080 × ~748 üst alana kaydırma çubuğu olmadan sığar */
 .page {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
@@ -11,10 +13,11 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 12px 20px;
+  padding: 10px 20px;
   background: #2a2a2a;
   color: #fff;
   flex-shrink: 0;
+  min-height: 64px;
 }
 
 .backBtn {
@@ -23,44 +26,69 @@
   border-radius: 50%;
   background: #fff;
   color: #2a2a2a;
-  font-size: 22px;
-  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   border: none;
+  flex-shrink: 0;
 }
 
 .title {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: 0.08em;
+  white-space: nowrap;
 }
+
+/* İşlem sonucu — başlık çubuğunda (gövdeye yükseklik eklemesin) */
+.message {
+  margin-left: auto;
+  min-width: 0;
+  max-width: 640px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.message span {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.messageOk { background: #effaf2; color: #1f6b35; }
+.messageError { background: #fdecec; color: #b91c1c; }
 
 .body {
   flex: 1;
   min-height: 0;
-  /* İki sütun: bağlantı durumu + gönderim ayarları yan yana, diğerleri tam genişlik */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px;
+  overflow: hidden;
+}
+
+.twoCol {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-content: start;
-  gap: 10px;
-  padding: 12px 16px;
-  overflow-y: auto;
+  gap: 8px;
 }
-.body > * { grid-column: 1 / -1; }
-.body > .connCard { grid-column: 1; }
-.body > .sendCard { grid-column: 2; grid-row: 2; }
 
 .card {
   background: #fff;
   border: 1.5px solid #d07070;
   border-radius: 12px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .sectionTitle {
@@ -68,16 +96,25 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--color-primary);
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   border-bottom: 2px solid #d07070;
 }
 
-/* Status row */
+/* Durum satırı */
 .statusRow {
   display: flex;
   align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 22px;
+  min-width: 0;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px 16px;
+  padding: 6px 10px;
+  background: #faf6ee;
+  border-radius: 8px;
 }
 
 .statusDot {
@@ -87,57 +124,85 @@
   background: #999;
   flex-shrink: 0;
 }
-
 .statusDot.connected { background: #16a34a; box-shadow: 0 0 8px rgba(22,163,74,0.5); }
 .statusDot.disconnected { background: #999; }
 .statusDot.error { background: #dc2626; box-shadow: 0 0 8px rgba(220,38,38,0.5); }
-.statusDot.testing { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); animation: pulse 1s infinite; }
+.statusDot.testing { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.5); }
 
-@keyframes pulse {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.statusText {
+.stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
+.statWide { flex: 1; }
 
-.statusLabel {
+.statLabel {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.statusValue {
-  font-size: 16px;
+.statValue {
+  font-size: 15px;
   font-weight: 800;
   color: var(--color-text);
   font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.testBtn {
+/* Düğmeler — dokunmatik: en az 44 px */
+.actionBtn,
+.primaryBtn,
+.dangerBtn {
   margin-left: auto;
-  background: var(--color-primary);
-  color: #fff;
-  border: 2px solid var(--color-primary-dark, #b91c1c);
-  border-radius: 6px;
-  min-height: 44px;
+  flex-shrink: 0;
+  min-height: 48px;
   padding: 6px 20px;
-  font-size: 13px;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.06em;
   cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.testBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-.testBtn:hover:not(:disabled) { filter: brightness(1.05); }
+.actionBtn {
+  background: var(--color-primary);
+  color: #fff;
+  border: 2px solid var(--color-primary-dark, #b91c1c);
+}
 
-/* Field/input */
-.field { display: flex; flex-direction: column; gap: 6px; }
+.primaryBtn {
+  background: #16a34a;
+  color: #fff;
+  border: 2px solid #15803d;
+}
 
+.dangerBtn {
+  margin-left: 0;
+  align-self: flex-start;
+  background: #fff;
+  color: #b91c1c;
+  border: 2px solid #b91c1c;
+}
+
+.actionBtn:disabled,
+.primaryBtn:disabled,
+.dangerBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.locked { opacity: 0.55; }
+.lockIcon { width: 18px; height: 18px; }
+
+/* Aktivasyon kodu */
 .fieldLabel {
   font-size: 12px;
   font-weight: 800;
@@ -145,69 +210,45 @@
   color: var(--color-text-muted);
 }
 
-.input {
+.codeRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.codeField {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
   border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 15px;
-  font-family: var(--font-mono);
-  color: var(--color-text);
+  border-radius: 8px;
   background: #f9fafb;
-}
-
-.input:focus { outline: 2px solid var(--color-primary); border-color: var(--color-primary); }
-
-.inputWithBtn {
-  display: flex;
-  gap: 8px;
-}
-
-.inputWithBtn .input { flex: 1; }
-
-.showHideBtn {
-  background: #f4a0a0;
-  border: 1.5px solid #d07070;
-  border-radius: 6px;
-  padding: 0 16px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  color: var(--color-text);
-}
-
-.rowSpaced {
-  display: flex;
-  gap: 32px;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.rowSpaced .field { flex: 1; min-width: 200px; }
-
-.numInputRow { display: flex; align-items: center; gap: 8px; }
-
-.numInput {
-  width: 100px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 10px 14px;
+  font-family: var(--font-mono);
   font-size: 20px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  text-align: center;
-  background: #f9fafb;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
 }
+.codeField:disabled { opacity: 0.5; cursor: not-allowed; }
+.codeRow .primaryBtn { margin-left: 0; }
 
-.unit { font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
+.placeholder { color: #a0a8b4; font-weight: 600; }
 
-/* Toggle */
-.toggleField { display: flex; flex-direction: column; gap: 6px; }
+/* Reçete paylaşımı */
+.shareRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
 
 .toggle {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 48px;
   padding: 8px 20px;
   background: #e5e7eb;
   border: 2px solid #9ca3af;
@@ -215,52 +256,98 @@
   cursor: pointer;
   min-width: 140px;
 }
-
+.toggle:disabled { opacity: 0.5; cursor: not-allowed; }
 .toggle.toggleOn {
   background: #16a34a;
   border-color: #15803d;
   color: #fff;
 }
-
 .toggleKnob {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
 }
-
 .toggleText { font-size: 14px; font-weight: 800; letter-spacing: 0.06em; }
 
-/* Footer row */
-.footerRow {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.saveBtn {
-  background: #16a34a;
-  color: #fff;
-  border: 2px solid #15803d;
-  border-radius: 8px;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.saveBtn:hover { filter: brightness(1.05); }
-
-.note {
-  flex: 1;
-  font-size: 12px;
+/* Güncelleme */
+.upToDate {
+  font-size: 14px;
+  font-weight: 700;
   color: var(--color-text-muted);
-  line-height: 1.5;
-  padding: 10px 14px;
+}
+
+.progress {
+  height: 10px;
+  background: #ece4d4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progressBar {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.4s;
+}
+
+.notes {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Notlar */
+.note,
+.noteError {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+.note {
+  color: var(--color-text-muted);
   background: #f4ecdc;
   border-left: 4px solid var(--color-primary);
-  border-radius: 4px;
-  margin: 0;
+}
+.noteError {
+  color: #b91c1c;
+  background: #fdecec;
+  border-left: 4px solid #b91c1c;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Kurulum başladı — uygulama kapanana kadar */
+.installOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.installBox {
+  width: 560px;
+  padding: 28px 32px;
+  background: #fff;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.installTitle {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #16a34a;
+  margin-bottom: 8px;
 }

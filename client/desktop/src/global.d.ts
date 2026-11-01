@@ -5,6 +5,7 @@ import type { ElectronAPI } from '@electron-toolkit/preload'
 
 import type { AuthApi } from './preload/api/auth'
 import type { BendingApi } from './preload/api/bending'
+import type { CloudApi } from './preload/api/cloud'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
 import type { MacroApi } from './preload/api/macro'
@@ -25,6 +26,7 @@ declare global {
     usage: UsageApi
     auth: AuthApi
     macro: MacroApi
+    cloud: CloudApi
   }
 
   interface Window {

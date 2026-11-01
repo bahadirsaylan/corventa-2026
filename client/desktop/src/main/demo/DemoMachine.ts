@@ -24,6 +24,7 @@ import { app, type BrowserWindow } from 'electron'
 
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
+import { demoCloud } from '@main/demo/demoCloud'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -1724,6 +1725,8 @@ export class DemoMachine extends EventEmitter {
     if (/^\/api\/service\/(tickets|requests|reports)$/.test(path) && method === 'GET') return []
     // EXCEL 28 — usta öğrenme programı / makro (demoMacros.ts)
     if (path === '/api/macros' || path.startsWith('/api/macros/')) return demoMacros(rawUrl, path, method, b)
+    // Bulut bağlantısı (BULUT_API.md §4) — demoCloud.ts
+    if (path.startsWith('/api/cloud/')) return demoCloud(rawUrl, path, method, b)
 
     log.warn('DEMO: karşılanmayan istek', { method, path })
     throw new HttpError(404, rawUrl, 'Demo modunda desteklenmiyor')

@@ -2,6 +2,7 @@ import type { ElectronAPI } from '@electron-toolkit/preload'
 
 import type { AuthApi } from './api/auth'
 import type { BendingApi } from './api/bending'
+import type { CloudApi } from './api/cloud'
 import type { EventsApi } from './api/events'
 import type { MachineApi } from './api/machine'
 import type { MacroApi } from './api/macro'
@@ -19,6 +20,7 @@ export interface CorventaAPI {
   usage: UsageApi
   auth: AuthApi
   macro: MacroApi
+  cloud: CloudApi
 }
 
 declare global {
