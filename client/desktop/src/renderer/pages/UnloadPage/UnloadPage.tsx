@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useT } from '@/i18n'
+import { CLAMP_ESTOP_RE, CLAMP_ESTOP_TEMPLATE } from '@/i18n/progress'
 import { Icon, IconLabel } from '@/components/Icon'
 import {
   UNLOAD_ROT,
@@ -79,6 +80,9 @@ export default function UnloadPage() {
   const { state: navState } = useLocation()
   const { outcome, message: jobMessage } = readNavState(navState)
   const isBad = outcome === 'failed' || outcome === 'cancelled'
+  // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
+  const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
+  const clampEstop = clampEstopRise != null
   const t = useT()
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
@@ -221,7 +225,14 @@ export default function UnloadPage() {
           {t('BÜKÜM UYARISI: {warning}', { warning: t(jobMessage) })}
         </div>
       )}
-      {isBad && (
+      {clampEstop && (
+        <div className={`${styles.hint} ${styles.hintBad}`} role="alert">
+          <IconLabel icon="warning">{t(CLAMP_ESTOP_TEMPLATE, { n: clampEstopRise ?? '' })}</IconLabel>
+          <br />
+          {t('ACİL STOP UYGULANDI — PARÇAYI ÇIKARIN, ÖLÇÜYÜ VE ÖNÜNDEKİ ENGELİ KONTROL EDİP İŞİ YENİDEN BAŞLATIN')}
+        </div>
+      )}
+      {isBad && !clampEstop && (
         <div className={`${styles.hint} ${styles.hintBad}`} role="alert">
           {outcome === 'failed'
             ? jobMessage

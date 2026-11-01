@@ -75,6 +75,23 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         ],
       },
       {
+        title: 'SIKIŞTIRMA ALGORİTMASI',
+        note: 'HEDEFTE TEMAS: üst top hedef konuma kadar iner, hedefte yavaşlayıp 1 bar temas artışında durur. Hedefe varmadan basınç belirlenen kadar artarsa ACİL STOP yapılır.',
+        fields: [
+          {
+            type: 'select',
+            key: 'clampContactAtTargetEnabled',
+            label: 'SIKIŞTIRMA YÖNTEMİ',
+            desc: 'ESKİ: hedefin %95 noktasında yavaşlar, acil stop koruması yok.',
+            options: [
+              { value: true, label: 'HEDEFTE TEMAS' },
+              { value: false, label: 'ESKİ (%95)' },
+            ],
+          },
+          { key: 'clampTravelOverpressureBar', label: 'YOLDA ACİL STOP BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 50, integer: true, desc: 'Hedefe giderken serbest yürüme basıncına göre bu kadar artış görülürse acil stop.' },
+        ],
+      },
+      {
         title: 'SIKIŞTIRMA HAREKETİ',
         note: PENDING,
         fields: [

@@ -32,7 +32,8 @@ export interface SelectField {
   key: string
   label: string
   desc?: string
-  options: { value: string; label: string }[]
+  /** boolean değer: MachineSettings'teki aç/kapa ayarları (ör. clampContactAtTargetEnabled) */
+  options: { value: string | boolean; label: string }[]
 }
 
 export type FieldDef = NumberField | SelectField
@@ -214,7 +215,7 @@ function FieldRow({
         <div className={styles.segmented}>
           {field.options.map((o) => (
             <button
-              key={o.value}
+              key={String(o.value)}
               type="button"
               disabled={disabled}
               className={styles.segBtn}

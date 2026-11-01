@@ -12,6 +12,11 @@ type Rule = [RegExp, (m: RegExpExecArray) => [string, TVars?]]
 
 const num = (s: string) => s.replace(',', '.')
 
+/** Sıkıştırma acil stop mesajı — backend metniyle birebir (ClampContactAtTarget.EmergencyStopMessagePrefix). */
+export const CLAMP_ESTOP_RE = /SIKIŞTIRMA ACİL STOP: hedefe ulaşmadan basınç (-?\d+) bar arttı/
+export const CLAMP_ESTOP_TEMPLATE =
+  'SIKIŞTIRMA ACİL STOP: hedefe ulaşmadan basınç {n} bar arttı — parça ölçüsünü ve önündeki engeli kontrol edin'
+
 const RULES: Rule[] = [
   [/^Büküm başlıyor\.\.\.$/i, () => ['Büküm başlıyor...']],
   [/^Parça sıkıştırılıyor\.\.\.$/i, () => ['Parça sıkıştırılıyor...']],
@@ -37,6 +42,8 @@ const RULES: Rule[] = [
   [/^Seg(\d+) paso(\d+)\/(\d+) \((fwd|rew)\) \[(Left|Right)\] piston ([\d.,]+)mm$/i, (m) => ['Seg{s} paso{p}/{t} ({dir}) [{side}] piston {mm}mm', { s: m[1], p: m[2], t: m[3], dir: m[4], side: m[5], mm: num(m[6]) }]],
   [/^Sıradaki segment \((\d+)\/(\d+)\) için R\/α\/L girin$/i, (m) => ['Sıradaki segment ({i}/{n}) için R/α/L girin', { i: m[1], n: m[2] }]],
   [/^İptal edildi$/i, () => ['İptal edildi']],
+  // Sıkıştırma v2 acil stopu (backend ClampContactAtTarget) — önüne "Hata: " / "Sıkıştırma hatası: " / "Clamp: " gelebilir
+  [CLAMP_ESTOP_RE, (m) => [CLAMP_ESTOP_TEMPLATE, { n: m[1] }]],
   [/^Hata: (.*)$/i, (m) => ['Hata: {msg}', { msg: m[1] }]],
 ]
 
