@@ -1,7 +1,8 @@
 // Ayarlar > Operatör Ayarları — operatörün değiştirebileceği ayarlar (eski "Varsayılan Hız" sayfası).
 //   • Bu cihazda saklananlar (services/operatorPrefs): manuel tuş takımı hızı, manuel büküm ekranı
-//     hızı, ölçü ekranı H/G ön değerleri, tahliye süreleri ve hareketi
-//   • Makinede saklanan (Bending API MachineSettings): geri esneme toleransı
+//     hızı, ölçü ekranı H/G ön değerleri
+//   • Makinede saklanan (Bending API MachineSettings): geri esneme toleransı; tahliye süreleri ve hareketi
+//     (2026-11-01: localStorage'dan MachineSettings Unload* alanlarına taşındı — sınır/hız Admin Ayarları'nda)
 //   • Kısayollar: Dil, Karşılama Mesajı, Hızlı Menü, Check List (kendi sayfalarında kaydedilir)
 // Makine ayarlarının tamamı Admin Ayarları'nda.
 
@@ -27,14 +28,11 @@ import {
   readManualRunPrefs,
   readManualSpeed,
   readMeasureDefaults,
-  readUnloadMotion,
-  readUnloadPresets,
-  readUnloadSelected,
   saveManualRunPrefs,
   saveManualSpeed,
   saveMeasureDefaults,
-  saveUnloadMotion,
-  saveUnloadPresets,
+  saveUnloadConfig,
+  unloadConfigFromSettings,
 } from '@/services/operatorPrefs'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
@@ -72,33 +70,34 @@ const LOCAL_SECTIONS: SectionDef[] = [
       { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true },
     ],
   },
-  {
-    title: 'TAHLİYE',
-    note: 'Büküm bitince açılan tahliye ekranının seçenekleri.',
-    fields: [
-      ...UNLOAD_DEFAULT_PRESETS.map((_, i) => ({
-        key: `unloadPreset${i}`,
-        label: `SÜRE ${i + 1}`,
-        unit: 'sn',
-        min: UNLOAD_SECONDS.min,
-        max: UNLOAD_SECONDS.max,
-        integer: true,
-      })),
-      { key: 'unloadUpperMm', label: 'ÜST TOP GERİ ÇEKME', unit: 'mm', min: UNLOAD_UPPER.min, max: UNLOAD_UPPER.max },
-      { key: 'unloadRotationSec', label: 'ROTASYON SÜRESİ', unit: 'sn', min: UNLOAD_ROT_SEC.min, max: UNLOAD_ROT_SEC.max },
-      {
-        type: 'select',
-        key: 'unloadRotationDir',
-        label: 'ROTASYON YÖNÜ',
-        options: [
-          // Tahliye ekranındaki yön tuşlarıyla aynı: -1 = CW, 1 = CCW
-          { value: '-1', label: 'CW' },
-          { value: '1', label: 'CCW' },
-        ],
-      },
-    ],
-  },
 ]
+
+const UNLOAD_SECTION: SectionDef = {
+  title: 'TAHLİYE',
+  note: 'Büküm bitince açılan tahliye ekranının seçenekleri. Makinede saklanır — tüm kullanıcılar için geçerlidir.',
+  fields: [
+    ...UNLOAD_DEFAULT_PRESETS.map((_, i) => ({
+      key: `unloadPreset${i}`,
+      label: `SÜRE ${i + 1}`,
+      unit: 'sn',
+      min: UNLOAD_SECONDS.min,
+      max: UNLOAD_SECONDS.max,
+      integer: true,
+    })),
+    { key: 'unloadUpperMm', label: 'ÜST TOP GERİ ÇEKME', unit: 'mm', min: UNLOAD_UPPER.min, max: UNLOAD_UPPER.max },
+    { key: 'unloadRotationSec', label: 'ROTASYON SÜRESİ', unit: 'sn', min: UNLOAD_ROT_SEC.min, max: UNLOAD_ROT_SEC.max },
+    {
+      type: 'select',
+      key: 'unloadRotationDir',
+      label: 'ROTASYON YÖNÜ',
+      options: [
+        // Tahliye ekranındaki yön tuşlarıyla aynı: -1 = CW, 1 = CCW
+        { value: '-1', label: 'CW' },
+        { value: '1', label: 'CCW' },
+      ],
+    },
+  ],
+}
 
 const MACHINE_SECTION: SectionDef = {
   title: 'GERİ ESNEME',
@@ -126,7 +125,6 @@ const SHORTCUTS: [string, string][] = [
 const LOCAL_FIELDS = LOCAL_SECTIONS.flatMap((s) => s.fields)
 
 function readLocal(): Values {
-  const m = readUnloadMotion()
   const d = readMeasureDefaults()
   const run = readManualRunPrefs()
   const v: Values = {
@@ -134,11 +132,7 @@ function readLocal(): Values {
     manualRunSpeed: run.speedPercent,
     measureH: d.H,
     measureG: d.G,
-    unloadUpperMm: m.upperRetractMm,
-    unloadRotationSec: m.rotationSec,
-    unloadRotationDir: String(m.rotationDir),
   }
-  readUnloadPresets().forEach((s, i) => (v[`unloadPreset${i}`] = s))
   return v
 }
 
@@ -146,15 +140,18 @@ function writeLocal(v: Values): void {
   saveManualSpeed(Number(v.manualSpeed))
   saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed) })
   saveMeasureDefaults({ H: (v.measureH as number | null) ?? null, G: (v.measureG as number | null) ?? null })
-  saveUnloadMotion({
-    upperRetractMm: Number(v.unloadUpperMm),
-    rotationSec: Number(v.unloadRotationSec),
-    rotationDir: v.unloadRotationDir === '-1' ? -1 : 1,
-  })
-  saveUnloadPresets(
-    UNLOAD_DEFAULT_PRESETS.map((_, i) => Number(v[`unloadPreset${i}`])),
-    readUnloadSelected(),
-  )
+}
+
+/** Makine ayarlarından tahliye ekran alanları (boş DB alanı → bu cihazdaki eski değer / varsayılan) */
+function unloadValues(m: Values): Values {
+  const c = unloadConfigFromSettings(m as Parameters<typeof unloadConfigFromSettings>[0])
+  const v: Values = {
+    unloadUpperMm: c.motion.upperRetractMm,
+    unloadRotationSec: c.motion.rotationSec,
+    unloadRotationDir: String(c.motion.rotationDir),
+  }
+  c.presets.forEach((s, i) => (v[`unloadPreset${i}`] = s))
+  return v
 }
 
 export default function OperatorSettingsPage() {
@@ -167,6 +164,9 @@ export default function OperatorSettingsPage() {
   const [machine0, setMachine0] = useState<Values>({})
   const [machine, setMachine] = useState<Values>({})
   const [machineError, setMachineError] = useState<string | null>(null)
+  // Tahliye (makinede) — ekran alanları MachineSettings Unload* alanlarından türetilir
+  const [unload0, setUnload0] = useState<Values>({})
+  const [unload, setUnload] = useState<Values>({})
 
   const [confirm, setConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -178,6 +178,9 @@ export default function OperatorSettingsPage() {
       const m = (await window.corventa.settings.getMachine()) as Values
       setMachine0(m)
       setMachine(m)
+      const u = unloadValues(m)
+      setUnload0(u)
+      setUnload(u)
       setMachineError(null)
     } catch (e) {
       setMachineError(e instanceof Error ? e.message : String(e))
@@ -189,10 +192,15 @@ export default function OperatorSettingsPage() {
   }, [])
 
   const changes = useMemo(
-    () => [...diffValues(LOCAL_FIELDS, local0, local, t), ...diffValues(MACHINE_SECTION.fields, machine0, machine, t)],
-    [local0, local, machine0, machine, t],
+    () => [
+      ...diffValues(LOCAL_FIELDS, local0, local, t),
+      ...diffValues(UNLOAD_SECTION.fields, unload0, unload, t),
+      ...diffValues(MACHINE_SECTION.fields, machine0, machine, t),
+    ],
+    [local0, local, unload0, unload, machine0, machine, t],
   )
-  const machineChanged = Object.keys(patchOf(MACHINE_SECTION.fields, machine0, machine)).length > 0
+  const unloadChanged = Object.keys(patchOf(UNLOAD_SECTION.fields, unload0, unload)).length > 0
+  const machineChanged = Object.keys(patchOf(MACHINE_SECTION.fields, machine0, machine)).length > 0 || unloadChanged
 
   async function save() {
     setSaving(true)
@@ -200,11 +208,21 @@ export default function OperatorSettingsPage() {
     try {
       const mp = patchOf(MACHINE_SECTION.fields, machine0, machine)
       if (Object.keys(mp).length) await window.corventa.settings.updateMachine(mp)
+      if (unloadChanged) {
+        await saveUnloadConfig({
+          presets: UNLOAD_DEFAULT_PRESETS.map((_, i) => Number(unload[`unloadPreset${i}`])),
+          motion: {
+            upperRetractMm: Number(unload.unloadUpperMm),
+            rotationSec: Number(unload.unloadRotationSec),
+            rotationDir: unload.unloadRotationDir === '-1' ? -1 : 1,
+          },
+        })
+      }
       writeLocal(local)
       const fresh = readLocal()
       setLocal0(fresh)
       setLocal(fresh)
-      if (Object.keys(mp).length) await loadMachine()
+      if (Object.keys(mp).length || unloadChanged) await loadMachine()
       setConfirm(false)
       setMessage(t('{n} ayar kaydedildi', { n: changes.length }))
     } catch (e) {
@@ -234,6 +252,7 @@ export default function OperatorSettingsPage() {
             disabled={!changes.length}
             onClick={() => {
               setLocal(local0)
+              setUnload(unload0)
               setMachine(machine0)
             }}
           >
@@ -268,6 +287,14 @@ export default function OperatorSettingsPage() {
           {t('Makine ayarları okunamadı')}: {machineError}
         </p>
       ) : (
+        <>
+        <SettingsSection
+          section={UNLOAD_SECTION}
+          values={unload}
+          original={unload0}
+          onChange={onChange(setUnload)}
+          disabled={!Object.keys(machine0).length}
+        />
         <SettingsSection
           section={MACHINE_SECTION}
           values={machine}
@@ -275,6 +302,7 @@ export default function OperatorSettingsPage() {
           onChange={onChange(setMachine)}
           disabled={!Object.keys(machine0).length}
         />
+        </>
       )}
 
       <div className={styles.card}>

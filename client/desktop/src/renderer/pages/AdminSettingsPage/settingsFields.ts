@@ -13,6 +13,18 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
     tab: 'MAKİNE',
     sections: [
       {
+        // 2026-11-01 — tahliye sınırları ve hızları (UnloadPartHandler'a bağlı). Boş = eski sabit.
+        // Varsayılan hareket + tutma süreleri Operatör Ayarları > TAHLİYE'de (aynı tablo).
+        title: 'TAHLİYE',
+        note: 'Büküm sonrası parça tahliyesi. Boş bırakılırsa eski sabit değer kullanılır.',
+        fields: [
+          { key: 'unloadMaxUpperRetractMm', label: 'ÜST TOP EN FAZLA GERİ ÇEKME', unit: 'mm', min: 1, max: 300, nullable: true, desc: 'Tahliyede seçilebilecek en büyük değer. Boş = 150 mm.' },
+          { key: 'unloadMaxRotationSeconds', label: 'ROTASYON EN FAZLA SÜRE', unit: 'sn', min: 1, max: 300, nullable: true, desc: 'Tahliyede seçilebilecek en uzun rotasyon. Boş = 60 sn.' },
+          { key: 'unloadUpperSpeedPercent', label: 'ÜST TOP GERİ ÇEKME HIZI', unit: '%', min: 1, max: 100, integer: true, nullable: true, desc: 'Boş = %50.' },
+          { key: 'unloadRotationSpeedPercent', label: 'ROTASYON HIZI', unit: '%', min: 1, max: 100, integer: true, nullable: true, desc: 'Boş = %60.' },
+        ],
+      },
+      {
         title: 'PİSTON STROKLARI',
         note: 'Fiziksel kurs boyları. Güvenli geri limit ve fiziksel konum takibi bu değerlerle yapılır.',
         fields: [

@@ -42,6 +42,19 @@ const en: Record<string, string> = {
   'ÜST TOP GERİ ÇEKME': 'UPPER ROLL RETRACT',
   'ROTASYON MESAFESİ': 'ROTATION DISTANCE',
   'ROTASYON SÜRESİ': 'ROTATION TIME',
+  // 2026-11-01 — tahliye ayarları makinede
+  'Büküm bitince açılan tahliye ekranının seçenekleri. Makinede saklanır — tüm kullanıcılar için geçerlidir.':
+    'Options of the unload screen shown when bending finishes. Stored on the machine — applies to all users.',
+  'AYAR MAKİNEYE KAYDEDİLEMEDİ — SADECE BU EKRANDA GEÇERLİ': 'SETTING COULD NOT BE SAVED TO THE MACHINE — VALID ON THIS SCREEN ONLY',
+  'Büküm sonrası parça tahliyesi. Boş bırakılırsa eski sabit değer kullanılır.':
+    'Part unloading after bending. If left empty the previous fixed value is used.',
+  'ÜST TOP EN FAZLA GERİ ÇEKME': 'UPPER ROLL MAX RETRACT',
+  'Tahliyede seçilebilecek en büyük değer. Boş = 150 mm.': 'Largest value selectable for unloading. Empty = 150 mm.',
+  'ROTASYON EN FAZLA SÜRE': 'ROTATION MAX TIME',
+  'Tahliyede seçilebilecek en uzun rotasyon. Boş = 60 sn.': 'Longest rotation selectable for unloading. Empty = 60 s.',
+  'ÜST TOP GERİ ÇEKME HIZI': 'UPPER ROLL RETRACT SPEED',
+  'Boş = %50.': 'Empty = 50%.',
+  'Boş = %60.': 'Empty = 60%.',
   'ROTASYON YÖNÜ': 'ROTATION DIRECTION',
   'GERİ ESNEME': 'SPRINGBACK',
   'Makinede saklanır — tüm kullanıcılar için geçerlidir.': 'Stored on the machine — applies to all users.',

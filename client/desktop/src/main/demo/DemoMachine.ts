@@ -76,6 +76,8 @@ const DEMO_MACHINE_SETTINGS = {
   clampContactAtTargetEnabled: true, clampTravelOverpressureBar: 3,
   measurePneumaticExtendWaitMs: null, measurePneumaticRetractWaitMs: null, measureSampleDurationMs: null,
   circularSlackPressureSettleMs: null, circularIterationPauseMs: null,
+  unloadMaxUpperRetractMm: null, unloadMaxRotationSeconds: null, unloadUpperSpeedPercent: null, unloadRotationSpeedPercent: null,
+  unloadDefaultUpperRetractMm: null, unloadDefaultRotationSeconds: null, unloadDefaultRotationDir: null, unloadHoldPresetsSec: null, unloadSelectedPresetIndex: null,
   safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1,
   oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
   // EXCEL 34 — bakım kilidi (gerçek varsayılan false). CORVENTA_DEMO_MAINT_LOCK=1 → açık + haftalık bakım 23 gün gecikmiş

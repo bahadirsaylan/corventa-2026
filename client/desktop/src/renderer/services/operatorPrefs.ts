@@ -78,6 +78,83 @@ export function saveUnloadMotion(m: UnloadMotion): void {
   write(MOTION_KEY, JSON.stringify(m))
 }
 
+// ── Tahliye ayarları MAKİNEDE (MachineSettings Unload*, 2026-11-01) ─────────
+// Kaynak artık DB; localStorage sadece önbellek / DB'ye ulaşılamazsa yedek. DB alanı boşsa (null)
+// bu cihazdaki eski değer, o da yoksa varsayılan kullanılır — ilk kayıtta DB'ye yazılır.
+
+export interface UnloadConfig {
+  presets: number[]
+  selected: number
+  motion: UnloadMotion
+  /** Üst top geri çekme üst sınırı (mm) — backend aynı ayarı uygular */
+  maxUpperMm: number
+  /** Süreli rotasyon üst sınırı (sn) */
+  maxRotSec: number
+}
+
+/** = MachineSettingsDto (shared/types/settings.ts) */
+type SettingsRecord = Record<string, number | string | boolean | null>
+
+const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+
+/** Cihazdaki (localStorage) değerlerle yapılandırma — DB okunamazsa / ilk açılış */
+export function readLocalUnloadConfig(): UnloadConfig {
+  return {
+    presets: readUnloadPresets(),
+    selected: readUnloadSelected(),
+    motion: readUnloadMotion(),
+    maxUpperMm: UNLOAD_UPPER.max,
+    maxRotSec: UNLOAD_ROT_SEC.max,
+  }
+}
+
+/** Makine ayarlarından tahliye yapılandırması; boş alanlar cihazdaki değerle doldurulur */
+export function unloadConfigFromSettings(m: SettingsRecord): UnloadConfig {
+  const local = readLocalUnloadConfig()
+  const maxUpperMm = num(m.unloadMaxUpperRetractMm) ?? UNLOAD_UPPER.max
+  const maxRotSec = num(m.unloadMaxRotationSeconds) ?? UNLOAD_ROT_SEC.max
+  let presets = local.presets
+  if (typeof m.unloadHoldPresetsSec === 'string' && m.unloadHoldPresetsSec.trim()) {
+    const p = m.unloadHoldPresetsSec.split(',').map((x) => Number(x.trim()))
+    if (p.length === UNLOAD_DEFAULT_PRESETS.length && p.every((n) => Number.isInteger(n) && n >= UNLOAD_SECONDS.min && n <= UNLOAD_SECONDS.max))
+      presets = p
+  }
+  const sel = num(m.unloadSelectedPresetIndex)
+  const dir = num(m.unloadDefaultRotationDir)
+  const clamp = (v: number, hi: number) => Math.min(hi, Math.max(0, v))
+  return {
+    presets,
+    selected: sel != null && sel >= 0 && sel < UNLOAD_DEFAULT_PRESETS.length ? sel : local.selected,
+    motion: {
+      upperRetractMm: clamp(num(m.unloadDefaultUpperRetractMm) ?? local.motion.upperRetractMm, maxUpperMm),
+      rotationSec: clamp(num(m.unloadDefaultRotationSeconds) ?? local.motion.rotationSec, maxRotSec),
+      rotationDir: dir === -1 || dir === 1 ? dir : local.motion.rotationDir,
+    },
+    maxUpperMm,
+    maxRotSec,
+  }
+}
+
+/** Ayar güncellemesi (sadece verilen kısımlar) — window.corventa.settings.updateMachine'e gider */
+export function unloadSettingsPatch(p: { presets?: number[]; selected?: number; motion?: UnloadMotion }): SettingsRecord {
+  const out: SettingsRecord = {}
+  if (p.presets) out.unloadHoldPresetsSec = p.presets.map((n) => Math.round(n)).join(',')
+  if (p.selected != null) out.unloadSelectedPresetIndex = p.selected
+  if (p.motion) {
+    out.unloadDefaultUpperRetractMm = p.motion.upperRetractMm
+    out.unloadDefaultRotationSeconds = p.motion.rotationSec
+    out.unloadDefaultRotationDir = p.motion.rotationDir
+  }
+  return out
+}
+
+/** Hem cihaza (önbellek) hem makineye yazar; makine hatası fırlatılır (çağıran gösterir / yutar) */
+export async function saveUnloadConfig(p: { presets?: number[]; selected?: number; motion?: UnloadMotion }): Promise<void> {
+  if (p.motion) saveUnloadMotion(p.motion)
+  if (p.presets || p.selected != null) saveUnloadPresets(p.presets ?? readUnloadPresets(), p.selected ?? readUnloadSelected())
+  await window.corventa.settings.updateMachine(unloadSettingsPatch(p))
+}
+
 // ── Manuel tuş takımı başlangıç hızı ────────────────────────────────
 export const MANUAL_SPEED = { min: 5, max: 100, step: 5, def: 20 }
 const MANUAL_SPEED_KEY = 'corventa.manualSpeed'

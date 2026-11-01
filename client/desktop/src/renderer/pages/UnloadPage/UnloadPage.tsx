@@ -26,8 +26,9 @@ import {
   readUnloadMotion,
   readUnloadPresets,
   readUnloadSelected,
-  saveUnloadMotion,
-  saveUnloadPresets,
+  readLocalUnloadConfig,
+  saveUnloadConfig,
+  unloadConfigFromSettings,
   type UnloadMotion,
 } from '@/services/operatorPrefs'
 import styles from './UnloadPage.module.css'
@@ -92,8 +93,12 @@ export default function UnloadPage() {
   const clampEstop = clampEstopRise != null
   const hasAlerts = measurementFlagged || (outcome === 'warning' && !!jobMessage) || isBad
   const t = useT()
+  // Tahliye ayarları makinede (DB); açılışta cihaz önbelleğiyle başlar, DB gelince güncellenir
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
+  const [limits, setLimits] = useState(() => { const c = readLocalUnloadConfig(); return { maxUpperMm: c.maxUpperMm, maxRotSec: c.maxRotSec } })
+  const [saveWarn, setSaveWarn] = useState(false)
+  const touched = useRef(false)
   const [editing, setEditing] = useState(false)
   const [phase, setPhase] = useState<Phase>('select')
   const [remaining, setRemaining] = useState(0)
@@ -111,7 +116,8 @@ export default function UnloadPage() {
   function updateMotion(patch: Partial<Motion>) {
     const next = { ...motion, ...patch }
     setMotion(next)
-    saveUnloadMotion(next)
+    touched.current = true
+    persist({ motion: next })
   }
 
   useEffect(() => () => {
@@ -122,8 +128,29 @@ export default function UnloadPage() {
     }
   }, [])
 
+  // DB'ye yaz (önbellek de güncellenir); yazılamazsa küçük not — değer bu ekranda yine geçerli
+  function persist(p: Parameters<typeof saveUnloadConfig>[0]) {
+    saveUnloadConfig(p).then(() => setSaveWarn(false), () => setSaveWarn(true))
+  }
+
+  // Makine ayarlarını oku — operatör bu arada değiştirmediyse ekranı DB değerleriyle güncelle
+  useEffect(() => {
+    let alive = true
+    window.corventa.settings.getMachine().then((m) => {
+      if (!alive) return
+      const c = unloadConfigFromSettings(m)
+      setLimits({ maxUpperMm: c.maxUpperMm, maxRotSec: c.maxRotSec })
+      if (touched.current) return
+      setPresets(c.presets)
+      setSelected(c.selected)
+      setMotion(c.motion)
+    }, () => { /* DB yok — cihaz değerleriyle devam */ })
+    return () => { alive = false }
+  }, [])
+
   function save(next: number[], sel: number) {
-    saveUnloadPresets(next, sel)
+    touched.current = true
+    persist({ presets: next, selected: sel })
   }
 
   function choose(i: number) {
@@ -146,9 +173,9 @@ export default function UnloadPage() {
     setPhase('opening')
     try {
       const r = await window.corventa.bending.unloadPart({
-        upperRetractMm: clamp(motion.upperRetractMm, UPPER.min, UPPER.max),
+        upperRetractMm: clamp(motion.upperRetractMm, UPPER.min, limits.maxUpperMm),
         rotationMm: 0,
-        rotationSeconds: motion.rotationDir * clamp(motion.rotationSec, ROT.min, ROT.max),
+        rotationSeconds: motion.rotationDir * clamp(motion.rotationSec, ROT.min, limits.maxRotSec),
       })
       if (r?.cancelled) {
         setPhase('stopped')
@@ -266,6 +293,10 @@ export default function UnloadPage() {
       {/* Faz ipucu + (iş numarası biliniyorsa) küçük "LOGLARI GÖR" — aynı satırda, büyük düğmeden yer çalmaz.
           LOGLARI GÖR → Büküm Geçmişi > bu işin detayı; geri tuşu buraya döner (ekran baştan açılır). Hareket
           yokken gösterilir; tahliye bittiyse ('ready') gösterilmez — dönüşte tekrar çıkartma sorulmasın. */}
+      {saveWarn && (
+        <div className={styles.alert}>{t('AYAR MAKİNEYE KAYDEDİLEMEDİ — SADECE BU EKRANDA GEÇERLİ')}</div>
+      )}
+
       <div className={styles.hintRow}>
         <div className={styles.hint}>
           {phase === 'select' && (editing
@@ -350,7 +381,7 @@ export default function UnloadPage() {
               type="button"
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.upperRetractMm <= UPPER.min}
-              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm - UPPER.step, UPPER.min, UPPER.max) })}
+              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm - UPPER.step, UPPER.min, limits.maxUpperMm) })}
               aria-label={t('Azalt')}
             >
               <Icon name="minus" size="xl" />
@@ -359,8 +390,8 @@ export default function UnloadPage() {
             <button
               type="button"
               className={styles.motionStep}
-              disabled={phase !== 'select' || motion.upperRetractMm >= UPPER.max}
-              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm + UPPER.step, UPPER.min, UPPER.max) })}
+              disabled={phase !== 'select' || motion.upperRetractMm >= limits.maxUpperMm}
+              onClick={() => updateMotion({ upperRetractMm: clamp(motion.upperRetractMm + UPPER.step, UPPER.min, limits.maxUpperMm) })}
               aria-label={t('Arttır')}
             >
               <Icon name="plus" size="xl" />
@@ -388,7 +419,7 @@ export default function UnloadPage() {
               type="button"
               className={styles.motionStep}
               disabled={phase !== 'select' || motion.rotationSec <= ROT.min}
-              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec - ROT.step, ROT.min, ROT.max) })}
+              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec - ROT.step, ROT.min, limits.maxRotSec) })}
               aria-label={t('Azalt')}
             >
               <Icon name="minus" size="xl" />
@@ -397,8 +428,8 @@ export default function UnloadPage() {
             <button
               type="button"
               className={styles.motionStep}
-              disabled={phase !== 'select' || motion.rotationSec >= ROT.max}
-              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec + ROT.step, ROT.min, ROT.max) })}
+              disabled={phase !== 'select' || motion.rotationSec >= limits.maxRotSec}
+              onClick={() => updateMotion({ rotationSec: clamp(motion.rotationSec + ROT.step, ROT.min, limits.maxRotSec) })}
               aria-label={t('Arttır')}
             >
               <Icon name="plus" size="xl" />
