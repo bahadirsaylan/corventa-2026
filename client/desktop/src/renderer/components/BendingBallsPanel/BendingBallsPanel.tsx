@@ -231,8 +231,9 @@ function MonitorPanel() {
   const progress = rawProgress && rawProgress.jobId === runningJobId ? rawProgress : null
 
   const runningJob = useBendingActivityStore((s) => s.runningJob)
-  const radiusLabel = formatRadiusLabel(runningJob, progress)
+  const expectedPasoRadii = useBendingActivityStore((s) => s.expectedPasoRadii)
   const pasoView = describePaso(progress, lang)
+  const radiusLabel = formatRadiusLabel(runningJob, progress, expectedPasoRadii, pasoView?.current ?? null)
 
   return (
     <div className={`${styles.panel} ${styles.monitor}`}>
@@ -297,10 +298,31 @@ function MonitorPanel() {
 // Band üstündeki yarıçap etiketi.
 // Büküm sırasında backend piston konumundan canlı R gönderir (currentRadiusMm) — varsa o gösterilir.
 // Yoksa (düzlük, temas öncesi, ölçüm/düzeltme) statik: Arc'ta o anki segmentin R'si, diğerlerinde hedef Ø / 2.
-function formatRadiusLabel(job: BendingJob | null, progress: BendingProgress | null): string {
+// EXCEL 32: Arc dışı işte backend geometric/preview paso başına beklenen R verdiyse (expectedPasoRadii),
+// statik hedef yerine o an bükülen pasonun beklenen R'si gösterilir. Paso sayısı önizlemeyle aynı
+// değilse (dinamik paso vb.) veya değer yoksa eski statik hesaba düşülür.
+function formatRadiusLabel(
+  job: BendingJob | null,
+  progress: BendingProgress | null,
+  expected: { jobId: number; radii: (number | null)[] } | null = null,
+  currentPaso: number | null = null,
+): string {
   if (!job) return 'R —'
   const live = progress?.currentRadiusMm
   if (typeof live === 'number' && Number.isFinite(live) && live > 0) return `R ${Math.round(live)}`
+  if (
+    job.method !== BendingMethod.Arc &&
+    expected &&
+    expected.jobId === job.id &&
+    progress &&
+    progress.totalPasos === expected.radii.length &&
+    currentPaso != null &&
+    currentPaso >= 1 &&
+    currentPaso <= expected.radii.length
+  ) {
+    const er = expected.radii[currentPaso - 1]
+    if (typeof er === 'number' && Number.isFinite(er) && er > 0) return `R ${Math.round(er)}`
+  }
   let r: number | null = null
   if (job.method === BendingMethod.Arc && job.segments && job.segments.length > 0) {
     const n = job.segments.length

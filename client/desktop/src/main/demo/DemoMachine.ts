@@ -13,6 +13,7 @@
 // Güvenlik kontrolleri (EXCEL 27): açılışta ve büküm başında gerçek SafetyCheckService kuralıyla SafetyCheck
 // event'i yayınlanır (Admin Ayarları > GÜVENLİK eşikleri demo yağ sıcaklığı 41°C ile denenebilir).
 // CORVENTA_DEMO_ENCODER_STALL=1 → her büküm başında bir "EncoderStall" uyarısı (ekran gösterimi için).
+// CORVENTA_DEMO_MEASURE_FAIL=1 → her iş "hatalı ölçüm" işaretiyle biter (EXCEL 33 tahliye ekranı işareti).
 //
 // Gerçek kodla bağlantısı: sadece http.ts'deki interceptor + ConnectionManager/index.ts'deki
 // IS_DEMO dalları. Demo kapalıyken hiçbir şey değişmez.
@@ -112,6 +113,8 @@ const DEMO_CONTACT_MM = Number(process.env.CORVENTA_DEMO_CONTACT) || 120
 const TICK_MS = 100
 /** EXCEL 27 — demo büküm başında encoder durma uyarısı üret (sadece gösterim) */
 const DEMO_ENCODER_STALL = process.env.CORVENTA_DEMO_ENCODER_STALL === '1'
+/** EXCEL 33 — demo işleri hatalı ölçüm işaretiyle bitir (bulut senkronu dışı işaretini göstermek için) */
+const DEMO_MEASURE_FAIL = process.env.CORVENTA_DEMO_MEASURE_FAIL === '1'
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
 const PISTON_BY_NAME: Record<string, PistonKey> = {
@@ -662,6 +665,10 @@ export class DemoMachine extends EventEmitter {
     try {
       if (job.method === 1) await this.runArc(job, st, token)
       else await this.runCircle(job, st, token)
+      if (DEMO_MEASURE_FAIL) {
+        job.hasFailedMeasurement = true
+        job.failedMeasurementReason = 'Demo: SLPIS ölçüm hatası'
+      }
       job.status = 4
     } catch (err) {
       if (err instanceof Cancelled) {
@@ -1213,7 +1220,34 @@ export class DemoMachine extends EventEmitter {
       const step = Number(b.stepDistanceMm) || 10
       const contact = Math.max(0, target - 60)
       const totalPasos = Math.max(1, Math.ceil((target - contact) / step))
-      return { success: true, totalPasos, pasoSteps: [] }
+      // EXCEL 32 — geometri verildiyse paso başına beklenen R (backend LiveBendRadiusEstimator ile aynı ters hesap)
+      const geo =
+        Number(b.ballDiameterMm) > 0 && Number(b.thicknessMm) > 0 && Number(b.centerDistanceMm) > 0
+          ? {
+              ball: Number(b.ballDiameterMm),
+              thickness: Number(b.thicknessMm),
+              center: Number(b.centerDistanceMm),
+              xa1: Number(b.xA1) || -493,
+              ya1: Number(b.yA1) || 0,
+              theta: Number(b.thetaDeg) || THETA,
+            }
+          : null
+      const side = b.activeSensorSide === 'Right' ? 'Right' : 'Left'
+      const pasoSteps = Array.from({ length: totalPasos }, (_, i) => {
+        const push = Math.min(target, contact + step * (i + 1))
+        const r = geo ? radiusFromPush(push, geo) : null
+        return {
+          pasoNumber: i + 1,
+          activeSide: (i % 2 === 0) === (side === 'Left') ? 'Left' : 'Right',
+          activePistonTargetMm: Math.round(push * 100) / 100,
+          passivePistonTargetMm: 0,
+          rotationDirection: (i % 2 === 0) === (side === 'Left') ? -1 : 1,
+          rotationDistanceMm: Math.max(0, (Number(b.partLengthMm) || 0) - 2 * (Number(b.safetyMarginMm) || 0)),
+          isRepeatPaso: false,
+          expectedRadiusMm: r != null ? Math.round(r * 10) / 10 : null,
+        }
+      })
+      return { success: true, totalPasos, pasoSteps }
     }
     if (path === '/api/bending/arc/validate-plan') {
       const segs = (b.segments as unknown[]) ?? []
@@ -1310,6 +1344,9 @@ export class DemoMachine extends EventEmitter {
         safetyMarginMm: Number(b.safetyMarginMm) || 50,
         totalPasos: Number(b.totalPasos) || 0,
         createdAt: new Date().toISOString(),
+        // EXCEL 33 — gerçek DataApi gibi yeni kayıt işaretsiz başlar
+        hasFailedMeasurement: false,
+        failedMeasurementReason: null,
       } as DemoJob
       this.jobs.set(id, job)
       return job

@@ -32,6 +32,15 @@ export interface BendingPreviewRequest {
   stepDistanceMm: number
   activeSensorSide: 'Left' | 'Right'
   firstStepDistanceMm?: number | null
+  // EXCEL 32 — makine geometrisi (calculate'e verilenlerin aynısı). Hepsi verilirse backend
+  // her pasoStep'e expectedRadiusMm (beklenen yarıçap, sadece gösterim) ekler.
+  ballDiameterMm?: number
+  /** BendingCalculator "Thickness" = profil kenar A (duvar kalınlığı S değil) */
+  thicknessMm?: number
+  centerDistanceMm?: number
+  xA1?: number
+  yA1?: number
+  thetaDeg?: number
 }
 
 export interface BendingPreviewResponse {
@@ -41,10 +50,17 @@ export interface BendingPreviewResponse {
   error?: string
 }
 
+// Backend Core/Models/BendingCalculation.cs PasoStep
 export interface PasoStep {
-  stepNumber: number
-  distanceMm: number
-  cumulativeMm: number
+  pasoNumber: number
+  activeSide: 'Left' | 'Right'
+  activePistonTargetMm: number
+  passivePistonTargetMm: number
+  rotationDirection: number
+  rotationDistanceMm: number
+  isRepeatPaso: boolean
+  /** Paso sonunda beklenen yarıçap (mm) — geometri verilmediyse / düzse null (eski backend: alan yok) */
+  expectedRadiusMm?: number | null
 }
 
 // GET /api/preparation/recommend-stage?profileA={mm}

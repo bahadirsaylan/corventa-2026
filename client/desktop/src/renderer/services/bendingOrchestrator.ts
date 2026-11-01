@@ -2,6 +2,7 @@
 // Adımlar bağımsız, her biri kendi hatasını fırlatır; UI tek try/catch ile yakalar.
 
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { setExpectedPasoRadii } from '@/stores/bendingActivityStore'
 import {
   JobMappingError,
   mapToCreateRequest,
@@ -114,6 +115,9 @@ export async function executeBendingFlow(
   // ---------- Step 2: Preview ----------
   notify('preview')
   let totalPasos: number
+  // EXCEL 32 — paso başına beklenen R (backend hesabı, sadece monitör etiketi). Eski backend alanı
+  // göndermezse boş kalır → etiket eski hesaba düşer.
+  let expectedRadii: (number | null)[] | null = null
   try {
     const preview = await window.corventa.bending.preview({
       targetPositionMm: pistonPosition,
@@ -121,6 +125,13 @@ export async function executeBendingFlow(
       safetyMarginMm: createReq.safetyMarginMm ?? 50,
       stepDistanceMm: createReq.stepDistanceMm,
       activeSensorSide: createReq.activeSensorSide,
+      // Step 1 calculate ile birebir aynı geometri → son paso R = hedef R
+      ballDiameterMm: createReq.ballDiameterMm ?? 220,
+      thicknessMm: createReq.profileA,
+      centerDistanceMm: createReq.centerDistanceMm ?? 300.82,
+      xA1: createReq.xA1 ?? -493,
+      yA1: createReq.yA1 ?? 0,
+      thetaDeg: createReq.thetaDeg ?? 63,
     })
     if (!preview.success) {
       throw new BendingOrchestratorError(
@@ -130,6 +141,14 @@ export async function executeBendingFlow(
     }
     totalPasos = preview.totalPasos
     createReq.totalPasos = totalPasos
+    const steps = Array.isArray(preview.pasoSteps) ? preview.pasoSteps : []
+    if (steps.length === totalPasos && steps.some((s) => typeof s.expectedRadiusMm === 'number')) {
+      expectedRadii = steps.map((s) =>
+        typeof s.expectedRadiusMm === 'number' && Number.isFinite(s.expectedRadiusMm) && s.expectedRadiusMm > 0
+          ? s.expectedRadiusMm
+          : null,
+      )
+    }
   } catch (err) {
     if (err instanceof BendingOrchestratorError) throw err
     throw new BendingOrchestratorError('preview', toMessage(err), err)
@@ -155,6 +174,7 @@ export async function executeBendingFlow(
   } catch (err) {
     throw new BendingOrchestratorError('create-job', toMessage(err), err)
   }
+  setExpectedPasoRadii(job.id, expectedRadii)
 
   // ---------- Step 5: Apply stage ----------
   notify('apply-stage')

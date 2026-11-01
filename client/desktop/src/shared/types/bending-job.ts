@@ -71,6 +71,9 @@ export interface BendingJob {
   // Error
   errorMessage: string | null
   failedAtPaso: number | null
+  /** EXCEL 33 — kıvrımda hatalı/geçersiz ölçüm oldu → bulut senkronu bu işi göndermez (eski backend: alan yok) */
+  hasFailedMeasurement?: boolean
+  failedMeasurementReason?: string | null
 
   // User
   operatorName: string | null

@@ -85,6 +85,8 @@ export default function AppLayout() {
               // Geriye uyum: Completed + errorMessage eski 'jobWarning' anahtarıyla da gider
               ...(completed && job.errorMessage ? { jobWarning: job.errorMessage } : {}),
               ...(job.errorMessage ? { jobMessage: job.errorMessage } : {}),
+              // EXCEL 33 — kıvrımda hatalı ölçüm → tahliye ekranında küçük işaret (bulut senkronu dışı)
+              ...(job.hasFailedMeasurement === true ? { measurementFlagged: true } : {}),
             },
           })
         })

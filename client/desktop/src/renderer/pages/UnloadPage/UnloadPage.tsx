@@ -79,6 +79,9 @@ export default function UnloadPage() {
   const navigate = useNavigate()
   const { state: navState } = useLocation()
   const { outcome, message: jobMessage } = readNavState(navState)
+  // EXCEL 33 — bu işte hatalı/geçersiz ölçüm oldu → bulut senkronu bu işi göndermez (sadece bilgi)
+  const measurementFlagged =
+    !!navState && typeof navState === 'object' && (navState as Record<string, unknown>).measurementFlagged === true
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
@@ -220,6 +223,11 @@ export default function UnloadPage() {
         </div>
       </div>
 
+      {measurementFlagged && (
+        <div className={styles.hint}>
+          <IconLabel icon="warning">{t('HATALI ÖLÇÜM VAR — BU BÜKÜM BULUTA GÖNDERİLMEYECEK')}</IconLabel>
+        </div>
+      )}
       {outcome === 'warning' && jobMessage && (
         <div className={styles.hint} role="alert">
           {t('BÜKÜM UYARISI: {warning}', { warning: t(jobMessage) })}
