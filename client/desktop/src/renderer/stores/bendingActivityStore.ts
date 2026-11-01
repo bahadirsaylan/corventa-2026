@@ -24,26 +24,13 @@ interface BendingActivityStore {
   runningJobId: number | null
   /** DataApi'deki çalışan job (monitördeki R etiketi için) */
   runningJob: BendingJob | null
-  /**
-   * EXCEL 32 — geometric/preview'dan gelen paso başına beklenen yarıçaplar (backend hesabı, sadece
-   * gösterim). radii[i] = paso i+1 sonunda beklenen R (null = düz / hesap yok). Sadece aynı job için kullanılır.
-   */
-  expectedPasoRadii: { jobId: number; radii: (number | null)[] } | null
 }
 
 export const useBendingActivityStore = create<BendingActivityStore>(() => ({
   active: false,
   runningJobId: null,
   runningJob: null,
-  expectedPasoRadii: null,
 }))
-
-/** Orkestratör job'u oluşturunca preview'daki paso başına beklenen R'leri bırakır (yoksa null). */
-export function setExpectedPasoRadii(jobId: number, radii: (number | null)[] | null): void {
-  useBendingActivityStore.setState({
-    expectedPasoRadii: radii && radii.some((r) => r != null) ? { jobId, radii } : null,
-  })
-}
 
 let pollerStarted = false
 

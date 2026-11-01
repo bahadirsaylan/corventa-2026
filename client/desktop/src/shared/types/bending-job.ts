@@ -223,4 +223,7 @@ export interface BendingProgress {
   // hesap girdileriyle (eksen mesafesi, stage XA1/offset) ters hesaplar. Sadece gösterim.
   // null/undefined → hesap yok (düzlük, temas öncesi, eski backend) → statik etiket.
   currentRadiusMm?: number | null
+  // EXCEL 32 — o an bükülen pasonun GERÇEK aktif piston hedefinden beklenen R (mm, sadece gösterim).
+  // null/undefined → adaptif paso 1, Arc/Serpantin, eski backend → statik etiket.
+  currentPasoExpectedRadiusMm?: number | null
 }

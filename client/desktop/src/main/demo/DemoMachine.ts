@@ -856,7 +856,8 @@ export class DemoMachine extends EventEmitter {
 
     // ── PASO 2+ ──
     while (bend < targetDisp - 0.5) {
-      this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`)
+      // EXCEL 32 — backend gibi: paso hareketinden önce gerçek hedefin beklenen R'si
+      this.setProgress(job.id, done, total, `Paso ${done + 1} bükülüyor`, { currentPasoExpectedRadiusMm: radiusAt(targetDisp) })
       await slack()
       await this.movePistons({ [passive]: SAFE_BACKWARD_MM }, token, 100)
       bend = targetDisp // demo: paso 2 doğrudan son hedef
