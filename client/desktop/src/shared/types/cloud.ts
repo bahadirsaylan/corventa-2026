@@ -30,14 +30,18 @@ export interface CloudStatus {
   lastHeartbeatAt: string | null
   lastPushAt: string | null
   lastRecipePullAt: string | null
-  /** Buluta henüz gönderilmemiş kayıt sayısı */
-  pendingCount: number
+  /** Buluta henüz gönderilmemiş kayıt sayısı (aktive değilse null) */
+  pendingCount: number | null
   lastError: string | null
   /** MachineSettings.CloudShareRecipes — Big Data reçete paylaşımı */
   shareRecipes: boolean
   /** Yerel CloudRecipes satır sayısı (diğer makinelerden çekilen reçeteler) */
   recipeCount: number
   update: CloudUpdateInfo | null
+  /** Bulut v2: önbellekteki aktif kalıp sayısı */
+  moldCount?: number
+  /** Bulut v2: son başarılı machine_pull_config (ISO) */
+  configSyncedAt?: string | null
 }
 
 /** Bulut IPC sonucu — DataApi hata metni (400 { error }) renderer'a taşınır. status 0 = DataApi'ye ulaşılamadı */

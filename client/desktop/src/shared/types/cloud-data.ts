@@ -112,9 +112,13 @@ export interface CloudServicePoint {
   name: string
   city: string
   phone: string
-  web: string
-  email: string
+  /** Bulutta yok (DataApi null gönderir) — yerel listede var */
+  web?: string | null
+  email?: string | null
+  /** Bulut: açık adres */
+  address?: string | null
   lat: number
+  /** DataApi bulutun `lng` alanını `lon` olarak da verir */
   lon: number
 }
 

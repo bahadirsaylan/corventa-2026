@@ -41,6 +41,7 @@ const en: Record<string, string> = {
   'Senkronizasyon başlatıldı': 'Synchronization started',
   'ŞİMDİ SENKRONİZE ET': 'SYNC NOW',
   'SON GÖNDERİM': 'LAST UPLOAD',
+  'AYAR SENKRONU': 'CONFIG SYNC',
   'SON HATA': 'LAST ERROR',
   'SON REÇETE ÇEKME': 'LAST RECIPE PULL',
   'SON SİNYAL': 'LAST HEARTBEAT',

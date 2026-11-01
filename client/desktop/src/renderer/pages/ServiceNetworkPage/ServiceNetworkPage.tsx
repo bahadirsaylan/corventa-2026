@@ -62,8 +62,8 @@ export default function ServiceNetworkPage() {
             </div>
             <span className={styles.line}>{sp.city}</span>
             <span className={styles.line}>{sp.phone}</span>
-            <span className={styles.line}>{sp.web}</span>
-            <span className={styles.line}>{sp.email}</span>
+            {sp.web && <span className={styles.line}>{sp.web}</span>}
+            {sp.email && <span className={styles.line}>{sp.email}</span>}
           </div>
         ))}
       </aside>

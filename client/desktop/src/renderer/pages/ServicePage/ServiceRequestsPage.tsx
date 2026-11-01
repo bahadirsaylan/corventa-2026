@@ -202,6 +202,7 @@ function cloudStatusLabel(s: string | null | undefined): string | null {
     case 'IN_PROGRESS':
       return 'DEVAM EDİYOR'
     case 'DONE':
+    case 'RESOLVED':
     case 'COMPLETED':
     case 'CLOSED':
       return 'TAMAMLANDI'

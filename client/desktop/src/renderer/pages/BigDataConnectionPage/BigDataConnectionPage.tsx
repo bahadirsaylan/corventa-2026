@@ -250,7 +250,9 @@ export default function BigDataConnectionPage() {
             <Stat label={t('SON SİNYAL')} value={formatDateTime(status?.lastHeartbeatAt, locale)} />
             <Stat label={t('SON GÖNDERİM')} value={formatDateTime(status?.lastPushAt, locale)} />
             <Stat label={t('SON REÇETE ÇEKME')} value={formatDateTime(status?.lastRecipePullAt, locale)} />
-            <Stat label={t('BEKLEYEN KAYIT')} value={status ? String(status.pendingCount) : '—'} />
+            <Stat label={t('BEKLEYEN KAYIT')} value={status?.pendingCount != null ? String(status.pendingCount) : '—'} />
+            <Stat label={t('AYAR SENKRONU')} value={formatDateTime(status?.configSyncedAt, locale)} />
+            <Stat label={t('KALIP KÜTÜPHANESİ')} value={status?.moldCount != null && activated ? String(status.moldCount) : '—'} />
           </div>
           {(status?.lastError || (!status && pollError)) && (
             <p className={styles.noteError}>{t('SON HATA')}: {status?.lastError ?? pollError}</p>
