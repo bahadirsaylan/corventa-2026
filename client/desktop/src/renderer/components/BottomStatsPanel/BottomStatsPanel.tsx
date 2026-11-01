@@ -11,6 +11,7 @@
 // EXCEL 27: güvenlik uyarıları (encoder durması, açılış / büküm başı yağ sıcaklığı ve sensör kontrolü)
 //   backend MachineEvent'lerinden (stores/safetyAlertsStore.ts) şeride gelir; termal / acil stop uyarılarından
 //   sonra, yağ basınç/seviye/nem uyarılarından önce. Operatör şeritteki KAPAT ile gizler. Sadece uyarı.
+// EXCEL 34: BAKIM KİLİDİ aktifken (backend lockActive) bakım şeridi / rozeti kilit simgesiyle "KİLİTLİ" yazar.
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,7 +21,7 @@ import ArcBendingStrip from './ArcBendingStrip'
 import { BendingMethod } from '@shared/types'
 import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
-import { useMaintenanceAlerts } from '@/hooks/useMaintenance'
+import { useMaintenanceAlerts, useMaintenanceLock } from '@/hooks/useMaintenance'
 import {
   checkAlertText,
   selectLatestStall,
@@ -48,6 +49,7 @@ export default function BottomStatsPanel() {
   const t = useT()
   const navigate = useNavigate()
   const { top: maint } = useMaintenanceAlerts()
+  const { active: maintLocked } = useMaintenanceLock()
   const safetyCheck = useSafetyAlertsStore((s) => s.check)
   const safetyStalls = useSafetyAlertsStore((s) => s.stalls)
   const dismissCheck = useSafetyAlertsStore((s) => s.dismissCheck)
@@ -111,7 +113,7 @@ export default function BottomStatsPanel() {
   ].filter(Boolean).join(' ')
 
   const maintClass = maint ? styles[`maint_${maint.tier}`] : ''
-  const maintText = maint ? maintenanceAlertText(maint, t) : ''
+  const maintText = maint ? maintenanceAlertText(maint, t, maintLocked) : ''
   const openMaintenance = () => navigate('/settings/maintenance')
 
   return (
@@ -122,7 +124,7 @@ export default function BottomStatsPanel() {
           {warning.level === 'none' && maint ? (
             // Makine uyarısı yok → şerit bakım uyarısı (dokununca Bakım Süresi sayfası)
             <button type="button" className={styles.maintArea} onClick={openMaintenance}>
-              <span className={styles.warnIcon}><Icon name="maintenance" size="md" /></span>
+              <span className={styles.warnIcon}><Icon name={maintLocked ? 'lock' : 'maintenance'} size="md" /></span>
               <span className={styles.warnText}>{maintText}</span>
             </button>
           ) : warning.level === 'none' ? (
@@ -155,7 +157,11 @@ export default function BottomStatsPanel() {
             onClick={openMaintenance}
             title={maintText}
           >
-            <IconLabel icon="maintenance">{t('BAKIM: {n} GÜN GECİKME', { n: maint.overdueDays ?? 0 })}</IconLabel>
+            {maintLocked ? (
+              <IconLabel icon="lock">{t('BAKIM KİLİTLİ: {n} GÜN GECİKME', { n: maint.overdueDays ?? 0 })}</IconLabel>
+            ) : (
+              <IconLabel icon="maintenance">{t('BAKIM: {n} GÜN GECİKME', { n: maint.overdueDays ?? 0 })}</IconLabel>
+            )}
           </button>
         )}
 
@@ -179,15 +185,20 @@ export default function BottomStatsPanel() {
   )
 }
 
-/** Şerit metni: "2. HAFTA — BAKIM UYARISI: HAFTALIK BAKIM 9 GÜN GECİKTİ" (+ 21+ günde kilit notu). */
+/**
+ * Şerit metni: "2. HAFTA — BAKIM UYARISI: HAFTALIK BAKIM 9 GÜN GECİKTİ" (+ 21+ günde kilit notu).
+ * locked (backend lockActive, EXCEL 34) → "KİLİTLİ — BÜKÜM BAŞLATILAMAZ".
+ */
 function maintenanceAlertText(
   m: MaintenancePeriodStatus,
   t: (source: string, vars?: Record<string, string | number>) => string,
+  locked = false,
 ): string {
   const base = t('{tier}: {period} BAKIM {n} GÜN GECİKTİ', {
     tier: t(maintenanceTierTitle(m.tier!)),
     period: t(m.info.label).toLocaleUpperCase(),
     n: m.overdueDays ?? 0,
   })
+  if (locked) return `${base} — ${t('KİLİTLİ — BÜKÜM BAŞLATILAMAZ')}`
   return m.lockSoon ? `${base} — ${t('BAKIM KİLİDİ YAKINDA')}` : base
 }

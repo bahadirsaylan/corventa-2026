@@ -194,7 +194,10 @@ export default function MaintenancePage() {
                       {st.tier && (
                         <span className={styles.periodTier}>
                           {t(maintenanceTierTitle(st.tier))}
-                          {st.lockSoon && ` · ${t('BAKIM KİLİDİ YAKINDA')}`}
+                          {/* EXCEL 34 — backend kilidi bu periyot yüzünden aktifse KİLİTLİ, değilse eski not */}
+                          {state?.lockActive && state.lockedPeriods?.some((lp) => lp.periodKey === p.key)
+                            ? ` · ${t('KİLİTLİ — BÜKÜM BAŞLATILAMAZ')}`
+                            : st.lockSoon && ` · ${t('BAKIM KİLİDİ YAKINDA')}`}
                         </span>
                       )}
                     </div>

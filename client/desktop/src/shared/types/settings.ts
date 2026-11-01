@@ -51,6 +51,25 @@ export interface MaintenanceState {
   autoCloseAfterMinutes?: number
   /** Periyot başına minimum bakım süresi — bu süre dolmadan "tamamlandı" 409 döner */
   rules?: MaintenanceRule[]
+  // ── BAKIM KİLİDİ (EXCEL 34, DataApi MaintenanceLockRules, 2026-11-01) ──
+  // Eski DataApi göndermez → yoksa kilit yok sayılır. Otoriter karar backend'de (büküm başlatma 409).
+  /** MachineSettings.MaintenanceLockEnabled (varsayılan false) */
+  lockEnabled?: boolean
+  /** Ayar açık VE bir periyot vadesinden ≥ lockAfterOverdueDays gün geçmiş → büküm başlatılamaz */
+  lockActive?: boolean
+  /** "Haftalık bakım vadesinin üzerinden 23 gün geçti" (kilit yoksa null) */
+  lockReason?: string | null
+  /** Büküm başlatma 409 mesajı: "BAKIM KİLİDİ: Haftalık bakımı yapılmadan büküm başlatılamaz" */
+  lockMessage?: string | null
+  lockAfterOverdueDays?: number
+  /** Kilit eşiğini geçmiş periyotlar (ayar kapalıyken de dolu — bilgi) */
+  lockedPeriods?: MaintenanceLockedPeriod[]
+}
+
+export interface MaintenanceLockedPeriod {
+  periodKey: MaintenancePeriodKey
+  label: string
+  overdueDays: number
 }
 
 /** Periyodun minimum bakım süresi (DataApi MaintenanceRules tablosu) */

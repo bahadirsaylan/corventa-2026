@@ -10,6 +10,8 @@ import {
   type OrchestrationStep,
 } from '@/services/bendingOrchestrator'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useMaintenanceLock } from '@/hooks/useMaintenance'
+import { useMaintenanceStore } from '@/stores/maintenanceStore'
 import { translateProgress, useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './PartLoadingPage.module.css'
@@ -46,6 +48,10 @@ function PartLoadingContent() {
   const lang = useLang()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
+  // EXCEL 34 — BAKIM KİLİDİ (backend lockActive): büküm başlatma butonları kilitli. Asıl engel backend'de
+  // (StartJob 409) — bu sadece operatörün akışı boşuna başlatmaması (job kaydı / stage geçişi) için.
+  const maintLock = useMaintenanceLock()
+  const lockedPeriods = useMaintenanceStore((s) => s.state?.lockedPeriods)
 
   // Geri → vals topu dizilimi ekranı (oradan ölçü ekranına dönülür)
   const backTo = '/bending/ai/roll-arrangement'
@@ -95,7 +101,7 @@ function PartLoadingContent() {
   const [manualOpen, setManualOpen] = useState(false)
 
   async function handleStart(manualSide?: PlacementSide) {
-    if ((!manualSide && !canStart) || isBusy) return
+    if ((!manualSide && !canStart) || isBusy || maintLock.active) return
     setManualOpen(false)
     setPhase('starting')
     setActiveStep(null)
@@ -164,7 +170,33 @@ function PartLoadingContent() {
         </div>
       )}
       <div className={styles.content}>
-        {canStart ? (
+        {maintLock.active ? (
+          // BAKIM KİLİDİ — başlat butonu yerine kırmızı kilit paneli + Bakım Süresi sayfasına geçiş
+          <div className={styles.lockPanel} role="alert">
+            <Icon name="lock" size={72} className={styles.lockIcon} />
+            <div className={styles.lockTitle}>{t('BAKIM KİLİDİ — BÜKÜM BAŞLATILAMAZ')}</div>
+            <ul className={styles.lockList}>
+              {(lockedPeriods ?? []).map((lp) => (
+                <li key={lp.periodKey}>
+                  {t('{period} BAKIM VADESİNİN ÜZERİNDEN {n} GÜN GEÇTİ', {
+                    period: t(lp.label).toLocaleUpperCase(),
+                    n: lp.overdueDays,
+                  })}
+                </li>
+              ))}
+            </ul>
+            <div className={styles.lockHint}>
+              {t('Geciken bakımı yapıp Bakım Süresi sayfasından tamamlandı olarak işaretleyin. Manuel mod ve tahliye kullanılabilir.')}
+            </div>
+            <button
+              type="button"
+              className={styles.lockPageBtn}
+              onClick={() => navigate('/settings/maintenance')}
+            >
+              <IconLabel icon="maintenance" size="lg">{t('BAKIM SAYFASI')}</IconLabel>
+            </button>
+          </div>
+        ) : canStart ? (
           <button
             className={styles.startBtn}
             disabled={isBusy || !params.profileId}
@@ -207,10 +239,14 @@ function PartLoadingContent() {
           <button
             type="button"
             className={styles.manualBtn}
-            disabled={isBusy || !params.profileId}
+            disabled={isBusy || !params.profileId || maintLock.active}
             onClick={() => setManualOpen(true)}
           >
-            <Icon name="warning" size={26} className={styles.manualIcon} />
+            {maintLock.active ? (
+              <Icon name="lock" size={26} className={styles.manualIconLocked} />
+            ) : (
+              <Icon name="warning" size={26} className={styles.manualIcon} />
+            )}
             {t('SENSÖR ÇALIŞMIYOR — ELLE KONUMLANDIR')}
           </button>
         </div>

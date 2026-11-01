@@ -75,6 +75,8 @@ const DEMO_MACHINE_SETTINGS = {
   circularSlackPressureSettleMs: null, circularIterationPauseMs: null,
   safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1,
   oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
+  // EXCEL 34 — bakım kilidi (gerçek varsayılan false). CORVENTA_DEMO_MAINT_LOCK=1 → açık + haftalık bakım 23 gün gecikmiş
+  maintenanceLockEnabled: process.env.CORVENTA_DEMO_MAINT_LOCK === '1',
   slackSpeedPercent: 30, adaptiveJogSpeedPercent: 20, adaptiveSampleIntervalMm: 1, adaptiveWindowSampleCount: 10,
   adaptiveEncoderStopToleranceMm: 0.1, springbackMaxIterations: 20, arcMeasureMaxIterations: 10,
   springbackRotationOnlyMaxMm: 50, springbackStableTimeMs: 500, springbackIncreaseThresholdMm: 0.2, springbackMinThresholdMm: 0.1,
@@ -1342,6 +1344,13 @@ export class DemoMachine extends EventEmitter {
         if (err) throw new HttpError(400, rawUrl, err, { success: false, error: err })
       }
       job.manualPlacement = manualPlacement
+      // EXCEL 34 — bakım kilidi (gerçek StartJob gibi 409; job Ready kalır)
+      demoMaintenanceLockEnabled = this.machineSettings.maintenanceLockEnabled === true
+      const maintLock = demoMaintenanceLock()
+      if (maintLock.lockActive === true) {
+        const msg = String(maintLock.lockMessage)
+        throw new HttpError(409, rawUrl, msg, { success: false, error: msg })
+      }
       if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3)
         return { success: false, error: 'Zaten çalışan bir büküm var' }
       // EXCEL 27 — büküm başı güvenlik kontrolü (engel sadece safetyBlockingEnabled=true iken)
@@ -1496,6 +1505,7 @@ export class DemoMachine extends EventEmitter {
       return { ...demoIdentity }
     }
     if (path.startsWith('/api/maintenance')) {
+      demoMaintenanceLockEnabled = this.machineSettings.maintenanceLockEnabled === true
       return demoMaintenance(rawUrl, path, method, u, b)
     }
     // Rol sistemi — giriş / kullanıcı yönetimi (demoAuth.ts; operator|admin|super, şifre 1234)
@@ -1538,6 +1548,8 @@ export class DemoMachine extends EventEmitter {
 
 // ---------- Bakım durumu (DataApi /api/maintenance sözleşmesi) ----------
 // Demoda bakım uyarısı görünsün diye haftalık bakım 9 gün gecikmiş başlar (2. hafta → sarı uyarı).
+// CORVENTA_DEMO_MAINT_LOCK=1 → haftalık bakım 23 gün gecikmiş + bakım kilidi ayarı açık (EXCEL 34 kilit ekranı).
+const DEMO_MAINT_LOCK = process.env.CORVENTA_DEMO_MAINT_LOCK === '1'
 // mark-completed / mode / PUT gerçek DataApi gibi state'i değiştirir (süreç boyunca bellekte).
 const DEMO_DAY_MS = 86_400_000
 const demoMaintenanceState = (() => {
@@ -1546,7 +1558,7 @@ const demoMaintenanceState = (() => {
   return {
     id: 1,
     lastDailyAt: iso(now - 2 * 3600_000) as string | null,
-    lastWeeklyAt: iso(now - (7 + 9) * DEMO_DAY_MS - 3600_000) as string | null,
+    lastWeeklyAt: iso(now - (7 + (DEMO_MAINT_LOCK ? 23 : 9)) * DEMO_DAY_MS - 3600_000) as string | null,
     lastMonthlyAt: iso(now - 10 * DEMO_DAY_MS) as string | null,
     last6MonthlyAt: iso(now - 60 * DEMO_DAY_MS) as string | null,
     last12MonthlyAt: iso(now - 120 * DEMO_DAY_MS) as string | null,
@@ -1607,6 +1619,41 @@ function demoMaintenanceEnforce(): void {
   }
 }
 
+// ---------- BAKIM KİLİDİ (EXCEL 34) — backend MaintenanceLockRules ile aynı formül ----------
+// sonraki = son + aralık gün; gecikme = floor((now − sonraki) / gün) (now > sonraki ise); ≥ 21 → kilit.
+const DEMO_MAINT_LOCK_DAYS = 21
+const DEMO_MAINT_PERIODS: { key: string; label: string; days: number }[] = [
+  { key: 'daily', label: 'Günlük', days: 1 },
+  { key: 'weekly', label: 'Haftalık', days: 7 },
+  { key: 'monthly', label: 'Aylık', days: 30 },
+  { key: 'six-monthly', label: '6 Aylık', days: 180 },
+  { key: 'twelve-monthly', label: '12 Aylık', days: 365 },
+]
+/** Ayar (MachineSettings.maintenanceLockEnabled) — DemoMachine her istekte günceller */
+let demoMaintenanceLockEnabled = DEMO_MAINT_LOCK
+
+function demoMaintenanceLock(): Record<string, unknown> {
+  const now = Date.now()
+  const locked: { periodKey: string; label: string; overdueDays: number }[] = []
+  for (const p of DEMO_MAINT_PERIODS) {
+    const last = demoMaintenanceState[DEMO_MAINTENANCE_FIELDS[p.key]]
+    if (!last) continue
+    const nextAt = new Date(last).getTime() + p.days * DEMO_DAY_MS
+    if (now <= nextAt) continue
+    const overdueDays = Math.max(0, Math.floor((now - nextAt) / DEMO_DAY_MS))
+    if (overdueDays >= DEMO_MAINT_LOCK_DAYS) locked.push({ periodKey: p.key, label: p.label, overdueDays })
+  }
+  const active = demoMaintenanceLockEnabled && locked.length > 0
+  return {
+    lockEnabled: demoMaintenanceLockEnabled,
+    lockActive: active,
+    lockReason: active ? locked.map((l) => `${l.label} bakım vadesinin üzerinden ${l.overdueDays} gün geçti`).join('; ') : null,
+    lockMessage: active ? `BAKIM KİLİDİ: ${locked.map((l) => l.label).join(', ')} bakımı yapılmadan büküm başlatılamaz` : null,
+    lockAfterOverdueDays: DEMO_MAINT_LOCK_DAYS,
+    lockedPeriods: locked,
+  }
+}
+
 function demoMaintenanceView(): Record<string, unknown> {
   const m = demoMaintenanceMode
   const now = Date.now()
@@ -1623,6 +1670,7 @@ function demoMaintenanceView(): Record<string, unknown> {
     reminderAfterMinutes: demoMaintenanceTiming.reminderAfterMinutes,
     autoCloseAfterMinutes: demoMaintenanceTiming.autoCloseAfterMinutes,
     rules: demoMaintenanceRules.map((r) => ({ ...r })),
+    ...demoMaintenanceLock(),
   }
 }
 
@@ -1635,6 +1683,10 @@ function demoMaintenance(rawUrl: string, path: string, method: string, u: URL, b
   const now = new Date().toISOString()
   demoMaintenanceEnforce()
   if (path === '/api/maintenance' && method === 'GET') return demoMaintenanceView()
+  if (path === '/api/maintenance/lock' && method === 'GET') {
+    const { lockAfterOverdueDays: _days, ...lock } = demoMaintenanceLock()
+    return lock
+  }
   if (path === '/api/maintenance' && method === 'PUT') {
     // Elle düzeltme (min süre kuralını atlar) — gerçek DataApi gibi SUPERADMIN'e kilitli (401/403)
     demoRequireRole(rawUrl, 'SUPERADMIN')

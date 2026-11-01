@@ -9,6 +9,7 @@ import { useMaintenanceStore } from '@/stores/maintenanceStore'
 import {
   computeAllMaintenanceStatuses,
   computeMaintenanceAlerts,
+  maintenanceLockActive,
   type MaintenancePeriodStatus,
 } from '@/services/maintenanceStatus'
 
@@ -22,6 +23,26 @@ export function useMaintenanceAlerts(): {
   const loaded = useMaintenanceStore((s) => s.loaded)
   const alerts = useMemo(() => (state ? computeMaintenanceAlerts(state) : []), [state])
   return { alerts, top: alerts[0] ?? null, loaded }
+}
+
+/**
+ * BAKIM KİLİDİ (EXCEL 34) — backend kararı. active: büküm başlatma butonları kilitli gösterilir.
+ * message: büküm başlatma 409 mesajıyla aynı Türkçe metin (translateProgress ile çevrilir).
+ */
+export function useMaintenanceLock(): {
+  active: boolean
+  reason: string | null
+  message: string | null
+} {
+  const state = useMaintenanceStore((s) => s.state)
+  return useMemo(
+    () => ({
+      active: maintenanceLockActive(state),
+      reason: state?.lockReason ?? null,
+      message: state?.lockMessage ?? null,
+    }),
+    [state],
+  )
 }
 
 /** 5 periyodun tamamının durumu (bakım modu ekranı / Bakım Süresi sayfası). */

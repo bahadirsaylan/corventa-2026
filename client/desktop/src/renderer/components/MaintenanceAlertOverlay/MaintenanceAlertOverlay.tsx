@@ -2,12 +2,12 @@
 // Karşılama mesajı (WelcomeOverlay) kapandıktan SONRA açılır — ikisi aynı anda görünmez.
 // Vadesi geçmiş periyot yoksa hiç açılmaz. Renk en yüksek kademeye göre:
 // 1. hafta yeşil hatırlatma, 2. hafta sarı uyarı, 3. hafta+ kırmızı kritik (services/maintenanceStatus.ts).
-// Sadece bilgi — hiçbir hareketi / büküm başlatmayı engellemez.
+// Sadece bilgi. BAKIM KİLİDİ (EXCEL 34) aktifse kilit notu gösterilir — engeli backend uygular.
 
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/sessionStore'
-import { useMaintenanceAlerts } from '@/hooks/useMaintenance'
+import { useMaintenanceAlerts, useMaintenanceLock } from '@/hooks/useMaintenance'
 import { maintenanceTierTitle } from '@/services/maintenanceStatus'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -20,6 +20,7 @@ export default function MaintenanceAlertOverlay() {
   const welcomeOpen = useSessionStore((s) => s.showWelcome)
   const dismiss = useSessionStore((s) => s.dismissMaintenanceAlert)
   const { alerts, top, loaded } = useMaintenanceAlerts()
+  const { active: locked } = useMaintenanceLock()
 
   // Bakım durumu yüklendi ve uyarı yok (ya da DataApi'ye ulaşılamadı) → bu oturum için bekleme biter
   useEffect(() => {
@@ -49,7 +50,12 @@ export default function MaintenanceAlertOverlay() {
           ))}
         </ul>
 
-        {top.lockSoon && (
+        {locked ? (
+          <div className={styles.lockNote}>
+            <Icon name="lock" size="sm" />{' '}
+            {t('BAKIM KİLİDİ AKTİF — geciken bakım tamamlanana kadar otomatik / yarı otomatik büküm başlatılamaz. Manuel mod ve tahliye kullanılabilir.')}
+          </div>
+        ) : top.lockSoon && (
           <div className={styles.lockNote}>
             {t('3 haftadan uzun süredir yapılmayan bakım var — bakım kilidi yakında devreye girecek.')}
           </div>

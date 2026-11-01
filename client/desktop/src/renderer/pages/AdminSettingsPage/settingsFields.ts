@@ -66,6 +66,23 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           },
         ],
       },
+      {
+        // EXCEL 34 — backend MaintenanceLockRules / MaintenanceLockGuard. Varsayılan KAPALI.
+        title: 'BAKIM KİLİDİ',
+        note: 'Bir bakımın vadesinin üzerinden 21 gün geçince (4. haftanın 1. günü) otomatik / yarı otomatik büküm başlatılamaz. Manuel mod, tahliye ve bakım modu açık kalır; geciken bakım tamamlanınca kilit kalkar.',
+        fields: [
+          {
+            type: 'select',
+            key: 'maintenanceLockEnabled',
+            label: 'BAKIM KİLİDİ',
+            desc: 'KAPALI: geciken bakım sadece uyarı verir.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+        ],
+      },
     ],
   },
   {

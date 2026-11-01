@@ -262,3 +262,71 @@
   height: 26px;
   color: #b45309;
 }
+
+/* ── BAKIM KİLİDİ (EXCEL 34) — başlat butonunun yerine ─────── */
+.lockPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 24px 64px;
+  padding: 24px;
+  background: #fdecec;
+  border: 3px solid #b91c1c;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.lockIcon {
+  color: #b91c1c;
+}
+
+.lockTitle {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #b91c1c;
+}
+
+.lockList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #7f1d1d;
+}
+
+.lockHint {
+  max-width: 560px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.lockPageBtn {
+  height: 52px;
+  padding: 0 24px;
+  background: #fff;
+  border: 2px solid #b91c1c;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.lockPageBtn:active {
+  filter: brightness(0.94);
+}
+
+.manualIconLocked {
+  width: 26px;
+  height: 26px;
+  color: #b91c1c;
+}

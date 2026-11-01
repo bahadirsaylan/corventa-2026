@@ -47,6 +47,9 @@ const RULES: Rule[] = [
   // Güvenlik kontrolü büküm engeli (backend SafetyCheckService, EXCEL 27) — StartJob 400 mesajı;
   // IPC hatası önüne "Error invoking remote method ..." ekleyebildiği için başa sabitlenmez
   [/Yağ sıcaklığı çok yüksek \((-?\d+)°C > (-?\d+)°C\) — büküm başlatılamaz$/i, (m) => ['Yağ sıcaklığı çok yüksek ({v}°C > {limit}°C) — büküm başlatılamaz', { v: m[1], limit: m[2] }]],
+  // Bakım kilidi büküm engeli (backend MaintenanceLockRules.BuildBlockMessage, EXCEL 34) — StartJob / execute 409;
+  // periyot adları ("Haftalık, Aylık") ayrıca sözlükten çevrilir. IPC öneki olabileceği için başa sabitlenmez.
+  [/BAKIM KİLİDİ: (.+) bakımı yapılmadan büküm başlatılamaz$/, (m) => ['BAKIM KİLİDİ: {periods} bakımı yapılmadan büküm başlatılamaz', { periods: m[1] }]],
   // Hata anı snapshot sebepleri (backend ErrorSnapshotService / SafetyCheckService, EXCEL 26) — Hata Raporları ekranı
   [/^Acil stop \(yazılım\)$/i, () => ['Acil stop (yazılım)']],
   [/^Fiziksel acil stop basıldı$/i, () => ['Fiziksel acil stop basıldı']],
@@ -73,7 +76,10 @@ export function translateProgress(message: string | null | undefined, lang: Lang
     if (!m) continue
     const [key, vars] = fn(m)
     // Yan isimleri (SAĞ/SOL) de sözlükten çevrilir
-    const v = vars && 'side' in vars ? { ...vars, side: translate(String(vars.side), lang) } : vars
+    let v = vars && 'side' in vars ? { ...vars, side: translate(String(vars.side), lang) } : vars
+    // Bakım periyodu listesi ("Haftalık, Aylık") — her ad sözlükten çevrilir
+    if (v && 'periods' in v)
+      v = { ...v, periods: String(v.periods).split(', ').map((p) => translate(p, lang)).join(', ') }
     return translate(key, lang, v)
   }
   return msg

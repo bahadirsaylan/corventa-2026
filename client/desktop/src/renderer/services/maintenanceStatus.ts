@@ -8,7 +8,9 @@
 //   0-6. gün   → 1. hafta  YEŞİL   hatırlatma
 //   7-13. gün  → 2. hafta  SARI    uyarı
 //   14-20. gün → 3. hafta  KIRMIZI kritik
-//   21+ gün    → KIRMIZI + "bakım kilidi yakında" notu (kilit HENÜZ YOK — hiçbir hareket engellenmez)
+//   21+ gün    → KIRMIZI + "bakım kilidi yakında" notu; BAKIM KİLİDİ ayarı açıksa (EXCEL 34) KİLİTLİ:
+//                otomatik / yarı oto / AI büküm başlatılamaz. Kilit kararı BACKEND'de (DataApi
+//                MaintenanceLockRules, aynı formül) → ekran state.lockActive'e bakar (maintenanceLockActive).
 // Vadesi gelmemiş periyot uyarı üretmez. Hiç yapılmamış (tarih yok) periyot da kademe üretmez
 // (gecikme günü hesaplanamaz) — sayfada "HİÇ YAPILMADI" olarak görünür.
 // Sınırları değiştirmek için aşağıdaki sabitleri düzenleyin.
@@ -122,6 +124,14 @@ export function topMaintenanceAlert(
 ): MaintenancePeriodStatus | null {
   if (!state) return null
   return computeMaintenanceAlerts(state, nowMs)[0] ?? null
+}
+
+/**
+ * BAKIM KİLİDİ (EXCEL 34) aktif mi — backend kararı (DataApi lockActive: ayar açık + vadeden ≥ 21 gün).
+ * Eski DataApi alanı göndermez → false (kilit yok).
+ */
+export function maintenanceLockActive(state: MaintenanceState | null): boolean {
+  return state?.lockActive === true
 }
 
 /** Kademe başlığı — çevrilecek Türkçe kaynak metin (t() ile kullanın). */
