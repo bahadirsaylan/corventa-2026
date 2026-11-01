@@ -32,6 +32,8 @@ const DRAWINGS: Record<BendingProfileId, { left: string; right: string; reverse?
   'h-bar': { left: 'heb_kivrim_1', right: 'heb_kivrim_2' },
   'c-channel': { left: 'upn_kivrim_1', right: 'upn_kivrim_2', reverse: 'upn_kivrim_3' }, // dik / yan / ters
   't-bar': { left: 't_kiris_3', right: 't_kiris_1', reverse: 't_kiris_2' }, // dik / yan / ters
+  // özel kıvrım (kalıp kodu) — kendi çizimi yok, genel dikdörtgen çizimi
+  custom: { left: 'dikdortgen_profil_2', right: 'dikdortgen_profil_1' },
 }
 
 export function useMethodTileImage(method: MethodTileKind, fallback: string): string {

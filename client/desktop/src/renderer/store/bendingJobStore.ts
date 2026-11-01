@@ -130,6 +130,8 @@ export type BendingProfileId =
   | 'i-single'
   | 'circle-filled'
   | 'l-left'
+  /** 2026-11-02 — özel kıvrım profili: SADECE kalıp kodundan gelir (profil ekranında kutusu yok). Hesap sadece A'yı kullanır. */
+  | 'custom'
 
 // ── API payload sent when a bending job is started ──────────────────────────
 /**

@@ -30,6 +30,7 @@ const IMAGES: Record<BendingProfileId, string> = {
   'i-single': iSingle,
   'circle-filled': circleFilled,
   'l-left': lLeft,
+  custom: squareIn, // özel kıvrım (kalıp kodu) — genel çizim
 }
 
 export function useProfileDimensionImage(): string {

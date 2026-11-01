@@ -24,7 +24,8 @@ export const MOLD_PROFILE_TYPES = Object.keys(MOLD_PROFILE_LABELS) as MoldProfil
 
 /** Büküm akışında seçilebilen profil mi ('custom' değil) */
 export function moldProfileToBendingProfile(t: MoldProfileType | string): BendingProfileId | null {
-  return t in MOLD_PROFILE_LABELS && t !== 'custom' ? (t as BendingProfileId) : null
+  // 2026-11-02: 'custom' (özel kıvrım) de kullanılabilir — iş ProfileType.Custom (99) olarak gider
+  return t in MOLD_PROFILE_LABELS ? (t as BendingProfileId) : null
 }
 
 /** "160 × 80 × 3 mm" · B yoksa "Ø114 × 4 mm" (boru) / "114 × 4 mm" · dolu malzemede "… · DOLU" (t() ile) */

@@ -34,6 +34,7 @@ const PROFILE_MAP: Record<BendingProfileId, ProfileType> = {
   't-bar': ProfileType.TProfile,
   'square-filled': ProfileType.Square,
   'circle-filled': ProfileType.Round,
+  custom: ProfileType.Custom, // özel kıvrım — sadece kalıp kodundan (hesap yalnız A'yı kullanır)
 }
 
 const DIRECTION_MAP = {

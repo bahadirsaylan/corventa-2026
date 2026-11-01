@@ -20,6 +20,7 @@ export const PROFILE_FIELDS: Record<BendingProfileId, ProfileFieldKey[]> = {
   'h-bar': ['A', 'S'],               // HEB
   'c-channel': ['A', 'S'],           // UPN
   't-bar': ['A', 'S'],               // T profil
+  custom: ['A', 'B', 'S'],           // özel kıvrım (sadece kalıp kodundan; değerler kalıptan kilitli)
 }
 
 const ALL: ProfileFieldKey[] = ['A', 'B', 'S']
