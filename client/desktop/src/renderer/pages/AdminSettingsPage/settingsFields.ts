@@ -155,6 +155,18 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         ],
       },
       {
+        // EXCEL 25 — envanter: backend docs/SURELER.md. Boş = koddaki eski sabit (davranış aynı).
+        title: 'SÜRELER',
+        note: 'Ölçüm ve duraklama süreleri. Boş bırakılırsa makinenin bugüne kadarki sabit değeri kullanılır. Değiştirdikten sonra ölçüm sonuçlarını eski değerle karşılaştırın.',
+        fields: [
+          { key: 'measurePneumaticExtendWaitMs', label: 'ÖLÇÜM PNÖMATİĞİ UZATMA BEKLEMESİ', unit: 'ms', min: 500, max: 15000, integer: true, nullable: true, desc: 'Ölçüm çubuğunun parçaya oturması için. Boş = 5000 ms.' },
+          { key: 'measurePneumaticRetractWaitMs', label: 'ÖLÇÜM PNÖMATİĞİ GERİ ÇEKME BEKLEMESİ', unit: 'ms', min: 500, max: 15000, integer: true, nullable: true, desc: 'Ölçüm çubuğunun tam geri çekilmesi için. Boş = 5000 ms.' },
+          { key: 'measureSampleDurationMs', label: 'ÖLÇÜM ÖRNEKLEME SÜRESİ', unit: 'ms', min: 1000, max: 15000, integer: true, nullable: true, desc: 'Sensörün okunduğu süre. Boş = 5000 ms.' },
+          { key: 'circularSlackPressureSettleMs', label: 'ÇEMBER — BOŞLUK ALMA BASINÇ BEKLEMESİ', unit: 'ms', min: 0, max: 5000, integer: true, nullable: true, desc: 'Geri esneme düzeltmesinde basınçla boşluk aldıktan sonra. Boş = 1000 ms.' },
+          { key: 'circularIterationPauseMs', label: 'ÇEMBER — İTERASYON ARASI DURAKLAMA', unit: 'ms', min: 0, max: 5000, integer: true, nullable: true, desc: 'Geri esneme düzeltmesinde her iterasyon sonunda. Boş = 500 ms.' },
+        ],
+      },
+      {
         title: 'YARIÇAP SENSÖRLERİ (GT2)',
         fields: [
           { key: 'radiusSensorMmPerPulse', label: 'PULSE BAŞINA MM', unit: 'mm', min: 0.000001, max: 1 },

@@ -65,6 +65,8 @@ const DEMO_MACHINE_SETTINGS = {
   minMeasurableArcLengthMm: null, defaultMeasurementDistanceMm: 850, stateSnapshotIntervalSec: 5,
   clampContactDeltaBar: 1, clampJogSpeedPercent: 30, clampSlowSpeedPercent: 20, clampSlowdownPercentOfTarget: 95,
   clampContactAtTargetEnabled: true, clampTravelOverpressureBar: 3,
+  measurePneumaticExtendWaitMs: null, measurePneumaticRetractWaitMs: null, measureSampleDurationMs: null,
+  circularSlackPressureSettleMs: null, circularIterationPauseMs: null,
   slackSpeedPercent: 30, adaptiveJogSpeedPercent: 20, adaptiveSampleIntervalMm: 1, adaptiveWindowSampleCount: 10,
   adaptiveEncoderStopToleranceMm: 0.1, springbackMaxIterations: 20, arcMeasureMaxIterations: 10,
   springbackRotationOnlyMaxMm: 50, springbackStableTimeMs: 500, springbackIncreaseThresholdMm: 0.2, springbackMinThresholdMm: 0.1,
