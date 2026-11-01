@@ -1,5 +1,6 @@
-// EXCEL 28 — Usta öğrenme programı: kayıtlı makro listesi.
-// YENİ KAYIT → manuel ekranda makro kaydı · DÜZENLE → adımlar · ÇALIŞTIR → oynatma · SİL (ADMIN+).
+// EXCEL 28 — Usta öğrenme programı: kayıtlı büküm (makro) listesi.
+// 2026-11-01: MANUEL BÜKÜM bu liste (ayrı MAKRO kartı ve ayrı kayıt ekranı kaldırıldı).
+// YENİ KAYIT → kayıt başlar + ana ekran (orta tuş takımı) · DÜZENLE → adımlar · ÇALIŞTIR → oynatma · SİL (ADMIN+).
 
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -12,6 +13,7 @@ import { PERMISSIONS } from '@/constants/permissions'
 import { useT } from '@/i18n'
 import { macroErrorMessage } from '@/services/macroAxes'
 import { useCan } from '@/stores/sessionStore'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import type { MacroSummary } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
 import styles from './Macro.module.css'
@@ -75,11 +77,11 @@ export default function MacroListPage() {
 
   return (
     <div className={styles.page}>
-      <ManuelHeader onDown={() => navigate('/bending/manual-mode')} subtitle={t('MAKROLAR')} />
+      <ManuelHeader onDown={() => navigate('/bending/manual-mode')} subtitle={t('KAYITLI BÜKÜMLER')} />
 
       <div className={styles.content}>
         <h2 className={styles.pageTitle}>
-          <IconLabel icon="macro">{t('USTA ÖĞRENME PROGRAMLARI (MAKRO)')}</IconLabel>
+          <IconLabel icon="macro">{t('MANUEL BÜKÜM — KAYITLI BÜKÜMLER')}</IconLabel>
         </h2>
 
         {error && (
@@ -120,7 +122,7 @@ export default function MacroListPage() {
               {!loading && macros.length === 0 && (
                 <tr>
                   <td colSpan={5} className={styles.emptyRow}>
-                    {t('Henüz kayıtlı makro yok. "YENİ KAYIT" ile manuel ekranda kayda başla.')}
+                    {t('Henüz kayıtlı büküm yok. "YENİ KAYIT" ile kayda başla, ana ekrandaki tuş takımıyla bük.')}
                   </td>
                 </tr>
               )}
@@ -161,7 +163,11 @@ export default function MacroListPage() {
           </button>
           <button
             className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
-            onClick={() => navigate('/bending/macros/record')}
+            onClick={() => {
+              // Kayıt başlar → ana ekran: usta orta tuş takımıyla büker, KAYDI BİTİR → isim
+              useMacroRecorderStore.getState().start()
+              navigate('/dashboard')
+            }}
           >
             <IconLabel icon="record">{t('YENİ KAYIT')}</IconLabel>
           </button>

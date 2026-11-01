@@ -6,6 +6,9 @@
 // Yan dayamalar her zaman serbest (Serpantin'de operatör büküm sırasında ayar yapıyor).
 // STOP her zaman açık — operatör motoru her an kesebilmeli.
 //
+// Usta öğrenme (makro) kaydı (2026-11-01): kayıt açıkken piston + rotasyon tuşları noteMotion ile
+// kayıt store'una bildirilir (ayrı kayıt ekranı kaldırıldı). Yan dayama tuşları kayda girmez.
+//
 // Yan dayama tuş eşleşmesi (TAHMİNİ — sahada doğrulanacak):
 //   dikey çift = REEL, yatay çift = JOINT, eğik çift = BODY.
 
@@ -18,6 +21,8 @@ import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import { useHoldAction } from './useHoldAction'
 import { readManualSpeed } from '@/services/operatorPrefs'
+import { pistonAxis } from '@/services/macroAxes'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import styles from './ManualControlPad.module.css'
 
 const SPEED_STEP = 5
@@ -227,6 +232,8 @@ interface RotationBtnProps {
 function RotationBtn({ dir, speed, locked, cls, label }: RotationBtnProps) {
   const t = useT()
   const onStart = useCallback(() => {
+    // Usta öğrenme kaydı açıksa hareket bildirilir (kayıt kapalıyken etkisiz)
+    useMacroRecorderStore.getState().noteMotion('Rotation', speed)
     void window.corventa.machine.rotationJog({ direction: dir, speedPercent: speed }).catch(() => {})
   }, [dir, speed])
   const onStop = useCallback(() => {
@@ -289,6 +296,8 @@ function PistonHalf({ piston, dir, arrow, speed, locked, pos }: PistonHalfProps)
   const t = useT()
   // Backend polaritesi: direction=-1 ileri (parçaya), +1 geri (BendingBallsPanel ile aynı)
   const onStart = useCallback(() => {
+    // Usta öğrenme kaydı açıksa hareket bildirilir (kayıt kapalıyken etkisiz)
+    useMacroRecorderStore.getState().noteMotion(pistonAxis(piston), speed)
     void window.corventa.machine.pistonJog({ piston, direction: dir, speedPercent: speed }).catch(() => {})
   }, [piston, dir, speed])
   const onStop = useCallback(() => {

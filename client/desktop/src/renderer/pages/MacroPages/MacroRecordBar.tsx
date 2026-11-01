@@ -1,5 +1,5 @@
-// EXCEL 28 — Manuel ekrandaki MAKRO KAYDI çubuğu.
-// BAŞLAT → usta tuşlarla hareket eder (her hareket ManuelBendingRunPage'den noteMotion ile bildirilir).
+// EXCEL 28 — usta öğrenme KAYIT çubuğu (2026-11-01: ana ekranda orta tuş takımının üstünde).
+// BAŞLAT → usta orta tuş takımıyla hareket eder (ManualControlPad her hareketi noteMotion ile bildirir).
 // BİTİR → açık eksenin son değeri de yazılır, isim + açıklama ile DataApi'ye kaydedilir → düzenleme ekranı.
 // İPTAL → kayıt atılır. Kayıt store'u global — ekrandan çıkıp dönülse de kayıt sürer.
 
@@ -15,7 +15,11 @@ import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import type { MacroStep } from '@shared/types'
 import styles from './Macro.module.css'
 
-export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
+/**
+ * hideWhenIdle: ana ekrandaki tuş takımının üstünde kullanım — kayıt yokken çubuk görünmez
+ * (kayıt Manuel Büküm listesindeki YENİ KAYIT ile başlar), kaydetme penceresi yine burada açılır.
+ */
+export default function MacroRecordBar({ disabled, hideWhenIdle }: { disabled?: boolean; hideWhenIdle?: boolean }) {
   const t = useT()
   const navigate = useNavigate()
   const recording = useMacroRecorderStore((s) => s.recording)
@@ -50,13 +54,16 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
   const last = steps[steps.length - 1]
   const count = steps.length + (current ? 1 : 0)
 
+  const showBar = recording || !hideWhenIdle || emptyNotice
+
   return (
     <>
+      {showBar && (
       <div className={`${styles.recordBar} ${recording ? styles.recordBarActive : ''}`}>
         {recording ? (
           <>
             <Icon name="record" size="lg" className={styles.recordDot} />
-            <span className={styles.recordText}>{t('MAKRO KAYDI — {n} ADIM', { n: count })}</span>
+            <span className={styles.recordText}>{t('USTA KAYDI — {n} ADIM', { n: count })}</span>
             {last && (
               <span className={styles.recordLast}>
                 {t('SON')}: {t(AXIS_LABELS[last.axis])} {formatStepValue(last)} {axisUnit(last)}
@@ -88,12 +95,19 @@ export default function MacroRecordBar({ disabled }: { disabled?: boolean }) {
             >
               <IconLabel icon="record">{t('MAKRO KAYDI BAŞLAT')}</IconLabel>
             </button>
-            <button className={styles.recordBtn} onClick={() => navigate('/bending/macros')}>
-              <IconLabel icon="macro">{t('MAKROLAR')}</IconLabel>
+            <button
+              className={styles.recordBtn}
+              onClick={() => {
+                setEmptyNotice(false)
+                navigate('/bending/macros')
+              }}
+            >
+              <IconLabel icon="macro">{t('KAYITLI BÜKÜMLER')}</IconLabel>
             </button>
           </>
         )}
       </div>
+      )}
 
       {cancelOpen && (
         <ConfirmModal

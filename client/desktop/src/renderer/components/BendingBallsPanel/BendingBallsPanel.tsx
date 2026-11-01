@@ -12,6 +12,7 @@ import { BendingMethod, type BendingJob, type BendingProgress } from '@shared/ty
 import ProfileArcStage from './ProfileArcStage'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
+import MacroRecordBar from '@/pages/MacroPages/MacroRecordBar'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
@@ -212,6 +213,8 @@ function ControlPanel() {
 
       {/* ── Manuel tuş takımı ──────────────────────── */}
       <div className={styles.padArea}>
+        {/* Usta öğrenme kaydı — sadece kayıt açıkken (Manuel Büküm > YENİ KAYIT) görünür */}
+        <MacroRecordBar hideWhenIdle />
         <ManualControlPad />
       </div>
     </div>

@@ -433,6 +433,9 @@
   flex: 1;
   min-height: 0;
   display: flex;
+  /* Usta kaydı açıkken kayıt çubuğu tuş takımının üstünde */
+  flex-direction: column;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
