@@ -39,6 +39,11 @@ export default function ConnectionBanner(): ReactElement | null {
     const sec = staleSec
     label = t('VERİ AKMIYOR — {sec}sn ÖNCESİNE AİT DURUM GÖSTERİLİYOR', { sec })
     variant = 'error'
+  } else if (!Number.isFinite(staleSec)) {
+    // Bending API açık + SignalR bağlı ama henüz hiç makine durumu gelmedi (örn. PLC kapalı / kablo yok;
+    // API artık PLC'yi beklemeden dinlemeye başlıyor). Ekrandaki 0 değerleri gerçek sanılmasın.
+    label = t('MAKİNE VERİSİ BEKLENİYOR — PLC BAĞLI DEĞİL')
+    variant = 'error'
   }
 
   if (!label) return null

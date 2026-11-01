@@ -9,6 +9,7 @@ const en: Record<string, string> = {
   'BAĞLANTI YENİDEN KURULUYOR…': 'RECONNECTING…',
   'MAKİNEYE BAĞLANILAMIYOR': 'CANNOT CONNECT TO MACHINE',
   'VERİ AKMIYOR — {sec}sn ÖNCESİNE AİT DURUM GÖSTERİLİYOR': 'NO DATA — SHOWING STATE FROM {sec}s AGO',
+  'MAKİNE VERİSİ BEKLENİYOR — PLC BAĞLI DEĞİL': 'WAITING FOR MACHINE DATA — PLC NOT CONNECTED',
 
   // ── SideMenu + sideMenuCatalog ──
   'Menüyü aç': 'Open menu',
