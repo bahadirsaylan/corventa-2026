@@ -83,6 +83,8 @@ export interface BendingJob {
 
   // User
   operatorName: string | null
+  /** Bulut v2 (BULUT_API_V2.md §2.4): kalıp kodundan oluşturulan işte kalıp kodu; diğerlerinde null / yok */
+  moldCode?: string | null
   notes: string | null
 
   // Arc segments — server BendingJob.Segments nav property'sini include eder.
@@ -137,6 +139,8 @@ export interface BendingJobCreateRequest {
 
   // Operator metadata
   operatorName?: string | null
+  /** Kalıp kodu (MMM-AAA-BBB-SS[-VV]) — sadece kalıp akışında gönderilir (BULUT_API_V2.md §2.4) */
+  moldCode?: string | null
   notes?: string | null
 
   // İleride DataAPI default'lara bağlanırsa bu alanlar opsiyonel kalacak.

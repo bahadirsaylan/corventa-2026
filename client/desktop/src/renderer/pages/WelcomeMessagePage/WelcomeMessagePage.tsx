@@ -7,6 +7,7 @@ import {
   WELCOME_MAX_LENGTH as MAX_LENGTH,
   WELCOME_STORAGE_KEY as STORAGE_KEY,
 } from '@/services/welcomeMessage'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 import styles from './WelcomeMessagePage.module.css'
 
 export default function WelcomeMessagePage() {
@@ -15,6 +16,10 @@ export default function WelcomeMessagePage() {
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [message, setMessage] = useState('')
   const [savedAt, setSavedAt] = useState<string | null>(null)
+  // Bulut v2: mesaj bulutta yönetiliyorsa sadece gösterilir, burada düzenlenemez
+  const cloudRaw = useCloudConfig()?.welcomeMessage ?? null
+  const cloudMessage = cloudRaw?.trim() ? cloudRaw : null
+  const shown = cloudMessage ?? message
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -43,13 +48,22 @@ export default function WelcomeMessagePage() {
       </div>
 
       <div className={styles.body}>
-        <p className={styles.helpText}>
-          {t('Operatör login sonrası gösterilecek karşılama mesajını düzenleyin. En fazla {n} karakter.', { n: MAX_LENGTH })}
-        </p>
+        {cloudMessage ? (
+          <p className={`${styles.helpText} ${styles.cloudNote}`}>
+            <strong>{t('BULUTTAN YÖNETİLİYOR')}</strong>
+            {' — '}
+            {t('Bu mesaj Corventa bulut panelinden değiştirilir; makinede düzenlenemez.')}
+          </p>
+        ) : (
+          <p className={styles.helpText}>
+            {t('Operatör login sonrası gösterilecek karşılama mesajını düzenleyin. En fazla {n} karakter.', { n: MAX_LENGTH })}
+          </p>
+        )}
 
         <textarea
           className={styles.textarea}
-          value={message}
+          value={shown}
+          readOnly={!!cloudMessage}
           onChange={(e) => setMessage(e.target.value.slice(0, MAX_LENGTH))}
           rows={10}
           placeholder={t('Karşılama mesajınızı buraya yazın...')}
@@ -57,7 +71,7 @@ export default function WelcomeMessagePage() {
 
         <div className={styles.statusRow}>
           <span className={styles.counter}>
-            {t('{len} / {max} karakter', { len: message.length, max: MAX_LENGTH })}
+            {t('{len} / {max} karakter', { len: shown.length, max: MAX_LENGTH })}
           </span>
           {savedAt && <span className={styles.savedAt}>{t('Kaydedildi: {at}', { at: savedAt })}</span>}
         </div>
@@ -65,7 +79,7 @@ export default function WelcomeMessagePage() {
         <div className={styles.preview}>
           <span className={styles.previewLabel}>{t('ÖNİZLEME')}</span>
           <div className={styles.previewBox}>
-            {message.split('\n').map((line, i) => (
+            {shown.split('\n').map((line, i) => (
               <div key={i} className={styles.previewLine}>
                 {line || ' '}
               </div>
@@ -74,10 +88,10 @@ export default function WelcomeMessagePage() {
         </div>
 
         <div className={styles.actions}>
-          <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={handleReset}>
+          <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={handleReset} disabled={!!cloudMessage}>
             {t('VARSAYILANA DÖN')}
           </button>
-          <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={handleSave}>
+          <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={handleSave} disabled={!!cloudMessage}>
             {t('KAYDET')}
           </button>
         </div>

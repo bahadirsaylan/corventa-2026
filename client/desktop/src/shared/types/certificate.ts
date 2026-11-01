@@ -14,6 +14,8 @@ export interface Certificate {
   validUntil: string | null
   isExpired: boolean
   createdAt: string
+  /** Bulut v2 (BULUT_API_V2.md §6): cloud = buluttan, cache = yerel önbellek, local = yerel kayıt. Eski DataApi göndermez. */
+  source?: 'cloud' | 'cache' | 'local'
 }
 
 /** Sorgu kodu normalizasyonu — backend ile aynı kural (trim + büyük harf, kültürden bağımsız) */

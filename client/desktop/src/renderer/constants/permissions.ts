@@ -26,6 +26,8 @@ export const PERMISSIONS = {
   'certificate': 'OPERATOR',        // Sertifika Sorgula
   'maintenance': 'OPERATOR',        // Bakım Süresi: görüntüle + bakım modu aç/kapat + tamamlandı
   'macro': 'OPERATOR',              // usta öğrenme programı (EXCEL 28): makro kaydı / düzenleme / oynatma
+  'mold-query': 'OPERATOR',         // KALIP KODU SORGULA (bulut v2 §2.4) — lisans etkinleştirme dahil (anahtar gerekir; main de kontrol eder)
+  'mold-library': 'OPERATOR',       // KALIP KÜTÜPHANESİ (önbellekteki kalıplar)
   // ── ADMIN ──
   'admin-settings': 'ADMIN',        // Admin Ayarları (cetvel sıfırlama dahil)
   'encoder-reset': 'ADMIN',

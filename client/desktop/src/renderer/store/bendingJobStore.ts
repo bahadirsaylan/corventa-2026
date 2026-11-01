@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { MoldDto } from '@shared/types'
 
 // ── Bending mode (2026-09-05) — Otomatik akış varyantı ─────────────────────
 // 'ai'   = tam otomatik + geri esneme + AI recipe hızlandırma
@@ -319,6 +320,16 @@ export interface BendingJobParams {
    * Parça yükleme sayfası bu onay olmadan açılmaz (dizilim ekranına yönlendirir).
    */
   rollArrangementConfirmed: boolean
+
+  /**
+   * Bulut v2 kalıp kodu (BULUT_API_V2.md §2.4) — ÖZEL KIVIRIM PROFİLLERİ → KALIP KODU ekranında seçildi.
+   * Doluyken: profileId + A/B/S kalıptan gelir ve ölçü ekranında KİLİTLİ; yön sayfası atlanır
+   * (bendingDirection = NO_DIRECTION_DEFAULT); iş kaydına moldCode yazılır. Normal profil seçilince null.
+   */
+  moldCode: string | null
+
+  /** Seçilen kalıbın kaydı (ölçüler, önerilen adım) — moldCode ile birlikte set/sıfırlanır */
+  mold: MoldDto | null
 }
 
 // ── Store state + actions ────────────────────────────────────────────────────
@@ -350,6 +361,8 @@ const INITIAL_PARAMS: BendingJobParams = {
   thicknessMm:  null,
   repeatCount:  null,
   rollArrangementConfirmed: false,
+  moldCode: null,
+  mold: null,
 }
 
 export const useBendingJobStore = create<BendingJobState>((set) => ({

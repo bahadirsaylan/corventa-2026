@@ -9,6 +9,7 @@ import type { CloudApi } from './preload/api/cloud'
 import type { EventsApi } from './preload/api/events'
 import type { MachineApi } from './preload/api/machine'
 import type { MacroApi } from './preload/api/macro'
+import type { MoldApi } from './preload/api/molds'
 import type { ServiceApi } from './preload/api/service'
 import type { SettingsApi } from './preload/api/settings'
 import type { SystemApi } from './preload/api/system'
@@ -27,6 +28,7 @@ declare global {
     auth: AuthApi
     macro: MacroApi
     cloud: CloudApi
+    molds: MoldApi
   }
 
   interface Window {

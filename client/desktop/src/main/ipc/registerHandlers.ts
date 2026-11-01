@@ -2,6 +2,7 @@ import { registerAuthHandlers } from './authHandlers'
 import { registerBendingHandlers } from './bendingHandlers'
 import { registerCloudHandlers } from './cloudHandlers'
 import { registerMachineHandlers } from './machineHandlers'
+import { registerMoldHandlers } from './moldHandlers'
 import { registerMacroHandlers } from './macroHandlers'
 import { registerServiceHandlers } from './serviceHandlers'
 import { registerSettingsHandlers } from './settingsHandlers'
@@ -18,4 +19,5 @@ export function registerIpcHandlers(): void {
   registerAuthHandlers()
   registerMacroHandlers()
   registerCloudHandlers()
+  registerMoldHandlers()
 }

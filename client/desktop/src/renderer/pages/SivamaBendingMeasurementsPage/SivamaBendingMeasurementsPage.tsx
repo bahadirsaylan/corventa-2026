@@ -7,6 +7,7 @@ import StatusBar from '@/components/StatusBar/StatusBar'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
 import SivamaMeasurementForm, { SivamaMeasurementValues } from './SivamaMeasurementForm'
 import styles from './SivamaBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -45,6 +46,8 @@ function fromStore(
 export default function SivamaBendingMeasurementsPage() {
   const t = useT()
   const modeLabel = useBendingModeLabel()
+  // Kalıp kodu seçiliyse alt şeritte kalıp + kilit + önerilen adım (BULUT_API_V2.md §2.4)
+  const moldHint = useMoldHint()
   const navigate      = useNavigate()
   const sivamaBending = useBendingJobStore((s) => s.params.sivamaBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
@@ -99,6 +102,7 @@ export default function SivamaBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
+        hint={moldHint}
       />
 
     </div>

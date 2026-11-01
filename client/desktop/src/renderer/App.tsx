@@ -32,6 +32,9 @@ import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountR
 import LanguagePage from '@/pages/LanguagePage/LanguagePage'
 import CertificateQueryPage from '@/pages/CertificateQueryPage/CertificateQueryPage'
 import CustomerChangePage from '@/pages/CustomerChangePage/CustomerChangePage'
+import MoldQueryPage from '@/pages/MoldPages/MoldQueryPage'
+import MoldLibraryPage from '@/pages/MoldPages/MoldLibraryPage'
+import MoldCodePage from '@/pages/MoldCodePage/MoldCodePage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
 import ManualModeSelectPage from '@/pages/ManualModeSelectPage/ManualModeSelectPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
@@ -113,11 +116,15 @@ export default function App() {
             <Route path="settings/bending-count" element={<BendingCountReportPage />} />
             <Route path="settings/language" element={<LanguagePage />} />
             <Route path="settings/certificate" element={<CertificateQueryPage />} />
+            {/* Bulut v2 — kalıp kodu (BULUT_API_V2.md §2.4) */}
+            <Route path="settings/mold-code" element={<RequireRole permission="mold-query"><MoldQueryPage /></RequireRole>} />
+            <Route path="settings/mold-library" element={<RequireRole permission="mold-library"><MoldLibraryPage /></RequireRole>} />
             <Route path="settings/customer-change" element={<RequireRole permission="customer-change"><CustomerChangePage /></RequireRole>} />
             {/* Satış / takas / hibe artık müşteri değişikliğinin içinde (neden seçimi) — eski rota yönlendirilir */}
             <Route path="settings/machine-transfer" element={<Navigate to="/settings/customer-change" replace />} />
             <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
+            <Route path="bending/ai/mold-code" element={<MoldCodePage />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
             <Route path="bending/ai/method" element={<BendingMethodPage />} />
             <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />

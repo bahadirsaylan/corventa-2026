@@ -24,7 +24,8 @@ import { app, type BrowserWindow } from 'electron'
 
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
-import { demoCloud } from '@main/demo/demoCloud'
+import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
+import { demoCloudData } from '@main/demo/demoCloudData'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -1331,6 +1332,10 @@ export class DemoMachine extends EventEmitter {
     if (path === '/health') return { status: 'ok' }
     if (path === '/api/machine/state') return this.state
 
+    // ── Bulut v2: kalıp kütüphanesi, yönetilen veriler, checklist, demo servis talebi (demoCloudData.ts) ──
+    const v2 = demoCloudData(rawUrl, u, path, method, b)
+    if (v2) return v2.value
+
     // ── hesap / plan ──
     if (path === '/api/bending/calculate') {
       const d = calcPush({
@@ -1698,7 +1703,8 @@ export class DemoMachine extends EventEmitter {
         const error = `'${code}' kodlu sertifika bulunamadı`
         throw new HttpError(404, rawUrl, error, { error })
       }
-      return cert
+      // Bulut v2 — sertifika kaynağı (bulut aktive ise buluttan sorgulanmış sayılır)
+      return { ...cert, source: demoCloudActivated() ? 'cloud' : 'local' }
     }
     if (path === '/api/customer-change/request' && method === 'POST') {
       return demoCustomerChangeRequest(rawUrl, b)
@@ -2127,6 +2133,8 @@ type DemoCertificate = {
 const DEMO_CERTIFICATES: readonly DemoCertificate[] = [
   { id: 1, code: 'CRV-2026-001', ownerName: 'Ahmet Yılmaz', ownerCompany: 'Demo Metal A.Ş.', courseName: 'Temel Operatör Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2026-02-15T00:00:00Z', validUntil: '2028-02-15T00:00:00Z', createdAt: '2026-02-15T09:00:00Z' },
   { id: 2, code: 'CRV-2025-042', ownerName: 'Mehmet Demir', ownerCompany: null, courseName: 'İleri Seviye Bakım Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2025-06-10T00:00:00Z', validUntil: null, createdAt: '2025-06-10T09:00:00Z' },
+  { id: 4, code: 'CRV-2026-017', ownerName: 'Ayşe Kaya', ownerCompany: 'Kaya Profil Ltd.', courseName: 'Kalıp Kodu ve Lisans Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2026-09-05T00:00:00Z', validUntil: '2028-09-05T00:00:00Z', createdAt: '2026-09-05T09:00:00Z' },
+  { id: 5, code: 'CRV-2026-022', ownerName: 'Serkan Öztürk', ownerCompany: 'KELESTEK', courseName: 'Yetkili Servis Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2026-10-12T00:00:00Z', validUntil: '2027-10-12T00:00:00Z', createdAt: '2026-10-12T09:00:00Z' },
   { id: 3, code: 'CRV-2024-018', ownerName: 'Osman Şahin', ownerCompany: 'Demo Metal A.Ş.', courseName: 'Temel Operatör Eğitimi', certifiedBy: 'Corventa Teknik Eğitim', issuedAt: '2024-03-20T00:00:00Z', validUntil: '2026-03-20T00:00:00Z', createdAt: '2024-03-20T09:00:00Z' },
 ]
 

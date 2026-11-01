@@ -8,6 +8,8 @@ import type {
   BendingLogQuery,
   BendingLogsResponse,
   Certificate,
+  ChecklistResultBody,
+  CloudConfig,
   CloudStatus,
   CustomerChangeConfirmResponse,
   CustomerChangeRequestBody,
@@ -23,6 +25,9 @@ import type {
   MaintenancePeriodKey,
   MaintenanceState,
   MaintenanceRulesConfig,
+  MoldListQuery,
+  MoldListResponse,
+  MoldLookupResult,
   StageInfo,
   ServiceRequest,
   ServiceRequestCreateRequest,
@@ -374,6 +379,39 @@ export class DataApiClient {
 
   deactivateCloud(): Promise<CloudStatus> {
     return http.post<CloudStatus>(`${this.baseUrl}/api/cloud/deactivate`, {})
+  }
+
+  // ---------- Bulut v2 (BULUT_API_V2.md §6) — kalıp kütüphanesi, yönetilen veriler, checklist ----------
+  // Hepsi bulut aktive değilken de cevap verir (önbellek / yerel). Hatalar HttpError (400/404/503 { error }).
+
+  listMolds(q: MoldListQuery = {}): Promise<MoldListResponse> {
+    const p = new URLSearchParams()
+    if (q.q) p.set('q', q.q)
+    if (q.profileType) p.set('profileType', q.profileType)
+    if (q.licensed != null) p.set('licensed', String(q.licensed))
+    const qs = p.toString()
+    return http.get<MoldListResponse>(`${this.baseUrl}/api/molds${qs ? `?${qs}` : ''}`)
+  }
+
+  /** Çevrimiçiyse DataApi buluttan tazeler — internet yavaşsa varsayılandan uzun sürebilir */
+  getMold(code: string): Promise<MoldLookupResult> {
+    return http.get<MoldLookupResult>(`${this.baseUrl}/api/molds/${encodeURIComponent(code)}`, { timeoutMs: 20_000 })
+  }
+
+  activateMoldLicense(code: string, licenseKey: string): Promise<MoldLookupResult> {
+    return http.post<MoldLookupResult>(
+      `${this.baseUrl}/api/molds/${encodeURIComponent(code)}/activate`,
+      { licenseKey },
+      { timeoutMs: 30_000 },
+    )
+  }
+
+  getCloudConfig(): Promise<CloudConfig> {
+    return http.get<CloudConfig>(`${this.baseUrl}/api/cloud/config`)
+  }
+
+  submitChecklistResult(body: ChecklistResultBody): Promise<unknown> {
+    return http.post<unknown>(`${this.baseUrl}/api/checklist/results`, body)
   }
 
   // ---------- Rol sistemi (auth + users) ----------

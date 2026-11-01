@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
+import { useCloudConfig, useCloudConfigStore } from '@/stores/cloudConfigStore'
+import CloudChecklist from './CloudChecklist'
 import styles from './ChecklistPage.module.css'
 
 interface ChecklistItem {
@@ -46,7 +48,18 @@ function todayKey(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Bulut v2 (BULUT_API_V2.md §1 madde 47): bulutta checklist şablonu varsa kalite kontrol (CloudChecklist,
+// sonuç DataApi'ye), yoksa eski günlük check list (bu cihazda localStorage) aynen.
 export default function ChecklistPage() {
+  const template = useCloudConfig()?.checklistTemplate
+  const loaded = useCloudConfigStore((s) => s.loaded)
+  // İlk yükleme (≈ anlık IPC) bitmeden yerel listeyi gösterip sonra buluta zıplamasın
+  if (!loaded) return <div className={styles.page} />
+  if (template && template.items?.length) return <CloudChecklist template={template} />
+  return <LocalChecklist />
+}
+
+function LocalChecklist() {
   const navigate = useNavigate()
   const t = useT()
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'

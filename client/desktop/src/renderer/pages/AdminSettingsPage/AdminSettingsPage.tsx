@@ -25,6 +25,7 @@ import {
   type Values,
 } from '@/components/SettingsForm/SettingsForm'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 import { maintenanceErrorMessage, refreshMaintenance } from '@/stores/maintenanceStore'
 import { useT } from '@/i18n'
 import {
@@ -123,6 +124,8 @@ function AdminEditor() {
   const [rules0, setRules0] = useState<Values>({})
   const [rules, setRules] = useState<Values>({})
   const [rulesError, setRulesError] = useState<string | null>(null)
+  // Bulut v2 (BULUT_API_V2.md §1 madde 48): bakım politikası bulutta yönetiliyorsa not gösterilir
+  const cloudMaint = useCloudConfig()?.maintenancePolicy ?? null
 
   const [confirm, setConfirm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -298,6 +301,14 @@ function AdminEditor() {
 
       {tab === TAB_MAINT && (
         <>
+          {cloudMaint && (
+            <p className={styles.message} data-kind="ok">
+              {t('BULUTTAN YÖNETİLİYOR')}
+              {cloudMaint.name ? ` (${cloudMaint.name})` : ''}
+              {' — '}
+              {t('Bakım kuralları buluttaki politikadan gelir; burada yapılan değişiklik bir sonraki senkronizasyonda buluttaki değerle değiştirilir.')}
+            </p>
+          )}
           {rulesError ? (
             <div className={styles.card}>
               <p className={styles.message} data-kind="err">

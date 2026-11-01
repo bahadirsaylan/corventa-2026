@@ -16,8 +16,11 @@ export default function BendingMethodPage() {
   const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
-  // Yön seçimi olmayan profilde (boş boru) geri → profil seçimi
-  const backTo = directionOptionsFor(profileId) === null ? '/bending/ai' : '/bending/ai/direction'
+  const moldCode = useBendingJobStore((s) => s.params.moldCode)
+  // Kalıp kodu akışında geri → KALIP KODU ekranı; yön seçimi olmayan profilde (boş boru) → profil seçimi
+  const backTo = moldCode
+    ? '/bending/ai/mold-code'
+    : directionOptionsFor(profileId) === null ? '/bending/ai' : '/bending/ai/direction'
 
   return (
     <div className={styles.page}>

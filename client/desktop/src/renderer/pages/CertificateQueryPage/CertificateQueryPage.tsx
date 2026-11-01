@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { normalizeCertificateCode, type Certificate } from '@shared/types'
 import { useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
+import { cloudSourceLabel } from '@/stores/cloudConfigStore'
 import styles from './CertificateQueryPage.module.css'
 
 type Status = 'idle' | 'searching' | 'found' | 'notfound' | 'expired' | 'error'
@@ -129,6 +130,10 @@ export default function CertificateQueryPage() {
             <div className={styles.resultBody}>
               <h2 className={styles.resultTitle}>
                 {status === 'expired' ? t('SERTİFİKA SÜRESİ DOLMUŞ') : t('SERTİFİKA GEÇERLİ')}
+                {/* Bulut v2: sorgu kaynağı (BULUT / ÖNBELLEK / YEREL) — eski DataApi göndermez */}
+                {cloudSourceLabel(result.source) && (
+                  <span className={styles.sourceTag}>{t('KAYNAK')}: {t(cloudSourceLabel(result.source)!)}</span>
+                )}
               </h2>
               <div className={styles.resultGrid}>
                 <ResultRow label={t('SERTİFİKA NO')}  value={result.code} mono />

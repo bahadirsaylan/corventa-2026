@@ -5,6 +5,8 @@ import { ipcRenderer } from 'electron'
 
 import {
   Ipc,
+  type ChecklistResultBody,
+  type CloudConfig,
   type CloudInstallBlockers,
   type CloudInstallResult,
   type CloudResult,
@@ -30,6 +32,11 @@ export const cloudApi = {
   /** ADMIN+ — setup'ı başlatır, ok:true ise uygulama birazdan kapanır */
   installUpdate: (downloadPath: string): Promise<CloudInstallResult> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CloudInstallUpdate, downloadPath),
+  /** Bulut v2 yönetilen veriler (garanti, bakım politikası, checklist şablonu, karşılama, servis ağı/talepleri) */
+  getConfig: (): Promise<CloudResult<CloudConfig>> => ipcRenderer.invoke(Ipc.IpcInvoke.CloudGetConfig),
+  /** ADMIN+ — kalite kontrol checklist sonucu (yerel kayıt + bulut push) */
+  submitChecklistResult: (body: ChecklistResultBody): Promise<CloudResult<unknown>> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ChecklistSubmitResult, body),
 }
 
 export type CloudApi = typeof cloudApi

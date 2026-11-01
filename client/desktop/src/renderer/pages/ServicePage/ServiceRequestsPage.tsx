@@ -12,6 +12,7 @@ import {
 
 import { useServiceRequests } from '@/hooks/useService'
 import { useT } from '@/i18n'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 
 import CategoryBadge from './CategoryBadge'
 import ServiceRequestRating from './ServiceRequestRating'
@@ -25,6 +26,10 @@ export default function ServiceRequestsPage() {
   const [selectedRequest, setSelectedRequest] = useState<ServiceRequest | null>(null)
   const [selectedReport, setSelectedReport] = useState<ServiceRequest | null>(null)
   const [showRating, setShowRating] = useState(false)
+  // Bulut v2 (BULUT_API_V2.md §1 madde 42): talebin bulut durumu + atanan teknisyen (localId = talep id)
+  const cloudStates = useCloudConfig()?.serviceRequests ?? []
+  const cloudOf = (id: number) => cloudStates.find((c) => c.localId === String(id)) ?? null
+  const selectedCloud = selectedRequest ? cloudOf(selectedRequest.id) : null
 
   // Eğer rating panel açıksa onu göster
   if (showRating && selectedReport) {
@@ -57,7 +62,9 @@ export default function ServiceRequestsPage() {
             {!loading && requests.length === 0 && (
               <div className={styles.empty}>{t('Henüz talep yok')}</div>
             )}
-            {requests.map((r) => (
+            {requests.map((r) => {
+              const cloud = cloudOf(r.id)
+              return (
               <button
                 key={r.id}
                 className={[
@@ -71,9 +78,17 @@ export default function ServiceRequestsPage() {
                 <span className={styles.rowCode}>{r.code}</span>
                 <span className={styles.rowSep}>-</span>
                 <span className={styles.rowLabel}>{t(purposeLabel(r.purpose))}</span>
-                <span className={styles.rowStatus}>{t(requestStatusLabel(r.status))}</span>
+                <span className={styles.rowStatus}>
+                  {cloud?.status || cloud?.assignedTo ? (
+                    <span className={styles.cloudStatus}>
+                      <span>{t(cloudStatusLabel(cloud.status) ?? requestStatusLabel(r.status))}</span>
+                      {cloud.assignedTo && <span className={styles.assignee}>{cloud.assignedTo}</span>}
+                    </span>
+                  ) : t(requestStatusLabel(r.status))}
+                </span>
               </button>
-            ))}
+              )
+            })}
           </div>
         </section>
 
@@ -117,8 +132,19 @@ export default function ServiceRequestsPage() {
       {/* Seçili öğenin alt önizleme bloğu — SEKIL-51-TO/TG'deki gibi alt önizleme */}
       {selectedRequest && (
         <div className={styles.previewBox}>
-          <div className={styles.previewHeader}>
-            {selectedRequest.code} - {t(purposeLabel(selectedRequest.purpose))}
+          <div className={`${styles.previewHeader} ${selectedCloud ? styles.previewHeaderCloud : ''}`}>
+            <span>{selectedRequest.code} - {t(purposeLabel(selectedRequest.purpose))}</span>
+            {/* Bulut durumu + atanan teknisyen — başlık satırında (önizleme yüksekliği değişmesin) */}
+            {selectedCloud && (
+              <span className={styles.cloudLine} title={selectedCloud.note ?? undefined}>
+                <strong>{t('BULUT')}:</strong>{' '}
+                {t(cloudStatusLabel(selectedCloud.status) ?? requestStatusLabel(selectedRequest.status))}
+                {selectedCloud.assignedTo && (
+                  <> · {t('ATANAN')}: <strong>{selectedCloud.assignedTo}</strong>{selectedCloud.assignedOrg ? ` (${selectedCloud.assignedOrg})` : ''}</>
+                )}
+                {selectedCloud.note && <> · {selectedCloud.note}</>}
+              </span>
+            )}
           </div>
           <div className={styles.previewBody}>
             {selectedRequest.problemDescription ?? t('(Açıklama yok)')}
@@ -162,6 +188,28 @@ export default function ServiceRequestsPage() {
 
 function purposeLabel(p: number): string {
   return ['ARIZA GİDERME', 'GENEL BAKIM', 'AĞIR BAKIM', 'KURULUM', 'EĞİTİM'][p] ?? '?'
+}
+
+/** Bulut talep durumu → etiket (bilinmeyen kod olduğu gibi; boş → null = yerel durum) */
+function cloudStatusLabel(s: string | null | undefined): string | null {
+  if (!s) return null
+  switch (s.toUpperCase()) {
+    case 'OPEN':
+    case 'NEW':
+      return 'AÇIK'
+    case 'ASSIGNED':
+      return 'ATANDI'
+    case 'IN_PROGRESS':
+      return 'DEVAM EDİYOR'
+    case 'DONE':
+    case 'COMPLETED':
+    case 'CLOSED':
+      return 'TAMAMLANDI'
+    case 'CANCELLED':
+      return 'İPTAL'
+    default:
+      return s
+  }
 }
 
 function requestStatusLabel(s: ServiceRequestStatus): string {

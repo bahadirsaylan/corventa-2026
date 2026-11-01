@@ -14,7 +14,8 @@
     "package:win": "node scripts/build-backend.mjs && npm run build && electron-builder --win nsis",
     "preview": "electron-vite preview",
     "type-check": "tsc --noEmit",
-    "i18n:check": "node scripts/i18n-check.mjs"
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "test:mold-code": "node --experimental-strip-types --no-warnings scripts/mold-code-selftest.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

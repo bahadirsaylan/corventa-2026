@@ -21,6 +21,7 @@ import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/ty
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
 
 const EMPTY: ArcMeasurementValues = {
   A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
@@ -106,6 +107,8 @@ function fromStore(
 export default function ArcBendingMeasurementsPage() {
   const t = useT()
   const modeLabel = useBendingModeLabel()
+  // Kalıp kodu seçiliyse alt şeritte kalıp + kilit + önerilen adım (BULUT_API_V2.md §2.4)
+  const moldHint = useMoldHint()
   const navigate = useNavigate()
   const arcBending = useBendingJobStore((s) => s.params.arcBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -256,6 +259,7 @@ export default function ArcBendingMeasurementsPage() {
           backTo="/bending/ai/method"
           confirmDisabled={!mainFieldsValid(values)}
           onConfirm={() => setStage('segments')}
+          hint={moldHint}
         />
       )}
       {stage === 'segments' && (

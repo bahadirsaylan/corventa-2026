@@ -15,6 +15,7 @@ import type { SimilarBendingJobRequest } from '@shared/types'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
@@ -38,6 +39,8 @@ function fromStore(stored: ReturnType<typeof useBendingJobStore.getState>['param
 export default function RingBendingMeasurementsPage() {
   const t = useT()
   const modeLabel = useBendingModeLabel()
+  // Kalıp kodu seçiliyse alt şeritte kalıp + kilit + önerilen adım (BULUT_API_V2.md §2.4)
+  const moldHint = useMoldHint()
   const navigate = useNavigate()
   const ringBending = useBendingJobStore((s) => s.params.ringBending)
   const setParams = useBendingJobStore((s) => s.setParams)
@@ -142,6 +145,7 @@ export default function RingBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
+        hint={moldHint}
       />
 
       {capacityCheck && (

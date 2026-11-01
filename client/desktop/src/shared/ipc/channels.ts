@@ -135,6 +135,13 @@ export const IpcInvoke = {
   CloudGetInstallBlockers: 'cloud:get-install-blockers',
   CloudInstallUpdate: 'cloud:install-update',
 
+  // DataApi — Bulut v2 (BULUT_API_V2.md §6): kalıp kütüphanesi + lisans, yönetilen veriler, checklist sonucu
+  MoldList: 'mold:list',
+  MoldGet: 'mold:get',
+  MoldActivate: 'mold:activate',
+  CloudGetConfig: 'cloud:get-config',
+  ChecklistSubmitResult: 'checklist:submit-result',
+
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',

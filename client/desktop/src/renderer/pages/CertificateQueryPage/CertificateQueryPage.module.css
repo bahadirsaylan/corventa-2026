@@ -131,3 +131,16 @@
 .mono { font-family: var(--font-mono); letter-spacing: 0.05em; }
 .highlightRed   { color: #dc2626; font-weight: 900; }
 .highlightGreen { color: #15803d; font-weight: 900; }
+
+/* Bulut v2 — sorgu kaynağı (BULUT / ÖNBELLEK / YEREL), göze batmadan */
+.sourceTag {
+  margin-left: 12px;
+  vertical-align: middle;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 2px 8px;
+}

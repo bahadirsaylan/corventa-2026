@@ -37,8 +37,10 @@ const users: DemoUser[] = [
   { id: 1, username: 'super', displayName: 'Süper Yönetici', role: 'SUPERADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
   { id: 2, username: 'admin', displayName: 'Atölye Yöneticisi', role: 'ADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
   { id: 3, username: 'operator', displayName: 'Makine Operatörü', role: 'OPERATOR', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
+  // Bulut v2 §4 — bulut kullanıcısı (e-posta ile giriş; SERVICEMAN → makinede ADMIN)
+  { id: 4, username: 'servis.teknisyeni@corventabending.com', displayName: 'Serkan Öztürk (Bulut)', role: 'ADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
 ]
-let nextId = 4
+let nextId = 5
 
 /** token → { userId, expiresAt } */
 const sessions = new Map<string, { userId: number; expiresAt: number }>()
@@ -116,7 +118,7 @@ function loginResponse(u: DemoUser): Record<string, unknown> {
   return {
     token,
     expiresAt: new Date(expiresAt).toISOString(),
-    user: { id: u.id, username: u.username, displayName: u.displayName, role: u.role },
+    user: { id: u.id, username: u.username, displayName: u.displayName, role: u.role, ...(u.username.includes('@') ? { source: 'cloud' } : {}) },
   }
 }
 

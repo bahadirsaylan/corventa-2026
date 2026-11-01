@@ -7,6 +7,7 @@ import StatusBar from '@/components/StatusBar/StatusBar'
 import { applyMeasureDefaults } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
 import SpiralMeasurementForm, { SpiralMeasurementValues } from './SpiralMeasurementForm'
 import styles from './SpiralBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -43,6 +44,8 @@ function fromStore(
 export default function SpiralBendingMeasurementsPage() {
   const t = useT()
   const modeLabel = useBendingModeLabel()
+  // Kalıp kodu seçiliyse alt şeritte kalıp + kilit + önerilen adım (BULUT_API_V2.md §2.4)
+  const moldHint = useMoldHint()
   const navigate     = useNavigate()
   const spiralBending = useBendingJobStore((s) => s.params.spiralBending)
   const setParams     = useBendingJobStore((s) => s.setParams)
@@ -96,6 +99,7 @@ export default function SpiralBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
+        hint={moldHint}
       />
 
     </div>

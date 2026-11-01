@@ -20,8 +20,9 @@ type Mode = 'tr' | 'en' | 'sym'
 type ShiftState = 'off' | 'shift' | 'caps'
 
 // ── TR-Q (Türkçe Q) — Windows standart ─────────────────────────
+// '@' ilk satırda: bulut kullanıcıları e-posta ile giriş yapar (BULUT_API_V2.md §4). '*' Semboller sayfasında.
 const TR_ROWS: string[][] = [
-  ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '*', '-'],
+  ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '@', '-'],
   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'ı', 'o', 'p', 'ğ', 'ü'],
   ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ş', 'i', ','],
   ['z', 'x', 'c', 'v', 'b', 'n', 'm', 'ö', 'ç', '.', ':', '/'],

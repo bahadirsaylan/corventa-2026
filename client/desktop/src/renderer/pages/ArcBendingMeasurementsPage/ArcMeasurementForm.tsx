@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
+import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -200,6 +200,8 @@ export default function ArcMeasurementForm({
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
+  // Kalıp kodu seçiliyse A/B/S kalıptan gelir ve değiştirilemez (BULUT_API_V2.md §2.4)
+  const moldLock = useMoldLock()
   const methodImage = useMethodTileImage('arc', defaultMethodImage)
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
@@ -262,18 +264,22 @@ export default function ArcMeasurementForm({
   }
 
   function renderMainField(field: ArcMainFieldKey) {
+    const locked = isMoldLockedField(field, moldLock)
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadTarget({ kind: 'main', field })}
+          style={locked ? MOLD_LOCKED_FIELD_STYLE : undefined}
+          aria-disabled={locked || undefined}
+          onClick={() => { if (!locked) setNumpadTarget({ kind: 'main', field }) }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadTarget({ kind: 'main', field })}
+          onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadTarget({ kind: 'main', field }) }}
           aria-label={`Enter value for ${field}`}
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
+          {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
         <button
           className={styles.infoBtn}

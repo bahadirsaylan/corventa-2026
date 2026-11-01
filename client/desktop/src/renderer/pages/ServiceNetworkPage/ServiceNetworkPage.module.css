@@ -173,3 +173,10 @@
   padding: 1px 4px;
   border-radius: 3px;
 }
+
+/* 4+ servis noktası (bulut listesi) — kartlar küçülür; 6+ olursa panel içinde kayar */
+.panelDense { gap: 12px; justify-content: flex-start; overflow-y: auto; padding: 14px 16px; }
+.panelDense .providerHead { margin-bottom: 2px; }
+.panelDense .providerIcon svg { width: 30px; height: 42px; }
+.panelDense .providerName { font-size: 19px; padding-bottom: 4px; }
+.panelDense .line { font-size: 14px; }

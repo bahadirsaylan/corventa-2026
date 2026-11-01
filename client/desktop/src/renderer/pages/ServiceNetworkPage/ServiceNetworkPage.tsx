@@ -1,6 +1,7 @@
 // Servis ağı ekranı (SEKIL-6) — dashboard'daki Corventa logosuna tıklanınca açılır.
 // Sol panel: yetkili servisler · orta: harita + pinler · sağ panel: Corventa + servis talebi butonları.
-// Veri: constants/serviceNetwork.ts (ileride buluttan gelecek).
+// Veri: constants/serviceNetwork.ts — bulut v2'de servis noktaları GET /api/cloud/config → servicePoints doluysa
+// oradan (BULUT_API_V2.md §1), değilse sabit liste.
 
 import { useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
@@ -10,6 +11,7 @@ import {
   projectToScene,
 } from '@/constants/serviceNetwork'
 import { useT } from '@/i18n'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 import { Icon } from '@/components/Icon'
 import mapImage from '@/assets/images/service-map-bursa.jpg'
 import styles from './ServiceNetworkPage.module.css'
@@ -25,13 +27,15 @@ export default function ServiceNetworkPage() {
   const navigate = useNavigate()
   const t = useT()
   const machine = projectToScene(MACHINE_LOCATION.lat, MACHINE_LOCATION.lon)
+  const cloudPoints = useCloudConfig()?.servicePoints
+  const points = cloudPoints && cloudPoints.length ? cloudPoints : SERVICE_POINTS
 
   return (
     <div className={styles.page}>
       <img src={mapImage} alt="" className={styles.map} draggable={false} />
 
       {/* Pinler */}
-      {SERVICE_POINTS.map((sp) => {
+      {points.map((sp) => {
         const p = projectToScene(sp.lat, sp.lon)
         if (!inScene(p)) return null
         return (
@@ -47,8 +51,8 @@ export default function ServiceNetworkPage() {
       )}
 
       {/* Sol panel — yetkili servisler */}
-      <aside className={`${styles.panel} ${styles.panelLeft}`}>
-        {SERVICE_POINTS.map((sp) => (
+      <aside className={`${styles.panel} ${styles.panelLeft} ${points.length > 3 ? styles.panelDense : ''}`}>
+        {points.map((sp) => (
           <div key={sp.name} className={styles.provider}>
             <div className={styles.providerHead}>
               <span className={styles.providerIcon}>

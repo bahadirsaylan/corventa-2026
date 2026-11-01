@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { filterProfileFieldList, useVisibleProfileFields } from '@/constants/profileFields'
+import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -85,6 +85,8 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
+  // Kalıp kodu seçiliyse A/B/S kalıptan gelir ve değiştirilemez (BULUT_API_V2.md §2.4)
+  const moldLock = useMoldLock()
   const methodImage = useMethodTileImage('sivama', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SivamaFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SivamaNumericKey | null>(null)
@@ -98,18 +100,22 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
   }
 
   function renderNumericField(field: SivamaNumericKey) {
+    const locked = isMoldLockedField(field, moldLock)
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadField(field)}
+          style={locked ? MOLD_LOCKED_FIELD_STYLE : undefined}
+          aria-disabled={locked || undefined}
+          onClick={() => { if (!locked) setNumpadField(field) }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadField(field)}
+          onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
+          {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
         <button
           className={styles.infoBtn}

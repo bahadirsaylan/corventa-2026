@@ -11,6 +11,7 @@ import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/Maintenanc
 import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/MaintenanceReminderOverlay'
 import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
+import { useCloudConfigStore } from '@/stores/cloudConfigStore'
 import { useT } from '@/i18n'
 import type { UnloadJobOutcome } from '@/pages/UnloadPage/UnloadPage'
 import styles from './AppLayout.module.css'
@@ -24,6 +25,8 @@ export default function AppLayout() {
   useEffect(() => startBendingActivityPoller(), [])
   // Bakım durumu (DataApi /api/maintenance) — 30 sn'de bir; uyarı şeridi / bakım uyarı penceresi / bakım modu ekranı
   useEffect(() => startMaintenancePoller(), [])
+  // Bulut v2 yönetilen veriler (karşılama mesajı, checklist şablonu …) oturum açılınca bir kez önbelleğe
+  useEffect(() => { void useCloudConfigStore.getState().load() }, [])
   const inMaintenanceMode = useMaintenanceStore((s) => s.state?.isInMaintenanceMode === true)
   const maintenanceCollapsed = useMaintenanceStore((s) => s.screenCollapsed)
   const bendingActive = useBendingActive()

@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useCloudConfigStore } from '@/stores/cloudConfigStore'
 import { readWelcomeMessage, WELCOME_DEFAULT_MESSAGE } from '@/services/welcomeMessage'
 import { useT } from '@/i18n'
 import styles from './WelcomeOverlay.module.css'
@@ -15,6 +16,8 @@ export default function WelcomeOverlay() {
   const show = useSessionStore((s) => s.showWelcome)
   const username = useSessionStore((s) => s.username)
   const dismiss = useSessionStore((s) => s.dismissWelcome)
+  // Bulut v2: karşılama mesajı bulutta yönetiliyorsa o gösterilir (yerel kayıt yok sayılır)
+  const cloudMessage = useCloudConfigStore((s) => s.config?.welcomeMessage ?? null)
 
   useEffect(() => {
     if (!show) return
@@ -25,7 +28,9 @@ export default function WelcomeOverlay() {
   if (!show) return null
   // Kayıtlı mesaj yok ya da varsayılanla aynıysa seçili dile çevrilir; operatörün kendi metni aynen gösterilir
   const stored = readWelcomeMessage()
-  const message = stored == null || stored.trim() === WELCOME_DEFAULT_MESSAGE ? t(WELCOME_DEFAULT_MESSAGE) : stored
+  const message = cloudMessage?.trim()
+    ? cloudMessage
+    : stored == null || stored.trim() === WELCOME_DEFAULT_MESSAGE ? t(WELCOME_DEFAULT_MESSAGE) : stored
 
   return (
     <div className={styles.overlay} onClick={dismiss} role="dialog" aria-modal="true">

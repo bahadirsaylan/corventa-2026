@@ -245,5 +245,7 @@ export function mapToCreateRequest(
     sivamaAngleDeg,
     operatorName: opts.operatorName ?? null,
     notes: opts.notes ?? null,
+    // Bulut v2 (BULUT_API_V2.md §2.4) — sadece kalıp kodu akışında; normal işlerde payload eskisiyle aynı
+    ...(params.moldCode ? { moldCode: params.moldCode } : {}),
   }
 }

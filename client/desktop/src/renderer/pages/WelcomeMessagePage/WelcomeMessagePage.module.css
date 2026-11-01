@@ -162,3 +162,7 @@
   background: var(--color-primary);
   color: #fff;
 }
+
+/* Bulut v2 — mesaj bulutta yönetiliyor */
+.cloudNote { color: #1e40af; background: #dbeafe; padding: 8px 12px; border-radius: 6px; }
+.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }

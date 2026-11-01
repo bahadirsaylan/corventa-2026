@@ -31,6 +31,11 @@ const st: DemoCloud = {
   downloadStartedAt: null,
 }
 
+/** Bulut v2 demo uçları (demoCloudData.ts) — makine aktive mi */
+export function demoCloudActivated(): boolean {
+  return st.activated
+}
+
 function fail(status: number, rawUrl: string, error: string): never {
   throw new HttpError(status, rawUrl, error, { error })
 }

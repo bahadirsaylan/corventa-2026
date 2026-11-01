@@ -27,6 +27,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="CHECK LIST" permission="checklist" onClick={() => navigate('/settings/checklist')} />
         <SettingsBtn label="PDF KULLANIM KİTABI" permission="pdf-guide" onClick={() => setShowGuide(true)} />
         <SettingsBtn label="BAKIM SÜRESİ" permission="maintenance" onClick={() => navigate('/settings/maintenance')} />
+        <SettingsBtn label="KALIP KODU SORGULA" permission="mold-query" onClick={() => navigate('/settings/mold-code')} />
         {/* CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin) */}
       </div>
 
@@ -38,6 +39,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="KIVRIM ADETLERİ RAPORU" permission="bending-count" onClick={() => navigate('/settings/bending-count')} />
         <SettingsBtn label="DİL SEÇİMİ" permission="language" onClick={() => navigate('/settings/language')} />
         <SettingsBtn label="SERTİFİKA SORGULA" permission="certificate" onClick={() => navigate('/settings/certificate')} />
+        <SettingsBtn label="KALIP KÜTÜPHANESİ" permission="mold-library" onClick={() => navigate('/settings/mold-library')} />
         {/* SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17) */}
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" permission="customer-change" onClick={() => navigate('/settings/customer-change')} />
         <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />

@@ -6,6 +6,7 @@ import type { CloudApi } from './api/cloud'
 import type { EventsApi } from './api/events'
 import type { MachineApi } from './api/machine'
 import type { MacroApi } from './api/macro'
+import type { MoldApi } from './api/molds'
 import type { ServiceApi } from './api/service'
 import type { SystemApi } from './api/system'
 import type { UsageApi } from './api/usage'
@@ -21,6 +22,7 @@ export interface CorventaAPI {
   auth: AuthApi
   macro: MacroApi
   cloud: CloudApi
+  molds: MoldApi
 }
 
 declare global {

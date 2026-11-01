@@ -1,10 +1,13 @@
 // SEKIL: Ayarlar > Garanti Süresi (PDF s.15)
 // DataApi'den MachineIdentity çeker; 4 kategori × 750 gün tablosu ve garanti-dışı haller listesi
 // PDF kılavuzu içeriğinden.
+// Bulut v2 (BULUT_API_V2.md §1 madde 44): GET /api/cloud/config → warranty varsa (üretici varsayılanı ya da
+// makineye özel) kategori × gün + başlangıç tarihi buradan gösterilir; yoksa yukarıdaki yerel tablo aynen.
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { MachineIdentity } from '@shared/types'
+import type { CloudWarranty, MachineIdentity } from '@shared/types'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 import { Icon } from '@/components/Icon'
 import { useLang, useT } from '@/i18n'
 import styles from './WarrantyPage.module.css'
@@ -53,6 +56,7 @@ export default function WarrantyPage() {
   const [identity, setIdentity] = useState<MachineIdentity | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const cloud = useCloudConfig()
 
   useEffect(() => {
     let cancelled = false
@@ -85,13 +89,22 @@ export default function WarrantyPage() {
           </div>
         )}
 
-        {identity && !loading && <WarrantyContent identity={identity} />}
+        {identity && !loading && (
+          <WarrantyContent
+            identity={identity}
+            cloud={cloud?.warranty && cloud.warranty.categories?.length ? cloud.warranty : null}
+          />
+        )}
       </div>
     </div>
   )
 }
 
-function WarrantyContent({ identity }: { identity: MachineIdentity }) {
+function addDays(iso: string, days: number): string {
+  return new Date(new Date(iso).getTime() + days * 86_400_000).toISOString()
+}
+
+function WarrantyContent({ identity, cloud }: { identity: MachineIdentity; cloud: CloudWarranty | null }) {
   const t = useT()
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const remaining = daysRemaining(identity.warrantyEndDate)
@@ -135,7 +148,39 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
         </div>
       </div>
 
-      {/* ── 4 kategori × 750 gün tablosu ─────────── */}
+      {/* ── Bulut garanti politikası: kategori × gün + başlangıç (bitiş/kalan kategori başına) ── */}
+      {cloud && (
+        <div className={`${styles.card} ${styles.catCard}`}>
+          <div className={styles.sectionTitle}>
+            {t('KAPSANAN ÜNİTELER')}
+            <span className={styles.cloudTag}>
+              {cloud.isMachineSpecific ? t('BULUT · MAKİNEYE ÖZEL') : t('BULUT · ÜRETİCİ VARSAYILANI')}
+            </span>
+          </div>
+          <div className={styles.cloudStart}>
+            {t('GARANTİ BAŞLANGIÇ')}: <strong>{formatDate(cloud.startDate ?? identity.warrantyStartDate, locale)}</strong>
+          </div>
+          <div className={styles.categoryGrid}>
+            {cloud.categories.map((cat) => {
+              const end = addDays(cloud.startDate ?? identity.warrantyStartDate, cat.days)
+              const left = daysRemaining(end)
+              return (
+                <div key={cat.key} className={styles.categoryTile}>
+                  <span className={styles.categoryLabel}>{t(cat.label)}</span>
+                  <span className={styles.categoryDays}>{t('{n} GÜN', { n: cat.days })}</span>
+                  <span className={`${styles.categoryEnd} ${left === 0 ? styles.expired : ''}`}>
+                    {left === 0 ? t('SÜRESİ DOLDU') : t('{date} · {n} gün kaldı', { date: formatDate(end, locale), n: left })}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          {cloud.notes && <div className={styles.cloudNote}>{cloud.notes}</div>}
+        </div>
+      )}
+
+      {/* ── 4 kategori × 750 gün tablosu (bulut politikası yoksa) ─────────── */}
+      {!cloud && (
       <div className={`${styles.card} ${styles.catCard}`}>
         <div className={styles.sectionTitle}>{t('KAPSANAN ÜNİTELER (PDF s.15)')}</div>
         <div className={styles.categoryGrid}>
@@ -147,12 +192,13 @@ function WarrantyContent({ identity }: { identity: MachineIdentity }) {
           ))}
         </div>
       </div>
+      )}
 
       {/* ── Garanti dışı haller ──────────────────── */}
       <div className={`${styles.card} ${styles.exclCard}`}>
         <div className={styles.sectionTitle}>{t('GARANTİ KAPSAMI DIŞINDA')}</div>
         <ul className={styles.exclusionList}>
-          {EXCLUSIONS.map((item) => (
+          {(cloud?.exclusions?.length ? cloud.exclusions : EXCLUSIONS).map((item) => (
             <li key={item} className={styles.exclusionItem}>
               <span className={styles.exclusionBullet}><Icon name="failure" size="md" /></span>
               <span>{t(item)}</span>
