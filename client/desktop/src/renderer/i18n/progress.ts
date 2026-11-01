@@ -44,6 +44,9 @@ const RULES: Rule[] = [
   [/^İptal edildi$/i, () => ['İptal edildi']],
   // Sıkıştırma v2 acil stopu (backend ClampContactAtTarget) — önüne "Hata: " / "Sıkıştırma hatası: " / "Clamp: " gelebilir
   [CLAMP_ESTOP_RE, (m) => [CLAMP_ESTOP_TEMPLATE, { n: m[1] }]],
+  // Güvenlik kontrolü büküm engeli (backend SafetyCheckService, EXCEL 27) — StartJob 400 mesajı;
+  // IPC hatası önüne "Error invoking remote method ..." ekleyebildiği için başa sabitlenmez
+  [/Yağ sıcaklığı çok yüksek \((-?\d+)°C > (-?\d+)°C\) — büküm başlatılamaz$/i, (m) => ['Yağ sıcaklığı çok yüksek ({v}°C > {limit}°C) — büküm başlatılamaz', { v: m[1], limit: m[2] }]],
   [/^Hata: (.*)$/i, (m) => ['Hata: {msg}', { msg: m[1] }]],
 ]
 

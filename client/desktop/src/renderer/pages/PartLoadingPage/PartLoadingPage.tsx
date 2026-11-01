@@ -10,7 +10,7 @@ import {
   type OrchestrationStep,
 } from '@/services/bendingOrchestrator'
 import { useBendingJobStore } from '@/store/bendingJobStore'
-import { useT } from '@/i18n'
+import { translateProgress, useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './PartLoadingPage.module.css'
 import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal'
@@ -43,6 +43,7 @@ export default function PartLoadingPage() {
 function PartLoadingContent() {
   const navigate = useNavigate()
   const t = useT()
+  const lang = useLang()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
 
@@ -150,7 +151,8 @@ function PartLoadingContent() {
       {phase === 'error' && errorMessage && (
         <div className={styles.loadedBar} style={{ color: '#ff6b6b' }}>
           {errorStep ? `[${errorStep.toUpperCase()}] ` : ''}
-          {t(errorMessage)}
+          {/* Backend mesajı (ör. güvenlik engeli) önce translateProgress kuralıyla, yoksa sözlükten */}
+          {t(translateProgress(errorMessage, lang))}
         </div>
       )}
 

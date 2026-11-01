@@ -10,6 +10,9 @@
 //
 // Kısayollar (sadece demo): F8 parça sensörü aç/kapa · F9 demo hızını değiştir (1x / 2x / 4x)
 // Hız: CORVENTA_DEMO_SPEED=2 gibi başlangıç çarpanı verilebilir.
+// Güvenlik kontrolleri (EXCEL 27): açılışta ve büküm başında gerçek SafetyCheckService kuralıyla SafetyCheck
+// event'i yayınlanır (Admin Ayarları > GÜVENLİK eşikleri demo yağ sıcaklığı 41°C ile denenebilir).
+// CORVENTA_DEMO_ENCODER_STALL=1 → her büküm başında bir "EncoderStall" uyarısı (ekran gösterimi için).
 //
 // Gerçek kodla bağlantısı: sadece http.ts'deki interceptor + ConnectionManager/index.ts'deki
 // IS_DEMO dalları. Demo kapalıyken hiçbir şey değişmez.
@@ -67,6 +70,8 @@ const DEMO_MACHINE_SETTINGS = {
   clampContactAtTargetEnabled: true, clampTravelOverpressureBar: 3,
   measurePneumaticExtendWaitMs: null, measurePneumaticRetractWaitMs: null, measureSampleDurationMs: null,
   circularSlackPressureSettleMs: null, circularIterationPauseMs: null,
+  safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1,
+  oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
   slackSpeedPercent: 30, adaptiveJogSpeedPercent: 20, adaptiveSampleIntervalMm: 1, adaptiveWindowSampleCount: 10,
   adaptiveEncoderStopToleranceMm: 0.1, springbackMaxIterations: 20, arcMeasureMaxIterations: 10,
   springbackRotationOnlyMaxMm: 50, springbackStableTimeMs: 500, springbackIncreaseThresholdMm: 0.2, springbackMinThresholdMm: 0.1,
@@ -100,6 +105,8 @@ const UNLOAD_MAX_ROTATION_MM = 3000 // tahliye rotasyon üst sınırı (UI opera
 // büküm 2 pasoda biter (paso 1 = temas konumu, paso 2 = son hedef).
 const DEMO_CONTACT_MM = Number(process.env.CORVENTA_DEMO_CONTACT) || 120
 const TICK_MS = 100
+/** EXCEL 27 — demo büküm başında encoder durma uyarısı üret (sadece gösterim) */
+const DEMO_ENCODER_STALL = process.env.CORVENTA_DEMO_ENCODER_STALL === '1'
 
 type PistonKey = 'leftPiston' | 'rightPiston' | 'upperPiston' | 'lowerPiston'
 const PISTON_BY_NAME: Record<string, PistonKey> = {
@@ -263,13 +270,17 @@ export class DemoMachine extends EventEmitter {
 
     this.timer = setInterval(() => this.tick(), TICK_MS)
     this.sensorTimer = setInterval(() => this.emitPartSensor(), 1000)
+    // EXCEL 27 — açılış güvenlik kontrolü (gerçekte PLC'den taze veri gelince)
+    this.safetyStartupTimer = setTimeout(() => this.safetyCheck('Startup'), 3000)
     log.info('DEMO makine başladı', { speed: this.speed })
   }
 
   stop(): void {
     if (this.timer) clearInterval(this.timer)
     if (this.sensorTimer) clearInterval(this.sensorTimer)
+    if (this.safetyStartupTimer) clearTimeout(this.safetyStartupTimer)
     this.timer = this.sensorTimer = null
+    this.safetyStartupTimer = null
   }
 
   getState(): MachineState {
@@ -297,6 +308,66 @@ export class DemoMachine extends EventEmitter {
   cycleSpeed(): void {
     this.speed = this.speed >= 4 ? 1 : this.speed * 2
     log.info('DEMO hız', { speed: this.speed })
+  }
+
+  // ── güvenlik kontrolleri (EXCEL 27) — backend SafetyCheckService ile aynı kural ──
+
+  private safetyStartupTimer: NodeJS.Timeout | null = null
+
+  /** Yağ sıcaklığı + sensör aralığı kontrolü; SafetyCheck event'i yayınlar. Engel varsa nedenini döner. */
+  private safetyCheck(context: 'Startup' | 'StartJob', jobId: number | null = null): string | null {
+    const cfg = this.machineSettings
+    if (cfg.safetyMonitorEnabled === false) return null
+    const warnC = Number(cfg.oilTempWarnC ?? 55)
+    const blockC = Number(cfg.oilTempBlockC ?? 65)
+    const blockingEnabled = cfg.safetyBlockingEnabled === true
+    const sn = this.state.sensors
+    const temp = sn.oilTempC
+    const warnings: { code: string; message: string }[] = []
+    let sensorFault = false
+    if (temp <= -20 || temp >= 120) {
+      sensorFault = true
+      warnings.push({ code: 'OilTempSensorFault', message: `Yağ sıcaklığı sensörü aralık dışı (${temp}°C)` })
+    }
+    if (sn.s1PressureBar < 0 || sn.s1PressureBar >= 250)
+      warnings.push({ code: 'S1PressureSensorFault', message: `S1 basınç sensörü aralık dışı (${sn.s1PressureBar} bar)` })
+    if (sn.s2PressureBar < 0 || sn.s2PressureBar >= 250)
+      warnings.push({ code: 'S2PressureSensorFault', message: `S2 basınç sensörü aralık dışı (${sn.s2PressureBar} bar)` })
+    let blockReason: string | null = null
+    if (!sensorFault) {
+      if (temp > blockC) {
+        warnings.push({ code: 'OilTempCritical', message: `Yağ sıcaklığı çok yüksek: ${temp}°C (engel eşiği ${blockC}°C)` })
+        if (blockingEnabled && context === 'StartJob')
+          blockReason = `Yağ sıcaklığı çok yüksek (${temp}°C > ${blockC}°C) — büküm başlatılamaz`
+      } else if (temp > warnC) {
+        warnings.push({ code: 'OilTempHigh', message: `Yağ sıcaklığı yüksek: ${temp}°C (uyarı eşiği ${warnC}°C)` })
+      }
+    }
+    this.emit('eventReceived', {
+      messageType: blockReason ? 'error' : warnings.length > 0 ? 'warning' : 'info',
+      eventType: 'SafetyCheck',
+      timestamp: new Date().toISOString(),
+      payload: {
+        context, jobId, blocked: blockReason != null, blockReason,
+        oilTempC: temp, oilTempWarnC: warnC, oilTempBlockC: blockC, blockingEnabled, warnings,
+      },
+    } satisfies MachineEvent)
+    return blockReason
+  }
+
+  private emitEncoderStall(axis: 'Right' | 'Left' | 'Upper' | 'Lower' | 'Rotation'): void {
+    const cfg = this.machineSettings
+    if (cfg.safetyMonitorEnabled === false) return
+    const positionMm = axis === 'Rotation' ? this.state.rotation.positionMm : this.state[`${axis.toLowerCase()}Piston` as PistonKey].positionMm
+    this.emit('eventReceived', {
+      messageType: 'warning',
+      eventType: 'EncoderStall',
+      timestamp: new Date().toISOString(),
+      payload: {
+        axis, movedMm: 0, minMm: Number(cfg.encoderStallMinMm ?? 0.1),
+        windowMs: Number(cfg.encoderStallWindowMs ?? 2000), positionMm: Math.round(positionMm * 100) / 100,
+      },
+    } satisfies MachineEvent)
   }
 
   private emitPartSensor(): void {
@@ -1175,6 +1246,10 @@ export class DemoMachine extends EventEmitter {
       job.manualPlacement = manualPlacement
       if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3)
         return { success: false, error: 'Zaten çalışan bir büküm var' }
+      // EXCEL 27 — büküm başı güvenlik kontrolü (engel sadece safetyBlockingEnabled=true iken)
+      const safetyBlock = this.safetyCheck('StartJob', job.id)
+      if (safetyBlock) throw new HttpError(400, rawUrl, safetyBlock, { success: false, error: safetyBlock })
+      if (DEMO_ENCODER_STALL) setTimeout(() => this.emitEncoderStall('Rotation'), 2500)
       void this.runJob(job)
       return { success: true, message: 'Büküm başlatıldı', jobId: job.id }
     }

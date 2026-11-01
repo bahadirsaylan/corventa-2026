@@ -8,6 +8,9 @@
 //   (1. hafta yeşil, 2. hafta sarı, 3. hafta+ kırmızı; kural services/maintenanceStatus.ts).
 //   Makine uyarısı yoksa şeridin tamamı bakım uyarısıdır; makine uyarısı varsa o önde kalır ve bakım
 //   uyarısı sağda küçük bir rozet olarak görünür. Dokununca Bakım Süresi sayfası (/settings/maintenance).
+// EXCEL 27: güvenlik uyarıları (encoder durması, açılış / büküm başı yağ sıcaklığı ve sensör kontrolü)
+//   backend MachineEvent'lerinden (stores/safetyAlertsStore.ts) şeride gelir; termal / acil stop uyarılarından
+//   sonra, yağ basınç/seviye/nem uyarılarından önce. Operatör şeritteki KAPAT ile gizler. Sadece uyarı.
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -18,6 +21,12 @@ import { BendingMethod } from '@shared/types'
 import { useBendingProgress, useSafety, useSensors } from '@/hooks/useMachineState'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useMaintenanceAlerts } from '@/hooks/useMaintenance'
+import {
+  checkAlertText,
+  selectLatestStall,
+  stallAlertText,
+  useSafetyAlertsStore,
+} from '@/stores/safetyAlertsStore'
 import { maintenanceTierTitle, type MaintenancePeriodStatus } from '@/services/maintenanceStatus'
 import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
@@ -28,6 +37,8 @@ type WarningLevel = 'none' | 'warning' | 'error'
 interface ActiveWarning {
   level: WarningLevel
   text: string
+  /** Güvenlik uyarısı ise şeritte KAPAT düğmesi (EXCEL 27) */
+  onDismiss?: () => void
 }
 
 export default function BottomStatsPanel() {
@@ -37,6 +48,10 @@ export default function BottomStatsPanel() {
   const t = useT()
   const navigate = useNavigate()
   const { top: maint } = useMaintenanceAlerts()
+  const safetyCheck = useSafetyAlertsStore((s) => s.check)
+  const safetyStalls = useSafetyAlertsStore((s) => s.stalls)
+  const dismissCheck = useSafetyAlertsStore((s) => s.dismissCheck)
+  const dismissStall = useSafetyAlertsStore((s) => s.dismissStall)
 
   //   Çok açılı (Arc) büküm sürerken sensör kartlarının yerine parça şeridi gösterilir.
   //   Uyarı şeridi ve Hata Kayıtları her durumda yerinde kalır (alarmlar görünür olmalı).
@@ -65,6 +80,18 @@ export default function BottomStatsPanel() {
     if (sensors.oilTempC >= 75) {
       return { level: 'error', text: t('YAĞ SICAKLIĞI YÜKSEK ({v}°C)', { v: sensors.oilTempC }) }
     }
+    // EXCEL 27 — backend güvenlik uyarıları (engel > encoder durması > sıcaklık/sensör uyarısı)
+    if (safetyCheck?.level === 'error') {
+      return { level: 'error', text: checkAlertText(safetyCheck, t), onDismiss: dismissCheck }
+    }
+    const stall = selectLatestStall(safetyStalls)
+    if (stall) {
+      return { level: 'warning', text: stallAlertText(stall, t), onDismiss: () => dismissStall(stall.payload.axis) }
+    }
+    if (safetyCheck) {
+      const text = checkAlertText(safetyCheck, t)
+      if (text) return { level: 'warning', text, onDismiss: dismissCheck }
+    }
     if (sensors.s1PressureBar === 0) {
       return { level: 'warning', text: t('YAĞ BASINCI OKUMASI YOK') }
     }
@@ -75,7 +102,7 @@ export default function BottomStatsPanel() {
       return { level: 'warning', text: t('YAĞ NEMİ YÜKSEK (%{v})', { v: sensors.oilHumidityPercent }) }
     }
     return { level: 'none', text: '' }
-  }, [safety, sensors, t])
+  }, [safety, sensors, t, safetyCheck, safetyStalls, dismissCheck, dismissStall])
 
   const stripeClass = [
     styles.stripe,
@@ -106,6 +133,16 @@ export default function BottomStatsPanel() {
                 <Icon name={warning.level === 'error' ? 'blocked' : 'warning'} size="md" />
               </span>
               <span className={styles.warnText}>{warning.text}</span>
+              {warning.onDismiss && (
+                <button
+                  type="button"
+                  className={styles.dismissBtn}
+                  onClick={warning.onDismiss}
+                  aria-label={t('Uyarıyı kapat')}
+                >
+                  <IconLabel icon="close" size="sm">{t('KAPAT')}</IconLabel>
+                </button>
+              )}
             </>
           )}
         </div>

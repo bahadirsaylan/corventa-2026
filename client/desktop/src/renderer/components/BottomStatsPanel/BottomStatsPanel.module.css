@@ -81,6 +81,31 @@
   color: var(--color-primary-dark);
 }
 
+/* Güvenlik uyarısını gizle (EXCEL 27) — metnin hemen yanında, ince çerçeveli */
+.dismissBtn {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.hasError .dismissBtn {
+  color: var(--color-primary-dark);
+}
+
+.dismissBtn:active {
+  transform: translateY(1px);
+}
+
 .noWarn {
   font-size: 14px;
   font-weight: 600;

@@ -36,6 +36,36 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'stateSnapshotIntervalSec', label: 'DURUM KAYIT ARALIĞI', unit: 'sn', min: 0, max: 3600, integer: true, desc: '0 = kayıt kapalı.' },
         ],
       },
+      {
+        // EXCEL 27 — backend SafetyMonitorService / SafetyCheckService. Varsayılan SADECE UYARI.
+        title: 'GÜVENLİK',
+        note: 'Encoder durması ile açılışta ve büküm başında yağ sıcaklığı / sensör kontrolü. Sorun görülünce alt şeritte uyarı çıkar; hareket durdurulmaz.',
+        fields: [
+          {
+            type: 'select',
+            key: 'safetyMonitorEnabled',
+            label: 'GÜVENLİK KONTROLLERİ',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
+          { key: 'encoderStallWindowMs', label: 'ENCODER DURMA SÜRESİ', unit: 'ms', min: 500, max: 30000, integer: true, desc: 'Hareket komutu varken bu süre boyunca ilerleme yoksa uyarı.' },
+          { key: 'encoderStallMinMm', label: 'ENCODER EN AZ İLERLEME', unit: 'mm', min: 0.01, max: 10, desc: 'Süre içinde bundan az ilerleme durma sayılır.' },
+          { key: 'oilTempWarnC', label: 'YAĞ SICAKLIĞI UYARI EŞİĞİ', unit: '°C', min: 20, max: 100, integer: true },
+          { key: 'oilTempBlockC', label: 'YAĞ SICAKLIĞI ENGEL EŞİĞİ', unit: '°C', min: 20, max: 110, integer: true, desc: 'Uyarı eşiğinden küçük olamaz. Büküm engeli sadece aşağıda ENGELLE seçiliyse uygulanır.' },
+          {
+            type: 'select',
+            key: 'safetyBlockingEnabled',
+            label: 'BÜKÜM ENGELİ',
+            desc: 'ENGELLE: yağ sıcaklığı engel eşiğinin üstündeyse büküm başlatılmaz.',
+            options: [
+              { value: false, label: 'SADECE UYARI' },
+              { value: true, label: 'ENGELLE' },
+            ],
+          },
+        ],
+      },
     ],
   },
   {

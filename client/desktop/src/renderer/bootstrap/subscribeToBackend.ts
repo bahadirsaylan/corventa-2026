@@ -4,6 +4,7 @@
 import { useConnectionStore } from '@/stores/connectionStore'
 import { useEventsStore } from '@/stores/eventsStore'
 import { useMachineStateStore } from '@/stores/machineStateStore'
+import { useSafetyAlertsStore } from '@/stores/safetyAlertsStore'
 
 let initialized = false
 const cleanupFns: Array<() => void> = []
@@ -56,6 +57,8 @@ export function subscribeToBackend(): () => void {
   cleanupFns.push(
     window.corventa.events.onMachineEvent((evt) => {
       useEventsStore.getState().push(evt)
+      // EXCEL 27 — encoder durması / güvenlik kontrolü uyarıları (alt panel uyarı şeridi)
+      useSafetyAlertsStore.getState().ingest(evt)
     }),
   )
 
