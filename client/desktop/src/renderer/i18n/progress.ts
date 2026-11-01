@@ -47,6 +47,21 @@ const RULES: Rule[] = [
   // Güvenlik kontrolü büküm engeli (backend SafetyCheckService, EXCEL 27) — StartJob 400 mesajı;
   // IPC hatası önüne "Error invoking remote method ..." ekleyebildiği için başa sabitlenmez
   [/Yağ sıcaklığı çok yüksek \((-?\d+)°C > (-?\d+)°C\) — büküm başlatılamaz$/i, (m) => ['Yağ sıcaklığı çok yüksek ({v}°C > {limit}°C) — büküm başlatılamaz', { v: m[1], limit: m[2] }]],
+  // Hata anı snapshot sebepleri (backend ErrorSnapshotService / SafetyCheckService, EXCEL 26) — Hata Raporları ekranı
+  [/^Acil stop \(yazılım\)$/i, () => ['Acil stop (yazılım)']],
+  [/^Fiziksel acil stop basıldı$/i, () => ['Fiziksel acil stop basıldı']],
+  [/^Motor termik açtı$/i, () => ['Motor termik açtı']],
+  [/^Faz sırası hatası$/i, () => ['Faz sırası hatası']],
+  [/^Fan termik açtı$/i, () => ['Fan termik açtı']],
+  [/^İş başarısız$/i, () => ['İş başarısız']],
+  [/^PLC hata kodu: (\S+) \((\d+)\)$/i, (m) => ['PLC hata kodu: {name} ({n})', { name: m[1], n: m[2] }]],
+  [/^Encoder durması: (\w+) — (\d+) ms içinde ([\d.,]+) mm ilerleme \(eşik ([\d.,]+) mm\)$/i,
+    (m) => ['Encoder durması: {axis} — {ms} ms içinde {mm} mm ilerleme (eşik {min} mm)', { axis: m[1], ms: m[2], mm: num(m[3]), min: num(m[4]) }]],
+  [/^Yağ sıcaklığı yüksek: (-?\d+)°C \(uyarı eşiği (-?\d+)°C\)$/i, (m) => ['Yağ sıcaklığı yüksek: {v}°C (uyarı eşiği {limit}°C)', { v: m[1], limit: m[2] }]],
+  [/^Yağ sıcaklığı çok yüksek: (-?\d+)°C \(engel eşiği (-?\d+)°C\)$/i, (m) => ['Yağ sıcaklığı çok yüksek: {v}°C (engel eşiği {limit}°C)', { v: m[1], limit: m[2] }]],
+  [/^Yağ sıcaklığı sensörü aralık dışı \((-?\d+)°C\) — tel kopması \/ 4mA altı şüphesi$/i, (m) => ['Yağ sıcaklığı sensörü aralık dışı ({v}°C) — tel kopması / 4mA altı şüphesi', { v: m[1] }]],
+  [/^Yağ sıcaklığı sensörü aralık dışı \((-?\d+)°C\) — kısa devre \/ 20mA üstü şüphesi$/i, (m) => ['Yağ sıcaklığı sensörü aralık dışı ({v}°C) — kısa devre / 20mA üstü şüphesi', { v: m[1] }]],
+  [/^(S1|S2) basınç sensörü aralık dışı \((-?\d+) bar\) — sensör \/ kablo kontrol edin$/i, (m) => ['{s} basınç sensörü aralık dışı ({v} bar) — sensör / kablo kontrol edin', { s: m[1], v: m[2] }]],
   [/^Hata: (.*)$/i, (m) => ['Hata: {msg}', { msg: m[1] }]],
 ]
 

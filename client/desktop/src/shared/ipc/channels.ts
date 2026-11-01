@@ -63,6 +63,9 @@ export const IpcInvoke = {
   ServiceConfirmRequest: 'service:confirm-request',
   ServiceRateRequest: 'service:rate-request',
   ServiceListReports: 'service:list-reports',
+  // DataApi — Hata anı snapshot'ları (EXCEL 26, Ayarlar > Hata Raporları)
+  ErrorSnapshotList: 'error-snapshot:list',
+  ErrorSnapshotGet: 'error-snapshot:get',
 
   // DataApi — Settings (Ayarlar sayfaları)
   SettingsGetIdentity: 'settings:get-identity',

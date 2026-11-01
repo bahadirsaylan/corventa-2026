@@ -8,6 +8,9 @@ import type {
   CustomerChangeConfirmResponse,
   CustomerChangeRequestBody,
   CustomerChangeRequestResponse,
+  ErrorSnapshotDetail,
+  ErrorSnapshotListQuery,
+  ErrorSnapshotPage,
   MachineIdentity,
   UserPreference,
   MaintenancePeriodKey,
@@ -279,6 +282,21 @@ export class DataApiClient {
   // Kategori anahtarları BÜYÜK HARF, değerler saniye. days 1..366.
   getUsageTimeSummary(days = 30): Promise<UsageTimeSummary> {
     return http.get<UsageTimeSummary>(`${this.baseUrl}/api/usage-time/summary?days=${days}`)
+  }
+
+  // ---------- Hata anı snapshot'ları (EXCEL 26) ----------
+  // Liste sayfalı + özet (en yeni önce), detay tam MachineState + iş özeti + son loglar.
+  listErrorSnapshots(q: ErrorSnapshotListQuery = {}): Promise<ErrorSnapshotPage> {
+    const p = new URLSearchParams()
+    p.set('page', String(q.page ?? 1))
+    p.set('pageSize', String(q.pageSize ?? 30))
+    if (q.triggerType) p.set('triggerType', q.triggerType)
+    if (q.jobId != null) p.set('jobId', String(q.jobId))
+    return http.get<ErrorSnapshotPage>(`${this.baseUrl}/api/error-snapshots?${p.toString()}`)
+  }
+
+  getErrorSnapshot(id: number): Promise<ErrorSnapshotDetail> {
+    return http.get<ErrorSnapshotDetail>(`${this.baseUrl}/api/error-snapshots/${id}`)
   }
 
   // ---------- Rol sistemi (auth + users) ----------

@@ -26,7 +26,10 @@ import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
   emptyMachineState,
+  ProfileType,
   type BendingProgress,
+  type ErrorSnapshotDetail,
+  type ErrorSnapshotSeverity,
   type MachineEvent,
   type MachineState,
 } from '@shared/types'
@@ -225,6 +228,11 @@ export class DemoMachine extends EventEmitter {
   private gonyeSettings: Record<string, unknown> = { id: 1, leftOffsetMm: 3.75, rightOffsetMm: 3.75, upperOffsetMm: 0, lowerOffsetMm: 10.5, referencePressureBar: 70 }
   private stageEdits = new Map<number, Record<string, unknown>>()
   private extraStages: (Record<string, unknown> & { id: number; isActive?: boolean })[] = []
+  // EXCEL 26 — hata anı snapshot'ları (gerçek DataApi /api/error-snapshots sözleşmesiyle birebir, en yeni 500)
+  private errorSnapshots: ErrorSnapshotDetail[] = []
+  private nextErrorSnapshotId = 1
+  private errorSnapshotsSeeded = false
+  private errorSnapshotLastKey = new Map<string, number>()
 
   // ── yaşam döngüsü ──
 
@@ -352,6 +360,9 @@ export class DemoMachine extends EventEmitter {
         oilTempC: temp, oilTempWarnC: warnC, oilTempBlockC: blockC, blockingEnabled, warnings,
       },
     } satisfies MachineEvent)
+    if (blockReason || warnings.length > 0)
+      this.captureErrorSnapshot('SafetyWarning', blockReason ?? warnings.map((w) => w.message).join(' | '),
+        blockReason ? 'error' : 'warning', jobId)
     return blockReason
   }
 
@@ -368,6 +379,92 @@ export class DemoMachine extends EventEmitter {
         windowMs: Number(cfg.encoderStallWindowMs ?? 2000), positionMm: Math.round(positionMm * 100) / 100,
       },
     } satisfies MachineEvent)
+    this.captureErrorSnapshot('EncoderStall',
+      `Encoder durması: ${axis} — ${Number(cfg.encoderStallWindowMs ?? 2000)} ms içinde 0,000 mm ilerleme (eşik ${Number(cfg.encoderStallMinMm ?? 0.1)} mm)`,
+      'warning')
+  }
+
+  /**
+   * EXCEL 26 — hata anı snapshot'ı (gerçekte Bending API ErrorSnapshotService + DataApi).
+   * Aynı tetikleyici + sebep + iş 30 sn içinde tekrar gelirse yeni kayıt açılmaz.
+   */
+  private captureErrorSnapshot(
+    triggerType: string,
+    reason: string,
+    severity: ErrorSnapshotSeverity = 'error',
+    jobId: number | null = this.activeJobId,
+    capturedAt: Date = new Date(),
+  ): void {
+    if (!this.errorSnapshotsSeeded) this.seedErrorSnapshots()
+    const key = `${triggerType}|${jobId}|${reason}`
+    const last = this.errorSnapshotLastKey.get(key)
+    if (last != null && capturedAt.getTime() - last < 30_000) return
+    this.errorSnapshotLastKey.set(key, capturedAt.getTime())
+
+    // Gerçek backend MachineState'i enum'lar METİN olacak şekilde yazar
+    const st = JSON.parse(JSON.stringify(this.state)) as Record<string, unknown>
+    st.mode = 'Manual'
+    st.errorCode = 'NoError'
+
+    const job = jobId != null ? this.jobs.get(jobId) : undefined
+    const prog = this.progress && this.progress.jobId === jobId ? this.progress : null
+    const iso = capturedAt.toISOString()
+    const logs = job
+      ? [
+          { timestamp: new Date(capturedAt.getTime() - 4000).toISOString(), category: 'General', message: 'İş başladı', isError: false, value1: null, value2: null, value3: null, valueLabels: null },
+          ...(prog?.message
+            ? [{ timestamp: new Date(capturedAt.getTime() - 1500).toISOString(), category: 'Step', message: prog.message, isError: false, value1: null, value2: null, value3: null, valueLabels: null }]
+            : []),
+          { timestamp: iso, category: 'General', message: reason, isError: severity === 'error', value1: null, value2: null, value3: null, valueLabels: null },
+        ]
+      : null
+    const methodName = ['FullCircle', 'Arc', 'Serpantin', 'Sivama'][job?.method ?? 0] ?? String(job?.method)
+    const statusName = ['Created', 'Calculating', 'Ready', 'Running', 'Completed', 'Failed', 'Cancelled'][job?.status ?? 0] ?? String(job?.status)
+
+    this.errorSnapshots.unshift({
+      id: this.nextErrorSnapshotId++,
+      capturedAt: iso,
+      triggerType,
+      severity,
+      reason,
+      bendingJobId: jobId,
+      s1PressureBar: this.state.sensors.s1PressureBar,
+      s2PressureBar: this.state.sensors.s2PressureBar,
+      oilTempC: this.state.sensors.oilTempC,
+      plcErrorCode: 0,
+      logCount: logs?.length ?? 0,
+      machineState: st,
+      progress: prog
+        ? {
+            jobId: prog.jobId, completedPasos: prog.completedPasos, totalPasos: prog.totalPasos,
+            percentComplete: prog.percentComplete, message: prog.message ?? null, updatedAt: iso,
+            completedSegmentOrder: null, totalSegmentCount: null, lastMeasuredRadiusMm: null, targetRadiusMm: null,
+          }
+        : null,
+      job: job
+        ? {
+            id: job.id, status: statusName, method: methodName,
+            profileType: (Object.entries(ProfileType).find(([, v]) => v === job.profileType)?.[0]) ?? String(job.profileType ?? ''), profileSubType: (job.profileSubType as string | null) ?? null,
+            direction: 'Inward', profileA: job.profileA, profileB: Number(job.profileB ?? 0), profileS: Number(job.profileS ?? 0),
+            targetDiameterMm: job.targetDiameterMm, partLengthMm: job.partLengthMm, stepDistanceMm: job.stepDistanceMm,
+            activeSensorSide: 'Left', totalPasos: job.totalPasos, completedPasos: prog?.completedPasos ?? 0,
+            currentPaso: null, failedAtPaso: null, errorMessage: severity === 'error' ? reason : null,
+            measuredDiameterMm: null, createdAt: iso, startedAt: iso, completedAt: null, operatorName: null,
+          }
+        : null,
+      logs,
+    })
+    if (this.errorSnapshots.length > 500) this.errorSnapshots.length = 500
+  }
+
+  /** İlk liste isteğinde birkaç örnek kayıt — boş ekran yerine detay görünümü denenebilsin */
+  private seedErrorSnapshots(): void {
+    if (this.errorSnapshotsSeeded) return
+    this.errorSnapshotsSeeded = true
+    const now = Date.now()
+    this.captureErrorSnapshot('SafetyWarning', 'Yağ sıcaklığı yüksek: 58°C (uyarı eşiği 55°C)', 'warning', null, new Date(now - 3 * 3600_000))
+    this.captureErrorSnapshot('PhysicalEmergencyStop', 'Fiziksel acil stop basıldı', 'error', null, new Date(now - 2 * 3600_000))
+    this.captureErrorSnapshot('EncoderStall', 'Encoder durması: Rotation — 2000 ms içinde 0,000 mm ilerleme (eşik 0.1 mm)', 'warning', null, new Date(now - 3600_000))
   }
 
   private emitPartSensor(): void {
@@ -571,6 +668,7 @@ export class DemoMachine extends EventEmitter {
       } else {
         job.status = 5
         log.error('DEMO job hata', { error: (err as Error).message })
+        this.captureErrorSnapshot('JobFailed', (err as Error).message || 'İş başarısız', 'error', job.id)
       }
     }
     // Son mesaj birkaç saniye ekranda kalsın, sonra monitör kapanır
@@ -1254,6 +1352,8 @@ export class DemoMachine extends EventEmitter {
       return { success: true, message: 'Büküm başlatıldı', jobId: job.id }
     }
     if (/^\/api\/bending-job\/\d+\/cancel$/.test(path) || path === '/api/machine/emergency-stop') {
+      // EXCEL 26 — acil stop'ta durdurmadan önceki anın snapshot'ı (iş iptali kayıt açmaz)
+      if (path === '/api/machine/emergency-stop') this.captureErrorSnapshot('EmergencyStop', 'Acil stop (yazılım)')
       this.abort()
       return ok
     }
@@ -1340,6 +1440,27 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/settings/gonye') {
       if (method === 'PUT') this.gonyeSettings = { ...this.gonyeSettings, ...b }
       return this.gonyeSettings
+    }
+    if (path === '/api/error-snapshots' && method === 'GET') {
+      // Hata anı snapshot'ları — gerçek DataApi sözleşmesiyle birebir (sayfalı özet, en yeni önce)
+      this.seedErrorSnapshots()
+      const page = Math.max(1, Number(u.searchParams.get('page') ?? 1) || 1)
+      const pageSize = Number(u.searchParams.get('pageSize') ?? 30)
+      if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) demoFail(400, rawUrl, 'pageSize 1-100 arası olmalı')
+      const trig = u.searchParams.get('triggerType')
+      const jid = u.searchParams.get('jobId')
+      const rows = this.errorSnapshots.filter((s) =>
+        (!trig || s.triggerType === trig) && (jid == null || s.bendingJobId === Number(jid)))
+      const items = rows.slice((page - 1) * pageSize, page * pageSize).map((s) => {
+        const { machineState: _ms, progress: _p, job: _j, logs: _l, ...summary } = s
+        return summary
+      })
+      return { total: rows.length, page, pageSize, items }
+    }
+    if ((m = /^\/api\/error-snapshots\/(\d+)$/.exec(path)) && method === 'GET') {
+      const s = this.errorSnapshots.find((x) => x.id === Number(m![1]))
+      if (!s) demoFail(404, rawUrl, `Snapshot #${m[1]} bulunamadı`)
+      return s
     }
     if (path === '/api/usage-time/summary' && method === 'GET') {
       // Kullanım süreleri — gerçek DataApi sözleşmesiyle birebir (BÜYÜK HARF kategori, saniye)

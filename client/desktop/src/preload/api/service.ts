@@ -5,6 +5,9 @@ import { ipcRenderer } from 'electron'
 
 import {
   Ipc,
+  type ErrorSnapshotDetail,
+  type ErrorSnapshotListQuery,
+  type ErrorSnapshotPage,
   type ServiceRequest,
   type ServiceRequestCreateRequest,
   type ServiceTicket,
@@ -66,6 +69,16 @@ export const serviceApi = {
 
   rateRequest: (id: number, rating: number, note?: string): Promise<ServiceRequest> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ServiceRateRequest, { id, rating, note }),
+
+  // ---------- Hata anı snapshot'ları (EXCEL 26) ----------
+
+  /** Sayfalı özet liste — en yeni önce */
+  listErrorSnapshots: (q: ErrorSnapshotListQuery = {}): Promise<ErrorSnapshotPage> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ErrorSnapshotList, q),
+
+  /** Tam detay: MachineState + iş özeti + son loglar */
+  getErrorSnapshot: (id: number): Promise<ErrorSnapshotDetail> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ErrorSnapshotGet, id),
 }
 
 export type ServiceApi = typeof serviceApi

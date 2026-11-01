@@ -8,6 +8,7 @@ import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import {
   Ipc,
+  type ErrorSnapshotListQuery,
   type ServiceRequest,
   type ServiceRequestCreateRequest,
   type ServiceTicketAction,
@@ -113,4 +114,22 @@ export function registerServiceHandlers(): void {
       return dataApi.rateRequest(payload.id, payload.rating, payload.note)
     },
   )
+
+  // ---------- HATA ANI SNAPSHOT'LARI (EXCEL 26) ----------
+
+  ipcMain.handle(Ipc.IpcInvoke.ErrorSnapshotList, async (_evt, q?: ErrorSnapshotListQuery) => {
+    // Backend pageSize 1..100 kabul eder; dışındaysa 400 yerine sınırla
+    const page = Math.max(1, Math.round(Number(q?.page) || 1))
+    const pageSize = Math.min(100, Math.max(1, Math.round(Number(q?.pageSize) || 30)))
+    return dataApi.listErrorSnapshots({
+      page,
+      pageSize,
+      triggerType: q?.triggerType || undefined,
+      jobId: q?.jobId,
+    })
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.ErrorSnapshotGet, async (_evt, id: number) => {
+    return dataApi.getErrorSnapshot(id)
+  })
 }
