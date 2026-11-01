@@ -91,8 +91,9 @@ const LOCAL_SECTIONS: SectionDef[] = [
         key: 'unloadRotationDir',
         label: 'ROTASYON YÖNÜ',
         options: [
-          { value: '-1', label: 'GERİ' },
-          { value: '1', label: 'İLERİ' },
+          // Tahliye ekranındaki yön tuşlarıyla aynı: -1 = CW, 1 = CCW
+          { value: '-1', label: 'CW' },
+          { value: '1', label: 'CCW' },
         ],
       },
     ],

@@ -90,6 +90,7 @@ export default function UnloadPage() {
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
   const clampEstop = clampEstopRise != null
+  const hasAlerts = measurementFlagged || (outcome === 'warning' && !!jobMessage) || isBad
   const t = useT()
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
@@ -217,7 +218,8 @@ export default function UnloadPage() {
   }
 
   return (
-    <div className={styles.page}>
+    // Uyarı varsa ekran sıkışık düzene geçer (başlık, süre kutuları küçülür) — 750 px yüksekliğe sığsın
+    <div className={styles.page} data-compact={hasAlerts || undefined}>
       <div className={styles.doneBand} data-outcome={outcome}>
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
@@ -228,25 +230,27 @@ export default function UnloadPage() {
         </div>
       </div>
 
+      {hasAlerts && (
+      <div className={styles.alerts}>
       {measurementFlagged && (
-        <div className={styles.hint}>
+        <div className={styles.alert}>
           <IconLabel icon="warning">{t('HATALI ÖLÇÜM VAR — BU BÜKÜM BULUTA GÖNDERİLMEYECEK')}</IconLabel>
         </div>
       )}
       {outcome === 'warning' && jobMessage && (
-        <div className={styles.hint} role="alert">
+        <div className={styles.alert} role="alert">
           {t('BÜKÜM UYARISI: {warning}', { warning: t(jobMessage) })}
         </div>
       )}
       {clampEstop && (
-        <div className={`${styles.hint} ${styles.hintBad}`} role="alert">
+        <div className={`${styles.alert} ${styles.hintBad}`} role="alert">
           <IconLabel icon="warning">{t(CLAMP_ESTOP_TEMPLATE, { n: clampEstopRise ?? '' })}</IconLabel>
-          <br />
+          {' '}
           {t('ACİL STOP UYGULANDI — PARÇAYI ÇIKARIN, ÖLÇÜYÜ VE ÖNÜNDEKİ ENGELİ KONTROL EDİP İŞİ YENİDEN BAŞLATIN')}
         </div>
       )}
       {isBad && !clampEstop && (
-        <div className={`${styles.hint} ${styles.hintBad}`} role="alert">
+        <div className={`${styles.alert} ${styles.hintBad}`} role="alert">
           {outcome === 'failed'
             ? jobMessage
               ? t('HATA: {error}', { error: t(jobMessage) })
@@ -255,6 +259,8 @@ export default function UnloadPage() {
               ? t('BÜKÜM DURDURULDU: {reason}', { reason: t(jobMessage) })
               : t('BÜKÜM DURDURULDU — PARÇAYI GÜVENLE ÇIKARTIN')}
         </div>
+      )}
+      </div>
       )}
 
       {/* Faz ipucu + (iş numarası biliniyorsa) küçük "LOGLARI GÖR" — aynı satırda, büyük düğmeden yer çalmaz.
@@ -365,15 +371,18 @@ export default function UnloadPage() {
         <div className={styles.motionBox}>
           <span className={styles.motionLabel}>{t('ROTASYON')}</span>
           <div className={styles.motionCtl}>
+            {/* Yön tuşları tuş takımındaki rotasyon ikonlarıyla. Eşleme (backend rotationSeconds işareti):
+                rotationDir -1 → saniye − → jog +1 = CW · rotationDir 1 → saniye + → jog −1 = CCW */}
             <button
               type="button"
               className={styles.dirBtn}
               data-on={motion.rotationDir === -1 || undefined}
               disabled={phase !== 'select'}
               onClick={() => updateMotion({ rotationDir: -1 })}
-              aria-label={t('Rotasyon geri yön')}
+              aria-label={t('ROTASYON CW')}
             >
-              <Icon name="chevronLeft" size="xl" />
+              <Icon name="rotateCw" size="xl" />
+              <span className={styles.dirText}>CW</span>
             </button>
             <button
               type="button"
@@ -400,9 +409,10 @@ export default function UnloadPage() {
               data-on={motion.rotationDir === 1 || undefined}
               disabled={phase !== 'select'}
               onClick={() => updateMotion({ rotationDir: 1 })}
-              aria-label={t('Rotasyon ileri yön')}
+              aria-label={t('ROTASYON CCW')}
             >
-              <Icon name="chevronRight" size="xl" />
+              <Icon name="rotateCcw" size="xl" />
+              <span className={styles.dirText}>CCW</span>
             </button>
           </div>
         </div>

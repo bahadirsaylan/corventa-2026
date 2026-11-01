@@ -429,3 +429,93 @@
 .logsBtn:active {
   filter: brightness(0.94);
 }
+
+/* Rotasyon yön tuşu: tuş takımındaki ikon + CW/CCW yazısı */
+.dirBtn {
+  width: 72px;
+  height: 64px;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dirText {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+/* İş uyarıları (hatalı ölçüm, büküm uyarısı/hatası, acil stop) — küçük, en fazla 2 satır.
+   Tam metin Büküm Geçmişi'nde (LOGLAR #id). */
+.alerts {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alert {
+  width: 100%;
+  padding: 6px 14px;
+  text-align: center;
+  background: #fdf3c4;
+  border: 2px solid #8a8a8a;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  color: #3a3a3a;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Uyarı varken sıkışık düzen — tüm öğeler 750 px'e sığsın, PARÇAYI ÇIKART kalan alanı alır */
+.page[data-compact] {
+  gap: 12px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.page[data-compact] .doneBand {
+  padding: 6px 14px;
+}
+
+.page[data-compact] .chevrons span {
+  width: 44px;
+  height: 56px;
+}
+
+.page[data-compact] .doneText,
+.page[data-compact] .doneBand:not([data-outcome='completed']) .doneText {
+  font-size: 36px;
+}
+
+.page[data-compact] .hint {
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+.page[data-compact] .logsBtn {
+  min-height: 44px;
+}
+
+.page[data-compact] .preset {
+  aspect-ratio: auto;
+  height: 104px;
+}
+
+.page[data-compact] .presetNum {
+  font-size: 44px;
+}
+
+.page[data-compact] .motionBox {
+  padding: 6px 10px;
+  gap: 4px;
+}
+
+.page[data-compact] .bigBtn {
+  min-height: 120px;
+}
