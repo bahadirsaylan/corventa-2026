@@ -282,6 +282,21 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
       },
     ],
   },
+  {
+    // 2026-11-02 — test sekmesi (sonradan kaldırılacak). Tuşlar AdminSettingsPage TestToolsCard'da.
+    tab: 'TEST',
+    sections: [
+      {
+        title: 'YAĞ ISITMA AYARLARI',
+        note: 'Önce gönye alınır; sonra 4 top aynı anda ileri-geri (sağ/sol: max kurs − 20 mm, üst/alt: 100 mm) ve rotasyon her turda yön değiştirerek döner — yağ hedef sıcaklığa ulaşana kadar.',
+        fields: [
+          { key: 'oilHeatingTargetTempC', label: 'HEDEF YAĞ SICAKLIĞI', unit: '°C', min: 10, max: 70, integer: true },
+          { key: 'oilHeatingSpeedPercent', label: 'HAREKET HIZI', unit: '%', min: 5, max: 100, integer: true },
+          { key: 'oilHeatingMaxMinutes', label: 'EN UZUN SÜRE', unit: 'dk', min: 1, max: 240, integer: true, desc: 'Hedefe ulaşılmasa da bu sürede program durur.' },
+        ],
+      },
+    ],
+  },
 ]
 
 export const MACHINE_FIELDS: FieldDef[] = MACHINE_SECTIONS.flatMap((g) => g.sections.flatMap((s) => s.fields))

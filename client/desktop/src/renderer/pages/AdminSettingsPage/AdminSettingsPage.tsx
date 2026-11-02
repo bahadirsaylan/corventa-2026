@@ -9,9 +9,9 @@
 // Kayıt: sadece DEĞİŞEN alanlar gönderilir (main güncel kaydı okuyup üstüne yazar) ve önce
 // "eski → yeni" listesiyle onay alınır. Büküm sürerken kayıt kapalıdır (backend ayarları yeniden yükler).
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import type { MaintenancePeriodKey, MaintenanceRulesConfig, StageInfo } from '@shared/types'
+import type { MaintenancePeriodKey, MaintenanceRulesConfig, OilHeatingStatus, StageInfo } from '@shared/types'
 import {
   ConfirmChangesModal,
   PagedColumns,
@@ -42,6 +42,7 @@ import {
 
 const TAB_GONYE = 'GÖNYE & STAGE'
 const TAB_MAINT = 'BAKIM KURALLARI'
+const TAB_TEST = 'TEST'
 /** Bakım kuralı değişikliklerinin Change.key öneki (makine ayarlarından ayırmak için) */
 const MAINT_CHANGE_PREFIX = 'maint.'
 const ALL_STAGE_FIELDS = [STAGE_ACTIVE_FIELD, ...STAGE_FIELDS]
@@ -295,6 +296,7 @@ function AdminEditor() {
       )}
 
       <PagedColumns resetKey={tab}>
+      {tab === TAB_TEST && <TestToolsCard bendingActive={bendingActive} unsaved={machineChangeCount > 0} />}
       {group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}
@@ -432,6 +434,150 @@ function AdminEditor() {
           onCancel={() => setConfirm(false)}
         />
       )}
+    </>
+  )
+}
+
+// ── TEST sekmesi: bulut senkronize + yağ ısıtma ─────────────────────
+const OIL_STATE_LABEL: Record<string, string> = {
+  Idle: 'HAZIR',
+  Gonye: 'GÖNYE ALINIYOR',
+  Heating: 'ISITILIYOR',
+  Returning: 'TOPLAR DÖNÜYOR',
+  Completed: 'TAMAMLANDI',
+  Stopped: 'DURDURULDU',
+  Failed: 'HATA',
+}
+
+/** Test tuşları (sonradan kaldırılacak): ŞİMDİ SENKRONİZE ET (günlük döngüyü beklemeden push + ayar/reçete çekme)
+ *  ve YAĞ ISITMA (Bending API /api/oil-heating). Yağ ısıtma ayarları aynı sekmede (KAYDET ile). */
+function TestToolsCard({ bendingActive, unsaved }: { bendingActive: boolean; unsaved: boolean }) {
+  const t = useT()
+  const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [syncBusy, setSyncBusy] = useState(false)
+  const [oil, setOil] = useState<OilHeatingStatus | null>(null)
+  const [oilErr, setOilErr] = useState<string | null>(null)
+  const [oilBusy, setOilBusy] = useState(false)
+  const active = oil?.active === true
+  const activeRef = useRef(active)
+  activeRef.current = active
+
+  // Durum: çalışırken 1 sn, değilse 3 sn'de bir
+  useEffect(() => {
+    let alive = true
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const tick = async () => {
+      try {
+        const s = await window.corventa.bending.oilHeatingStatus()
+        if (alive) setOil(s)
+      } catch {
+        /* backend anlık yok — bir sonraki turda */
+      }
+      if (alive) timer = setTimeout(tick, activeRef.current ? 1000 : 3000)
+    }
+    void tick()
+    return () => {
+      alive = false
+      if (timer) clearTimeout(timer)
+    }
+  }, [])
+
+  async function syncNow() {
+    setSyncBusy(true)
+    setSyncMsg(null)
+    try {
+      const r = (await window.corventa.cloud.syncNow()) as { ok?: boolean; error?: string | null } | undefined
+      if (r && r.ok === false) setSyncMsg({ ok: false, text: r.error ?? t('Senkronizasyon başlatılamadı') })
+      else setSyncMsg({ ok: true, text: t('Senkronizasyon başlatıldı') })
+    } catch (e) {
+      setSyncMsg({ ok: false, text: errMsg(e) })
+    } finally {
+      setSyncBusy(false)
+    }
+  }
+
+  async function startOil() {
+    setOilBusy(true)
+    setOilErr(null)
+    try {
+      const r = await window.corventa.bending.oilHeatingStart()
+      if (!r.success) setOilErr(r.errorMessage ?? t('Yağ ısıtma başlatılamadı'))
+      if (r.status) setOil(r.status)
+    } catch (e) {
+      setOilErr(errMsg(e))
+    } finally {
+      setOilBusy(false)
+    }
+  }
+
+  async function stopOil() {
+    setOilBusy(true)
+    try {
+      const r = await window.corventa.bending.oilHeatingStop()
+      if (r.status) setOil(r.status)
+    } catch (e) {
+      setOilErr(errMsg(e))
+    } finally {
+      setOilBusy(false)
+    }
+  }
+
+  const fmtTime = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+  const startBlocked = bendingActive
+    ? 'Büküm devam ediyor — yağ ısıtma başlatılamaz.'
+    : unsaved
+      ? 'Kaydedilmemiş değişiklik var — önce KAYDET veya GERİ AL.'
+      : null
+
+  return (
+    <>
+      <div className={styles.card}>
+        <div className={styles.sectionTitle}>{t('BULUT SENKRONİZASYONU')}</div>
+        <p className={styles.sectionNote}>
+          {t('Bekleyen kayıtlar hemen buluta gönderilir; ayarlar, kalıplar ve reçeteler hemen çekilir (günlük döngüyü beklemez). Makine buluta bağlı değilse çalışmaz.')}
+        </p>
+        {syncMsg && (
+          <p className={styles.message} data-kind={syncMsg.ok ? 'ok' : 'err'}>
+            {syncMsg.text}
+          </p>
+        )}
+        <div>
+          <button type="button" className={styles.saveBtn} disabled={syncBusy} onClick={() => void syncNow()}>
+            {syncBusy ? t('GÖNDERİLİYOR…') : t('ŞİMDİ SENKRONİZE ET')}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.sectionTitle}>{t('YAĞ ISITMA PROGRAMI')}</div>
+        <p className={styles.sectionNote}>
+          {t('Makinede parça OLMAMALI ve hidrolik motor çalışıyor olmalı. Program önce gönye alır, sonra toplar ileri-geri hareket eder; DURDUR tüm hareketi keser.')}
+        </p>
+        {oil && (
+          <p className={styles.message} data-kind={oil.state === 'Failed' ? 'err' : 'ok'}>
+            {t(OIL_STATE_LABEL[oil.state] ?? oil.state)}
+            {oil.message ? ` — ${oil.message}` : ''}
+            {` · ${t('Yağ')}: ${oil.currentTempC ?? '—'} °C`}
+            {oil.startedAt ? ` / ${t('hedef')} ${oil.targetTempC} °C · ${fmtTime(oil.elapsedSec)}` : ''}
+          </p>
+        )}
+        {(oilErr || (!active && startBlocked)) && (
+          <p className={styles.message} data-kind="err">
+            {oilErr ?? t(startBlocked ?? '')}
+          </p>
+        )}
+        <div>
+          {active ? (
+            <button type="button" className={styles.resetBtn} disabled={oilBusy} onClick={() => void stopOil()}>
+              {t('DURDUR')}
+            </button>
+          ) : (
+            <button type="button" className={styles.saveBtn} disabled={oilBusy || !!startBlocked} onClick={() => void startOil()}>
+              {t('YAĞ ISITMAYI BAŞLAT')}
+            </button>
+          )}
+        </div>
+      </div>
     </>
   )
 }

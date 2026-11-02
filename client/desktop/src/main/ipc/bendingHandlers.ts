@@ -18,6 +18,7 @@ import {
   type BendingLogQuery,
   type SimilarBendingJobRequest,
   type UnloadPartRequest,
+  type OilHeatingStartRequest,
 } from '@shared'
 
 const log = childLogger('ipc:bending')
@@ -59,6 +60,17 @@ export function registerBendingHandlers(): void {
     log.warn('stop-unload')
     return engineApi.stopUnload()
   })
+
+  // Yağ ısıtma programı (Admin Ayarları > TEST)
+  ipcMain.handle(Ipc.IpcInvoke.OilHeatingStart, async (_evt, req?: OilHeatingStartRequest) => {
+    log.info('oil-heating-start', { req })
+    return engineApi.oilHeatingStart(req ?? {})
+  })
+  ipcMain.handle(Ipc.IpcInvoke.OilHeatingStop, async () => {
+    log.warn('oil-heating-stop')
+    return engineApi.oilHeatingStop()
+  })
+  ipcMain.handle(Ipc.IpcInvoke.OilHeatingStatus, async () => engineApi.oilHeatingStatus())
 
   ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
     log.info('execute-gonye')

@@ -178,6 +178,34 @@ export interface StopUnloadResponse {
   errorMessage: string | null
 }
 
+// Yağ ısıtma programı — Bending API /api/oil-heating/{start,stop,status}
+export type OilHeatingState = 'Idle' | 'Gonye' | 'Heating' | 'Returning' | 'Completed' | 'Stopped' | 'Failed'
+export interface OilHeatingStatus {
+  state: OilHeatingState
+  message: string | null
+  targetTempC: number
+  speedPercent: number
+  maxMinutes: number
+  startTempC: number | null
+  currentTempC: number | null
+  cycles: number
+  startedAt: string | null
+  finishedAt: string | null
+  elapsedSec: number
+  stopRequested: boolean
+  active: boolean
+}
+export interface OilHeatingStartRequest {
+  targetTempC?: number
+  speedPercent?: number
+  maxMinutes?: number
+}
+export interface OilHeatingResult {
+  success: boolean
+  errorMessage: string | null
+  status: OilHeatingStatus | null
+}
+
 // POST /api/bending-job/{id}/start  (no body)
 export interface StartJobResponse {
   success: boolean

@@ -22,6 +22,9 @@ import {
   type SimilarBendingJobResponse,
   type StartJobResponse,
   type StopUnloadResponse,
+  type OilHeatingResult,
+  type OilHeatingStartRequest,
+  type OilHeatingStatus,
   type UnloadPartRequest,
   type UnloadPartResponse,
   type ResumeStatusResponse,
@@ -58,6 +61,12 @@ export const bendingApi = {
   // Tahliye DURDUR — devam eden tahliyeyi keser, üst top + rotasyonu durdurur.
   stopUnload: (): Promise<StopUnloadResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.StopUnload),
+
+  // Yağ ısıtma programı (Admin Ayarları > TEST)
+  oilHeatingStart: (req?: OilHeatingStartRequest): Promise<OilHeatingResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStart, req ?? {}),
+  oilHeatingStop: (): Promise<OilHeatingResult> => ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStop),
+  oilHeatingStatus: (): Promise<OilHeatingStatus> => ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStatus),
 
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),

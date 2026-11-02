@@ -17,6 +17,10 @@ export const IpcInvoke = {
   // Tahliye (SEKIL-18): geri sayım sonrası üst top geri + rotasyon; durdur = devam eden tahliyeyi keser
   UnloadPart: 'preparation:unload-part',
   StopUnload: 'preparation:stop-unload',
+  // Yağ ısıtma programı (Admin Ayarları > TEST) — gönye + 4 top/rotasyon ileri-geri, hedef sıcaklığa kadar
+  OilHeatingStart: 'oil-heating:start',
+  OilHeatingStop: 'oil-heating:stop',
+  OilHeatingStatus: 'oil-heating:status',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   // 2026-11-01 — acil stop kesintisi: devam durumu / DEVAM ET / MANUEL TAHLİYE (bırak)

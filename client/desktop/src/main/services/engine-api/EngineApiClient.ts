@@ -22,6 +22,9 @@ import type {
   SideSupportRequest,
   StartJobResponse,
   StopUnloadResponse,
+  OilHeatingResult,
+  OilHeatingStartRequest,
+  OilHeatingStatus,
   UnloadPartRequest,
   UnloadPartResponse,
   ResumeStatusResponse,
@@ -136,6 +139,32 @@ export class EngineApiClient {
   }
 
   // Tahliye DURDUR — devam eden tahliyeyi keser, üst top + rotasyonu durdurur. Tahliye yoksa da success=true.
+  // Yağ ısıtma programı — 409 gövdesi de { success, errorMessage, status } (mesaj kaybolmasın)
+  async oilHeatingStart(req: OilHeatingStartRequest): Promise<OilHeatingResult> {
+    return this.oilHeatingCall(() => http.post<OilHeatingResult>(`${this.baseUrl}/api/oil-heating/start`, req ?? {}))
+  }
+
+  async oilHeatingStop(): Promise<OilHeatingResult> {
+    return this.oilHeatingCall(() => http.post<OilHeatingResult>(`${this.baseUrl}/api/oil-heating/stop`))
+  }
+
+  async oilHeatingStatus(): Promise<OilHeatingStatus> {
+    return http.get<OilHeatingStatus>(`${this.baseUrl}/api/oil-heating/status`)
+  }
+
+  private async oilHeatingCall(fn: () => Promise<OilHeatingResult>): Promise<OilHeatingResult> {
+    try {
+      const res = await fn()
+      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null, status: res?.status ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
+        const body = err.body as Partial<OilHeatingResult>
+        return { success: false, errorMessage: body.errorMessage ?? err.message, status: body.status ?? null }
+      }
+      throw err
+    }
+  }
+
   async stopUnload(): Promise<StopUnloadResponse> {
     try {
       const res = await http.post<Partial<StopUnloadResponse>>(`${this.baseUrl}/api/preparation/unload/stop`)
