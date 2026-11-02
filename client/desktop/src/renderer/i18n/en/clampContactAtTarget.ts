@@ -8,8 +8,12 @@ const en: Record<string, string> = {
     'EMERGENCY STOP APPLIED — REMOVE THE PART, CHECK THE SIZE AND ANY OBSTACLE, THEN RESTART THE JOB',
   // Admin Ayarları → SIKIŞTIRMA
   'SIKIŞTIRMA ALGORİTMASI': 'CLAMPING ALGORITHM',
-  'HEDEFTE TEMAS: üst top hedef konuma kadar iner, hedefte yavaşlayıp 1 bar temas artışında durur. Hedefe varmadan basınç belirlenen kadar artarsa ACİL STOP yapılır.':
-    'CONTACT AT TARGET: the upper roll descends to the target position, slows down there and stops at a 1 bar contact rise. If pressure rises by the set amount before the target, an EMERGENCY STOP is applied.',
+  'Üst top yavaşlama noktasına (hedef − YAVAŞLAMA MESAFESİ) kadar hızlı iner, sonra YAVAŞ HIZ ile 1 bar temas artışında durur. HEDEFTE TEMAS seçiliyse yavaşlama noktasına varmadan basınç belirlenen kadar artarsa ACİL STOP yapılır. YAVAŞLAMA MESAFESİ 0 = eski davranış (hedefte / %95 noktasında yavaşlama).':
+    'The upper roll moves down fast to the slowdown point (target − SLOWDOWN DISTANCE), then stops at a 1 bar contact rise at SLOW SPEED. With CONTACT AT TARGET, an EMERGENCY STOP is triggered if pressure rises by the set amount before the slowdown point. SLOWDOWN DISTANCE 0 = old behaviour (slow down at the target / at 95%).',
+  'YAVAŞLAMA MESAFESİ': 'SLOWDOWN DISTANCE',
+  'Hedefe bu kadar mm kala yavaşlar ve temas arar (ör. 1 veya 2). 0 = eski davranış.': 'Slows down and looks for contact this many mm before the target (e.g. 1 or 2). 0 = old behaviour.',
+  'YAVAŞ HIZ': 'SLOW SPEED',
+  'Yavaşlama noktasından sonraki temas arama hızı. Sadece YAVAŞLAMA MESAFESİ 0 değilken kullanılır.': 'Contact-search speed after the slowdown point. Used only when SLOWDOWN DISTANCE is not 0.',
   'SIKIŞTIRMA YÖNTEMİ': 'CLAMPING METHOD',
   'ESKİ: hedefin %95 noktasında yavaşlar, acil stop koruması yok.': 'OLD: slows down at 95% of the target, no emergency stop protection.',
   'HEDEFTE TEMAS': 'CONTACT AT TARGET',

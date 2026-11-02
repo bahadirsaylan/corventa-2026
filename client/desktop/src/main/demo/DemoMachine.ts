@@ -75,7 +75,7 @@ const DEMO_MACHINE_SETTINGS = {
   radiusSensorMmPerPulse: 0.00025, radiusSensorStrokeMm: 12,
   minMeasurableArcLengthMm: null, defaultMeasurementDistanceMm: 850, stateSnapshotIntervalSec: 5,
   clampContactDeltaBar: 1, clampJogSpeedPercent: 30, clampSlowSpeedPercent: 20, clampSlowdownPercentOfTarget: 95,
-  clampContactAtTargetEnabled: true, clampTravelOverpressureBar: 3,
+  clampContactAtTargetEnabled: true, clampTravelOverpressureBar: 3, clampSlowdownBeforeTargetMm: 1,
   measurePneumaticExtendWaitMs: null, measurePneumaticRetractWaitMs: null, measureSampleDurationMs: null,
   circularSlackPressureSettleMs: null, circularIterationPauseMs: null,
   unloadMaxUpperRetractMm: null, unloadMaxRotationSeconds: null, unloadUpperSpeedPercent: null, unloadRotationSpeedPercent: null,
