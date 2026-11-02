@@ -91,7 +91,13 @@ export default function SpiralBendingMeasurementsPage() {
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <SpiralMeasurementForm values={values} onChange={setValues} onReset={handleReset} />
+        <SpiralMeasurementForm
+          values={values}
+          onChange={setValues}
+          onReset={handleReset}
+          onConfirm={handleConfirm}
+          confirmDisabled={!isComplete(values)}
+        />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}

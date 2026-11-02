@@ -128,8 +128,9 @@ function ManualControlPad() {
       <RotationBtn dir={-1} speed={speed} locked={locked} cls={styles.rotCcw} label="ROTASYON CCW" />
 
       {/* ── Pistonlar ─────────────────────────────── */}
-      {/* Dört pistonda da (makinede doğrulandı, 2026-10-05): ÜST ok = İLERİ (direction -1, parçaya),
-          ALT ok = GERİ (direction +1). Backend polaritesi: -1 ileri, +1 geri. */}
+      {/* Backend polaritesi: -1 ileri (parçaya), +1 geri.
+          2026-11-02 makine geri bildirimi: ÜST piston doğru (üst ok -1); ALT / SOL / SAĞ ters çalışıyordu
+          ("geri tuşu ileri, ileri tuşu geri") → bu üçünde üst ok +1, alt ok -1. */}
       <PistonPill
         piston="upper" title="ÜST" value={upperPos} speed={speed} locked={locked}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
@@ -137,17 +138,17 @@ function ManualControlPad() {
       />
       <PistonPill
         piston="lower" title="ALT" value={lowerPos} speed={speed} locked={locked}
-        topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
+        topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pLower}
       />
       <PistonPill
         piston="left" title="SOL" value={leftPos} speed={speed} locked={locked}
-        topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
+        topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pLeft}
       />
       <PistonPill
         piston="right" title="SAĞ" value={rightPos} speed={speed} locked={locked}
-        topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
+        topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pRight}
       />
 

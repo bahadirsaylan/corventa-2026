@@ -137,7 +137,13 @@ export default function RingBendingMeasurementsPage() {
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <MeasurementForm values={values} onChange={setValues} onReset={handleReset} />
+        <MeasurementForm
+          values={values}
+          onChange={setValues}
+          onReset={handleReset}
+          onConfirm={handleConfirm}
+          confirmDisabled={!isComplete(values)}
+        />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}

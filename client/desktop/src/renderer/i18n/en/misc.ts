@@ -89,6 +89,8 @@ const en: Record<string, string> = {
   "Corventa Desktop'a hoş geldiniz. Ekranlar burada yer alacak.": 'Welcome to Corventa Desktop. Screens will be implemented here.',
   'Sayfa bulunamadı': 'Page not found',
   'Ana ekrana git': 'Go to Dashboard',
+  // Yan menü (2026-11-02) — Ayarlar > HIZLI MENÜ düzenleme ekranına kısayol
+  'HIZLI DÜZENLE': 'QUICK EDIT',
 }
 
 export default en

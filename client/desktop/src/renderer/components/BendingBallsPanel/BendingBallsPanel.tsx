@@ -40,7 +40,8 @@ function ControlPanel() {
   const progressJobId = useMachineStateStore((s) => s.bendingProgress?.jobId ?? null)
   const awaitingSideSupport = useMachineStateStore((s) => s.bendingProgress?.awaitingSideSupportConfirmation === true)
   const bendingActive = useBendingActive()
-  const s1Pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
+  // 2026-11-02 — BASINÇ = S2 (sağ + sol vals topları)
+  const s2Pressure = useMachineStateStore((s) => s.state.sensors.s2PressureBar)
   const t = useT()
 
   // ── İptal butonu state'i ────────────────────────
@@ -113,7 +114,7 @@ function ControlPanel() {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <span className={styles.headerLabel}>{t('BASINÇ')}</span>
-          <span className={styles.headerValue}>{s1Pressure}</span>
+          <span className={styles.headerValue}>{s2Pressure}</span>
           <span className={styles.headerUnit}>BAR</span>
         </div>
 

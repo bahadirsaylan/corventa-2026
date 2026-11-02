@@ -94,7 +94,13 @@ export default function SivamaBendingMeasurementsPage() {
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <SivamaMeasurementForm values={values} onChange={setValues} onReset={handleReset} />
+        <SivamaMeasurementForm
+          values={values}
+          onChange={setValues}
+          onReset={handleReset}
+          onConfirm={handleConfirm}
+          confirmDisabled={!isComplete(values)}
+        />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}

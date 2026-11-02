@@ -32,6 +32,12 @@
   background: #fef2f2;
 }
 
+/* Pasif / beklenen durum (temas sensörü pasif, motor kapalıyken 0 bar) — arıza gibi görünmesin */
+.boxIdle {
+  border-color: #c4c4c4;
+  background: #f3f4f6;
+}
+
 .icon {
   display: inline-flex;
   align-items: center;
@@ -42,6 +48,7 @@
 
 .iconOk   { color: #16a34a; }
 .iconFail { color: #dc2626; }
+.iconIdle { color: #9ca3af; }
 
 /* Label kontrast: muted gri yerine koyu, kalın — operatör vardiya değişiminde uzaktan okuyabilmeli */
 .label {
@@ -65,4 +72,8 @@
 
 .valueFail {
   color: #dc2626;
+}
+
+.valueIdle {
+  color: #6b7280;
 }

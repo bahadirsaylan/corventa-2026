@@ -40,7 +40,7 @@ export default function ManuelBendingRunPage() {
   const left = usePiston('leftPiston')
   const right = usePiston('rightPiston')
   const bottom = usePiston('lowerPiston')
-  const pressure = useMachineStateStore((s) => s.state.sensors.s1PressureBar)
+  const pressure = useMachineStateStore((s) => s.state.sensors.s2PressureBar) // S2 = sağ + sol vals topları
   // Nesne slice'ları shallow — her 10 Hz tick'te yeni referans geldiğinden sayfa boşuna çiziliyordu
   const leftPneu = useMachineStateStore(useShallow((s) => s.state.leftPneumatic))
   const rightPneu = useMachineStateStore(useShallow((s) => s.state.rightPneumatic))

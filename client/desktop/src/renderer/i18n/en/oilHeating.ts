@@ -3,8 +3,8 @@
 const en: Record<string, string> = {
   TEST: 'TEST',
   'YAĞ ISITMA AYARLARI': 'OIL HEATING SETTINGS',
-  'Önce gönye alınır; sonra 4 top aynı anda ileri-geri (sağ/sol: max kurs − 20 mm, üst/alt: 100 mm) ve rotasyon her turda yön değiştirerek döner — yağ hedef sıcaklığa ulaşana kadar.':
-    'The reference (gönye) is taken first; then all 4 rolls move back and forth together (right/left: max stroke − 20 mm, upper/lower: 100 mm) while rotation reverses every pass — until the oil reaches the target temperature.',
+  'Önce gönye alınır; sonra 4 top aynı anda ileri-geri (sağ/sol: max kurs − 20 mm, üst/alt: 50 mm) ve rotasyon her turda yön değiştirerek döner — yağ hedef sıcaklığa ulaşana kadar.':
+    'The reference (gönye) is taken first; then all 4 rolls move back and forth together (right/left: max stroke − 20 mm, upper/lower: 50 mm) while rotation reverses every pass — until the oil reaches the target temperature.',
   'HEDEF YAĞ SICAKLIĞI': 'TARGET OIL TEMPERATURE',
   'HAREKET HIZI': 'MOVEMENT SPEED',
   'EN UZUN SÜRE': 'MAXIMUM DURATION',

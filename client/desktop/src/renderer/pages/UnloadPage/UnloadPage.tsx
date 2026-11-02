@@ -87,6 +87,11 @@ export default function UnloadPage() {
   // Biten işin numarası (AppLayout state.jobId) — "LOGLARI GÖR" → Büküm Geçmişi detayı
   const rawJobId = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).jobId : undefined
   const jobId = typeof rawJobId === 'number' && Number.isInteger(rawJobId) && rawJobId > 0 ? rawJobId : null
+  // 2026-11-02 — manuel büküm (makro) bitişinden geldiyse (MacroRunPage state.macroId): parça alınınca
+  // SEKIL-20 (yeni otomatik büküm) yerine aynı makronun ekranına dönülür.
+  const rawMacroId = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).macroId : undefined
+  const macroId = typeof rawMacroId === 'number' && Number.isInteger(rawMacroId) && rawMacroId > 0 ? rawMacroId : null
+  const nextPath = macroId != null ? `/bending/macros/${macroId}/run` : '/bending/next'
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
@@ -460,7 +465,7 @@ export default function UnloadPage() {
       {/* Hatalı / durdurulan iş parça sıkılmadan (ör. Clamp'ta sensör beklerken) bitmiş olabilir —
           makinede parça yoksa tahliye hareketi yapmadan çıkış. Ekran yine her bitişte açılır. */}
       {phase === 'select' && !editing && isBad && (
-        <button type="button" className={styles.skipBtn} onClick={() => navigate('/bending/next')}>
+        <button type="button" className={styles.skipBtn} onClick={() => navigate(nextPath)}>
           {t('MAKİNEDE PARÇA YOK — TAHLİYESİZ DEVAM')}
         </button>
       )}
@@ -489,14 +494,14 @@ export default function UnloadPage() {
           <button type="button" className={styles.bigBtn} onClick={() => setPhase('select')}>
             <span>{t('TEKRAR DENE')}</span>
           </button>
-          <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
+          <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate(nextPath)}>
             <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
           </button>
         </div>
       )}
 
       {phase === 'ready' && (
-        <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate('/bending/next')}>
+        <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate(nextPath)}>
           <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
         </button>
       )}

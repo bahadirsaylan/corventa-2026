@@ -3,7 +3,7 @@
 // Kayıt bağlamı (gönye/stage) mevcut durumla uyuşmazsa BAŞLAT önce güçlü onay ister.
 // Hareketler services/macroRunner.ts'te mevcut manuel uçlarla yapılır — büküm akışlarına dokunmaz.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
@@ -52,6 +52,27 @@ export default function MacroRunPage() {
   const blockReason = macroStartBlockReason()
 
   const active = run.macroId === id && (run.status === 'running' || run.status === 'awaiting-confirm')
+
+  // 2026-11-02 — manuel büküm bitince / durdurulunca / hatayla kesilince TAHLİYE ekranı (otomatik bükümdeki gibi).
+  // Sadece gerçekten çalışmış bir oynatmanın bitişinde (başlatma reddi — motor yok vb. — hareket olmadığı için açmaz).
+  // Sonuç şeridi kısa süre görünsün diye 1,5 sn sonra geçilir.
+  const wasActive = useRef(false)
+  useEffect(() => {
+    if (active) {
+      wasActive.current = true
+      return
+    }
+    if (!wasActive.current || run.macroId !== id) return
+    const st = run.status
+    if (st !== 'done' && st !== 'stopped' && st !== 'error') return
+    const jobOutcome = st === 'done' ? 'completed' : st === 'stopped' ? 'cancelled' : 'failed'
+    const jobMessage = st === 'error' ? run.message : null
+    const timer = setTimeout(() => {
+      wasActive.current = false
+      navigate('/bending/unload', { state: { jobOutcome, macroId: id, ...(jobMessage ? { jobMessage } : {}) } })
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [active, run.status, run.macroId, run.message, id, navigate])
 
   useEffect(() => {
     let alive = true

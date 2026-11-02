@@ -4,7 +4,8 @@ import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
-import { Icon, IconLabel } from '@/components/Icon'
+import { Icon } from '@/components/Icon'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
 import { SpiralDirection } from '@/store/bendingJobStore'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend3-4-buyuk.png'
@@ -79,9 +80,12 @@ interface Props {
   values: SivamaMeasurementValues
   onChange: (values: SivamaMeasurementValues) => void
   onReset: () => void
+  /** Formdaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
 }
 
-export default function SivamaMeasurementForm({ values, onChange, onReset }: Props) {
+export default function SivamaMeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled }: Props) {
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
@@ -190,9 +194,7 @@ export default function SivamaMeasurementForm({ values, onChange, onReset }: Pro
           </div>
         </div>
 
-        <button className={styles.resetBtn} onClick={onReset}>
-          <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
-        </button>
+        <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
       </div>
 
       {/* ── Info modal ──────────────────────────── */}

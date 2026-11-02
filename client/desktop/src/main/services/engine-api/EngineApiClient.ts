@@ -328,8 +328,9 @@ export class EngineApiClient {
 
   // jobId (EXCEL 24): büküm İPTAL'inden geliyorsa backend iptali durdurmadan ÖNCE işaretler →
   // pipeline'ın acil stop'la ürettiği sonuç Cancelled yazılır (cancel çağrısıyla yarış kalmaz).
+  // cancel=true: tek çağıran büküm İPTAL tuşu — backend durdurduktan sonra alarmı kapatır (arıza değil).
   emergencyStop(jobId?: number | null): Promise<unknown> {
-    const qs = jobId != null ? `?jobId=${jobId}` : ''
+    const qs = jobId != null ? `?jobId=${jobId}&cancel=true` : '?cancel=true'
     return http.post(`${this.baseUrl}/api/machine/emergency-stop${qs}`)
   }
 

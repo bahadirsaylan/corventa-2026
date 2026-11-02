@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
 import { useT } from '@/i18n'
-import { Icon, IconLabel } from '@/components/Icon'
+import { Icon } from '@/components/Icon'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
@@ -70,9 +71,12 @@ interface Props {
   values: MeasurementValues
   onChange: (values: MeasurementValues) => void
   onReset: () => void
+  /** Formdaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
 }
 
-export default function MeasurementForm({ values, onChange, onReset }: Props) {
+export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled }: Props) {
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
@@ -142,9 +146,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
           </div>
         </div>
 
-        <button className={styles.resetBtn} onClick={onReset}>
-          <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
-        </button>
+        <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
       </div>
 
       {/* ── Info modal ──────────────────────────── */}

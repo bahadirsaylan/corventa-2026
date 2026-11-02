@@ -288,7 +288,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
     sections: [
       {
         title: 'YAĞ ISITMA AYARLARI',
-        note: 'Önce gönye alınır; sonra 4 top aynı anda ileri-geri (sağ/sol: max kurs − 20 mm, üst/alt: 100 mm) ve rotasyon her turda yön değiştirerek döner — yağ hedef sıcaklığa ulaşana kadar.',
+        note: 'Önce gönye alınır; sonra 4 top aynı anda ileri-geri (sağ/sol: max kurs − 20 mm, üst/alt: 50 mm) ve rotasyon her turda yön değiştirerek döner — yağ hedef sıcaklığa ulaşana kadar.',
         fields: [
           { key: 'oilHeatingTargetTempC', label: 'HEDEF YAĞ SICAKLIĞI', unit: '°C', min: 10, max: 70, integer: true },
           { key: 'oilHeatingSpeedPercent', label: 'HAREKET HIZI', unit: '%', min: 5, max: 100, integer: true },

@@ -247,6 +247,8 @@ export default function ArcBendingMeasurementsPage() {
             values={values}
             onChange={setValues}
             onReset={handleReset}
+            onConfirm={stage === 'main' ? () => setStage('segments') : undefined}
+            confirmDisabled={!mainFieldsValid(values)}
             inputMode={inputMode}
             onInputModeChange={setInputMode}
             stage={stage}

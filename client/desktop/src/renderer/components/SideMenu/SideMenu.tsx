@@ -25,6 +25,8 @@ import { useT } from '@/i18n'
 import { SideMenuIcon, GearIcon } from './SideMenuIcons'
 import styles from './SideMenu.module.css'
 
+const QUICK_EDIT_PATH = '/settings/side-menu'
+
 export default function SideMenu() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
@@ -107,6 +109,17 @@ export default function SideMenu() {
     }
   }
 
+  // 2026-11-02 — HIZLI DÜZENLE: menünün altında, Ayarlar > HIZLI MENÜ düzenleme ekranına götürür
+  function openQuickEdit() {
+    const need = requiredRoleForPath(QUICK_EDIT_PATH)
+    if (need && !hasRole(role, need)) {
+      showRoleNotice(need)
+      return
+    }
+    setOpen(false)
+    navigate(QUICK_EDIT_PATH)
+  }
+
   const items = itemIds.map(catalogItem).filter((i): i is SideMenuCatalogItem => !!i)
 
   return (
@@ -170,6 +183,17 @@ export default function SideMenu() {
           ))}
           {bendingActive && <span className={styles.lockNote}>{t('BÜKÜM SÜRÜYOR')}</span>}
         </div>
+
+        <button
+          type="button"
+          className={styles.quickEdit}
+          onClick={openQuickEdit}
+          disabled={bendingActive}
+          tabIndex={open ? 0 : -1}
+        >
+          <Icon name="edit" size="md" />
+          <span>{t('HIZLI DÜZENLE')}</span>
+        </button>
 
         <button
           type="button"

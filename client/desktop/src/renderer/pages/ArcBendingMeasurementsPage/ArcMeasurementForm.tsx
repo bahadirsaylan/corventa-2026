@@ -8,6 +8,7 @@ import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
 import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
@@ -113,6 +114,9 @@ interface Props {
   values: ArcMeasurementValues
   onChange: (values: ArcMeasurementValues) => void
   onReset: () => void
+  /** Ana aşamadaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
   inputMode: ArcInputMode
   onInputModeChange: (mode: ArcInputMode) => void
   stage: ArcFormStage
@@ -193,6 +197,8 @@ export default function ArcMeasurementForm({
   values,
   onChange,
   onReset,
+  onConfirm,
+  confirmDisabled,
   inputMode,
   onInputModeChange,
   stage,
@@ -410,9 +416,7 @@ export default function ArcMeasurementForm({
               <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
             </div>
 
-            <button className={styles.resetBtn} onClick={onReset}>
-              <IconLabel icon="reset">{t('SIFIRLA')}</IconLabel>
-            </button>
+            <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
           </>
         ) : (
           <>
