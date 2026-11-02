@@ -182,7 +182,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
       },
       {
         title: 'SIKIŞTIRMA ALGORİTMASI',
-        note: 'Üst top yavaşlama noktasına (hedef − YAVAŞLAMA MESAFESİ) kadar hızlı iner, sonra YAVAŞ HIZ ile 1 bar temas artışında durur. HEDEFTE TEMAS seçiliyse yavaşlama noktasına varmadan basınç belirlenen kadar artarsa ACİL STOP yapılır. YAVAŞLAMA MESAFESİ 0 = eski davranış (hedefte / %95 noktasında yavaşlama).',
+        note: 'Üst top yavaşlama noktasına (hedef − YAVAŞLAMA MESAFESİ) kadar hızlı iner, sonra YAVAŞ HIZ ile TEMAS BASINÇ ARTIŞI kadar basınç yükselince durur. HEDEFTE TEMAS seçiliyse yavaşlama noktasına varmadan basınç belirlenen kadar artarsa ACİL STOP yapılır. YAVAŞLAMA MESAFESİ 0 = eski davranış (hedefte / %95 noktasında yavaşlama).',
         fields: [
           {
             type: 'select',
@@ -197,6 +197,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'clampTravelOverpressureBar', label: 'YOLDA ACİL STOP BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 50, integer: true, desc: 'Hedefe giderken serbest yürüme basıncına göre bu kadar artış görülürse acil stop.' },
           // 2026-11-02 — %95 yerine mesafe: hedefe bu kadar mm kala yavaşla
           { key: 'clampSlowdownBeforeTargetMm', label: 'YAVAŞLAMA MESAFESİ', unit: 'mm', min: 0, max: 20, desc: 'Hedefe bu kadar mm kala yavaşlar ve temas arar (ör. 1 veya 2). 0 = eski davranış.' },
+          { key: 'clampContactDeltaBar', label: 'TEMAS BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 20, integer: true, desc: 'Yavaşlama noktasında okunan basınç + bu değer görülünce üst top durur (temas).' },
           { key: 'clampSlowSpeedPercent', label: 'YAVAŞ HIZ', unit: '%', min: 5, max: 100, integer: true, desc: 'Yavaşlama noktasından sonraki temas arama hızı. Sadece YAVAŞLAMA MESAFESİ 0 değilken kullanılır.' },
         ],
       },
@@ -204,7 +205,6 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         title: 'SIKIŞTIRMA HAREKETİ',
         note: PENDING,
         fields: [
-          { key: 'clampContactDeltaBar', label: 'TEMAS BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 20, integer: true, desc: 'Yürüme basıncı + bu değer görülünce üst top durur.' },
           { key: 'clampJogSpeedPercent', label: 'SIKIŞTIRMA HIZI', unit: '%', min: 5, max: 100, integer: true },
           { key: 'clampSlowdownPercentOfTarget', label: 'YAVAŞLAMA NOKTASI', unit: '%', min: 50, max: 100, integer: true, desc: 'Hedef konumun bu yüzdesinde yavaşlar ve yürüme basıncını okur.' },
         ],
