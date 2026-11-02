@@ -199,14 +199,12 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'clampSlowdownBeforeTargetMm', label: 'YAVAŞLAMA MESAFESİ', unit: 'mm', min: 0, max: 20, desc: 'Hedefe bu kadar mm kala yavaşlar ve temas arar (ör. 1 veya 2). 0 = eski davranış.' },
           { key: 'clampContactDeltaBar', label: 'TEMAS BASINÇ ARTIŞI', unit: 'bar', min: 1, max: 20, integer: true, desc: 'Yavaşlama noktasında okunan basınç + bu değer görülünce üst top durur (temas).' },
           { key: 'clampSlowSpeedPercent', label: 'YAVAŞ HIZ', unit: '%', min: 5, max: 100, integer: true, desc: 'Yavaşlama noktasından sonraki temas arama hızı. Sadece YAVAŞLAMA MESAFESİ 0 değilken kullanılır.' },
-        ],
-      },
-      {
-        title: 'SIKIŞTIRMA HAREKETİ',
-        note: PENDING,
-        fields: [
-          { key: 'clampJogSpeedPercent', label: 'SIKIŞTIRMA HIZI', unit: '%', min: 5, max: 100, integer: true },
-          { key: 'clampSlowdownPercentOfTarget', label: 'YAVAŞLAMA NOKTASI', unit: '%', min: 50, max: 100, integer: true, desc: 'Hedef konumun bu yüzdesinde yavaşlar ve yürüme basıncını okur.' },
+          { key: 'clampJogSpeedPercent', label: 'HIZLI İNİŞ HIZI', unit: '%', min: 5, max: 100, integer: true, desc: 'Yavaşlama noktasına kadar üst topun iniş hızı.' },
+          { key: 'clampSlowdownPercentOfTarget', label: 'ESKİ YÖNTEM YAVAŞLAMA NOKTASI', unit: '%', min: 50, max: 100, integer: true, desc: 'Sadece ESKİ yöntem + YAVAŞLAMA MESAFESİ 0 iken: hedefin bu yüzdesinde yavaşlar.' },
+          { key: 'clampStabilizeMs', label: 'BASINÇ OTURMA BEKLEMESİ', unit: 'ms', min: 0, max: 2000, integer: true, nullable: true, desc: 'Yavaşladıktan sonra taban basıncı okumadan önce bekleme. Boş = 50 ms.' },
+          { key: 'clampStartupIgnoreMs', label: 'KALKIŞ BASINCINI YOK SAY', unit: 'ms', min: 0, max: 3000, integer: true, nullable: true, desc: 'Hareket başında basınç sıçraması bu süre yok sayılır. Boş = 500 ms.' },
+          { key: 'clampOverpressureConfirmSamples', label: 'ACİL STOP ONAY ÖRNEĞİ', min: 1, max: 20, integer: true, nullable: true, desc: 'Yolda eşik üstü basınç bu kadar ardışık okumada (100 ms arayla) görülürse acil stop. Boş = 2.' },
+          { key: 'clampTimeoutSec', label: 'SIKIŞTIRMA ZAMAN AŞIMI', unit: 'sn', min: 3, max: 120, integer: true, nullable: true, desc: 'Bu sürede temas olmazsa sıkıştırma hata ile durur. Boş = 15 sn.' },
         ],
       },
       {
