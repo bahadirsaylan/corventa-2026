@@ -39,10 +39,12 @@ import {
   STAGE_FIELDS,
   STAGE_SLOTS,
 } from './settingsFields'
+import RadiusSensorCard from './RadiusSensorCard'
 
 const TAB_GONYE = 'GÖNYE & STAGE'
 const TAB_MAINT = 'BAKIM KURALLARI'
 const TAB_TEST = 'TEST'
+const TAB_SENSOR = 'ÖLÇÜM & SENSÖR'
 /** Bakım kuralı değişikliklerinin Change.key öneki (makine ayarlarından ayırmak için) */
 const MAINT_CHANGE_PREFIX = 'maint.'
 const ALL_STAGE_FIELDS = [STAGE_ACTIVE_FIELD, ...STAGE_FIELDS]
@@ -297,6 +299,15 @@ function AdminEditor() {
 
       <PagedColumns resetKey={tab}>
       {tab === TAB_TEST && <TestToolsCard bendingActive={bendingActive} unsaved={machineChangeCount > 0} />}
+      {tab === TAB_SENSOR && (
+        <RadiusSensorCard
+          bendingActive={bendingActive}
+          onUpdatedOffset={(key, value) => {
+            setMachine0((p) => ({ ...p, [key]: value }))
+            setMachine((p) => ({ ...p, [key]: value }))
+          }}
+        />
+      )}
       {group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}

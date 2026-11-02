@@ -42,6 +42,16 @@ export interface MachineState {
   slpisSensorEffectiveMm: number
   slpisSensorZeroed: boolean
 
+  // Radyus (Keyence GT2) sensörleri — backend her state'te gönderir (eski kayıtlarda olmayabilir)
+  leftRadiusSensorRaw?: number
+  leftRadiusSensorMm?: number
+  leftRadiusSensorEffectiveMm?: number
+  leftRadiusSensorZeroed?: boolean
+  rightRadiusSensorRaw?: number
+  rightRadiusSensorMm?: number
+  rightRadiusSensorEffectiveMm?: number
+  rightRadiusSensorZeroed?: boolean
+
   // Physical state info
   physicalInfo: PhysicalStateInfo
 

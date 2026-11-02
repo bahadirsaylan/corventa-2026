@@ -148,6 +148,13 @@ export class EngineApiClient {
     return this.oilHeatingCall(() => http.post<OilHeatingResult>(`${this.baseUrl}/api/oil-heating/stop`))
   }
 
+  /** Radyus sensörü: zero = o anki değeri sıfır yap (DB'ye de yazılır), clear = sıfırı kaldır,
+   *  reset-encoder = PLC'de GT-5102 sayacını donanımsal 0'la. Backend /api/machine/radius-sensor/{side}/... */
+  radiusSensorAction(side: 'left' | 'right', action: 'zero' | 'clear' | 'reset-encoder'): Promise<unknown> {
+    const path = action === 'zero' ? 'zero' : action === 'clear' ? 'zero/clear' : 'reset-encoder'
+    return http.post(`${this.baseUrl}/api/machine/radius-sensor/${side}/${path}`)
+  }
+
   async oilHeatingStatus(): Promise<OilHeatingStatus> {
     return http.get<OilHeatingStatus>(`${this.baseUrl}/api/oil-heating/status`)
   }

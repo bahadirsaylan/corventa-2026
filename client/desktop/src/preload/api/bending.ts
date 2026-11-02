@@ -67,6 +67,9 @@ export const bendingApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStart, req ?? {}),
   oilHeatingStop: (): Promise<OilHeatingResult> => ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStop),
   oilHeatingStatus: (): Promise<OilHeatingStatus> => ipcRenderer.invoke(Ipc.IpcInvoke.OilHeatingStatus),
+  // Radyus (GT2) sensörü — Admin Ayarları > ÖLÇÜM & SENSÖR
+  radiusSensorAction: (side: 'left' | 'right', action: 'zero' | 'clear' | 'reset-encoder'): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.RadiusSensorAction, side, action),
 
   createJob: (req: BendingJobCreateRequest): Promise<BendingJob> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CreateBendingJob, req),

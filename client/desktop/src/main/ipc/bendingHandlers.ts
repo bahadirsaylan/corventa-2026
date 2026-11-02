@@ -72,6 +72,13 @@ export function registerBendingHandlers(): void {
   })
   ipcMain.handle(Ipc.IpcInvoke.OilHeatingStatus, async () => engineApi.oilHeatingStatus())
 
+  ipcMain.handle(Ipc.IpcInvoke.RadiusSensorAction, async (_evt, side: unknown, action: unknown) => {
+    if (side !== 'left' && side !== 'right') throw new Error('Geçersiz sensör tarafı')
+    if (action !== 'zero' && action !== 'clear' && action !== 'reset-encoder') throw new Error('Geçersiz işlem')
+    log.info('radius-sensor', { side, action })
+    return engineApi.radiusSensorAction(side, action)
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
     log.info('execute-gonye')
     return engineApi.executeGonye()

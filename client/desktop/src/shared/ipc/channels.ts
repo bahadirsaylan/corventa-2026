@@ -21,6 +21,8 @@ export const IpcInvoke = {
   OilHeatingStart: 'oil-heating:start',
   OilHeatingStop: 'oil-heating:stop',
   OilHeatingStatus: 'oil-heating:status',
+  // Radyus (GT2) sensörü sıfırla / temizle / PLC encoder reset (Admin Ayarları > ÖLÇÜM & SENSÖR)
+  RadiusSensorAction: 'radius-sensor:action',
   StartBendingJob: 'bending-job:start',
   CancelBendingJob: 'bending-job:cancel',
   // 2026-11-01 — acil stop kesintisi: devam durumu / DEVAM ET / MANUEL TAHLİYE (bırak)

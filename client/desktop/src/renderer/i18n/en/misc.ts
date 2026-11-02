@@ -91,6 +91,19 @@ const en: Record<string, string> = {
   'Ana ekrana git': 'Go to Dashboard',
   // Yan menü (2026-11-02) — Ayarlar > HIZLI MENÜ düzenleme ekranına kısayol
   'HIZLI DÜZENLE': 'QUICK EDIT',
+  // Admin Ayarları > ÖLÇÜM & SENSÖR — radyus sensörleri kartı (2026-11-02)
+  'RADYUS SENSÖRLERİ': 'RADIUS SENSORS',
+  'SIFIRLA: sensörün o anki değeri sıfır kabul edilir ve ofset kaydedilir. TEMİZLE: sıfır kaldırılır, ham değer kullanılır. PLC ENCODER SIFIRLA: sensör sayacı PLC içinde sıfırlanır.':
+    'ZERO: the current sensor reading becomes zero and the offset is saved. CLEAR: the zero is removed, the raw value is used. RESET PLC ENCODER: the sensor counter is reset in the PLC.',
+  'Büküm devam ediyor — sensör sıfırlanamaz.': 'Bending in progress — sensor cannot be zeroed.',
+  '{side} SENSÖR SIFIRLANDI': '{side} SENSOR ZEROED',
+  '{side} SENSÖR SIFIRI TEMİZLENDİ': '{side} SENSOR ZERO CLEARED',
+  '{side} PLC ENCODER SIFIRLANDI': '{side} PLC ENCODER RESET',
+  '{side} radyus sensörünün PLC encoder sayacı sıfırlanacak. Ölçüm çubuğu geri çekili ve parçaya değmiyor olmalı.':
+    'The PLC encoder counter of the {side} radius sensor will be reset. The measuring rod must be retracted and not touching the part.',
+  SIFIRLI: 'ZEROED',
+  HAM: 'RAW',
+  'PLC ENCODER SIFIRLA': 'RESET PLC ENCODER',
 }
 
 export default en
