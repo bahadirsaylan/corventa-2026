@@ -1,0 +1,19 @@
+/* Ortak ikon — metinle hizalı, küçülmez, renk currentColor (lucide varsayılanı). */
+.icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: -0.18em;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* İkon + metin: dikeyde ortalı, sabit boşluk */
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  line-height: 1.1;
+  vertical-align: middle;
+}

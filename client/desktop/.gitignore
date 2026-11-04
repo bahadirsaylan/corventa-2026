@@ -5,3 +5,8 @@ out/
 release/
 *.local
 .DS_Store
+engine-dataapi/**/bin/
+engine-dataapi/**/obj/
+*.db, *.db-shm, *.db-wal
+backend-dist/
+

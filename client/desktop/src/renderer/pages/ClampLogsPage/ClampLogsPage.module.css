@@ -1,0 +1,31 @@
+/* Sıkıştırma kayıtları — Hata Raporları stillerine ek */
+.result {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: #e5e7eb;
+  color: #4b5563;
+}
+.result[data-kind='ok'] { background: #dcfce7; color: #166534; }
+.result[data-kind='bad'] { background: #fee2e2; color: #991b1b; }
+
+.errLine { font-size: 11px; color: #991b1b; margin-top: 2px; max-width: 220px; }
+
+.drift[data-kind='ok'] { color: #166534; }
+.drift[data-kind='warn'] { color: #b45309; }
+.drift[data-kind='bad'] { color: #b91c1c; font-weight: 900; }
+
+.settings { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--color-text-muted); }
+.setting b { color: var(--color-text); font-family: var(--font-mono); }
+
+.samples tbody td { padding: 2px 6px !important; }
+.samples thead th { padding: 4px 6px !important; }
+.mono { font-family: var(--font-mono); font-size: 12px; }
+.num { text-align: right; }
+.phase { font-size: 10px; font-weight: 800; color: var(--color-text-muted); }
+tr[data-phase='AFTER'] td { background: #f5f3ff; }
+td[data-moving] { color: #1d4ed8; font-weight: 800; }
+.noteRow td { background: #fff7ed; font-size: 12px; }

@@ -13,6 +13,9 @@
   border: none;
   border-radius: var(--radius-md);
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 6px 12px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -36,8 +39,17 @@
 
 .image {
   width: 85%;
-  height: 85%;
+  min-height: 0;
+  flex: 1;
   object-fit: contain;
+}
+
+/* Görselli kutuda yön adı */
+.caption {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #2a2a2a;
 }
 
 .label {

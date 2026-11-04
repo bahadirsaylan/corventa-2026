@@ -1,0 +1,115 @@
+/* İnternet erişim göstergesi (EXCEL 37) — alt panel şeridinde, HATA KAYITLARI butonunun solunda */
+.root {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chip {
+  width: 38px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: #fff;
+  border: 1.5px solid currentColor;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.chip[data-state='online'] {
+  color: #2f8a48;
+  background: #effaf2;
+}
+
+.chip[data-state='offline'] {
+  color: var(--color-primary-dark);
+  background: #fdecec;
+}
+
+.chip:active {
+  transform: translateY(1px);
+}
+
+/* Bilgi kutusu — şeridin altına açılır (panel üst kenarı kesmesin diye aşağı) */
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 300px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+}
+
+.popTitle {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-text);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rows {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  font-size: 13px;
+}
+
+.rows dt {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.rows dd {
+  margin: 0;
+  font-weight: 800;
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.rows dd[data-state='online'] {
+  color: #2f8a48;
+}
+
+.rows dd[data-state='offline'] {
+  color: var(--color-primary-dark);
+}
+
+.note {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.checkBtn {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.checkBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

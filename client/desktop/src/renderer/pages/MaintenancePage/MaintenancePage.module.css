@@ -1,0 +1,293 @@
+.page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #e8e0d0;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.backBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  color: #2a2a2a;
+  font-size: 22px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.15s;
+}
+.backBtn:hover { filter: brightness(0.92); }
+
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  overflow-y: auto;
+}
+
+/* ── State messages ────────────────────────────── */
+.stateMsg {
+  padding: 24px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px dashed #d07070;
+}
+.stateMsg.errorMsg {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: #fdf0f0;
+}
+
+/* ── Card temeli ───────────────────────────────── */
+.card {
+  background: #fff;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px 20px;
+}
+
+/* ── Bakım Modu toggle card ────────────────────── */
+.modeCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-color: #a0c8a0;
+}
+.modeCard.modeOn {
+  border-color: #d07070;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.modeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.modeLabel {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+.modeValue {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--color-success);
+  font-family: var(--font-mono);
+}
+.modeCard.modeOn .modeValue {
+  color: var(--color-error);
+}
+.modeHint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.modeBtn {
+  padding: 14px 32px;
+  min-width: 140px;
+  border: none;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #fff;
+  cursor: pointer;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+  transition: filter 0.1s, transform 0.05s;
+}
+.modeBtn:disabled { opacity: 0.5; cursor: default; }
+.modeBtn:not(:disabled):hover  { filter: brightness(0.96); }
+.modeBtn:not(:disabled):active { filter: brightness(0.88); transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.15); }
+
+.modeBtnOn  { background: linear-gradient(180deg, #f38288 0%, var(--color-primary) 100%); }
+.modeBtnOff { background: linear-gradient(180deg, #a9e5b8 0%, #4fbb6a 100%); }
+
+/* ── Periyot grid (5 kart tek satırda — üst alana kaydırmasız sığar) ── */
+.periodGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.periodCard {
+  background: #fff;
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left-width: 6px;
+  transition: border-color 0.15s;
+}
+
+.periodCard.sev_ok       { border-left-color: #4fbb6a; }
+.periodCard.sev_warn     { border-left-color: #f0a545; background: #fffcf0; }
+.periodCard.sev_overdue  { border-left-color: var(--color-error); background: #fdf0f0; }
+.periodCard.sev_unknown  { border-left-color: #b8b8b8; background: #f7f7f7; }
+
+/* Vadesi geçen kart — gecikme hafta kademesi (services/maintenanceStatus.ts):
+   1. hafta yeşil hatırlatma, 2. hafta sarı uyarı, 3. hafta+ kırmızı kritik */
+.periodCard.tier_reminder { border-left-color: #4fbb6a; background: #effaf2; }
+.periodCard.tier_warning  { border-left-color: #f0a545; background: #fff7e0; }
+.periodCard.tier_critical { border-left-color: var(--color-error); background: #fdf0f0; }
+
+.periodHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dotted #d0d0d0;
+}
+.periodLabel {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+}
+.periodInterval {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.periodStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.periodStatusLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+.periodStatusValue {
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 900;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+}
+.sev_warn    .periodStatusValue { color: #d68320; }
+.sev_overdue .periodStatusValue { color: var(--color-error); }
+.sev_unknown .periodStatusValue { color: var(--color-text-muted); font-size: 18px; }
+.tier_reminder .periodStatusValue { color: #2f8a48; }
+.tier_warning  .periodStatusValue { color: #d68320; }
+.tier_critical .periodStatusValue { color: var(--color-error); }
+
+.periodTier {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.tier_reminder .periodTier { color: #2f8a48; }
+.tier_warning  .periodTier { color: #b86a12; }
+.tier_critical .periodTier { color: var(--color-error); }
+
+.periodDates {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text);
+  margin-top: auto;
+}
+.periodDateRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 6px;
+}
+.periodDateRow span { color: var(--color-text-muted); font-weight: 600; }
+.periodDateRow b    { font-family: var(--font-mono); font-weight: 700; }
+
+.markBtn {
+  min-height: 48px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #a9e5b8 0%, #4fbb6a 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 3px 0 rgba(30, 120, 60, 0.4);
+  transition: filter 0.1s, transform 0.05s;
+}
+.markBtn:disabled { opacity: 0.5; cursor: default; }
+.markBtn:not(:disabled):hover  { filter: brightness(0.96); }
+.markBtn:not(:disabled):active { filter: brightness(0.88); transform: translateY(2px); box-shadow: 0 1px 0 rgba(30,120,60,0.4); }
+/* Bakım modu kapalı / minimum süre dolmadı — soluk gri ama basılabilir (uyarı gösterilir) */
+.markBtn.markBtnBlocked {
+  background: #d9d9d9;
+  color: #5a5a5a;
+  text-shadow: none;
+  box-shadow: inset 0 0 0 2px #b8b8b8;
+}
+
+/* Uyarı / sonuç satırı — bakım kuralları (mod kapalı, 409 mesajı, kayıt sonucu) */
+.notice {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+  border-left: 6px solid var(--color-error);
+  background: #fdf0f0;
+  color: var(--color-error);
+}
+.notice[data-kind='warn'] { border-left-color: #f0a545; background: #fff7e0; color: #9a5b00; }
+.notice[data-kind='ok']   { border-left-color: #4fbb6a; background: #effaf2; color: #2f8a48; }
+
+/* ── Bilgi notu ─────────────────────────────────── */
+.note {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  padding: 8px 14px;
+  background: #f4ecdc;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 4px;
+  margin: 0;
+}

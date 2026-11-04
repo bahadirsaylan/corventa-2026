@@ -1,11 +1,16 @@
 import { useState } from 'react'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
+import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
+import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend4-2-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
+import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 
-export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G'
+export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
 
 export interface MeasurementValues {
   A: string
@@ -14,6 +19,7 @@ export interface MeasurementValues {
   R: string
   H: string
   G: string
+  L: string
 }
 
 interface FieldInfo {
@@ -52,18 +58,31 @@ const FIELD_INFO: Record<FieldKey, FieldInfo> = {
     description:
       'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMNI EN KISA SÜREDE YAPAR.',
   },
+  L: {
+    title: 'L:',
+    description: 'PROFİLE AİT UZUNLUK ÖLÇÜSÜDÜR.',
+  },
 }
 
-const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S']
+const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: FieldKey[] = ['R', 'H', 'G']
 
 interface Props {
   values: MeasurementValues
   onChange: (values: MeasurementValues) => void
   onReset: () => void
+  /** Formdaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
 }
 
-export default function MeasurementForm({ values, onChange, onReset }: Props) {
+export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled }: Props) {
+  const t = useT()
+  const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
+  // Kalıp kodu seçiliyse A/B/S kalıptan gelir ve değiştirilemez (BULUT_API_V2.md §2.4)
+  const moldLock = useMoldLock()
+  const methodImage = useMethodTileImage('ring', defaultMethodImage)
   const [openInfo, setOpenInfo]     = useState<FieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
 
@@ -72,6 +91,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
   }
 
   function renderField(field: FieldKey) {
+    const locked = isMoldLockedField(field, moldLock)
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
@@ -79,13 +99,16 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
         {/* Tapping this div opens the numpad */}
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadField(field)}
+          style={locked ? MOLD_LOCKED_FIELD_STYLE : undefined}
+          aria-disabled={locked || undefined}
+          onClick={() => { if (!locked) setNumpadField(field) }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadField(field)}
+          onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
+          {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
 
         <button
@@ -93,7 +116,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -116,23 +139,21 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
           </div>
         </div>
 
-        <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
-        </button>
+        <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
       </div>
 
       {/* ── Info modal ──────────────────────────── */}
       {openInfo && (
         <InfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

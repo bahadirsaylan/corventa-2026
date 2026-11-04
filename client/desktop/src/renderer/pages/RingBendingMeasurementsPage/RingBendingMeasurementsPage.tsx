@@ -1,13 +1,23 @@
 import { useState } from 'react'
+import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { useMachineStateStore } from '@/stores/machineStateStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
+import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
 import MeasurementForm, { MeasurementValues } from './MeasurementForm'
+import CapacityCheckModal from './CapacityCheckModal'
+import { checkCapacity, type CapacityCheck } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import type { SimilarBendingJobRequest } from '@shared/types'
+import { applyMeasureDefaults } from '@/services/operatorPrefs'
+import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
 
-const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '' }
+const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
 function isComplete(v: MeasurementValues) {
   return Object.values(v).every((val) => val.trim() !== '')
@@ -22,21 +32,39 @@ function fromStore(stored: ReturnType<typeof useBendingJobStore.getState>['param
     R: stored.R != null ? String(stored.R) : '',
     H: stored.H != null ? String(stored.H) : '',
     G: stored.G != null ? String(stored.G) : '',
+    L: stored.L != null ? String(stored.L) : '',
   }
 }
 
 export default function RingBendingMeasurementsPage() {
+  const t = useT()
+  const modeLabel = useBendingModeLabel()
+  // Kalıp kodu seçiliyse alt şeritte kalıp + kilit + önerilen adım (BULUT_API_V2.md §2.4)
+  const moldHint = useMoldHint()
   const navigate = useNavigate()
   const ringBending = useBendingJobStore((s) => s.params.ringBending)
   const setParams = useBendingJobStore((s) => s.setParams)
-  const [values, setValues] = useState<MeasurementValues>(() => fromStore(ringBending))
+  // Profil başına A/B/S alanları — görünmeyenler her zaman "0" (constants/profileFields)
+  const visibleFields = useVisibleProfileFields()
+  const [values, setRawValues] = useState<MeasurementValues>(() =>
+    applyMeasureDefaults(fillHiddenProfileFields(fromStore(ringBending), visibleFields)),
+  )
+  const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
+
+  // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
+  const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)
+
+  // Kapasite kataloğu kontrolü (min. çap / deformasyon / pekleşme) — İLERİ öncesi
+  const profileId = useBendingJobStore((s) => s.params.profileId)
+  const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
+  const [capacityCheck, setCapacityCheck] = useState<CapacityCheck | null>(null)
 
   function handleReset() {
     setValues({ ...EMPTY })
     setParams({ ringBending: null })
   }
 
-  function handleConfirm() {
+  function persistAndNavigate() {
     setParams({
       ringBending: {
         A: parseFloat(values.A),
@@ -45,9 +73,53 @@ export default function RingBendingMeasurementsPage() {
         R: parseFloat(values.R),
         H: parseFloat(values.H),
         G: parseFloat(values.G),
+        L: parseFloat(values.L),
       },
     })
-    navigate('/bending/ai/part-loading')
+    navigate('/bending/ai/roll-arrangement') // önce vals topu dizilimi onayı
+  }
+
+  const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
+
+  function handleConfirm() {
+    const check = checkCapacity({
+      profileId,
+      direction: bendingDirection,
+      a: parseFloat(values.A),
+      b: parseFloat(values.B),
+      diameterMm: parseFloat(values.R),
+      stepMm: parseFloat(values.G),
+    })
+    if (check.issues.length > 0) {
+      setCapacityCheck(check)
+      return
+    }
+    proceed()
+  }
+
+  function proceed() {
+    // Yari oto mod'da AI recipe uygulanmiyor (skipAutoCorrect=true → AutoCorrect
+    // adimi atlanir, recipe fetch bloku da orada). Preview modal bilgi amaciyla
+    // acilirdi ama gereksiz — direkt PartLoading'e gec.
+    if (bendingMode === 'semi') {
+      persistAndNavigate()
+      return
+    }
+
+    // AI mod: parametreler tamsa AI eşleşme modalını aç.
+    // Yağ sıcaklığı sadece burada lazım — abone olmadan anlık okunur (form 10 Hz yeniden çizilmesin)
+    const oilTempC = useMachineStateStore.getState().state.sensors.oilTempC
+    const req: SimilarBendingJobRequest = {
+      targetDiameterMm: parseFloat(values.R),
+      partLengthMm: parseFloat(values.L),
+      stepDistanceMm: parseFloat(values.G),
+      profileA: parseFloat(values.A),
+      profileB: parseFloat(values.B),
+      profileS: parseFloat(values.S),
+      ballDiameterMm: 220,
+      oilTempC: oilTempC > 0 ? oilTempC : undefined,
+    }
+    setAiModalRequest(req)
   }
 
   return (
@@ -57,15 +129,21 @@ export default function RingBendingMeasurementsPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label="ARTIFICIAL INTELLIGENCE MODE"
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVRIM ÖLÇÜLERİNİ GİRİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVRIM ÖLÇÜLERİNİ GİRİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
-        <MeasurementForm values={values} onChange={setValues} onReset={handleReset} />
+        <MeasurementForm
+          values={values}
+          onChange={setValues}
+          onReset={handleReset}
+          onConfirm={handleConfirm}
+          confirmDisabled={!isComplete(values)}
+        />
       </div>
 
       {/* ── Bottom status bar ───────────────────── */}
@@ -73,7 +151,31 @@ export default function RingBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
+        hint={moldHint}
       />
+
+      {capacityCheck && (
+        <CapacityCheckModal
+          check={capacityCheck}
+          onFix={() => setCapacityCheck(null)}
+          onProceed={() => {
+            setCapacityCheck(null)
+            proceed()
+          }}
+        />
+      )}
+
+      {/* AI RECIPE FAZ 4B UI — parametre onayı sonrası eşleşme preview modali */}
+      {aiModalRequest && (
+        <AiRecipePreviewModal
+          request={aiModalRequest}
+          onProceed={() => {
+            setAiModalRequest(null)
+            persistAndNavigate()
+          }}
+          onClose={() => setAiModalRequest(null)}
+        />
+      )}
 
     </div>
   )

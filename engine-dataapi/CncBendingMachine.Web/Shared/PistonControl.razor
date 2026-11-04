@@ -1,0 +1,148 @@
+@using CncBendingMachine.Web.Models
+
+<div class="card h-100">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">@Title</h6>
+        @if (State.HasOffset)
+        {
+            <span class="badge bg-info" title="Gönye + Stage offset uygulandı">📍</span>
+        }
+    </div>
+    <div class="card-body p-2">
+        <!-- Position Display - Dual View -->
+        <div class="text-center mb-2">
+            @if (State.HasOffset)
+            {
+                <!-- Show both encoder and physical position -->
+                <div class="row text-start small mb-1">
+                    <div class="col-6">
+                        <span class="text-muted">Encoder:</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="fw-bold">@State.PositionText</span>
+                    </div>
+                </div>
+                <div class="row text-start small mb-1">
+                    <div class="col-6">
+                        <span class="text-success">Fiziksel:</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="fw-bold text-success">@State.PhysicalPositionText</span>
+                    </div>
+                </div>
+                <div class="row text-start small text-muted" style="font-size: 0.7rem;">
+                    <div class="col-12">
+                        <span title="Gönye + Stage offset">Offset: @State.TotalOffsetMm.ToString("F2") mm</span>
+                        <span class="ms-2" title="Güvenli geri limit">[↩ @State.SafeBackwardMm.ToString("F1")]</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- No offset - show encoder position only -->
+                <span class="fs-4 fw-bold text-primary">@State.PositionText</span>
+                <br />
+                <small class="text-muted">Encoder: @State.EncoderRaw</small>
+            }
+        </div>
+
+        <!-- Status -->
+        <div class="text-center mb-2">
+            <span class="badge @GetStatusBadgeClass()">@State.StatusText</span>
+        </div>
+
+        <!-- Jog Controls -->
+        <div class="d-flex gap-1 justify-content-center mb-2">
+            <button class="btn btn-sm btn-outline-secondary"
+                    @onmousedown="() => StartJog(-1)"
+                    @onmouseup="StopJog"
+                    @onmouseleave="StopJogIfActive"
+                    title="Geri (basılı tut)">
+                ◀ Geri
+            </button>
+            <button class="btn btn-sm btn-danger" @onclick="() => OnStop.InvokeAsync(PistonId)" title="Durdur">
+                ■
+            </button>
+            <button class="btn btn-sm btn-outline-primary"
+                    @onmousedown="() => StartJog(1)"
+                    @onmouseup="StopJog"
+                    @onmouseleave="StopJogIfActive"
+                    title="İleri (basılı tut)">
+                İleri ▶
+            </button>
+        </div>
+
+        <!-- Position Move -->
+        <div class="input-group input-group-sm mb-2">
+            <input type="number" class="form-control" @bind="_targetPosition" step="0.1"
+                   placeholder="mm" title="Hedef konum (mm)" />
+            <button class="btn btn-primary" @onclick="MoveToPosition" title="Konuma git">
+                Git
+            </button>
+        </div>
+
+        <!-- Pressure Move -->
+        <div class="input-group input-group-sm">
+            <select class="form-select form-select-sm" @bind="_pressureDirection" style="max-width: 70px;">
+                <option value="1">İleri</option>
+                <option value="-1">Geri</option>
+            </select>
+            <input type="number" class="form-control" @bind="_targetPressure" min="0" max="250"
+                   placeholder="bar" title="Hedef basınç (bar)" />
+            <button class="btn btn-warning" @onclick="MoveToPressure" title="Basınca git">
+                Basınç
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Piston";
+    [Parameter] public string PistonId { get; set; } = "";
+    [Parameter] public PistonStateDto State { get; set; } = new();
+    [Parameter] public int SpeedPercent { get; set; } = 30;
+    [Parameter] public EventCallback<(string PistonId, int Direction)> OnJog { get; set; }
+    [Parameter] public EventCallback<(string PistonId, double TargetMm)> OnMoveToPosition { get; set; }
+    [Parameter] public EventCallback<(string PistonId, int Direction, int PressureBar)> OnMoveToPressure { get; set; }
+    [Parameter] public EventCallback<string> OnStop { get; set; }
+
+    private double _targetPosition = 0;
+    private int _targetPressure = 50;
+    private int _pressureDirection = 1;
+    private bool _isJogging = false;  // Track if jog is active
+
+    private string GetStatusBadgeClass() => State.Moving ? "bg-success" :
+                                            State.InPosition ? "bg-info" : "bg-secondary";
+
+    private async Task StartJog(int direction)
+    {
+        _isJogging = true;
+        await OnJog.InvokeAsync((PistonId, direction));
+    }
+
+    private async Task StopJog()
+    {
+        _isJogging = false;
+        await OnStop.InvokeAsync(PistonId);
+    }
+
+    private async Task StopJogIfActive()
+    {
+        // Only stop if jog was actually started (mouse was pressed)
+        if (_isJogging)
+        {
+            _isJogging = false;
+            await OnStop.InvokeAsync(PistonId);
+        }
+    }
+
+    private async Task MoveToPosition()
+    {
+        await OnMoveToPosition.InvokeAsync((PistonId, _targetPosition));
+    }
+
+    private async Task MoveToPressure()
+    {
+        await OnMoveToPressure.InvokeAsync((PistonId, _pressureDirection, _targetPressure));
+    }
+}

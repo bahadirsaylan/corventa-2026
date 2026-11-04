@@ -1,4 +1,5 @@
 import { BendingProfileId } from '@/store/bendingJobStore'
+import { useT } from '@/i18n'
 import styles from './BendingProfileGrid.module.css'
 
 // Re-export so existing consumers (AiBendingPage) don't need to change imports
@@ -24,12 +25,22 @@ const profiles: Profile[] = [
   { id: 'l-left',       shape: <LLeft /> },
 ]
 
+/** Profil şekil ikonu — kalıp kodu kartları da kullanır (bilinmeyen / 'custom' → null) */
+export function ProfileShape({ id }: { id: string }) {
+  return <>{profiles.find((p) => p.id === id)?.shape ?? null}</>
+}
+
 interface Props {
   selected: BendingProfileId | null
   onSelect: (id: BendingProfileId) => void
+  /** Kalıp kodu seçili (BULUT_API_V2.md §2.4) — ÖZEL KIVIRIM PROFİLLERİ kutusu seçili görünür */
+  specialSelected?: boolean
+  /** ÖZEL KIVIRIM PROFİLLERİ → KALIP KODU ekranı */
+  onSpecial?: () => void
 }
 
-export default function BendingProfileGrid({ selected, onSelect }: Props) {
+export default function BendingProfileGrid({ selected, onSelect, specialSelected, onSpecial }: Props) {
+  const t = useT()
   return (
     <div className={styles.wrapper}>
       {/* 4×3 profile tiles */}
@@ -45,10 +56,14 @@ export default function BendingProfileGrid({ selected, onSelect }: Props) {
         ))}
       </div>
 
-      {/* Special profiles vertical label tile */}
-      <div className={styles.specialTile}>
-        <span className={styles.specialText}>ÖZEL KIVIRIM PROFİLLERİ</span>
-      </div>
+      {/* Special profiles vertical label tile → KALIP KODU ekranı (BULUT_API_V2.md §2.4) */}
+      <button
+        type="button"
+        className={`${styles.specialTile} ${specialSelected ? styles.specialTileSelected : ''}`}
+        onClick={onSpecial}
+      >
+        <span className={styles.specialText}>{t('ÖZEL KIVIRIM PROFİLLERİ')}</span>
+      </button>
     </div>
   )
 }

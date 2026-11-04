@@ -6,6 +6,16 @@
   padding: 0;
 }
 
+/* Dokunmatik kiosk: imleç her yerde sabit el (2026-10-11). Bileşenlerdeki cursor ayarlarını
+   (text, not-allowed, default …) bilerek ezer. */
+html,
+body,
+*,
+*::before,
+*::after {
+  cursor: pointer !important;
+}
+
 :root {
   /* Brand colours */
   --color-primary: #e8474a;

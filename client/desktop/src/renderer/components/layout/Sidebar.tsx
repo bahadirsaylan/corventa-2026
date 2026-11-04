@@ -1,14 +1,15 @@
 import { NavLink } from 'react-router-dom'
 import styles from './Sidebar.module.css'
+import { Icon, type IconName } from '@/components/Icon'
 
 interface NavItem {
   label: string
   to: string
-  icon: string
+  icon: IconName
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', to: '/dashboard', icon: '⬛' },
+  { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
   // Add more screens here as they are implemented
 ]
 
@@ -28,7 +29,7 @@ export default function Sidebar() {
               [styles.navItem, isActive ? styles.active : ''].join(' ').trim()
             }
           >
-            <span className={styles.navIcon}>{item.icon}</span>
+            <span className={styles.navIcon}><Icon name={item.icon} size="md" /></span>
             <span className={styles.navLabel}>{item.label}</span>
           </NavLink>
         ))}

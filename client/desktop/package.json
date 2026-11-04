@@ -1,23 +1,31 @@
 {
   "name": "corventa-desktop",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "private": true,
   "description": "Corventa Desktop Client - Bending Machine Software",
   "author": "Corventa",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "demo": "set CORVENTA_DEMO=1&& set CORVENTA_NO_KIOSK=1&& electron-vite dev",
     "build": "electron-vite build",
     "package": "npm run build && electron-builder",
+    "build:backend": "node scripts/build-backend.mjs",
+    "package:win": "node scripts/build-backend.mjs && npm run build && electron-builder --win nsis",
     "preview": "electron-vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "i18n:check": "node scripts/i18n-check.mjs",
+    "test:mold-code": "node --experimental-strip-types --no-warnings scripts/mold-code-selftest.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@microsoft/signalr": "^10.0.0",
+    "lucide-react": "1.56.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.6.0",
+    "winston": "^3.19.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -32,12 +40,28 @@
   },
   "build": {
     "appId": "com.corventa.desktop",
-    "productName": "Corventa Desktop",
+    "productName": "Corventa",
     "directories": {
       "output": "release"
     },
     "files": [
       "out/**"
+    ],
+    "extraResources": [
+      {
+        "from": "resources",
+        "to": ".",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "backend-dist",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",
@@ -48,8 +72,7 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        "nsis"
       ]
     },
     "linux": {
@@ -57,6 +80,15 @@
         "AppImage",
         "deb"
       ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Corventa",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false
     }
   }
 }

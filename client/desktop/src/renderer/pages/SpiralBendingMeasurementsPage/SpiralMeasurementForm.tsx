@@ -1,12 +1,17 @@
 import { useState } from 'react'
+import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SpiralMeasurementForm.module.css'
 import SpiralInfoModal from './SpiralInfoModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
+import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
 import { SpiralDirection } from '@/store/bendingJobStore'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend4-4-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
+import defaultMethodImage from '@/assets/images/blend4-4-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 
-export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'H'
+export type SpiralNumericKey = 'A' | 'B' | 'S' | 'R' | 'L' | 'H'
 export type SpiralFieldKey = SpiralNumericKey | 'Y'
 
 export interface SpiralMeasurementValues {
@@ -14,6 +19,7 @@ export interface SpiralMeasurementValues {
   B: string
   S: string
   R: string
+  L: string
   H: string
   Y: SpiralDirection | ''
 }
@@ -44,6 +50,11 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
     description:
       'KIVIRIM YARICAP ÖLÇÜSÜDÜR. SERPANTİN KIVRIMININ BAŞLANGIÇ YARICAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA BU DEĞERİ ESAS ALARAK GEOMETRİK KIVIRIM YAPAR.',
   },
+  L: {
+    title: 'L :',
+    description:
+      'PARÇANIN TOPLAM UZUNLUĞUDUR (mm). MAKİNE BU DEĞERİ ESAS ALARAK ROTASYONU HESAPLAR. GÜVENLİK PAYI ÇIKARILDIKTAN SONRA KALAN MESAFE KADAR DÖNER.',
+  },
   H: {
     title: 'H :',
     description:
@@ -56,16 +67,25 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
   },
 }
 
-const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S']
+const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'H', 'Y']
 
 interface Props {
   values: SpiralMeasurementValues
   onChange: (values: SpiralMeasurementValues) => void
   onReset: () => void
+  /** Formdaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
 }
 
-export default function SpiralMeasurementForm({ values, onChange, onReset }: Props) {
+export default function SpiralMeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled }: Props) {
+  const t = useT()
+  const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
+  // Kalıp kodu seçiliyse A/B/S kalıptan gelir ve değiştirilemez (BULUT_API_V2.md §2.4)
+  const moldLock = useMoldLock()
+  const methodImage = useMethodTileImage('spiral', defaultMethodImage)
   const [openInfo, setOpenInfo]       = useState<SpiralFieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<SpiralNumericKey | null>(null)
 
@@ -78,25 +98,29 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
   }
 
   function renderNumericField(field: SpiralNumericKey) {
+    const locked = isMoldLockedField(field, moldLock)
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadField(field)}
+          style={locked ? MOLD_LOCKED_FIELD_STYLE : undefined}
+          aria-disabled={locked || undefined}
+          onClick={() => { if (!locked) setNumpadField(field) }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadField(field)}
+          onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
           {values[field] || <span className={styles.placeholder}>0</span>}
+          {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
         <button
           className={styles.infoBtn}
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -113,7 +137,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
             aria-label="Spiral direction left"
             aria-pressed={values.Y === 'left'}
           >
-            《
+            <Icon name="chevronLeft" size="lg" />
           </button>
           <button
             className={`${styles.dirBtn} ${values.Y === 'right' ? styles.dirBtnActive : ''}`}
@@ -121,7 +145,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
             aria-label="Spiral direction right"
             aria-pressed={values.Y === 'right'}
           >
-            》
+            <Icon name="chevronRight" size="lg" />
           </button>
         </div>
         <button
@@ -129,7 +153,7 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
           onClick={() => setOpenInfo('Y')}
           aria-label="Info for Y"
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -157,23 +181,21 @@ export default function SpiralMeasurementForm({ values, onChange, onReset }: Pro
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderNumericField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderNumericField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}
           </div>
         </div>
 
-        <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
-        </button>
+        <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
       </div>
 
       {/* ── Info modal ──────────────────────────── */}
       {openInfo && (
         <SpiralInfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}

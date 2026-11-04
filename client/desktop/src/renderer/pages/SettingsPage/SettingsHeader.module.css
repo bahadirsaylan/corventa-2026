@@ -19,6 +19,9 @@
 
 .backBtn {
   font-size: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-text);
   background: none;
   border: none;
@@ -86,4 +89,10 @@
   font-size: 15px;
   color: var(--color-text);
   letter-spacing: 0.04em;
+}
+
+/* ── Aktif kullanıcı + rol rozeti ── */
+.userRow {
+  margin-top: 8px;
+  display: flex;
 }

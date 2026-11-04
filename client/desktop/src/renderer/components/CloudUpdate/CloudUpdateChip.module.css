@@ -1,0 +1,26 @@
+/* "GÜNCELLEME VAR" rozeti — alt panel şeridi (maintChip ölçüleriyle aynı: 34 px yükseklik) */
+.chip {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid currentColor;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #1d4ed8;
+  background: #eef4ff;
+}
+
+.chip[data-ready='true'] {
+  color: #2f8a48;
+  background: #effaf2;
+}
+
+.chip:active {
+  transform: translateY(1px);
+}

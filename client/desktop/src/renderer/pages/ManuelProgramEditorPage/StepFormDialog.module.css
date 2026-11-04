@@ -1,0 +1,144 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 270;
+}
+
+.modal {
+  width: 540px;
+  background: #fdf8e8;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.commandGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.cmdBtn {
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.1s;
+}
+
+.cmdBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.cmdActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+.cmdLabel {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.cmdHint {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.fieldBtn {
+  height: 56px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: right;
+  padding: 0 16px;
+}
+
+.fieldBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.placeholder {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.actionBtn {
+  height: 56px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cancel {
+  background: #b8e6c5;
+  color: #2a2a2a;
+}
+
+.confirm {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.actionBtn:hover:not(:disabled) {
+  filter: brightness(0.93);
+}

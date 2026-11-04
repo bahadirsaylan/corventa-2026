@@ -1,0 +1,43 @@
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.resetBtn,
+.confirmBtn {
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.resetBtn {
+  background-color: #d9534f;
+}
+
+.confirmBtn {
+  background-color: #16a34a;
+}
+
+.resetBtn:hover,
+.confirmBtn:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.resetBtn:active,
+.confirmBtn:active:not(:disabled) {
+  filter: brightness(0.8);
+}
+
+.confirmBtn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}

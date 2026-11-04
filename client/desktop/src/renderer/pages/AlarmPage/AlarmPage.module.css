@@ -1,0 +1,299 @@
+/* Şekil 15 / 16 / 17 — ALARM MODE: pembe zemin, sarı oklar arasında kırmızı ACİL STOP */
+.page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 24px 32px 24px;
+  background-color: #ffc4c4;
+  overflow: hidden;
+}
+
+.band {
+  width: calc(100% + 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #e5e5e5;
+  border-top: 2px solid #9a9a9a;
+  border-bottom: 2px solid #9a9a9a;
+}
+
+.chevrons {
+  display: flex;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chevrons span {
+  flex-shrink: 0;
+  width: 64px;
+  height: 84px;
+  background: #ffd400;
+  clip-path: polygon(0 0, 62% 0, 100% 50%, 62% 100%, 0 100%, 38% 50%);
+  filter: drop-shadow(0 0 1px #8a6d00);
+}
+
+.chevronsLeft span {
+  clip-path: polygon(38% 0, 100% 0, 62% 50%, 100% 100%, 38% 100%, 0 50%);
+}
+
+.bandText {
+  flex: 0 0 auto;
+  padding: 0 12px;
+  white-space: nowrap;
+  font-size: 60px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #e3121b;
+}
+
+.card {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: #fff;
+  border: 2px solid #4a4a4a;
+  border-radius: 14px;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.actionBtn {
+  min-height: 120px;
+  background: #f3f3f3;
+  border: 2px solid #4a4a4a;
+  border-radius: 14px;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #3a3a3a;
+  cursor: pointer;
+}
+
+.actionBtn:active:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.resumeBtn:not(:disabled) {
+  background: #b8e6c5;
+  border-color: #16a34a;
+}
+
+.alertBox {
+  padding: 14px 20px;
+  border: 2px solid #4a4a4a;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.alertCode {
+  font-size: 24px;
+  font-weight: 900;
+  color: #dc2626;
+}
+
+.alertMsg {
+  margin-top: 4px;
+  font-size: 19px;
+  font-weight: 600;
+  color: #3a3a3a;
+  line-height: 1.35;
+}
+
+.suggestTitle {
+  margin-top: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.suggest {
+  font-size: 17px;
+  color: #3a3a3a;
+  line-height: 1.35;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.statusInfo,
+.statusOk,
+.statusWarn,
+.statusBad {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.statusInfo {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.statusOk {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusWarn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusBad {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.motorBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 0 18px;
+  background: #16a34a;
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  cursor: pointer;
+}
+
+.motorBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.error {
+  padding: 10px 14px;
+  background: #fee2e2;
+  border: 2px solid #b91c1c;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #7f1d1d;
+}
+
+/* ── Şekil 16: çift el onayı ─────────────────────────── */
+.twoHandTitle {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 500;
+  color: #3a3a3a;
+}
+
+.twoHandNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 2px solid #1f1f1f;
+  border-radius: 12px;
+  font-size: 19px;
+  font-weight: 600;
+  color: #3a3a3a;
+}
+
+.twoHandNote b {
+  font-size: 40px;
+  font-weight: 900;
+  color: #dc2626;
+}
+
+.pushRow {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.pushBtn {
+  width: 220px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #f3f3f3;
+  border: 2px solid #4a4a4a;
+  border-radius: 14px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #dc2626;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.pushBtn[data-pressed] {
+  background: #fde68a;
+  border-color: #b45309;
+}
+
+.pushArrow {
+  width: 90px;
+  height: 46px;
+  background: #dc2626;
+  clip-path: polygon(0 0, 50% 45%, 100% 0, 100% 55%, 50% 100%, 0 55%);
+}
+
+.holdBar {
+  flex: 1;
+  align-self: center;
+  height: 22px;
+  border: 2px solid #4a4a4a;
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.holdFill {
+  height: 100%;
+  background: #16a34a;
+  transition: width 0.05s linear;
+}
+
+.backLink {
+  align-self: center;
+  min-height: 52px;
+  padding: 0 22px;
+  background: #fff;
+  border: 2px solid #6b7280;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #374151;
+  cursor: pointer;
+}

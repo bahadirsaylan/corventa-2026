@@ -97,3 +97,56 @@
   align-self: flex-end;
   margin-top: -24px;
 }
+
+/* ── Rol sistemi (2026-11-01): hata kutusu, ilk kurulum formu ── */
+.hint {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.errorBox {
+  margin: -8px 0 0;
+  padding: 14px 18px;
+  border-left: 6px solid var(--color-error);
+  background-color: rgba(232, 71, 74, 0.08);
+  color: var(--color-error);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.setupHead {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 2px solid var(--color-primary);
+  border-radius: 2px;
+}
+
+.setupTitle {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.setupNote {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}

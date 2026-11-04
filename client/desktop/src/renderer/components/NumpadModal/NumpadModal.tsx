@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import styles from './NumpadModal.module.css'
+import { Icon } from '@/components/Icon'
+import { useT } from '@/i18n'
 
 interface NumpadModalProps {
   /** Label shown above the value display, e.g. "A" */
@@ -8,6 +10,15 @@ interface NumpadModalProps {
   initialValue: string
   onConfirm: (value: string) => void
   onClose: () => void
+  /** true → işaret değiştirme (±) tuşu gösterilir (negatif değerler, ör. XA1) */
+  allowNegative?: boolean
+  /**
+   * true → kod girişi (ör. 6 haneli OTP): sadece rakam, baştaki sıfırlar KORUNUR,
+   * '.' tuşu kapalı. Sayısal alanlardaki "baştaki sıfırı yut" kuralı uygulanmaz.
+   */
+  digitsOnly?: boolean
+  /** En fazla karakter (digitsOnly ile, ör. 6) */
+  maxLength?: number
 }
 
 const KEYS = [
@@ -17,7 +28,8 @@ const KEYS = [
   '.', '0', '⌫',
 ]
 
-export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose }: NumpadModalProps) {
+export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative, digitsOnly, maxLength }: NumpadModalProps) {
+  const t = useT()
   const [display, setDisplay] = useState(initialValue || '')
 
   useEffect(() => {
@@ -34,17 +46,27 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
       setDisplay((d) => d.slice(0, -1))
       return
     }
+    if (digitsOnly) {
+      // Kod girişi: '.' yok, baştaki 0 korunur (012345 geçerli kod)
+      if (key === '.') return
+      setDisplay((d) => (maxLength != null && d.length >= maxLength ? d : d + key))
+      return
+    }
     if (key === '.') {
       if (display.includes('.')) return
-      setDisplay((d) => (d === '' ? '0.' : d + '.'))
+      setDisplay((d) => (d === '' || d === '-' ? d + '0.' : d + '.'))
       return
     }
     // prevent multiple leading zeros
-    if (display === '0' && key !== '.') {
-      setDisplay(key)
+    if ((display === '0' || display === '-0') && key !== '.') {
+      setDisplay(display.startsWith('-') ? '-' + key : key)
       return
     }
     setDisplay((d) => d + key)
+  }
+
+  function toggleSign() {
+    setDisplay((d) => (d.startsWith('-') ? d.slice(1) : '-' + d))
   }
 
   function handleClear() {
@@ -52,7 +74,8 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   }
 
   function handleConfirm() {
-    const cleaned = display.endsWith('.') ? display.slice(0, -1) : display
+    let cleaned = display.endsWith('.') ? display.slice(0, -1) : display
+    if (cleaned === '-') cleaned = ''
     onConfirm(cleaned)
     onClose()
   }
@@ -76,19 +99,27 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
               key={key}
               className={`${styles.key} ${key === '⌫' ? styles.keyBackspace : ''}`}
               onClick={() => press(key)}
+              aria-label={key === '⌫' ? t('Sil') : undefined}
+              disabled={digitsOnly && key === '.'}
+              style={digitsOnly && key === '.' ? { visibility: 'hidden' } : undefined}
             >
-              {key}
+              {key === '⌫' ? <Icon name="backspace" size="lg" /> : key}
             </button>
           ))}
         </div>
 
         {/* ── Action row ── */}
-        <div className={styles.actions}>
+        <div className={styles.actions} style={allowNegative ? { gridTemplateColumns: '1fr 1fr 2fr' } : undefined}>
           <button className={styles.clearBtn} onClick={handleClear}>
             C
           </button>
-          <button className={styles.confirmBtn} onClick={handleConfirm}>
-            ✓
+          {allowNegative && (
+            <button className={styles.clearBtn} style={{ background: '#4b5563' }} onClick={toggleSign}>
+              ±
+            </button>
+          )}
+          <button className={styles.confirmBtn} onClick={handleConfirm} aria-label={t('ONAYLA')}>
+            <Icon name="confirm" size="xl" />
           </button>
         </div>
 

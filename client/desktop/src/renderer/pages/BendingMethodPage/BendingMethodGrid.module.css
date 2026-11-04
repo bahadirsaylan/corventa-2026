@@ -28,10 +28,11 @@
   filter: brightness(0.85);
 }
 
+/* Seçili metot — tema pastel yeşili (ConfirmModal VAZGEÇ) + koyu yeşil çerçeve */
 .tileSelected {
-  background-color: #c97070;
-  outline: 3px solid #2a2a2a;
-  outline-offset: -3px;
+  background-color: #b8e6c5;
+  outline: 4px solid #16a34a;
+  outline-offset: -4px;
 }
 
 .image {

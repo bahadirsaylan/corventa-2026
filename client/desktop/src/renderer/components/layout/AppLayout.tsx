@@ -1,25 +1,175 @@
-import { Outlet } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { BendingJobStatus, type BendingJob } from '@shared/types'
 import BendingBallsPanel from '@/components/BendingBallsPanel/BendingBallsPanel'
 import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
+import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
+import SideMenu from '@/components/SideMenu/SideMenu'
+import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
+import MaintenanceAlertOverlay from '@/components/MaintenanceAlertOverlay/MaintenanceAlertOverlay'
+import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/MaintenanceModeScreen'
+import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/MaintenanceReminderOverlay'
+import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
+import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
+import { useCloudConfigStore } from '@/stores/cloudConfigStore'
+import { useT } from '@/i18n'
+import type { UnloadJobOutcome } from '@/pages/UnloadPage/UnloadPage'
 import styles from './AppLayout.module.css'
 
+// Bitiş kontrolü (getJob) tekrar denemesi — DataApi anlık ulaşılamaz / henüz Running görünüyorsa
+const FINISH_CHECK_RETRIES = 3
+const FINISH_CHECK_RETRY_MS = 1500
+
 export default function AppLayout() {
+  // "Otomatik büküm aktif mi?" izleyicisi — uygulama boyunca tek örnek.
+  useEffect(() => startBendingActivityPoller(), [])
+  // Bakım durumu (DataApi /api/maintenance) — 30 sn'de bir; uyarı şeridi / bakım uyarı penceresi / bakım modu ekranı
+  useEffect(() => startMaintenancePoller(), [])
+  // Bulut v2 yönetilen veriler (karşılama mesajı, checklist şablonu …) oturum açılınca bir kez önbelleğe
+  useEffect(() => { void useCloudConfigStore.getState().load() }, [])
+  const inMaintenanceMode = useMaintenanceStore((s) => s.state?.isInMaintenanceMode === true)
+  const maintenanceCollapsed = useMaintenanceStore((s) => s.screenCollapsed)
+  const bendingActive = useBendingActive()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const t = useT()
+
+  // Tahliye ekranı (SEKIL-18): otomatik / yarı oto job BİTİNCE açılır — Completed, Failed VE Cancelled
+  // (kullanıcı kararı 2026-11-01: hatalı / durdurulmuş bitse bile parçanın çıkarılması gerekiyor).
+  // Sonuç navigate state.jobOutcome ile taşınır; UnloadPage başlığı/rengi buna göre değişir.
+  // Bitiş progress mesajından DEĞİL, DataApi'deki job durumundan okunur (backend'in son mesajı
+  // metoda göre değişiyor: "Geri esneme düzeltmesi başlıyor...", "BUKUM TAMAMLANDI (...)", "Serpantin
+  // tamamlandı"…). İzlenen job Running'den çıkınca (runningJobId değişti) veya monitör kapanınca
+  // (aktif → pasif) GET /api/bending-jobs/{id}: Status = Completed ise açılır. errorMessage doluysa
+  // (ör. geri esneme düzeltmesi maks. iterasyonda yakınsamadı — büküm bitti, parça hâlâ sıkılı) ekran
+  // yine açılır ve mesaj uyarı olarak gösterilir (navigate state.jobWarning).
+  // (Eski davranış: Failed / Cancelled'da açılmazdı — artık açılır.) getJob hata verirse veya job hâlâ Running görünürse (DataApi gecikmesi)
+  // kısa aralıkla birkaç kez tekrar bakılır; sonra bir sonraki değişimde. Aynı job için bir kez açılır.
+  // Manuel programlar DataApi job'u yaratmaz → manuel bükümde bu ekran açılmaz (eski davranış).
+  const runningJobId = useBendingActivityStore((s) => s.runningJobId)
+  const wasActive = useRef(false)
+  const watchedJobId = useRef<number | null>(null)
+  const handledJobId = useRef<number | null>(null)
+  useEffect(() => {
+    // Kesilen iş DEVAM ET ile yeniden çalışmaya başladı → bitişi tekrar izlensin
+    if (runningJobId != null && handledJobId.current === runningJobId) handledJobId.current = null
+    const prevId = watchedJobId.current
+    const finished =
+      prevId != null && (runningJobId !== prevId || (wasActive.current && !bendingActive))
+    watchedJobId.current = runningJobId
+    wasActive.current = bendingActive
+    if (!finished || prevId == null || handledJobId.current === prevId) return
+
+    const jobId = prevId
+    const check = (attempt: number) => {
+      const retry = () => {
+        if (attempt < FINISH_CHECK_RETRIES) setTimeout(() => check(attempt + 1), FINISH_CHECK_RETRY_MS)
+      }
+      window.corventa.bending
+        .getJob(jobId)
+        .then((job: BendingJob) => {
+          if (handledJobId.current === jobId) return
+          if (!job) return retry()
+          const status = job.status as unknown
+          if (status === BendingJobStatus.Running || status === 'Running') return retry() // henüz bitmedi / gecikme
+          handledJobId.current = jobId // son durum (Completed / Failed / Cancelled / Interrupted) — bir daha bakma
+          // 2026-11-01 — acil stop / basınç düşüşüyle KESİLDİ → alarm sayfası (DEVAM ET / MANUEL TAHLİYE).
+          // DEVAM ET sonrası iş yeniden Running olur; poller yeni bir izleme başlatır (handledJobId sıfırlanır).
+          if (status === BendingJobStatus.Interrupted || status === 'Interrupted') {
+            navigate('/bending/alarm', { state: { jobId } })
+            return
+          }
+          const completed = status === BendingJobStatus.Completed || status === 'Completed'
+          const failed = status === BendingJobStatus.Failed || status === 'Failed'
+          const cancelled = status === BendingJobStatus.Cancelled || status === 'Cancelled'
+          if (!completed && !failed && !cancelled) return // Created/Ready vb. — bitmiş iş değil
+          const jobOutcome: UnloadJobOutcome = completed
+            ? job.errorMessage
+              ? 'warning'
+              : 'completed'
+            : failed
+              ? 'failed'
+              : 'cancelled'
+          navigate('/bending/unload', {
+            state: {
+              jobOutcome,
+              // Tahliye ekranındaki "LOGLARI GÖR" → Büküm Geçmişi > bu işin detayı
+              jobId,
+              // Geriye uyum: Completed + errorMessage eski 'jobWarning' anahtarıyla da gider
+              ...(completed && job.errorMessage ? { jobWarning: job.errorMessage } : {}),
+              ...(job.errorMessage ? { jobMessage: job.errorMessage } : {}),
+              // EXCEL 33 — kıvrımda hatalı ölçüm → tahliye ekranında küçük işaret (bulut senkronu dışı)
+              ...(job.hasFailedMeasurement === true ? { measurementFlagged: true } : {}),
+            },
+          })
+        })
+        .catch(() => {
+          // DataApi'ye anlık ulaşılamadı — birkaç kez tekrar; yine olmazsa ekran açılmaz (manuel tuşlarla alınır)
+          retry()
+        })
+    }
+    check(0)
+  }, [runningJobId, bendingActive, navigate])
+
+  // Otomatik / yarı oto büküm kurulum ekranlarında (profil, yön, metot, ölçü girişi) odak üst alanda:
+  // orta + alt alan karartılır ve etkileşime kapanır (inert). Parça yükleme adımı hariç —
+  // operatör orada makineye müdahale edebilmeli. Büküm başlayınca odak modu kapanır.
+  const focusTop =
+    !bendingActive &&
+    pathname.startsWith('/bending/ai') &&
+    pathname !== '/bending/ai/part-loading'
+
   return (
     <div className={styles.root}>
-      {/* Top zone — always visible bending positions (750px) */}
+      {/* Üst alan — normalde sayfalar; otomatik büküm sırasında top pozisyon/ilerleme monitörü.
+          Büküm modalları (segment, ölçüm hatası) App.tsx'te global — bu değişimden etkilenmez.
+          Bakım modu açıkken (ve büküm monitörü yokken) BAKIM MODU AKTİF ekranı/şeridi — sadece görünür uyarı.
+          Outlet bakım modundan bağımsız HEP aynı ağaç konumunda: bakım ekranı tam boyken sadece gizlenir
+          (hidden), mod açılıp/kapanınca veya küçültülünce açık sayfa sıfırlanmaz. Büküm dalı eski davranışta. */}
       <div className={styles.top}>
-        <Outlet />
+        {bendingActive ? (
+          <BendingBallsPanel variant="monitor" />
+        ) : (
+          <div className={styles.topStack}>
+            {inMaintenanceMode && <MaintenanceModeScreen />}
+            <div className={styles.topPage} hidden={inMaintenanceMode && !maintenanceCollapsed}>
+              <Outlet />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Middle zone — navigable screens (750px) */}
-      <main className={styles.middle}>
-        <BendingBallsPanel />
+      {/* Orta alan — başlık + manuel tuş takımı (her zaman sabit) */}
+      <main className={styles.middle} inert={focusTop}>
+        <BendingBallsPanel variant="control" />
       </main>
 
-      {/* Bottom zone — always visible machine stats (480px) */}
-      <div className={styles.bottom}>
+      {/* Alt alan — uyarı şeridi + sensör kartları */}
+      <div className={styles.bottom} inert={focusTop}>
         <BottomStatsPanel />
       </div>
+
+      {/* Odak modu karartması — orta + alt alanı kaplar; modal/klavyeler (z ≥ 180) üstte kalır */}
+      <div className={styles.focusShade} data-on={focusTop || undefined} aria-hidden>
+        <span className={styles.focusHint}>{t('OTOMATİK BÜKÜM AYARLARI — ÜST EKRANDAN DEVAM EDİN')}</span>
+      </div>
+
+      {/* Kiosk moddan cikis: sag ust kose gizli hot-spot (5-tap veya 5sn basili tut).
+          Klavye Ctrl+Alt+Shift+X global shortcut main process'te — bu component'ten bagimsiz. */}
+      <KioskExitCorner />
+
+      {/* Sağ kenar hızlı menü (SEKIL-19) — tüm ekranı boydan boya kaplar */}
+      <SideMenu />
+
+      {/* Girişten sonra bir kez karşılama mesajı (Ayarlar > Karşılama Mesajı) */}
+      <WelcomeOverlay />
+
+      {/* Karşılama mesajı kapandıktan sonra bir kez: vadesi geçen bakım varsa kademe renkli uyarı */}
+      <MaintenanceAlertOverlay />
+
+      {/* Bakım modu uzun süre açık kalınca DEVAM EDİYOR MUSUNUZ? hatırlatması (otomatik kapanma geri sayımı)
+          + backend modu otomatik kapattıysa bir kez bilgi. Tüm ekranın üstünde. */}
+      <MaintenanceReminderOverlay />
     </div>
   )
 }

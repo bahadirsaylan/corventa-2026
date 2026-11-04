@@ -1,10 +1,43 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+
 import AppLayout from '@/components/layout/AppLayout'
+import ArcNextSegmentModal from '@/components/ArcNextSegmentModal/ArcNextSegmentModal'
+import MeasurementErrorModal from '@/components/MeasurementErrorModal/MeasurementErrorModal'
+import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
+import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
+import VirtualKeyboard from '@/components/KeyboardModal/VirtualKeyboard'
+import RoleNotice from '@/components/RoleNotice/RoleNotice'
+import RequireRole, { RequireAuth } from '@/components/RequireRole/RequireRole'
+import { subscribeToBackend } from '@/bootstrap/subscribeToBackend'
+
 import SplashPage from '@/pages/SplashPage/SplashPage'
 import LoginPage from '@/pages/LoginPage/LoginPage'
 import DashboardPage from '@/pages/DashboardPage/DashboardPage'
 import SettingsPage from '@/pages/SettingsPage/SettingsPage'
+import WelcomeMessagePage from '@/pages/WelcomeMessagePage/WelcomeMessagePage'
+import WarrantyPage from '@/pages/WarrantyPage/WarrantyPage'
+import MaintenancePage from '@/pages/MaintenancePage/MaintenancePage'
+import ChecklistPage from '@/pages/ChecklistPage/ChecklistPage'
+import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnectionPage'
+import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
+import OperatorSettingsPage from '@/pages/OperatorSettingsPage/OperatorSettingsPage'
+import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
+import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
+import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
+import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
+import ClampLogsPage from '@/pages/ClampLogsPage/ClampLogsPage'
+import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
+import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
+import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountReportPage'
+import LanguagePage from '@/pages/LanguagePage/LanguagePage'
+import CertificateQueryPage from '@/pages/CertificateQueryPage/CertificateQueryPage'
+import CustomerChangePage from '@/pages/CustomerChangePage/CustomerChangePage'
+import MoldQueryPage from '@/pages/MoldPages/MoldQueryPage'
+import MoldLibraryPage from '@/pages/MoldPages/MoldLibraryPage'
+import MoldCodePage from '@/pages/MoldCodePage/MoldCodePage'
 import AiBendingPage from '@/pages/AiBendingPage/AiBendingPage'
+import ManualModeSelectPage from '@/pages/ManualModeSelectPage/ManualModeSelectPage'
 import BendingDirectionPage from '@/pages/BendingDirectionPage/BendingDirectionPage'
 import BendingMethodPage from '@/pages/BendingMethodPage/BendingMethodPage'
 import RingBendingMeasurementsPage from '@/pages/RingBendingMeasurementsPage/RingBendingMeasurementsPage'
@@ -12,34 +45,138 @@ import ArcBendingMeasurementsPage from '@/pages/ArcBendingMeasurementsPage/ArcBe
 import SpiralBendingMeasurementsPage from '@/pages/SpiralBendingMeasurementsPage/SpiralBendingMeasurementsPage'
 import SivamaBendingMeasurementsPage from '@/pages/SivamaBendingMeasurementsPage/SivamaBendingMeasurementsPage'
 import PartLoadingPage from '@/pages/PartLoadingPage/PartLoadingPage'
+import UnloadPage from '@/pages/UnloadPage/UnloadPage'
+import AlarmPage from '@/pages/AlarmPage/AlarmPage'
+import TwoHandUnloadPage from '@/pages/AlarmPage/TwoHandUnloadPage'
+import NextActionPage from '@/pages/NextActionPage/NextActionPage'
+import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage'
+import MacroListPage from '@/pages/MacroPages/MacroListPage'
+import MacroEditorPage from '@/pages/MacroPages/MacroEditorPage'
+import MacroRunPage from '@/pages/MacroPages/MacroRunPage'
+import ServiceHomePage from '@/pages/ServicePage/ServiceHomePage'
+import TicketListPage from '@/pages/ServicePage/TicketListPage'
+import ServiceRequestsPage from '@/pages/ServicePage/ServiceRequestsPage'
+import ServiceRequestFormPage from '@/pages/ServicePage/ServiceRequestFormPage'
+import ServiceRequestDetailPage from '@/pages/ServicePage/ServiceRequestDetailPage'
+import InstallationPage from '@/pages/ServicePage/InstallationPage'
+import TrainingPage from '@/pages/ServicePage/TrainingPage'
+import TrainingTopicPage from '@/pages/ServicePage/TrainingTopicPage'
+import TrainingQuizPage from '@/pages/ServicePage/TrainingQuizPage'
+import ServiceNetworkPage from '@/pages/ServiceNetworkPage/ServiceNetworkPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function App() {
+  // Backend IPC subscription'larını bir kez kur — preload bridge ready
+  useEffect(() => {
+    const unsubscribe = subscribeToBackend()
+    return unsubscribe
+  }, [])
+
   return (
-    <HashRouter>
-      <Routes>
-        {/* Auth / pre-login screens — full screen, no chrome */}
-        <Route index element={<Navigate to="/splash" replace />} />
-        <Route path="/splash" element={<SplashPage />} />
-        <Route path="/login" element={<LoginPage />} />
+    <ErrorBoundary>
+      <ConnectionBanner />
+      {/* Arc interactive flow — backend awaitingArcSegmentInput=true gönderince
+          rotadan bağımsız global modal açılır, R/α/L sorar, DataApi'ye gönderir. */}
+      <ArcNextSegmentModal />
+      {/* Arc ölçüm hatası retry akışı (2026-08-18) — backend awaitingMeasurementRetry
+          veya awaitingMeasurementFinalDecision=true gönderince global modal açılır.
+          Modal 1: Retract + Remeasure. Modal 2: Finish + Skip. */}
+      <MeasurementErrorModal />
+      {/* Global sanal klavye — her text/textarea odaklanınca otomatik açılır.
+          Bypass: input'a data-no-keyboard="true" koy. Number input'lar NumpadModal'a bırakılır. */}
+      <VirtualKeyboard />
+      {/* Yetki uyarısı — "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ" (yetki matrisi: constants/permissions.ts) */}
+      <RoleNotice />
+      <HashRouter>
+        <Routes>
+          {/* Auth / pre-login screens — full screen, no chrome */}
+          <Route index element={<Navigate to="/splash" replace />} />
+          <Route path="/splash" element={<SplashPage />} />
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Authenticated 3-zone shell */}
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="bending/ai" element={<AiBendingPage />} />
-          <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
-          <Route path="bending/ai/method" element={<BendingMethodPage />} />
-          <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />
-          <Route path="bending/ai/measurements/arc" element={<ArcBendingMeasurementsPage />} />
-          <Route path="bending/ai/measurements/spiral" element={<SpiralBendingMeasurementsPage />} />
-          <Route path="bending/ai/measurements/sivama" element={<SivamaBendingMeasurementsPage />} />
-          <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
-        </Route>
+          {/* Authenticated 3-zone shell — oturum yoksa girişe döner (RequireAuth).
+              Rol isteyen rotalar RequireRole ile sarılı; yetkisizse /settings'e yönlenir + uyarı. */}
+          <Route path="/" element={<RequireAuth><AppLayout /></RequireAuth>}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/welcome-message" element={<RequireRole permission="welcome-message"><WelcomeMessagePage /></RequireRole>} />
+            <Route path="settings/warranty" element={<RequireRole permission="warranty"><WarrantyPage /></RequireRole>} />
+            <Route path="settings/maintenance" element={<MaintenancePage />} />
+            <Route path="settings/checklist" element={<RequireRole permission="checklist"><ChecklistPage /></RequireRole>} />
+            <Route path="settings/big-data" element={<RequireRole permission="big-data"><BigDataConnectionPage /></RequireRole>} />
+            <Route path="settings/users" element={<RequireRole permission="user-management"><UserManagementPage /></RequireRole>} />
+            <Route path="settings/operator" element={<OperatorSettingsPage />} />
+            <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
+            <Route path="settings/clamp-logs" element={<RequireRole permission="admin-settings"><ClampLogsPage /></RequireRole>} />
+            <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
+            <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
+            <Route path="settings/error-reports" element={<ErrorReportsPage />} />
+            <Route path="settings/bending-history" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
+            <Route path="settings/bending-history/:jobId" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
+            <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
+            <Route path="settings/bending-count" element={<BendingCountReportPage />} />
+            <Route path="settings/language" element={<LanguagePage />} />
+            <Route path="settings/certificate" element={<CertificateQueryPage />} />
+            {/* Bulut v2 — kalıp kodu (BULUT_API_V2.md §2.4) */}
+            <Route path="settings/mold-code" element={<RequireRole permission="mold-query"><MoldQueryPage /></RequireRole>} />
+            <Route path="settings/mold-library" element={<RequireRole permission="mold-library"><MoldLibraryPage /></RequireRole>} />
+            <Route path="settings/customer-change" element={<RequireRole permission="customer-change"><CustomerChangePage /></RequireRole>} />
+            {/* Satış / takas / hibe artık müşteri değişikliğinin içinde (neden seçimi) — eski rota yönlendirilir */}
+            <Route path="settings/machine-transfer" element={<Navigate to="/settings/customer-change" replace />} />
+            <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />
+            <Route path="bending/ai" element={<AiBendingPage />} />
+            <Route path="bending/ai/mold-code" element={<MoldCodePage />} />
+            <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
+            <Route path="bending/ai/method" element={<BendingMethodPage />} />
+            <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />
+            <Route path="bending/ai/measurements/arc" element={<ArcBendingMeasurementsPage />} />
+            <Route path="bending/ai/measurements/spiral" element={<SpiralBendingMeasurementsPage />} />
+            <Route path="bending/ai/measurements/sivama" element={<SivamaBendingMeasurementsPage />} />
+            <Route path="bending/ai/roll-arrangement" element={<RollArrangementPage />} />
+            <Route path="bending/ai/part-loading" element={<PartLoadingPage />} />
+            {/* Büküm sonrası: tahliye (SEKIL-18) → ne yapmak istiyorsunuz (SEKIL-20) */}
+            <Route path="bending/unload" element={<UnloadPage />} />
+            {/* Büküm kesildi (acil stop / basınç düşüşü) — Şekil 15/17 alarm, Şekil 16 çift el onayı */}
+            <Route path="bending/alarm" element={<AlarmPage />} />
+            <Route path="bending/alarm/manual-unload" element={<TwoHandUnloadPage />} />
+            <Route path="bending/next" element={<NextActionPage />} />
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </HashRouter>
+            {/* Manuel Büküm = usta öğrenme kayıtları (EXCEL 28, 2026-11-01). Eski manuel program ekranları
+                ve ayrı kayıt ekranı kaldırıldı — kayıt ana ekrandaki orta tuş takımıyla yapılır. */}
+            <Route path="bending/manual/*" element={<Navigate to="/bending/macros" replace />} />
+            <Route path="bending/macros" element={<RequireRole permission="macro"><MacroListPage /></RequireRole>} />
+            <Route path="bending/macros/record" element={<Navigate to="/bending/macros" replace />} />
+            <Route path="bending/macros/:id/edit" element={<RequireRole permission="macro"><MacroEditorPage /></RequireRole>} />
+            <Route path="bending/macros/:id/run" element={<RequireRole permission="macro"><MacroRunPage /></RequireRole>} />
+
+            {/* Service modülü — SEKIL 31-53 */}
+            <Route path="service" element={<ServiceHomePage />} />
+            <Route path="service-network" element={<ServiceNetworkPage />} />
+            <Route
+              path="service/questions"
+              element={<TicketListPage type="question" />}
+            />
+            <Route
+              path="service/suggestions"
+              element={<TicketListPage type="suggestion" />}
+            />
+            <Route
+              path="service/complaints"
+              element={<TicketListPage type="complaint" />}
+            />
+            <Route path="service/requests" element={<ServiceRequestsPage />} />
+            <Route path="service/requests/new" element={<ServiceRequestFormPage />} />
+            <Route path="service/requests/:id" element={<ServiceRequestDetailPage />} />
+            <Route path="service/installation" element={<InstallationPage />} />
+            <Route path="service/training" element={<TrainingPage />} />
+            <Route path="service/training/topic/:id" element={<TrainingTopicPage />} />
+            <Route path="service/training/quiz/:id" element={<TrainingQuizPage />} />
+          </Route>
+
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </HashRouter>
+    </ErrorBoundary>
   )
 }

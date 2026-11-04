@@ -138,10 +138,10 @@
 .infoBtn {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  border: 2px solid #4a90d9;
-  background: #4a90d9;
-  color: #fff;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #4a90d9;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -149,10 +149,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: color 0.15s;
 }
 
 .infoBtn:hover {
-  background-color: #2d6fb8;
-  border-color: #2d6fb8;
+  color: #2d6fb8;
 }

@@ -1,0 +1,255 @@
+// EXCEL 28 — usta öğrenme KAYIT çubuğu (2026-11-01: ana ekranda orta tuş takımının üstünde).
+// BAŞLAT → usta orta tuş takımıyla hareket eder (ManualControlPad her hareketi noteMotion ile bildirir).
+// BİTİR → açık eksenin son değeri de yazılır, isim + açıklama ile DataApi'ye kaydedilir → düzenleme ekranı.
+// İPTAL → kayıt atılır. Kayıt store'u global — ekrandan çıkıp dönülse de kayıt sürer.
+
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import { Icon, IconLabel } from '@/components/Icon'
+import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
+import { useT } from '@/i18n'
+import { AXIS_LABELS, axisUnit, formatStepValue, macroErrorMessage } from '@/services/macroAxes'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
+import type { MacroStep } from '@shared/types'
+import styles from './Macro.module.css'
+
+/**
+ * hideWhenIdle: ana ekrandaki tuş takımının üstünde kullanım — kayıt yokken çubuk görünmez
+ * (kayıt Manuel Büküm listesindeki YENİ KAYIT ile başlar), kaydetme penceresi yine burada açılır.
+ */
+export default function MacroRecordBar({ disabled, hideWhenIdle }: { disabled?: boolean; hideWhenIdle?: boolean }) {
+  const t = useT()
+  const navigate = useNavigate()
+  const recording = useMacroRecorderStore((s) => s.recording)
+  const steps = useMacroRecorderStore((s) => s.steps)
+  const current = useMacroRecorderStore((s) => s.current)
+  const start = useMacroRecorderStore((s) => s.start)
+  const finish = useMacroRecorderStore((s) => s.finish)
+  const discard = useMacroRecorderStore((s) => s.discard)
+
+  const [finishing, setFinishing] = useState(false)
+  const [saveSteps, setSaveSteps] = useState<MacroStep[] | null>(null)
+  const [saveContext, setSaveContext] = useState<{ stage: number; gonyeCompleted: boolean } | null>(null)
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [emptyNotice, setEmptyNotice] = useState(false)
+
+  async function handleFinish() {
+    setFinishing(true)
+    try {
+      const recorded = await finish()
+      if (recorded.length === 0) {
+        discard()
+        setEmptyNotice(true)
+      } else {
+        setSaveContext(useMacroRecorderStore.getState().context)
+        setSaveSteps(recorded)
+      }
+    } finally {
+      setFinishing(false)
+    }
+  }
+
+  const last = steps[steps.length - 1]
+  const count = steps.length + (current ? 1 : 0)
+
+  const showBar = recording || !hideWhenIdle || emptyNotice
+
+  return (
+    <>
+      {showBar && (
+      <div className={`${styles.recordBar} ${recording ? styles.recordBarActive : ''}`}>
+        {recording ? (
+          <>
+            <Icon name="record" size="lg" className={styles.recordDot} />
+            <span className={styles.recordText}>{t('USTA KAYDI — {n} ADIM', { n: count })}</span>
+            {last && (
+              <span className={styles.recordLast}>
+                {t('SON')}: {t(AXIS_LABELS[last.axis])} {formatStepValue(last)} {axisUnit(last)}
+              </span>
+            )}
+            <button className={`${styles.recordBtn} ${styles.recordBtnStart}`} onClick={() => setCancelOpen(true)}>
+              {t('İPTAL')}
+            </button>
+            <button
+              className={`${styles.recordBtn} ${styles.recordBtnStop}`}
+              disabled={finishing}
+              onClick={() => void handleFinish()}
+            >
+              <IconLabel icon="stop">{finishing ? t('BEKLEYİN...') : t('KAYDI BİTİR')}</IconLabel>
+            </button>
+          </>
+        ) : (
+          <>
+            <span className={styles.recordText}>
+              {emptyNotice ? t('KAYITTA HAREKET YOK — MAKRO OLUŞTURULMADI') : t('USTA ÖĞRENME (MAKRO)')}
+            </span>
+            <button
+              className={`${styles.recordBtn} ${styles.recordBtnStart}`}
+              disabled={disabled}
+              onClick={() => {
+                setEmptyNotice(false)
+                start()
+              }}
+            >
+              <IconLabel icon="record">{t('MAKRO KAYDI BAŞLAT')}</IconLabel>
+            </button>
+            <button
+              className={styles.recordBtn}
+              onClick={() => {
+                setEmptyNotice(false)
+                navigate('/bending/macros')
+              }}
+            >
+              <IconLabel icon="macro">{t('KAYITLI BÜKÜMLER')}</IconLabel>
+            </button>
+          </>
+        )}
+      </div>
+      )}
+
+      {cancelOpen && (
+        <ConfirmModal
+          message="MAKRO KAYDI İPTAL EDİLSİN Mİ? KAYDEDİLEN ADIMLAR SİLİNECEK"
+          confirmLabel="KAYDI SİL"
+          cancelLabel="VAZGEÇ"
+          variant="danger"
+          onCancel={() => setCancelOpen(false)}
+          onConfirm={() => {
+            discard()
+            setCancelOpen(false)
+          }}
+        />
+      )}
+
+      {saveSteps && (
+        <MacroSaveDialog
+          steps={saveSteps}
+          context={saveContext}
+          onCancel={() => {
+            discard()
+            setSaveSteps(null)
+          }}
+          onSaved={(id) => {
+            discard()
+            setSaveSteps(null)
+            navigate(`/bending/macros/${id}/edit`)
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+/** Kayıt bitince: isim (zorunlu) + açıklama → POST /api/macros */
+function MacroSaveDialog({
+  steps,
+  context,
+  onCancel,
+  onSaved,
+}: {
+  steps: MacroStep[]
+  context: { stage: number; gonyeCompleted: boolean } | null
+  onCancel: () => void
+  onSaved: (id: number) => void
+}) {
+  const t = useT()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [keyboard, setKeyboard] = useState<'name' | 'description' | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [discardOpen, setDiscardOpen] = useState(false)
+
+  async function save() {
+    if (!name.trim()) return
+    setSaving(true)
+    setError(null)
+    try {
+      const m = await window.corventa.macro.create({
+        name: name.trim(),
+        description: description.trim() || null,
+        steps,
+        recordedStage: context?.stage ?? null,
+        recordedGonyeCompleted: context?.gonyeCompleted ?? null,
+      })
+      onSaved(m.id)
+    } catch (err) {
+      setError(macroErrorMessage(err) || 'MAKRO KAYDEDİLEMEDİ')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        <h3 className={styles.modalTitle}>{t('MAKROYU KAYDET')}</h3>
+        <div className={styles.sectionLabel}>{t('{n} ADIM KAYDEDİLDİ', { n: steps.length })}</div>
+
+        <div className={styles.section}>
+          <span className={styles.sectionLabel}>{t('MAKRO ADI')}</span>
+          <button className={styles.fieldBtn} onClick={() => setKeyboard('name')}>
+            {name || <span className={styles.placeholder}>{t('İsim vermek için dokunun')}</span>}
+          </button>
+        </div>
+        <div className={styles.section}>
+          <span className={styles.sectionLabel}>{t('AÇIKLAMA')}</span>
+          <button className={styles.fieldBtn} onClick={() => setKeyboard('description')}>
+            {description || <span className={styles.placeholder}>{t('Opsiyonel')}</span>}
+          </button>
+        </div>
+
+        {error && <div className={styles.modalError}>{t(error)}</div>}
+
+        <div className={styles.modalActions}>
+          <button className={`${styles.modalBtn} ${styles.modalCancel}`} onClick={() => setDiscardOpen(true)}>
+            {t('KAYDETME')}
+          </button>
+          <button
+            className={`${styles.modalBtn} ${styles.modalConfirm}`}
+            disabled={!name.trim() || saving}
+            onClick={() => void save()}
+          >
+            {saving ? t('KAYDEDİLİYOR...') : t('KAYDET')}
+          </button>
+        </div>
+      </div>
+
+      {keyboard === 'name' && (
+        <KeyboardModal
+          initialValue={name}
+          label="MAKRO ADI"
+          maxLength={100}
+          onConfirm={(v) => {
+            setName(v)
+            setKeyboard(null)
+          }}
+          onClose={() => setKeyboard(null)}
+        />
+      )}
+      {keyboard === 'description' && (
+        <KeyboardModal
+          initialValue={description}
+          label="AÇIKLAMA"
+          maxLength={1000}
+          onConfirm={(v) => {
+            setDescription(v)
+            setKeyboard(null)
+          }}
+          onClose={() => setKeyboard(null)}
+        />
+      )}
+      {discardOpen && (
+        <ConfirmModal
+          message="KAYIT KAYDEDİLMEDEN SİLİNSİN Mİ"
+          confirmLabel="SİL"
+          variant="danger"
+          onCancel={() => setDiscardOpen(false)}
+          onConfirm={onCancel}
+        />
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,59 @@
+.wrapper {
+  flex-shrink: 0;
+  height: 96px;
+  display: grid;
+  grid-template-columns: 96px 1fr 96px;
+  align-items: center;
+  padding: 12px 24px 0;
+  background-color: #fdf8e8;
+}
+
+.arrowBtn {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #6ea7d6;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.arrowBtn svg {
+  width: 56px;
+  height: 56px;
+}
+
+.arrowBtn:hover {
+  filter: brightness(0.85);
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ede5cc;
+  border-radius: 12px 12px 0 0;
+  padding: 6px 32px 12px;
+  align-self: stretch;
+  gap: 0;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+  letter-spacing: 0.06em;
+}

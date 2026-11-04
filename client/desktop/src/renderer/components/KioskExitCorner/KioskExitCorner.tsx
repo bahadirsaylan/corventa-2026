@@ -1,0 +1,108 @@
+// 2026-09-04 — Kiosk moddan gizli cikis tetikleyicisi.
+// Sag ust kose'de gorunmez bir hot-spot:
+//   - 2sn icinde 5 tap → cikis
+//   - 5sn kesintisiz basili tutma → cikis
+// Global klavye kisayolu Ctrl+Alt+Shift+X main process'te (bu component'ten bagimsiz).
+//
+// Rol sistemi (2026-11-01): sadece SUPERADMIN (yetki matrisi constants/permissions.ts 'kiosk-exit').
+// Yetkisiz kullanıcıda çıkış yapılmaz, "BU İŞLEM İÇİN SÜPERADMİN YETKİSİ GEREKLİ" uyarısı gösterilir.
+
+import { useEffect, useRef, useState } from 'react'
+import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
+import { PERMISSIONS, roleCan } from '@/constants/permissions'
+import { useSessionStore } from '@/stores/sessionStore'
+import { t } from '@/i18n'
+import styles from './KioskExitCorner.module.css'
+
+const TAP_COUNT_TARGET = 5
+const TAP_WINDOW_MS = 2000
+const LONG_PRESS_MS = 5000
+
+export default function KioskExitCorner() {
+  const [toast, setToast] = useState<string | null>(null)
+
+  const tapCountRef = useRef<number>(0)
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const exitedRef = useRef<boolean>(false) // ayni turda 2 kez tetiklenmesin
+
+  const triggerExit = (reason: string) => {
+    if (exitedRef.current) return
+    if (!roleCan(useSessionStore.getState().role, 'kiosk-exit')) {
+      showRoleNotice(PERMISSIONS['kiosk-exit'])
+      return
+    }
+    exitedRef.current = true
+    setToast(t('Kioskdan cikiliyor ({reason})...', { reason }))
+    setTimeout(() => {
+      window.corventa?.system
+        ?.exitKiosk()
+        .then((res) => {
+          if (res?.ok === false) {
+            // Main oturumu reddetti (renderer rolü eski kalmış olabilir)
+            setToast(null)
+            exitedRef.current = false
+            showRoleNotice(PERMISSIONS['kiosk-exit'])
+          }
+        })
+        .catch((err) => {
+          console.error('kiosk exit fail', err)
+          setToast(t('Cikis basarisiz: {err}', { err: String(err) }))
+          exitedRef.current = false // tekrar denenebilsin
+        })
+    }, 300)
+  }
+
+  const handleTap = () => {
+    tapCountRef.current += 1
+
+    // Sayacı 2sn sonra sifirla
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
+    tapTimerRef.current = setTimeout(() => {
+      tapCountRef.current = 0
+    }, TAP_WINDOW_MS)
+
+    if (tapCountRef.current >= TAP_COUNT_TARGET) {
+      tapCountRef.current = 0
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
+      triggerExit(`${TAP_COUNT_TARGET}-tap`)
+    }
+  }
+
+  const handlePointerDown = () => {
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = setTimeout(() => {
+      triggerExit(t('{n}sn uzun basis', { n: LONG_PRESS_MS / 1000 }))
+    }, LONG_PRESS_MS)
+  }
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  // Component unmount olursa timer'lari temizle
+  useEffect(() => {
+    return () => {
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current)
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    }
+  }, [])
+
+  return (
+    <>
+      <div
+        className={styles.hotspot}
+        onClick={handleTap}
+        onPointerDown={handlePointerDown}
+        onPointerUp={cancelLongPress}
+        onPointerLeave={cancelLongPress}
+        onPointerCancel={cancelLongPress}
+        aria-hidden="true"
+      />
+      {toast && <div className={styles.toast}>{toast}</div>}
+    </>
+  )
+}
