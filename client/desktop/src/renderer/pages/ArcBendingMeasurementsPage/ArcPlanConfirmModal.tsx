@@ -15,6 +15,7 @@ interface Props {
   onAccept: () => void
 }
 
+// 2026-11-05: metinler son kullanıcı diline çevrildi (Seg → kıvrım), backend warningMessage tekrarı kaldırıldı.
 // 2026-09-08: Backend planner uzatma veya sıralama tersine çevirme önerdiğinde
 // operatörden onay alan modal. Uzatma yok + reversal yoksa gösterilmez (Page
 // direkt navigate eder).
@@ -22,12 +23,10 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
   const t = useT()
   const hasExtension = (plan.extensionMm ?? 0) > 0
   const isReversed = plan.isReversed === true
-  const sideStr = plan.side === 'Leading'
-    ? t('PARÇA BAŞINA (ilk düzlük tarafına)')
-    : plan.side === 'Trailing'
-      ? t('PARÇA SONUNA')
-      : ''
-  const reasonStr = plan.isMeasurementOnly ? t('ÖLÇÜM İÇİN') : t('BÜKÜM İÇİN')
+  const ext = plan.extensionMm ?? 0
+  const finalLen = plan.adjustedPartLengthMm ?? 0
+  const enteredLen = finalLen - ext
+  const segCount = plan.adjustedSegments?.length ?? 0
 
   return (
     <div className={styles.overlay}>
@@ -36,39 +35,55 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
 
         {hasExtension && (
           <div className={styles.section}>
-            <div className={styles.sectionHead}>{t('PARÇA UZATMA GEREKLİ')}</div>
+            <div className={styles.sectionHead}>{t('PARÇAYI DAHA UZUN KESİN')}</div>
             <div className={styles.sectionBody}>
               <div>
-                {withBold(t('Parçayı <b>{mm} mm</b> uzatın.', { mm: plan.extensionMm!.toFixed(0) }), styles.big)}
+                {withBold(t('Parçayı <b>{mm} mm</b> daha uzun kesin.', { mm: ext.toFixed(0) }), styles.big)}
               </div>
-              <div>{withBold(t('Ekleme <b>{side}</b> yapılacak.', { side: sideStr }))}</div>
-              <div className={styles.small}>{t('Sebep')}: {reasonStr}</div>
+              <div>
+                {withBold(
+                  plan.side === 'Leading'
+                    ? t('Fazlalık parçanın <b>BAŞINA</b> (1. kıvrımdan önceki düz kısma) eklenir.')
+                    : t('Fazlalık parçanın <b>SONUNA</b> (son kıvrımdan sonraki düz kısma) eklenir.'),
+                )}
+              </div>
+              <div className={styles.small}>
+                {plan.isMeasurementOnly
+                  ? t('Neden: Kıvrım büküldükten sonra ölçülebilmesi için parçanın ucunda yeterli düz kısım yok.')
+                  : t('Neden: Makine kıvrımı bükerken parçayı düz kısmından tutar; parçanın ucundaki düz kısım bunun için kısa.')}
+              </div>
             </div>
           </div>
         )}
 
         {isReversed && (
           <div className={styles.section}>
-            <div className={styles.sectionHead}>{t('SEGMENT SIRASI TERS ÇEVRİLDİ')}</div>
+            <div className={styles.sectionHead}>{t('BÜKÜM PARÇANIN SONUNDAN BAŞLAYACAK')}</div>
             <div className={styles.sectionBody}>
               <div>
-                {withBold(t('Segmentler <b>ters sırada</b> bükülecek — parça sonu (SegN) önce bükülür, Seg1 en son.'))}
+                {withBold(
+                  segCount > 1
+                    ? t('Kıvrımlar <b>sondan başa</b> bükülecek: önce {n}. kıvrım, en son 1. kıvrım.', { n: segCount })
+                    : t('Kıvrım parçanın <b>sonu</b> tarafından bükülecek.'),
+                )}
               </div>
               <div className={styles.small}>
-                {t('Parça sıfırlama parça sonu tarafında yapılacak.')}
+                {t('Neden: Bu kıvrım düzeninde parçanın sonundan başlamak daha güvenli. Başlangıç noktası parçanın sonu tarafından alınır.')}
               </div>
             </div>
           </div>
         )}
 
-        {plan.adjustedPartLengthMm != null && plan.adjustedPartLengthMm > 0 && (
+        {finalLen > 0 && (
           <div className={styles.summary}>
-            {t('Ayarlanmış toplam parça boyu')}: <b>{plan.adjustedPartLengthMm.toFixed(0)} mm</b>
+            {t('Kesilecek parça boyu')}: <b>{finalLen.toFixed(0)} mm</b>
+            {hasExtension && (
+              <span className={styles.small}>
+                {' '}
+                {t('(girdiğiniz {a} mm + {b} mm)', { a: enteredLen.toFixed(0), b: ext.toFixed(0) })}
+              </span>
+            )}
           </div>
-        )}
-
-        {plan.warningMessage && (
-          <div className={styles.warning}>{plan.warningMessage}</div>
         )}
 
         <div className={styles.actions}>

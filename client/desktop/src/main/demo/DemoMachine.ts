@@ -1293,7 +1293,7 @@ export class DemoMachine extends EventEmitter {
           await this.sleep(5000, token) // örnekleme
           // Demo senaryosu: düzeltmeli segmentte ilk ölçüm hedefin %3 üstü (az bükülmüş), sonra tolerans içinde
           const measuredR = p.correct && it === 1 ? p.measured1 : p.seg.radiusMm + (Math.random() * 1.0 - 0.5) * tol
-          this.setProgress(job.id, completed, approx, lastMsg, { ...segExtra, currentRadiusMm: measuredR })
+          // Gerçekteki gibi ölçülen R ekrana basılmaz (BendingProgressService en derin itişin R'sini tutar)
           await this.movePneumatic(measSide, false, token)
           await this.sleep(3800, token) // geri çekme bekleme (toplam 5sn)
           if (Math.abs(p.seg.radiusMm - measuredR) <= tol) break

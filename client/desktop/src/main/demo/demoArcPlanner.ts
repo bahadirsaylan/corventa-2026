@@ -32,7 +32,6 @@ const YAY_THRESHOLD = 350
 
 export const arcLength = (radiusMm: number, angleDeg: number): number => (2 * Math.PI * radiusMm * (180 - angleDeg)) / 360
 
-const f1 = (v: number) => v.toFixed(1)
 const f0 = (v: number) => v.toFixed(0)
 
 interface Evaluation {
@@ -68,16 +67,16 @@ function evaluate(arcs: number[], lengths: number[], partLength: number, xa1: nu
     if (i === 0) {
       firstIsMiddle = duzOk && kalanOk
       if (!firstIsMiddle)
-        middleFail = `İlk bükülen segment Middle (ortadan) olmalı — düz (${f1(duz)}) veya kalan (${f1(kalan)}) |XA1|=${f0(xa1)} altında`
+        middleFail = `1. kıvrımın hem önünde hem arkasında en az ${f0(xa1)} mm düz parça olmalı (önünde ${f0(duz)} mm, arkasında ${f0(Math.max(0, kalan))} mm var)`
     }
     if (!duzOk && !kalanOk) {
       canBend = false
-      if (!bendFail) bendFail = `Seg${i + 1}: düz (${f1(duz)}) ve kalan (${f1(kalan)}) her ikisi de |XA1|=${f0(xa1)} altında → bükülemez`
+      if (!bendFail) bendFail = `${i + 1}. kıvrımın önünde veya arkasında en az ${f0(xa1)} mm düz parça olmalı (önünde ${f0(duz)} mm, arkasında ${f0(Math.max(0, kalan))} mm var)`
     }
     if (!(duz >= T) && !(kalan >= T)) {
       canMeasure = false
       if (!measureFail)
-        measureFail = `Seg${i + 1}: düz (${f1(duz)}) ve kalan (${f1(kalan)}) her ikisi de stage mesafesi (${f0(T)}mm) altında → ölçülemez`
+        measureFail = `${i + 1}. kıvrım ölçülemez — önünde veya arkasında en az ${f0(T)} mm düz parça olmalı (önünde ${f0(duz)} mm, arkasında ${f0(Math.max(0, kalan))} mm var)`
     }
   }
   const reason = !canBend ? bendFail : !firstIsMiddle ? middleFail : !canMeasure ? measureFail : 'OK'
@@ -111,19 +110,19 @@ export function planArc(input: {
   const lengths: number[] = []
   for (let i = 0; i < N; i++) {
     const s = segs[i]
-    if (!(s.radiusMm > 0)) return fail(`Segment ${i + 1}: R > 0 olmalı`)
-    if (!(s.angleDeg > 0) || s.angleDeg >= 180) return fail(`Segment ${i + 1}: 0 < α < 180 olmalı`)
-    if (s.straightAfterMm < 0) return fail(`Segment ${i + 1}: düzlük ≥ 0 olmalı`)
+    if (!(s.radiusMm > 0)) return fail(`${i + 1}. kıvrım: yarıçap 0'dan büyük olmalı`)
+    if (!(s.angleDeg > 0) || s.angleDeg >= 180) return fail(`${i + 1}. kıvrım: açı 0 ile 180 derece arasında olmalı`)
+    if (s.straightAfterMm < 0) return fail(`${i + 1}. kıvrım: düz kısım negatif olamaz`)
     arcs[i] = arcLength(s.radiusMm, s.angleDeg)
     if (Math.round(arcs[i] * 10) / 10 < DEFAULT_MIN_ARC)
-      return fail(`Segment ${i + 1}: yay (${f1(arcs[i])}mm) minimum ${f0(DEFAULT_MIN_ARC)}mm altında — yay veya açı arttırın`)
+      return fail(`${i + 1}. kıvrım: yay uzunluğu ${f0(arcs[i])} mm, en az ${f0(DEFAULT_MIN_ARC)} mm olmalı — açıyı küçültün veya yarıçapı büyütün`)
     lengths[i] = s.straightAfterMm
   }
   const sumArcs = arcs.reduce((a, b) => a + b, 0)
   const sumLs = lengths.reduce((a, b) => a + b, 0)
   const trailing = input.partLengthMm - sumArcs - sumLs
   if (trailing < 0)
-    return fail(`Segmentlerin toplam bütçesi (${f1(sumArcs + sumLs)}mm) parça boyunu (${f1(input.partLengthMm)}mm) aşıyor`)
+    return fail(`Kıvrımlar ve düz kısımların toplamı (${f0(sumArcs + sumLs)} mm) parça boyunu (${f0(input.partLengthMm)} mm) aşıyor — parça boyunu kontrol edin`)
   const leading = lengths[0]
 
   const extLeading = computeExtension(arcs[0], leading)
@@ -158,13 +157,8 @@ export function planArc(input: {
   }
 
   if (cands.length === 0) {
-    const reasons: string[] = []
-    if (!evalA.feasible) reasons.push(`Normal: ${evalA.reason}`)
-    if (extLeading > 0 && !evalB.feasible) reasons.push(`Normal+leading: ${evalB.reason}`)
-    if (extTrailingNormal > 0 && !evalE.feasible) reasons.push(`Normal+trailing: ${evalE.reason}`)
-    if (!evalC.feasible) reasons.push(`Ters: ${evalC.reason}`)
-    if (extNewLeadingRev > 0 && !evalD.feasible) reasons.push(`Ters+trailing: ${evalD.reason}`)
-    return fail('Bu segment kombinasyonu bükülebilir ve ölçülebilir bir plana çevrilemedi. ' + reasons.join(' | '))
+    // Operatöre sadece girdiği sıradaki sebep gösterilir (kıvrım numaraları onun numaraları)
+    return fail(`Bu kıvrım düzeni bükülemiyor: ${evalA.reason}. Düz kısımları veya parça boyunu kontrol edin.`)
   }
 
   let best = cands[0]

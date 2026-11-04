@@ -66,12 +66,12 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   R: {
     title: 'R :',
     description:
-      'KIVIRIM YARIÇAP ÖLÇÜSÜDÜR (mm). BU SEGMENTİN HEDEF YARIÇAP DEĞERİDİR. HER SEGMENT KENDİ R DEĞERİNE SAHİPTİR.',
+      'KIVRIMIN YARIÇAPIDIR (mm). HER KIVRIMIN KENDİ YARIÇAPI OLABİLİR.',
   },
   Alpha: {
     title: 'α :',
     description:
-      'KIVIRIM AÇI ÖLÇÜSÜDÜR (derece). BU SEGMENTİN AÇISI (0 < α < 180). YAY UZUNLUĞU L = 2π·R·(180-α)/360 FORMÜLÜYLE HESAPLANIR.',
+      'KIVRIMIN AÇISIDIR (derece, 0 ile 180 arası). AÇI YERİNE YAY UZUNLUĞU DA GİREBİLİRSİNİZ; DİĞERİ OTOMATİK HESAPLANIR.',
   },
   ArcLen: {
     title: 'Yay :',
@@ -81,12 +81,12 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   P: {
     title: 'P :',
     description:
-      'KIVIRIM ÇAP ADEDİDİR. PARÇANIZDAKİ KAÇ ADET ÇAP KIVRIMI VARSA GİRMELİSİNİZ. GİRDİĞİNİZ SAYI KADAR SEGMENT KARTI OTOMATİK AÇILIR VE HER BİRİNİ AYRI DOLDURURSUNUZ.',
+      'PARÇADAKİ KIVRIM SAYISIDIR. GİRDİĞİNİZ SAYI KADAR KIVRIM KARTI AÇILIR (1. KIVRIM, 2. KIVRIM ...); HER BİRİNİ AYRI DOLDURURSUNUZ.',
   },
   L: {
     title: 'L :',
     description:
-      'BU SEGMENTİN SONRAKİ RADİUSA OLAN DÜZLÜĞÜDÜR (mm). ART ARDA GELEN RADİUSLARDA "0" OLARAK YAZILMALIDIR. SON SEGMENTTE 0 OLABİLİR.',
+      'BU KIVRIMDAN ÖNCEKİ DÜZ KISIMDIR (mm). 1. KIVRIMDA PARÇA BAŞINDAN KIVRIMA KADAR OLAN DÜZLÜK; DİĞERLERİNDE BİR ÖNCEKİ KIVRIMIN BİTİŞİNDEN BU KIVRIMA KADAR. ARA DÜZLÜK YOKSA 0 YAZIN. SON KIVRIMDAN SONRAKİ DÜZ KISIM PARÇA BOYUNDAN OTOMATİK HESAPLANIR.',
   },
   H: {
     title: 'H :',
@@ -453,7 +453,7 @@ export default function ArcMeasurementForm({
             <div className={styles.segmentsList}>
               {values.segments.length === 0 && (
                 <div className={styles.segmentsHint}>
-                  <IconLabel icon="warning">{t('Önce P (segment sayısı) giriniz — kartlar otomatik açılır.')}</IconLabel>
+                  <IconLabel icon="warning">{t('Önce P (kıvrım sayısı) giriniz — kartlar otomatik açılır.')}</IconLabel>
                 </div>
               )}
               {values.segments.map((_, i) => {
@@ -466,7 +466,7 @@ export default function ArcMeasurementForm({
                       minArcViolation ? styles.segmentCardInfeasible : ''
                     }`}
                   >
-                    <div className={styles.segmentHeader}>{t('SEGMENT {n}', { n: i + 1 })}</div>
+                    <div className={styles.segmentHeader}>{t('{n}. KIVRIM', { n: i + 1 })}</div>
                     <div className={styles.segmentFields}>
                       {renderSegmentField(i, 'L', 'L')}
                       {inputMode === 'angle'
