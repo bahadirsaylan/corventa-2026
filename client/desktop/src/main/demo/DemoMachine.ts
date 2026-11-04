@@ -29,6 +29,7 @@ import { demoMacros } from '@main/demo/demoMacros'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
+import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -1082,7 +1083,9 @@ export class DemoMachine extends EventEmitter {
    *   Son segmentten sonra rotasyon / üst top kalkma YOK.
    */
   private async runArc(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
-    const segs = [...(job.segments ?? [])].sort((a, b) => a.segmentOrder - b.segmentOrder)
+    const ordered = [...(job.segments ?? [])].sort((a, b) => a.segmentOrder - b.segmentOrder)
+    // Planlayıcı TERS sıra seçtiyse backend gibi segmentler çevrilir (yeni Seg1 = orijinal SegN, L = parça sonu)
+    const segs = job.isReversedArcOrder === true ? buildReversedSegments(ordered, job.partLengthMm) : ordered
     const P = segs.length
     const G = (job.arcStepDistanceMm ?? job.stepDistanceMm) || 15
     const LT = job.partLengthMm
@@ -1396,8 +1399,24 @@ export class DemoMachine extends EventEmitter {
       return { success: true, totalPasos, pasoSteps }
     }
     if (path === '/api/bending/arc/validate-plan') {
-      const segs = (b.segments as unknown[]) ?? []
-      return { success: true, isReversed: false, extensionMm: 0, side: 'None', isMeasurementOnly: false, adjustedPartLengthMm: Number(b.partLengthMm) || 0, adjustedSegments: segs }
+      // Backend BendingController.ValidateArcPlan + ArcExtensionPlanner ile aynı (parça uzatma / ters sıra)
+      const segs = ((b.segments as PlannerSegment[]) ?? []).map((s) => ({
+        segmentOrder: Number(s.segmentOrder) || 0,
+        radiusMm: Number(s.radiusMm) || 0,
+        angleDeg: Number(s.angleDeg) || 0,
+        straightAfterMm: Number(s.straightAfterMm) || 0,
+      }))
+      if (segs.length === 0) demoFail(400, rawUrl, 'Segments zorunlu', { success: false })
+      const xa1Abs = Number(b.xa1AbsMm) > 0 ? Number(b.xa1AbsMm) : 465
+      const profileA = Number(b.profileAMm) || 0
+      const measurementDistanceMm = profileA > 0 ? Math.abs(recommendStage(profileA).xa1) || xa1Abs : xa1Abs
+      const r = planArc({ segments: segs, partLengthMm: Number(b.partLengthMm) || 0, xa1AbsMm: xa1Abs, measurementDistanceMm })
+      if (!r.canBend) demoFail(400, rawUrl, r.errorMessage ?? 'Plan oluşturulamadı', { success: false })
+      return {
+        success: true, isReversed: r.isReversed, extensionMm: r.extensionMm, side: r.side,
+        isMeasurementOnly: r.isMeasurementOnly, adjustedPartLengthMm: r.adjustedPartLengthMm,
+        adjustedSegments: r.adjustedSegments, warningMessage: r.warningMessage,
+      }
     }
     if (path === '/api/preparation/recommend-stage') {
       const s = recommendStage(Number(u.searchParams.get('profileA')) || 0)
