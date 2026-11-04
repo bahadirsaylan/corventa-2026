@@ -18,6 +18,8 @@
 // Gerçek kodla bağlantısı: sadece http.ts'deki interceptor + ConnectionManager/index.ts'deki
 // IS_DEMO dalları. Demo kapalıyken hiçbir şey değişmez.
 
+// Tek dosya demo algılama — IS_DEMO'dan önce (demoBoot.ts)
+import '@main/demo/demoBoot'
 import { EventEmitter } from 'node:events'
 
 import { app, type BrowserWindow } from 'electron'

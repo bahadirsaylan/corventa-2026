@@ -12,6 +12,7 @@
     "package": "npm run build && electron-builder",
     "build:backend": "node scripts/build-backend.mjs",
     "package:win": "node scripts/build-backend.mjs && npm run build && electron-builder --win nsis",
+    "package:demo": "set CORVENTA_MINIFY=1&& electron-vite build && electron-builder --win portable --config scripts/electron-builder.demo.cjs",
     "preview": "electron-vite preview",
     "type-check": "tsc --noEmit",
     "i18n:check": "node scripts/i18n-check.mjs",

@@ -63,6 +63,11 @@ export default function LoginPage() {
   const [password2, setPassword2] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // DEMO (2026-11-04): demo kullanıcıları ekranda yazsın — demoyu açan kişi giriş bilgisini bilmeden girebilsin
+  const [isDemo, setIsDemo] = useState(false)
+  useEffect(() => {
+    window.corventa.system.isDemo().then(setIsDemo).catch(() => undefined)
+  }, [])
 
   // İlk kurulum gerekiyor mu? DataApi'ye ulaşılamazsa giriş formu + uyarı (giriş denemesi de aynı hatayı verir)
   useEffect(() => {
@@ -271,6 +276,12 @@ export default function LoginPage() {
               {busy ? t('OLUŞTURULUYOR…') : t('SÜPERADMİN OLUŞTUR')}
             </button>
           </form>
+        )}
+
+        {isDemo && mode === 'login' && (
+          <p className={styles.demoHint}>
+            {t('DEMO — Kullanıcı: operator / admin / super · Şifre: 1234')}
+          </p>
         )}
 
         <p className={styles.version}>V.22.01.0186</p>

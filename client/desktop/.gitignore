@@ -3,6 +3,7 @@ dist/
 dist-electron/
 out/
 release/
+release-demo/
 *.local
 .DS_Store
 engine-dataapi/**/bin/
