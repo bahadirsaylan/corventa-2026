@@ -28,6 +28,28 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
   const enteredLen = finalLen - ext
   const segCount = plan.adjustedSegments?.length ?? 0
 
+  // NEDEN — planlayıcının gerçek kararı: girilen haliyle kıvrım yapılamıyor mu, ölçülemiyor mu, ikisi mi?
+  // Eski backend bu alanları göndermezse isMeasurementOnly'den çıkarılır.
+  const hasNew = plan.bendIssue !== undefined || plan.measureIssue !== undefined
+  const bendProblem = hasNew ? !!plan.bendIssue : !plan.isMeasurementOnly
+  const measureProblem = hasNew ? !!plan.measureIssue : !!plan.isMeasurementOnly
+  const reasonTitle =
+    bendProblem && measureProblem
+      ? t('Girdiğiniz ölçülerle kıvrım hem yapılamaz hem de ölçülemez.')
+      : bendProblem
+        ? t('Girdiğiniz ölçülerle kıvrım yapılamaz.')
+        : measureProblem
+          ? t('Girdiğiniz ölçülerle kıvrım yapılır ama ölçülemez.')
+          : plan.orderIssue
+            ? t('Girdiğiniz sırayla bükülürse bir kıvrım, önceki bükümde sıkıştırılmış kısmın üstünde bükülür; kesit bozulabilir.')
+            : null
+  const fixText =
+    hasExtension && isReversed
+      ? t('Parça uzatılıp büküme sondan başlanınca sorun ortadan kalkar.')
+      : hasExtension
+        ? t('Parça uzatılınca sorun ortadan kalkar.')
+        : t('Büküme parçanın sonundan başlanınca sorun ortadan kalkar.')
+
   return (
     <div className={styles.overlay}>
       <div className={styles.box}>
@@ -47,11 +69,6 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
                     : t('Fazlalık parçanın <b>SONUNA</b> (son kıvrımdan sonraki düz kısma) eklenir.'),
                 )}
               </div>
-              <div className={styles.small}>
-                {plan.isMeasurementOnly
-                  ? t('Neden: Kıvrım büküldükten sonra ölçülebilmesi için parçanın ucunda yeterli düz kısım yok.')
-                  : t('Neden: Makine kıvrımı bükerken parçayı düz kısmından tutar; parçanın ucundaki düz kısım bunun için kısa.')}
-              </div>
             </div>
           </div>
         )}
@@ -67,9 +84,19 @@ export default function ArcPlanConfirmModal({ plan, onCancel, onAccept }: Props)
                     : t('Kıvrım parçanın <b>sonu</b> tarafından bükülecek.'),
                 )}
               </div>
-              <div className={styles.small}>
-                {t('Neden: Bu kıvrım düzeninde parçanın sonundan başlamak daha güvenli. Başlangıç noktası parçanın sonu tarafından alınır.')}
-              </div>
+              <div className={styles.small}>{t('Başlangıç noktası parçanın sonu tarafından alınır.')}</div>
+            </div>
+          </div>
+        )}
+
+        {reasonTitle && (
+          <div className={styles.section}>
+            <div className={styles.sectionHead}>{t('NEDEN')}</div>
+            <div className={styles.sectionBody}>
+              <div><b>{reasonTitle}</b></div>
+              {bendProblem && plan.bendIssue && <div className={styles.small}>• {plan.bendIssue}</div>}
+              {measureProblem && plan.measureIssue && <div className={styles.small}>• {plan.measureIssue}</div>}
+              <div>{fixText}</div>
             </div>
           </div>
         )}

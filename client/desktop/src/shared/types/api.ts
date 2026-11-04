@@ -127,6 +127,12 @@ export interface ValidateArcPlanResponse {
   adjustedPartLengthMm?: number
   adjustedSegments?: ValidateArcPlanSegment[]
   warningMessage?: string
+  /** 2026-11-05: girildiği haliyle (normal sıra, uzatmasız) büküm sorunu — null = bükülebilir (Türkçe ayrıntı) */
+  bendIssue?: string | null
+  /** girildiği haliyle ölçüm sorunu — null = ölçülebilir (Türkçe ayrıntı) */
+  measureIssue?: string | null
+  /** girildiği haliyle olur ama ortadan bükülecek bir kıvrım sıkıştırılmış kesite denk geliyor */
+  orderIssue?: boolean
 }
 
 // GET /api/bending-job/{id}/resume-status — acil stop kesintisi sonrası (2026-11-01)

@@ -22,6 +22,12 @@ export interface PlanResult {
   adjustedSegments: PlannerSegment[]
   warningMessage: string | null
   errorMessage: string | null
+  /** Girildiği haliyle (normal sıra, uzatmasız) büküm sorunu — null = bükülebilir */
+  bendIssue: string | null
+  /** Girildiği haliyle ölçüm sorunu — null = ölçülebilir */
+  measureIssue: string | null
+  /** Girildiği haliyle olur ama ortadan bükülecek kıvrım ezilmiş kesite denk geliyor */
+  orderIssue: boolean
 }
 
 const DEFAULT_XA1_ABS = 465
@@ -41,6 +47,8 @@ interface Evaluation {
   middleAfterSqueeze: number
   reason: string
   feasible: boolean
+  bendIssue: string | null
+  measureIssue: string
 }
 
 function evaluate(arcs: number[], lengths: number[], partLength: number, xa1: number, T: number): Evaluation {
@@ -80,7 +88,11 @@ function evaluate(arcs: number[], lengths: number[], partLength: number, xa1: nu
     }
   }
   const reason = !canBend ? bendFail : !firstIsMiddle ? middleFail : !canMeasure ? measureFail : 'OK'
-  return { canBend, canMeasure, firstIsMiddle, middleAfterSqueeze, reason, feasible: canBend && canMeasure && firstIsMiddle }
+  return {
+    canBend, canMeasure, firstIsMiddle, middleAfterSqueeze, reason, feasible: canBend && canMeasure && firstIsMiddle,
+    bendIssue: !canBend ? bendFail : !firstIsMiddle ? middleFail : null,
+    measureIssue: measureFail,
+  }
 }
 
 function computeExtension(nearestArc: number, currentSide: number): number {
@@ -92,6 +104,7 @@ function computeExtension(nearestArc: number, currentSide: number): number {
 const fail = (msg: string): PlanResult => ({
   canBend: false, isReversed: false, extensionMm: 0, side: 'None', isMeasurementOnly: false,
   adjustedPartLengthMm: 0, adjustedSegments: [], warningMessage: null, errorMessage: msg,
+  bendIssue: null, measureIssue: null, orderIssue: false,
 })
 
 export function planArc(input: {
@@ -195,6 +208,9 @@ export function planArc(input: {
     adjustedSegments,
     warningMessage,
     errorMessage: null,
+    bendIssue: evalA.bendIssue,
+    measureIssue: evalA.canMeasure ? null : evalA.measureIssue,
+    orderIssue: evalA.feasible && evalA.middleAfterSqueeze > best.mas,
   }
 }
 

@@ -1416,6 +1416,7 @@ export class DemoMachine extends EventEmitter {
         success: true, isReversed: r.isReversed, extensionMm: r.extensionMm, side: r.side,
         isMeasurementOnly: r.isMeasurementOnly, adjustedPartLengthMm: r.adjustedPartLengthMm,
         adjustedSegments: r.adjustedSegments, warningMessage: r.warningMessage,
+        bendIssue: r.bendIssue, measureIssue: r.measureIssue, orderIssue: r.orderIssue,
       }
     }
     if (path === '/api/preparation/recommend-stage') {

@@ -16,16 +16,10 @@ const en: Record<string, string> = {
     'The extra length goes to the <b>START</b> of the part (the straight before bend 1).',
   'Fazlalık parçanın <b>SONUNA</b> (son kıvrımdan sonraki düz kısma) eklenir.':
     'The extra length goes to the <b>END</b> of the part (the straight after the last bend).',
-  'Neden: Kıvrım büküldükten sonra ölçülebilmesi için parçanın ucunda yeterli düz kısım yok.':
-    'Why: there is not enough straight at the part end to measure the bend after bending.',
-  'Neden: Makine kıvrımı bükerken parçayı düz kısmından tutar; parçanın ucundaki düz kısım bunun için kısa.':
-    'Why: the machine holds the part by its straight while bending; the straight at the part end is too short for that.',
   'BÜKÜM PARÇANIN SONUNDAN BAŞLAYACAK': 'BENDING STARTS FROM THE PART END',
   'Kıvrımlar <b>sondan başa</b> bükülecek: önce {n}. kıvrım, en son 1. kıvrım.':
     'Bends will be made <b>from the end to the start</b>: bend {n} first, bend 1 last.',
   'Kıvrım parçanın <b>sonu</b> tarafından bükülecek.': 'The bend will be made from the part <b>end</b>.',
-  'Neden: Bu kıvrım düzeninde parçanın sonundan başlamak daha güvenli. Başlangıç noktası parçanın sonu tarafından alınır.':
-    'Why: with this bend layout it is safer to start from the part end. The start point is taken from the part end.',
   'Kesilecek parça boyu': 'Part length to cut',
   '(girdiğiniz {a} mm + {b} mm)': '(your {a} mm + {b} mm)',
   'SONDAN BAŞA': 'END TO START',
@@ -37,6 +31,15 @@ const en: Record<string, string> = {
   'Parça boyu': 'Part length',
   'Sondaki düz': 'End straight',
   '{n}. kıvrım': 'bend {n}',
+  'Başlangıç noktası parçanın sonu tarafından alınır.': 'The start point is taken from the part end.',
+  'Girdiğiniz ölçülerle kıvrım hem yapılamaz hem de ölçülemez.': 'With the entered dimensions the bend can neither be made nor measured.',
+  'Girdiğiniz ölçülerle kıvrım yapılamaz.': 'With the entered dimensions the bend cannot be made.',
+  'Girdiğiniz ölçülerle kıvrım yapılır ama ölçülemez.': 'With the entered dimensions the bend can be made but not measured.',
+  'Girdiğiniz sırayla bükülürse bir kıvrım, önceki bükümde sıkıştırılmış kısmın üstünde bükülür; kesit bozulabilir.':
+    'In the entered order one bend would be made over a section already squeezed by an earlier bend; the cross-section may be damaged.',
+  'Parça uzatılıp büküme sondan başlanınca sorun ortadan kalkar.': 'Lengthening the part and starting from the end solves this.',
+  'Parça uzatılınca sorun ortadan kalkar.': 'Lengthening the part solves this.',
+  'Büküme parçanın sonundan başlanınca sorun ortadan kalkar.': 'Starting the bending from the part end solves this.',
 }
 
 export default en
