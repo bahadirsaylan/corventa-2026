@@ -12,6 +12,8 @@
 //   backend MachineEvent'lerinden (stores/safetyAlertsStore.ts) şeride gelir; termal / acil stop uyarılarından
 //   sonra, yağ basınç/seviye/nem uyarılarından önce. Operatör şeritteki KAPAT ile gizler. Sadece uyarı.
 // EXCEL 34: BAKIM KİLİDİ aktifken (backend lockActive) bakım şeridi / rozeti kilit simgesiyle "KİLİTLİ" yazar.
+// 2026-11-04: Big Data reçete PAYLAŞIMI açıkken internet koparsa sensör kartlarının üstüne "İNTERNET YOK" katmanı
+//   (operatör bağlantıyı düzeltsin; kartlar altta görünmeye devam eder). Kaynak: internetStore (30 sn) + cloudStore.shareRecipes.
 // EXCEL 37: HATA KAYITLARI butonunun solunda internet erişim ikonu (Google generate_204, 30 sn) — sadece bilgi.
 
 import { useMemo, useState } from 'react'
@@ -24,6 +26,8 @@ import InternetStatusChip from '@/components/InternetStatus/InternetStatusChip'
 import CloudUpdateChip from '@/components/CloudUpdate/CloudUpdateChip'
 import { BendingMethod } from '@shared/types'
 import { useMachineStateStore } from '@/stores/machineStateStore'
+import { useCloudStore } from '@/stores/cloudStore'
+import { useInternetStore } from '@/stores/internetStore'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useMaintenanceAlerts, useMaintenanceLock } from '@/hooks/useMaintenance'
 import {
@@ -62,6 +66,11 @@ export default function BottomStatsPanel() {
     fanThermalOK: s.state.safety.fanThermalOK,
   })))
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
+  const shareOn = useCloudStore((s) => s.status?.shareRecipes === true)
+  const internetState = useInternetStore((s) => s.status.state)
+  const internetChecking = useInternetStore((s) => s.status.checking)
+  const checkInternetNow = useInternetStore((s) => s.checkNow)
+  const showOffline = shareOn && internetState === 'offline'
   const t = useT()
   const navigate = useNavigate()
   const { top: maint } = useMaintenanceAlerts()
@@ -201,7 +210,26 @@ export default function BottomStatsPanel() {
       </div>
 
       {/* ── Alt: sensör kartları / Arc büküm sırasında parça şeridi ── */}
-      {arcJob ? <ArcBendingStrip job={arcJob} progress={arcProgress} /> : <OilStatsList />}
+      <div className={styles.statsArea}>
+        {arcJob ? <ArcBendingStrip job={arcJob} progress={arcProgress} /> : <OilStatsList />}
+        {showOffline && (
+          <div className={styles.offlineOverlay} role="alert">
+            <Icon name="offline" size={56} />
+            <div className={styles.offlineTitle}>{t('WİFİ / İNTERNET BAĞLANTISI YOK')}</div>
+            <div className={styles.offlineText}>
+              {t('Reçete paylaşımı açık ama makine internete ulaşamıyor. Wi-Fi / ağ kablosunu kontrol edip bağlantıyı düzeltin.')}
+            </div>
+            <button
+              type="button"
+              className={styles.offlineBtn}
+              disabled={internetChecking}
+              onClick={() => void checkInternetNow()}
+            >
+              {internetChecking ? t('KONTROL EDİLİYOR…') : t('TEKRAR KONTROL ET')}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* ── Hata kayıtları modalı ──────────────────── */}
       {showLogs && <ErrorLogsModal onClose={() => setShowLogs(false)} />}

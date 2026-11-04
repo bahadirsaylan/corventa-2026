@@ -1,28 +1,19 @@
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* Kart yarım sayfa genişliğinde (PagedColumns iki sütun) — içerik dar alana göre */
+.card {
+  min-width: 0;
 }
 
 .col {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px;
-  border: 2px solid var(--color-border);
-  border-radius: 10px;
+  min-width: 0;
 }
 
 .head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.title {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
 }
 
 .badge {
@@ -43,6 +34,9 @@
   font-size: 26px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .unit {
@@ -54,6 +48,7 @@
   font-size: 12px;
   color: #6b7280;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .btnRow {
@@ -61,8 +56,15 @@
   gap: 8px;
 }
 
-.btnRow > button {
+/* Ortak saveBtn/resetBtn yatay dolgusu (22–30px) dar kartta taşıyordu */
+.btnRow > button,
+.encoderBtn {
   flex: 1;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 13px;
+  white-space: normal;
 }
 
 .encoderBtn {

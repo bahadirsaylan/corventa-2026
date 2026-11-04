@@ -203,3 +203,54 @@
 .maintChip.maint_reminder { color: #2f8a48; background: #effaf2; }
 .maintChip.maint_warning  { color: #9a5b00; background: #fff7e0; }
 .maintChip.maint_critical { color: var(--color-primary-dark); background: #fdecec; }
+
+/* ── 2026-11-04: paylaşım açık + internet yok → sensör kartlarının üstünde katman ── */
+.statsArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.offlineOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(127, 29, 29, 0.9);
+  color: #fff;
+}
+.offlineTitle {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+.offlineText {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 440px;
+}
+.offlineBtn {
+  min-height: 48px;
+  padding: 8px 26px;
+  border-radius: 10px;
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.offlineBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

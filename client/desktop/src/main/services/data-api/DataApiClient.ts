@@ -14,6 +14,9 @@ import type {
   CustomerChangeConfirmResponse,
   CustomerChangeRequestBody,
   CustomerChangeRequestResponse,
+  ClampTelemetryListQuery,
+  ClampTelemetryPage,
+  ClampTelemetrySession,
   ErrorSnapshotDetail,
   ErrorSnapshotListQuery,
   ErrorSnapshotPage,
@@ -328,6 +331,19 @@ export class DataApiClient {
 
   getErrorSnapshot(id: number): Promise<ErrorSnapshotDetail> {
     return http.get<ErrorSnapshotDetail>(`${this.baseUrl}/api/error-snapshots/${id}`)
+  }
+
+  // ---------- Sıkıştırma telemetrisi (2026-11-04) ----------
+  listClampTelemetry(q: ClampTelemetryListQuery = {}): Promise<ClampTelemetryPage> {
+    const p = new URLSearchParams()
+    p.set('page', String(q.page ?? 1))
+    p.set('pageSize', String(q.pageSize ?? 20))
+    if (q.jobId != null) p.set('jobId', String(q.jobId))
+    return http.get<ClampTelemetryPage>(`${this.baseUrl}/api/clamp-telemetry/sessions?${p.toString()}`)
+  }
+
+  getClampTelemetry(id: number): Promise<ClampTelemetrySession> {
+    return http.get<ClampTelemetrySession>(`${this.baseUrl}/api/clamp-telemetry/sessions/${id}`)
   }
 
   // ---------- Usta öğrenme programı / makro (EXCEL 28) ----------

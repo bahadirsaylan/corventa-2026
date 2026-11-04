@@ -19,7 +19,8 @@ interface Props {
 
 type Phase =
   | { kind: 'loading' }
-  | { kind: 'match'; data: SimilarBendingJobResponse }
+  | { kind: 'match'; data: SimilarBendingJobResponse; recipeIndex: number }
+  | { kind: 'no-recipe'; data: SimilarBendingJobResponse }
   | { kind: 'no-match' }
   | { kind: 'error'; message: string }
 
@@ -34,7 +35,9 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
         const resp = await window.corventa.bending.findSimilar(request)
         if (cancelled) return
         if (resp.match) {
-          setPhase({ kind: 'match', data: resp })
+          // 2026-11-04: eşleşen kayıt reçete olamıyorsa (hiç düzeltme yapılmamış / toleransa girmemiş) "hazır" deme
+          const idx = pickRecipeIndex(resp)
+          setPhase(idx == null ? { kind: 'no-recipe', data: resp } : { kind: 'match', data: resp, recipeIndex: idx })
         } else {
           setPhase({ kind: 'no-match' })
         }
@@ -110,6 +113,17 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
             </div>
           )}
 
+          {phase.kind === 'no-recipe' && phase.data.match && (
+            <div className={styles.stateNoMatch}>
+              <p className={styles.noMatchHead}><IconLabel icon="clipboard">{t('KAYIT VAR — İYİLEŞTİRME YOK')}</IconLabel></p>
+              <p className={styles.noMatchDetail}>
+                {t('Bu parametrelerle Job #{id} kaydı var ama o bükümde geri esneme düzeltmesi yapılmamış (veya tolerans içinde bitmemiş). Atlanacak adım yok — büküm klasik akışta çalışacak.', {
+                  id: phase.data.match.id,
+                })}
+              </p>
+            </div>
+          )}
+
           {phase.kind === 'match' && phase.data.match && (
             <div className={styles.stateMatch}>
               <p className={styles.matchHead}><IconLabel icon="energy">{t('AI HIZLANDIRMA HAZIR')}</IconLabel></p>
@@ -139,11 +153,11 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
                   <span className={styles.statNote}>{t('ölçüm atlanacak')}</span>
                 </div>
               </div>
-              {phase.data.iterations.length > 1 && (
+              {phase.data.iterations[phase.recipeIndex] && (
                 <div className={styles.recipePos}>
                   <b>{t('İlk düzeltme:')}</b> {t('Aktif piston direkt')}{' '}
-                  <b>{phase.data.iterations[1].correctionPistonPositionMm.toFixed(2)} mm</b>{' '}
-                  ({phase.data.iterations[1].measurementSide === 'Right'
+                  <b>{phase.data.iterations[phase.recipeIndex].correctionPistonPositionMm.toFixed(2)} mm</b>{' '}
+                  ({phase.data.iterations[phase.recipeIndex].measurementSide === 'Right'
                     ? t('sağ taraftan ölçüm ile devam')
                     : t('sol taraftan ölçüm ile devam')})
                 </div>
@@ -172,4 +186,16 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
       </div>
     </div>
   )
+}
+
+/**
+ * Backend AiRecipeRules ile aynı kural: son ölçüm tolerans içinde + ondan önce gerçek düzeltme (pozisyon > 0);
+ * reçete = başarıdan önceki SON düzeltme. Backend recipeIndex gönderirse o kullanılır (eski backend: istemci hesaplar).
+ */
+function pickRecipeIndex(resp: SimilarBendingJobResponse): number | null {
+  if (resp.recipeIndex !== undefined) return resp.recipeIndex ?? null
+  const its = [...resp.iterations].sort((a, b) => a.iterationOrder - b.iterationOrder)
+  if (its.length < 2 || !its[its.length - 1].isWithinTolerance) return null
+  for (let i = its.length - 2; i >= 0; i--) if (its[i].correctionPistonPositionMm > 0) return i
+  return null
 }

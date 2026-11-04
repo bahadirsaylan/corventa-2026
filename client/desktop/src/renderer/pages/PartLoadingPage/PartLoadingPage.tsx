@@ -22,7 +22,7 @@ import partIllustration from '@/assets/images/blend8-tasvir.png'
 import alertIcon from '@/assets/images/alert.png'
 import touchIcon from '@/assets/images/touch.png'
 
-type Phase = 'idle' | 'loaded' | 'starting' | 'started' | 'error'
+type Phase = 'idle' | 'starting' | 'started' | 'error'
 
 // Pipeline 6 adim — operatore "su an ne yapildigini" net anlatan kisa Turkce etiketler.
 const STEP_LABELS: Record<OrchestrationStep, string> = {
@@ -90,9 +90,10 @@ function PartLoadingContent() {
 
   const sensorActive = !!partSensor && (partSensor.leftPartSensor || partSensor.rightPartSensor)
 
-  // PartLoadingPage'in eski "manuel TOUCH onay" akışı korunur — operatör sensörü
-  // beklemek istemiyorsa onay verir; sensör aktifse de zaten başlatabilir.
-  const canStart = phase === 'loaded' || sensorActive
+  // 2026-11-04 (kullanıcı direktifi): varlık sensörü parçayı GÖRMÜYORSA ileri devam YOK. Eski "TOUCH ile
+  // onayla → başlat" kısayolu kaldırıldı; sensör görmüyorsa tek yol ELLE KONUMLANDIRMA modalı (DB'deki
+  // sıfırlama mesafesi + "yerleştirdim" onayı). Touch/ONAYLA da bu modalı açar.
+  const canStart = sensorActive
   const isBusy = phase === 'starting'
 
   // ELLE KONUMLANDIRMA (sensörsüz) — sensör arızalıyken ayrı yol: modal → taraf + onay → start
@@ -144,7 +145,7 @@ function PartLoadingContent() {
         <img src={readyBanner} alt="Ready" className={styles.bannerImage} />
       </div>
 
-      {phase === 'loaded' && (
+      {phase === 'idle' && sensorActive && (
         <div className={styles.loadedBar}>{t('PARÇA BAŞARIYLA YÜKLENDİ')}</div>
       )}
 
@@ -216,7 +217,11 @@ function PartLoadingContent() {
                 <div className={styles.warningRow}>
                   <img src={alertIcon} alt="Warning" className={styles.warningIcon} />
                   <p>
-                    {t('SENSÖR ARIZALIYSA YÜKLEMEYİ YAPTIKTAN SONRA TOUCH İLE ONAYLAMALISINİZ.')}
+                    {zeroResetMm != null
+                      ? t('SENSÖR PARÇAYI GÖRMEDEN DEVAM EDİLEMEZ. SENSÖR ARIZALIYSA PARÇAYI MERKEZDEN {mm} MM UZAĞA YERLEŞTİRİP ELLE ONAYLAYIN.', {
+                          mm: Number.isInteger(zeroResetMm) ? zeroResetMm : zeroResetMm.toFixed(1),
+                        })
+                      : t('SENSÖR PARÇAYI GÖRMEDEN DEVAM EDİLEMEZ. SENSÖR ARIZALIYSA ELLE KONUMLANDIRIP ONAYLAYIN.')}
                   </p>
                 </div>
               </div>
@@ -270,8 +275,11 @@ function PartLoadingContent() {
             : undefined
         }
         onConfirm={() => {
-          if (phase === 'idle') setPhase('loaded')
-          else if (phase === 'error') setPhase('idle')
+          if (phase === 'error') setPhase('idle')
+          else if (phase !== 'idle') return
+          // Sensör görüyorsa normal başlat; görmüyorsa ileri gidilmez → elle konumlandırma onayı
+          else if (sensorActive) void handleStart()
+          else if (!maintLock.active && params.profileId) setManualOpen(true)
         }}
         confirmDisabled={isBusy || phase === 'started'}
       />

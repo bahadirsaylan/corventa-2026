@@ -93,6 +93,8 @@ const en: Record<string, string> = {
   'HIZLI DÜZENLE': 'QUICK EDIT',
   // Admin Ayarları > ÖLÇÜM & SENSÖR — radyus sensörleri kartı (2026-11-02)
   'RADYUS SENSÖRLERİ': 'RADIUS SENSORS',
+  'SOL RADYUS SENSÖRÜ': 'LEFT RADIUS SENSOR',
+  'SAĞ RADYUS SENSÖRÜ': 'RIGHT RADIUS SENSOR',
   'SIFIRLA: sensörün o anki değeri sıfır kabul edilir ve ofset kaydedilir. TEMİZLE: sıfır kaldırılır, ham değer kullanılır. PLC ENCODER SIFIRLA: sensör sayacı PLC içinde sıfırlanır.':
     'ZERO: the current sensor reading becomes zero and the offset is saved. CLEAR: the zero is removed, the raw value is used. RESET PLC ENCODER: the sensor counter is reset in the PLC.',
   'Büküm devam ediyor — sensör sıfırlanamaz.': 'Bending in progress — sensor cannot be zeroed.',
@@ -104,6 +106,11 @@ const en: Record<string, string> = {
   SIFIRLI: 'ZEROED',
   HAM: 'RAW',
   'PLC ENCODER SIFIRLA': 'RESET PLC ENCODER',
+  // Alt panel — paylaşım açık + internet yok katmanı (2026-11-04)
+  'WİFİ / İNTERNET BAĞLANTISI YOK': 'NO WI-FI / INTERNET CONNECTION',
+  'Reçete paylaşımı açık ama makine internete ulaşamıyor. Wi-Fi / ağ kablosunu kontrol edip bağlantıyı düzeltin.':
+    'Recipe sharing is on but the machine cannot reach the internet. Check the Wi-Fi / network cable and fix the connection.',
+  'TEKRAR KONTROL ET': 'CHECK AGAIN',
 }
 
 export default en

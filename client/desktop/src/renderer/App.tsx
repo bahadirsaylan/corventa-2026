@@ -26,6 +26,7 @@ import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
+import ClampLogsPage from '@/pages/ClampLogsPage/ClampLogsPage'
 import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
 import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
 import BendingCountReportPage from '@/pages/BendingCountReportPage/BendingCountReportPage'
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="settings/users" element={<RequireRole permission="user-management"><UserManagementPage /></RequireRole>} />
             <Route path="settings/operator" element={<OperatorSettingsPage />} />
             <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
+            <Route path="settings/clamp-logs" element={<RequireRole permission="admin-settings"><ClampLogsPage /></RequireRole>} />
             <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />

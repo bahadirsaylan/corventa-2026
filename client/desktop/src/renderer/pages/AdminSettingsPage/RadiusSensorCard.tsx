@@ -31,7 +31,7 @@ interface Props {
 export default function RadiusSensorCard({ bendingActive, onUpdatedOffset }: Props) {
   const t = useT()
   const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [msg, setMsg] = useState<{ side: Side; ok: boolean; text: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<Side | null>(null)
 
   async function run(side: Side, action: Action) {
@@ -43,6 +43,7 @@ export default function RadiusSensorCard({ bendingActive, onUpdatedOffset }: Pro
       if (action === 'clear') onUpdatedOffset(OFFSET_KEY[side], 0)
       const sideText = side === 'left' ? t('SOL') : t('SAĞ')
       setMsg({
+        side,
         ok: true,
         text:
           action === 'zero'
@@ -52,7 +53,7 @@ export default function RadiusSensorCard({ bendingActive, onUpdatedOffset }: Pro
               : t('{side} PLC ENCODER SIFIRLANDI', { side: sideText }),
       })
     } catch (e) {
-      setMsg({ ok: false, text: errMsg(e) })
+      setMsg({ side, ok: false, text: errMsg(e) })
     } finally {
       setBusy(false)
     }
@@ -60,26 +61,33 @@ export default function RadiusSensorCard({ bendingActive, onUpdatedOffset }: Pro
 
   const locked = busy || bendingActive
 
+  // 2026-11-04 — Admin sayfası iki sütunlu (PagedColumns, yarım genişlik). Tek kart içinde iki sütun sığmıyordu
+  // (butonlar taşıyor, kart kayıyordu) → her sensör kendi kartında; kartlar sütunlara yan yana akar.
   return (
-    <div className={styles.card}>
-      <div className={styles.sectionTitle}>{t('RADYUS SENSÖRLERİ')}</div>
-      <p className={styles.sectionNote}>
-        {t('SIFIRLA: sensörün o anki değeri sıfır kabul edilir ve ofset kaydedilir. TEMİZLE: sıfır kaldırılır, ham değer kullanılır. PLC ENCODER SIFIRLA: sensör sayacı PLC içinde sıfırlanır.')}
-      </p>
-      {bendingActive && (
-        <p className={styles.message} data-kind="err">
-          {t('Büküm devam ediyor — sensör sıfırlanamaz.')}
-        </p>
-      )}
-      {msg && (
-        <p className={styles.message} data-kind={msg.ok ? 'ok' : 'err'}>
-          {msg.text}
-        </p>
-      )}
-      <div className={own.grid}>
-        <SensorColumn side="left" locked={locked} onAction={run} onResetEncoder={() => setConfirmReset('left')} />
-        <SensorColumn side="right" locked={locked} onAction={run} onResetEncoder={() => setConfirmReset('right')} />
-      </div>
+    <>
+      {(['left', 'right'] as const).map((side) => (
+        <div key={side} className={`${styles.card} ${own.card}`}>
+          <div className={styles.sectionTitle}>
+            {side === 'left' ? t('SOL RADYUS SENSÖRÜ') : t('SAĞ RADYUS SENSÖRÜ')}
+          </div>
+          {side === 'left' && (
+            <p className={styles.sectionNote}>
+              {t('SIFIRLA: sensörün o anki değeri sıfır kabul edilir ve ofset kaydedilir. TEMİZLE: sıfır kaldırılır, ham değer kullanılır. PLC ENCODER SIFIRLA: sensör sayacı PLC içinde sıfırlanır.')}
+            </p>
+          )}
+          {bendingActive && (
+            <p className={styles.message} data-kind="err">
+              {t('Büküm devam ediyor — sensör sıfırlanamaz.')}
+            </p>
+          )}
+          {msg && msg.side === side && (
+            <p className={styles.message} data-kind={msg.ok ? 'ok' : 'err'}>
+              {msg.text}
+            </p>
+          )}
+          <SensorColumn side={side} locked={locked} onAction={run} onResetEncoder={() => setConfirmReset(side)} />
+        </div>
+      ))}
 
       {confirmReset && (
         <ConfirmModal
@@ -96,7 +104,7 @@ export default function RadiusSensorCard({ bendingActive, onUpdatedOffset }: Pro
           }}
         />
       )}
-    </div>
+    </>
   )
 }
 
@@ -125,7 +133,6 @@ function SensorColumn({
   return (
     <div className={own.col}>
       <div className={own.head}>
-        <span className={own.title}>{left ? t('SOL') : t('SAĞ')}</span>
         <span className={own.badge} data-zeroed={zeroed || undefined}>
           {zeroed ? t('SIFIRLI') : t('HAM')}
         </span>

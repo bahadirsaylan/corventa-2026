@@ -5,6 +5,9 @@ import { ipcRenderer } from 'electron'
 
 import {
   Ipc,
+  type ClampTelemetryListQuery,
+  type ClampTelemetryPage,
+  type ClampTelemetrySession,
   type ErrorSnapshotDetail,
   type ErrorSnapshotListQuery,
   type ErrorSnapshotPage,
@@ -79,6 +82,12 @@ export const serviceApi = {
   /** Tam detay: MachineState + iş özeti + son loglar */
   getErrorSnapshot: (id: number): Promise<ErrorSnapshotDetail> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ErrorSnapshotGet, id),
+
+  // ---------- Sıkıştırma telemetrisi (2026-11-04) ----------
+  listClampTelemetry: (q: ClampTelemetryListQuery = {}): Promise<ClampTelemetryPage> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ClampTelemetryList, q),
+  getClampTelemetry: (id: number): Promise<ClampTelemetrySession> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ClampTelemetryGet, id),
 }
 
 export type ServiceApi = typeof serviceApi

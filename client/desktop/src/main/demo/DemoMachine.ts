@@ -26,6 +26,7 @@ import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
+import { installDemoWindowFit } from '@main/demo/demoWindow'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
 import {
@@ -42,6 +43,8 @@ import {
 const log = childLogger('demo')
 
 export const IS_DEMO = process.env.CORVENTA_DEMO === '1'
+// Paketli demo başka PC'de pencere modunda açılınca ekrana sığdır (demoWindow.ts)
+installDemoWindowFit()
 
 // ─────────────────────────────────────────────────────────────
 // Makine sabitleri (dev DB değerleri)
@@ -107,7 +110,7 @@ const ROTATION_ACCEL = 55 // mm/s² — yumuşak kalkış / duruş (gerçek moto
 const SAFE_BACKWARD_MM = -2.75
 // Gerçek DB (MachineSettings) değerleri
 const SLACK_UPPER_MM = 0.1 // CircularSlackDistanceMm — her paso / ölçüm öncesi üst top boşluk alma
-const ZERO_RESET_MM = 810 // ZeroResetDistanceMm
+const ZERO_RESET_MM = 810 // ZeroResetDistanceMm varsayılanı — çalışırken ayardaki değer kullanılır (zeroResetMm())
 const CLAMP_PRESSURE_BAR = 150 // DefaultClampPressureBar (clamp hedefi strok dışı → basınç modu)
 const ADAPTIVE_JOG_PCT = 20 // BendingHandlers.AdaptiveJogSpeedPercent
 const ADAPTIVE_WINDOW_MM = 10 // RollingWindowSampleCount × PistonSampleIntervalMm
@@ -325,6 +328,12 @@ export class DemoMachine extends EventEmitter {
     } else if (this.activeJobId == null && this.partSensor && !url.includes('/dashboard')) {
       this.togglePartSensor() // büküm başlamadan ekrandan çıkıldı → parça yok
     }
+  }
+
+  /** Sıfırlama mesafesi — sabit değil, (demo) ayarlardaki zeroResetDistanceMm */
+  private zeroResetMm(): number {
+    const v = Number(this.machineSettings.zeroResetDistanceMm)
+    return Number.isFinite(v) && v > 0 ? v : ZERO_RESET_MM
   }
 
   togglePartSensor(): void {
@@ -863,7 +872,7 @@ export class DemoMachine extends EventEmitter {
     }
     // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
     if (this.partSensor) this.togglePartSensor()
-    await this.rotateTo(this.state.rotation.positionMm + (ZERO_RESET_MM - safety), token, 50)
+    await this.rotateTo(this.state.rotation.positionMm + (this.zeroResetMm() - safety), token, 50)
     await this.sleep(400, token)
     this.state.rotation.positionMm = 0
     this.rotationTarget = 0
@@ -1143,7 +1152,7 @@ export class DemoMachine extends EventEmitter {
       await this.sleep(100, token)
     }
     const L1 = plans[0]?.seg.straightAfterMm ?? 0
-    const startPos = ZERO_RESET_MM - safety - Math.max(0, L1 - safety)
+    const startPos = this.zeroResetMm() - safety - Math.max(0, L1 - safety)
     // Parça kenarı sensörden uzaklaşır → sensör pasif (büküm boyunca pasif kalır)
     if (this.partSensor) this.togglePartSensor()
     if (startPos > 0) await this.rotateTo(this.state.rotation.positionMm + fwd * startPos, token, 50)
@@ -1664,6 +1673,10 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/settings/gonye') {
       if (method === 'PUT') this.gonyeSettings = { ...this.gonyeSettings, ...b }
       return this.gonyeSettings
+    }
+    // Sıkıştırma telemetrisi (2026-11-04) — demoda kayıt tutulmaz (gerçek kayıt Bending API'de)
+    if (path === '/api/clamp-telemetry/sessions' && method === 'GET') {
+      return { total: 0, page: 1, pageSize: 20, items: [] }
     }
     if (path === '/api/error-snapshots' && method === 'GET') {
       // Hata anı snapshot'ları — gerçek DataApi sözleşmesiyle birebir (sayfalı özet, en yeni önce)

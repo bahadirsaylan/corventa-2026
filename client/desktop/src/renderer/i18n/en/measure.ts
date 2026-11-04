@@ -47,6 +47,9 @@ const en: Record<string, string> = {
   'Sorun yok — büküm klasik akışta çalışacak, sonuç kaydedilecek.':
     'No problem — bending will run in the standard flow and the result will be saved.',
   'İLK BÜKÜM': 'FIRST BENDING',
+  'KAYIT VAR — İYİLEŞTİRME YOK': 'RECORD FOUND — NO IMPROVEMENT',
+  'Bu parametrelerle Job #{id} kaydı var ama o bükümde geri esneme düzeltmesi yapılmamış (veya tolerans içinde bitmemiş). Atlanacak adım yok — büküm klasik akışta çalışacak.':
+    'Job #{id} exists with these parameters, but no springback correction was made in it (or it did not finish within tolerance). There is no step to skip — bending will run in the classic flow.',
   'Bu parametre kombinasyonunu daha önce bükmedik. Büküm klasik akışta çalışacak ve':
     'This parameter combination has not been bent before. Bending will run in the standard flow and',
   'kayıt oluşturulacak': 'a record will be created',

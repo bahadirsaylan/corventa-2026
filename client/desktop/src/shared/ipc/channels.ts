@@ -80,6 +80,9 @@ export const IpcInvoke = {
   // DataApi — Hata anı snapshot'ları (EXCEL 26, Ayarlar > Hata Raporları)
   ErrorSnapshotList: 'error-snapshot:list',
   ErrorSnapshotGet: 'error-snapshot:get',
+  // Sıkıştırma telemetrisi (2026-11-04)
+  ClampTelemetryList: 'clamp-telemetry:list',
+  ClampTelemetryGet: 'clamp-telemetry:get',
 
   // DataApi — Settings (Ayarlar sayfaları)
   SettingsGetIdentity: 'settings:get-identity',

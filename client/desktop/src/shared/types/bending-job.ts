@@ -193,6 +193,8 @@ export interface SimilarBendingJobResponse {
     recipeUsedFromJobId?: number | null
   } | null
   iterations: SimilarBendingJobIteration[]
+  /** (2026-11-04) Reçete olarak uygulanacak iterasyon indeksi; null/yok = kayıt var ama reçete olamaz (düzeltmesiz / toleransa girmemiş) */
+  recipeIndex?: number | null
 }
 
 // Bending pipeline ilerlemesi (SignalR /machineHub "BendingProgress" event'i).

@@ -45,6 +45,7 @@ const TAB_GONYE = 'GÖNYE & STAGE'
 const TAB_MAINT = 'BAKIM KURALLARI'
 const TAB_TEST = 'TEST'
 const TAB_SENSOR = 'ÖLÇÜM & SENSÖR'
+const TAB_CLAMP = 'SIKIŞTIRMA'
 /** Bakım kuralı değişikliklerinin Change.key öneki (makine ayarlarından ayırmak için) */
 const MAINT_CHANGE_PREFIX = 'maint.'
 const ALL_STAGE_FIELDS = [STAGE_ACTIVE_FIELD, ...STAGE_FIELDS]
@@ -107,6 +108,7 @@ type StageVals = Record<number, Values>
 
 function AdminEditor() {
   const t = useT()
+  const navigate = useNavigate()
   const bendingActive = useBendingActive()
   const tabs = [...MACHINE_SECTIONS.map((g) => g.tab), TAB_GONYE, TAB_MAINT]
   // Cetvel sıfırlama sayfasından geri dönüşte GÖNYE & STAGE sekmesi açık gelsin (navigate state.tab)
@@ -307,6 +309,18 @@ function AdminEditor() {
             setMachine((p) => ({ ...p, [key]: value }))
           }}
         />
+      )}
+      {tab === TAB_CLAMP && (
+        // 2026-11-04 — sıkıştırma telemetrisi (her sıkıştırmanın 100 ms zaman çizgisi + sonrası konum kaybı)
+        <div className={styles.card}>
+          <div className={styles.sectionTitle}>{t('SIKIŞTIRMA KAYITLARI')}</div>
+          <p className={styles.sectionNote}>
+            {t('Her sıkıştırma; konumlar, basınçlar, yağ sıcaklığı ve sonrasındaki üst/alt top kayması ile kaydedilir.')}
+          </p>
+          <button type="button" className={styles.resetBtn} onClick={() => navigate('/settings/clamp-logs')}>
+            {t('KAYITLARI AÇ')}
+          </button>
+        </div>
       )}
       {group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />

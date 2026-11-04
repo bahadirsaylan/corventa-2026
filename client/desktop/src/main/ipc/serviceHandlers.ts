@@ -8,6 +8,7 @@ import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
 import {
   Ipc,
+  type ClampTelemetryListQuery,
   type ErrorSnapshotListQuery,
   type ServiceRequest,
   type ServiceRequestCreateRequest,
@@ -131,5 +132,19 @@ export function registerServiceHandlers(): void {
 
   ipcMain.handle(Ipc.IpcInvoke.ErrorSnapshotGet, async (_evt, id: number) => {
     return dataApi.getErrorSnapshot(id)
+  })
+
+  // ---------- SIKIŞTIRMA TELEMETRİSİ (2026-11-04) ----------
+  ipcMain.handle(Ipc.IpcInvoke.ClampTelemetryList, async (_evt, q?: ClampTelemetryListQuery) => {
+    const page = Math.max(1, Math.round(Number(q?.page) || 1))
+    const pageSize = Math.min(100, Math.max(1, Math.round(Number(q?.pageSize) || 20)))
+    const jobId = Number(q?.jobId)
+    return dataApi.listClampTelemetry({ page, pageSize, jobId: Number.isFinite(jobId) && jobId > 0 ? jobId : undefined })
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.ClampTelemetryGet, async (_evt, id: number) => {
+    const n = Math.round(Number(id))
+    if (!Number.isFinite(n) || n <= 0) throw new Error('id zorunlu')
+    return dataApi.getClampTelemetry(n)
   })
 }
