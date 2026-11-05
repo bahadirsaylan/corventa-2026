@@ -4,7 +4,7 @@ const en: Record<string, string> = {
   // Büküm akışı / ölçü ekranı
   'KALIP KODUNU GİRİNİZ': 'ENTER THE MOLD CODE',
   'KALIP: {code}': 'MOLD: {code}',
-  'Onaylayınca yön seçimi atlanır, kıvırım metodu seçilir': 'On confirm the direction step is skipped and you choose the bending method',
+  'Onaylayınca yön seçimi atlanır, kıvrım metodu seçilir': 'On confirm the direction step is skipped and you choose the bending method',
   'KALIP': 'MOLD',
   'A / B / S KALIPTAN — DEĞİŞTİRİLEMEZ': 'A / B / S FROM MOLD — LOCKED',
   'ÖNERİLEN ADIM (G): {n} mm': 'SUGGESTED STEP (G): {n} mm',

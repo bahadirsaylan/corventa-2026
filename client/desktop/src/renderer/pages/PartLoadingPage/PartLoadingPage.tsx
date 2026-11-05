@@ -212,7 +212,7 @@ function PartLoadingContent() {
             <div className={styles.description}>
               <div className={styles.descriptionText}>
                 <p>
-                  {t('MAKİNA KIVIRIM İÇİN HAZIRLANMIŞTIR. LÜTFEN KIVIRIM PARÇASINI SENSÖRÜN GÖRECEĞİ ŞEKİLDE YÜKLEYİNİZ.')}
+                  {t('MAKİNA KIVRIM İÇİN HAZIRLANMIŞTIR. LÜTFEN KIVRIM PARÇASINI SENSÖRÜN GÖRECEĞİ ŞEKİLDE YÜKLEYİNİZ.')}
                 </p>
                 <div className={styles.warningRow}>
                   <img src={alertIcon} alt="Warning" className={styles.warningIcon} />

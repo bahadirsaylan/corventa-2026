@@ -49,13 +49,13 @@ export default function ServiceHomePage() {
   }, [])
 
   return (
-    <ServicePageShell title="SERVICE & DESTEK MERKEZİ" onBack={() => navigate('/dashboard')}>
+    <ServicePageShell title="SERVİS & DESTEK MERKEZİ" onBack={() => navigate('/dashboard')}>
       <div className={styles.root}>
         {/* ── Üst sıra: Servis / Kurulum / Eğitim ─── */}
         <div className={styles.section}>
           <div className={styles.grid}>
             <CategoryBadge
-              label="SERVİCE"
+              label="SERVİS"
               letter="S"
               onClick={() => navigate('/service/requests')}
             />

@@ -33,7 +33,7 @@ export default function BendingMethodPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>{t('KIVIRIM METODUNU SEÇİNİZ')}</h2>
+      <h2 className={styles.title}>{t('KIVRIM METODUNU SEÇİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>

@@ -21,7 +21,7 @@ export default function AiBendingPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   const resetJob = useBendingJobStore((s) => s.resetJob)
   const profileSubType = useBendingJobStore((s) => s.params.profileSubType)
-  // Kalıp kodu (ÖZEL KIVIRIM PROFİLLERİ, BULUT_API_V2.md §2.4) — profil + A/B/S kalıptan, yön sayfası atlanır
+  // Kalıp kodu (ÖZEL KIVRIM PROFİLLERİ, BULUT_API_V2.md §2.4) — profil + A/B/S kalıptan, yön sayfası atlanır
   const moldCode = useBendingJobStore((s) => s.params.moldCode)
   // Boş boru → dikişli / etli seçimi (dolu boru ve diğer profiller sormaz; kalıpta sorulmaz)
   const [pipeModalOpen, setPipeModalOpen] = useState(false)
@@ -38,7 +38,7 @@ export default function AiBendingPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>{t('KIVIRIM PROFİLİNİ SEÇİNİZ')}</h2>
+      <h2 className={styles.title}>{t('KIVRIM PROFİLİNİ SEÇİNİZ')}</h2>
       {moldCode ? (
         <p className={styles.subtitle}>{t('KALIP: {code}', { code: moldCode })}</p>
       ) : profileId === 'circle' && profileSubType && (

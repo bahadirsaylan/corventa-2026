@@ -23,7 +23,7 @@ const MOCK_DAILY: DayCount[] = Array.from({ length: 30 }, (_, i) => {
 
 const METHOD_STATS = [
   { method: 'TAM DAİRE',   count: 148, pct: 62, color: '#1a6fd4' },
-  { method: 'YAY',         count:  56, pct: 23, color: '#dc2626' },
+  { method: 'ÇOK AÇILI',   count:  56, pct: 23, color: '#dc2626' },
   { method: 'SERPANTİN',   count:  22, pct: 9,  color: '#16a34a' },
   { method: 'SIVAMA',      count:  14, pct: 6,  color: '#f59e0b' },
 ]

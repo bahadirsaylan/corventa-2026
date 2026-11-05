@@ -18,7 +18,7 @@ const MAX_ROWS = 1500
 
 const KIND_LABELS: Record<string, string> = {
   Clamp: 'SIKIŞTIRMA',
-  ClampArc: 'SIKIŞTIRMA (KAVİS)',
+  ClampArc: 'SIKIŞTIRMA (ÇOK AÇILI)',
   ClampCircular: 'SIKIŞTIRMA (DAİRE)',
 }
 

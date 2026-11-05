@@ -61,7 +61,7 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   S: {
     title: 'S :',
     description:
-      'PROFİLE AİT KALINLIK ÖLÇÜSÜDÜR. VALS TOPLARININ DOĞRULUĞUNU VE KIVIRIM KAPASİTESİNİ DEĞERLENDİREREK, YAPAY ZEKANIN DOĞRU ÇALIŞMASINI SAĞLAR.',
+      'PROFİLE AİT KALINLIK ÖLÇÜSÜDÜR. VALS TOPLARININ DOĞRULUĞUNU VE KIVRIM KAPASİTESİNİ DEĞERLENDİREREK, YAPAY ZEKANIN DOĞRU ÇALIŞMASINI SAĞLAR.',
   },
   R: {
     title: 'R :',
@@ -76,7 +76,7 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   ArcLen: {
     title: 'Yay :',
     description:
-      'KIVIRIM YAY UZUNLUĞU (mm). AÇI YERİNE DOĞRUDAN YAY UZUNLUĞU GİRMEK İÇİN KULLANIN (0 < Yay < π·R). BACKEND α = 180 − (Yay·180)/(π·R) İLE α HESAPLAR.',
+      'KIVRIMIN YAY UZUNLUĞUDUR (mm). AÇI YERİNE YAY UZUNLUĞU GİRMEK İÇİN KULLANIN; AÇI OTOMATİK HESAPLANIR. YAY, YARIM ÇEMBERDEN (π·R) KISA OLMALIDIR.',
   },
   P: {
     title: 'P :',
@@ -96,12 +96,12 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   G: {
     title: 'G :',
     description:
-      'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMI EN KISA SÜREDE YAPAR.',
+      'MAKİNE KIVRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMI EN KISA SÜREDE YAPAR.',
   },
   LT: {
     title: 'LT :',
     description:
-      'PROFİLİN TOPLAM UZUNLUĞUDUR (mm). TÜM KIVRIM VE DÜZLÜKLERİN TOPLAMI, GÜVENLİK PAYI KADAR EKSİK OLMALIDIR. MAKİNE KIVIRIMI BU UZUNLUĞA GÖRE PLANLAR.',
+      'PROFİLİN TOPLAM UZUNLUĞUDUR (mm). TÜM KIVRIM VE DÜZLÜKLERİN TOPLAMI, GÜVENLİK PAYI KADAR EKSİK OLMALIDIR. MAKİNE KIVRIMI BU UZUNLUĞA GÖRE PLANLAR.',
   },
 }
 
@@ -384,8 +384,14 @@ export default function ArcMeasurementForm({
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return numpadTarget.field
     const disp =
-      numpadTarget.field === 'Alpha' ? 'α' : numpadTarget.field === 'ArcLen' ? t('Yay') : numpadTarget.field
-    return `Seg ${numpadTarget.index + 1} · ${disp}`
+      numpadTarget.field === 'Alpha'
+        ? t('AÇI (α)')
+        : numpadTarget.field === 'ArcLen'
+          ? t('YAY UZUNLUĞU')
+          : numpadTarget.field === 'R'
+            ? t('YARIÇAP (R)')
+            : t('ÖNCEKİ DÜZ KISIM (L)')
+    return `${t('{n}. KIVRIM', { n: numpadTarget.index + 1 })} · ${disp}`
   })()
 
   // 2026-09-03: 2-aşamalı wizard. Aşama 1'de görseller + ana parametreler; aşama 2'de

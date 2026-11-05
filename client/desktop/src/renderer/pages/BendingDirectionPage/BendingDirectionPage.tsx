@@ -36,7 +36,7 @@ export default function BendingDirectionPage() {
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>{t('KIVIRIM YÖNÜNÜ SEÇİNİZ')}</h2>
+      <h2 className={styles.title}>{t('KIVRIM YÖNÜNÜ SEÇİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>

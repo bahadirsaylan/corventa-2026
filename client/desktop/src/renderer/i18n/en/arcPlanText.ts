@@ -40,6 +40,12 @@ const en: Record<string, string> = {
   'Parça uzatılıp büküme sondan başlanınca sorun ortadan kalkar.': 'Lengthening the part and starting from the end solves this.',
   'Parça uzatılınca sorun ortadan kalkar.': 'Lengthening the part solves this.',
   'Büküme parçanın sonundan başlanınca sorun ortadan kalkar.': 'Starting the bending from the part end solves this.',
+  'AÇI (α)': 'ANGLE (α)',
+  'YAY UZUNLUĞU': 'ARC LENGTH',
+  'YARIÇAP (R)': 'RADIUS (R)',
+  'ÖNCEKİ DÜZ KISIM (L)': 'STRAIGHT BEFORE (L)',
+  'KIVRIMIN YAY UZUNLUĞUDUR (mm). AÇI YERİNE YAY UZUNLUĞU GİRMEK İÇİN KULLANIN; AÇI OTOMATİK HESAPLANIR. YAY, YARIM ÇEMBERDEN (π·R) KISA OLMALIDIR.':
+    'THE ARC LENGTH OF THE BEND (mm). USE IT TO ENTER THE ARC LENGTH INSTEAD OF THE ANGLE; THE ANGLE IS CALCULATED AUTOMATICALLY. THE ARC MUST BE SHORTER THAN A HALF CIRCLE (π·R).',
 }
 
 export default en

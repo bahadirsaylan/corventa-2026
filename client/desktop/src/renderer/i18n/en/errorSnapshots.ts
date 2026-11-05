@@ -72,7 +72,7 @@ const en: Record<string, string> = {
   'HESAPLANIYOR': 'CALCULATING',
   'ÇALIŞIYOR': 'RUNNING',
   'İPTAL EDİLDİ': 'CANCELLED',
-  'KAVİS': 'ARC',
+  'ÇOK AÇILI': 'MULTI-ANGLE',
   'SIVAMA': 'SIVAMA',
   'KAPALI': 'OFF',
   'BAŞLIYOR': 'STARTING',

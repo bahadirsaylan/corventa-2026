@@ -86,7 +86,7 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
 
         {/* ── Field label + display ── */}
         <div className={styles.displayRow}>
-          <span className={styles.fieldLabel}>{fieldLabel}:</span>
+          <span className={styles.fieldLabel}>{fieldLabel}</span>
           <div className={styles.display}>
             <span className={styles.displayValue}>{display || '0'}</span>
           </div>

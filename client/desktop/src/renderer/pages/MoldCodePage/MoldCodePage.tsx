@@ -1,8 +1,8 @@
-// Büküm akışı: ÖZEL KIVIRIM PROFİLLERİ → KALIP KODU (rota /bending/ai/mold-code) — BULUT_API_V2.md §2.4.
+// Büküm akışı: ÖZEL KIVRIM PROFİLLERİ → KALIP KODU (rota /bending/ai/mold-code) — BULUT_API_V2.md §2.4.
 //   1. Kod ekran tuş takımıyla girilir (biçim maskesi + anlık uyarı), SORGULA → DataApi GET /api/molds/{code}
 //   2. Bulunamadı / pasif / lisans iptal-süresi dolmuş → sebebiyle reddedilir; lisans gerekiyorsa LİSANS ANAHTARI
 //   3. Kullanılabilir → onay: profileId + A/B/S kalıptan (ölçü ekranında kilitli), yön sayfası ATLANIR
-//      (bendingDirection = NO_DIRECTION_DEFAULT, boş boru akışıyla aynı), doğrudan KIVIRIM METODU ekranı.
+//      (bendingDirection = NO_DIRECTION_DEFAULT, boş boru akışıyla aynı), doğrudan KIVRIM METODU ekranı.
 //      İş kaydına moldCode yazılır (jobPayloadMapper). Büküm algoritmasına dokunulmaz.
 
 import { useEffect } from 'react'
@@ -77,7 +77,7 @@ export default function MoldCodePage() {
         backTo="/bending/ai"
         confirmDisabled={!canContinue}
         onConfirm={handleConfirm}
-        hint={canContinue ? t('Onaylayınca yön seçimi atlanır, kıvırım metodu seçilir') : undefined}
+        hint={canContinue ? t('Onaylayınca yön seçimi atlanır, kıvrım metodu seçilir') : undefined}
       />
     </div>
   )

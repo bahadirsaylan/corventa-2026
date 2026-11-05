@@ -217,8 +217,6 @@ const en: Record<string, string> = {
   'ÖLÇÜM EN KÜÇÜK EŞİK': 'MEASUREMENT MIN THRESHOLD',
   'Sıkıştırma konum hesabı (üst piston en üstte, alt mekanik limitte).':
     'Clamping position calculation (upper piston at top, lower at mechanical limit).',
-  'KIVIRIM YAY UZUNLUĞU (mm). AÇI YERİNE DOĞRUDAN YAY UZUNLUĞU GİRMEK İÇİN KULLANIN (0 < Yay < π·R). BACKEND α = 180 − (Yay·180)/(π·R) İLE α HESAPLAR.':
-    'BEND ARC LENGTH (mm). USE IT TO ENTER THE ARC LENGTH DIRECTLY INSTEAD OF THE ANGLE (0 < Arc < π·R). THE BACKEND CALCULATES α = 180 − (Arc·180)/(π·R).',
 }
 
 export default en

@@ -128,9 +128,11 @@
   background: #fff;
   border: 2px solid #2a2a2a;
   border-radius: 10px;
-  font-size: 18px;
+  font-size: 16px; /* 2026-11-05: 18px'te yazı kenarlara yapışıyordu */
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  padding: 0 12px;
+  line-height: 1.15;
   color: #2a2a2a;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);

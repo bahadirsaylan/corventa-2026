@@ -46,7 +46,7 @@ const JOB_STATUS_LABELS: Record<string, string> = {
 
 const METHOD_LABELS: Record<string, string> = {
   FullCircle: 'TAM DAİRE',
-  Arc: 'KAVİS',
+  Arc: 'ÇOK AÇILI',
   Serpantin: 'SERPANTİN',
   Sivama: 'SIVAMA',
 }

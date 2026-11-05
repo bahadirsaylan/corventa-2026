@@ -22,22 +22,26 @@
 }
 
 /* ── Display row ────────────────────────────── */
+/* 2026-11-05: etiket ÜSTTE tam genişlik, değer kutusu ALTTA — uzun etiketler ("1. KIVRIM · DÜZ KISIM (L)")
+   eskiden 36 px genişliğe sıkışıp satırlara bölünüyor ve kutuyu kaydırıyordu. */
 .displayRow {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .fieldLabel {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 800;
+  line-height: 1.2;
   color: var(--color-primary, #c0392b);
-  flex-shrink: 0;
-  width: 36px;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .display {
-  flex: 1;
+  flex: none;
   height: 52px;
   background-color: #fff;
   border: 2px solid var(--color-border, #ddd);

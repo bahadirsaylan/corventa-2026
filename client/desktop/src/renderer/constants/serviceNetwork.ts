@@ -31,7 +31,7 @@ export const MACHINE_LOCATION: ServicePoint = {
 /** Yetkili servis noktaları (sol panel + kırmızı pinler) */
 export const SERVICE_POINTS: ServicePoint[] = [
   {
-    name: 'İMAGES SERVİCES',
+    name: 'IMAGES SERVICES',
     city: 'MUSTAFA KEMAL PAŞA / BURSA',
     phone: '+90 (224) 526 13 52',
     web: 'www.imageservices.com',

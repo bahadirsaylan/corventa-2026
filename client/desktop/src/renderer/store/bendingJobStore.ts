@@ -324,7 +324,7 @@ export interface BendingJobParams {
   rollArrangementConfirmed: boolean
 
   /**
-   * Bulut v2 kalıp kodu (BULUT_API_V2.md §2.4) — ÖZEL KIVIRIM PROFİLLERİ → KALIP KODU ekranında seçildi.
+   * Bulut v2 kalıp kodu (BULUT_API_V2.md §2.4) — ÖZEL KIVRIM PROFİLLERİ → KALIP KODU ekranında seçildi.
    * Doluyken: profileId + A/B/S kalıptan gelir ve ölçü ekranında KİLİTLİ; yön sayfası atlanır
    * (bendingDirection = NO_DIRECTION_DEFAULT); iş kaydına moldCode yazılır. Normal profil seçilince null.
    */

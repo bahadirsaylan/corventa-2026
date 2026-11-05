@@ -33,9 +33,9 @@ export function ProfileShape({ id }: { id: string }) {
 interface Props {
   selected: BendingProfileId | null
   onSelect: (id: BendingProfileId) => void
-  /** Kalıp kodu seçili (BULUT_API_V2.md §2.4) — ÖZEL KIVIRIM PROFİLLERİ kutusu seçili görünür */
+  /** Kalıp kodu seçili (BULUT_API_V2.md §2.4) — ÖZEL KIVRIM PROFİLLERİ kutusu seçili görünür */
   specialSelected?: boolean
-  /** ÖZEL KIVIRIM PROFİLLERİ → KALIP KODU ekranı */
+  /** ÖZEL KIVRIM PROFİLLERİ → KALIP KODU ekranı */
   onSpecial?: () => void
 }
 
@@ -62,7 +62,7 @@ export default function BendingProfileGrid({ selected, onSelect, specialSelected
         className={`${styles.specialTile} ${specialSelected ? styles.specialTileSelected : ''}`}
         onClick={onSpecial}
       >
-        <span className={styles.specialText}>{t('ÖZEL KIVIRIM PROFİLLERİ')}</span>
+        <span className={styles.specialText}>{t('ÖZEL KIVRIM PROFİLLERİ')}</span>
       </button>
     </div>
   )

@@ -13,8 +13,7 @@ const en: Record<string, string> = {
   'KONU :': 'TOPIC :',
 
   // ── Ana sayfa + kategori rozetleri ────────────────────
-  'SERVICE & DESTEK MERKEZİ': 'SERVICE & SUPPORT CENTER',
-  SERVİCE: 'SERVICE',
+  'SERVİS & DESTEK MERKEZİ': 'SERVICE & SUPPORT CENTER',
   KURULUM: 'INSTALLATION',
   EĞİTİM: 'TRAINING',
   SORU: 'QUESTION',
