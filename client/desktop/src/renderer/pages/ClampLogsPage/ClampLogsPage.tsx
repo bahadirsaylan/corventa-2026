@@ -81,6 +81,15 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
   const [data, setData] = useState<ClampTelemetryPage | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
+  const [importMsg, setImportMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    window.corventa.system
+      .isDemo()
+      .then(setIsDemo)
+      .catch(() => setIsDemo(false))
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -101,6 +110,22 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
 
   const pages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
+  // DEMO: makinedeki bu ekranın CSV düğmesiyle alınmış kayıtları içe aktar
+  async function importCsv() {
+    setImportMsg(null)
+    try {
+      const r = await window.corventa.service.importClampTelemetryCsv()
+      if (r.cancelled) return
+      setImportMsg(
+        t('{n} kayıt içe aktarıldı', { n: r.imported }) + (r.errors.length ? ` — ${t('hatalı')}: ${r.errors.join(' · ')}` : ''),
+      )
+      setPage(1)
+      void load()
+    } catch (e) {
+      setImportMsg(errMsg(e))
+    }
+  }
+
   return (
     <div className={styles.body}>
       <div className={styles.card}>
@@ -108,10 +133,16 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
           <div className={styles.filterHint}>
             {t('Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Büküm işinde kayıt iş bitene kadar sürer: boşluk alma ve üst/alt topun KOMUTSUZ kayması (sıkışma gevşemesi) her paso için ayrı izlenir. Satıra dokunun: paso tablosu, zaman çizgisi + CSV.')}
           </div>
+          {isDemo && (
+            <button type="button" className={styles.refreshBtn} disabled={loading} onClick={() => void importCsv()}>
+              {t('CSV İÇE AKTAR')}
+            </button>
+          )}
           <button type="button" className={styles.refreshBtn} disabled={loading} onClick={() => void load()}>
             {loading ? t('YÜKLENİYOR…') : t('YENİLE')}
           </button>
         </div>
+        {importMsg && <div className={styles.filterHint}>{importMsg}</div>}
       </div>
 
       {error && (

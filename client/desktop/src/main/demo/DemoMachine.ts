@@ -29,6 +29,7 @@ import { demoMacros } from '@main/demo/demoMacros'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
+import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
 import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
@@ -1696,9 +1697,21 @@ export class DemoMachine extends EventEmitter {
       if (method === 'PUT') this.gonyeSettings = { ...this.gonyeSettings, ...b }
       return this.gonyeSettings
     }
-    // Sıkıştırma telemetrisi (2026-11-04) — demoda kayıt tutulmaz (gerçek kayıt Bending API'de)
+    // Sıkıştırma telemetrisi — demoda canlı kayıt yok; makineden alınan CSV'ler (CSV İÇE AKTAR) gösterilir (2026-11-05)
     if (path === '/api/clamp-telemetry/sessions' && method === 'GET') {
-      return { total: 0, page: 1, pageSize: 20, items: [] }
+      const page = Math.max(1, Number(u.searchParams.get('page') ?? 1) || 1)
+      const pageSize = Math.min(100, Math.max(1, Number(u.searchParams.get('pageSize') ?? 20) || 20))
+      const jobId = Number(u.searchParams.get('jobId')) || undefined
+      return listClampLogs(page, pageSize, jobId)
+    }
+    {
+      const mm = /^\/api\/clamp-telemetry\/sessions\/(\d+)$/.exec(path)
+      if (mm && method === 'GET') {
+        const s = getClampLog(Number(mm[1]))
+        if (!s) demoFail(404, rawUrl, 'Oturum yok')
+        const phase = u.searchParams.get('phase')
+        return phase ? { ...s, samples: s!.samples.filter((x) => x.phase === phase.toUpperCase()) } : s
+      }
     }
     if (path === '/api/error-snapshots' && method === 'GET') {
       // Hata anı snapshot'ları — gerçek DataApi sözleşmesiyle birebir (sayfalı özet, en yeni önce)

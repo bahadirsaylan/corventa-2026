@@ -2,7 +2,9 @@
 // Renderer asla DataApi'ye direkt fetch yapmaz; tüm trafik bu handler'lar üzerinden gider.
 // Cloud uyumu: ileride DataApi yerine cloud proxy konursa, bu dosyada baseUrl değişimi yeter.
 
-import { ipcMain } from 'electron'
+import { BrowserWindow, dialog, ipcMain } from 'electron'
+import { IS_DEMO } from '@main/demo/DemoMachine'
+import { importClampCsvs } from '@main/demo/demoClampTelemetry'
 
 import { childLogger } from '@main/lib/logger'
 import { dataApi } from '@main/services/data-api/DataApiClient'
@@ -146,5 +148,19 @@ export function registerServiceHandlers(): void {
     const n = Math.round(Number(id))
     if (!Number.isFinite(n) || n <= 0) throw new Error('id zorunlu')
     return dataApi.getClampTelemetry(n)
+  })
+
+  // 2026-11-05 — DEMO: makinedeki Sıkıştırma Kayıtları ekranından alınan CSV'leri seç → demo klasörüne kopyala
+  ipcMain.handle(Ipc.IpcInvoke.ClampTelemetryImportCsv, async () => {
+    if (!IS_DEMO) throw new Error('CSV içe aktarma sadece demo modunda')
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+    const opts: Electron.OpenDialogOptions = {
+      title: 'Sıkıştırma kaydı CSV seç',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'CSV', extensions: ['csv'] }],
+    }
+    const r = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    if (r.canceled || r.filePaths.length === 0) return { imported: 0, errors: [], cancelled: true }
+    return { ...importClampCsvs(r.filePaths), cancelled: false }
   })
 }

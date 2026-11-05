@@ -83,6 +83,8 @@ export const IpcInvoke = {
   // Sıkıştırma telemetrisi (2026-11-04)
   ClampTelemetryList: 'clamp-telemetry:list',
   ClampTelemetryGet: 'clamp-telemetry:get',
+  // 2026-11-05 — sadece demo: makineden alınan sıkıştırma CSV'lerini içe aktar
+  ClampTelemetryImportCsv: 'clamp-telemetry:import-csv',
 
   // DataApi — Settings (Ayarlar sayfaları)
   SettingsGetIdentity: 'settings:get-identity',

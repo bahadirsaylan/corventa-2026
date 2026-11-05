@@ -88,6 +88,9 @@ export const serviceApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.ClampTelemetryList, q),
   getClampTelemetry: (id: number): Promise<ClampTelemetrySession> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ClampTelemetryGet, id),
+  /** Sadece demo: makineden alınan sıkıştırma CSV'lerini içe aktar */
+  importClampTelemetryCsv: (): Promise<{ imported: number; errors: string[]; cancelled: boolean }> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ClampTelemetryImportCsv),
 }
 
 export type ServiceApi = typeof serviceApi

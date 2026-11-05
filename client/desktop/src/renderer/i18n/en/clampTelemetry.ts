@@ -55,6 +55,9 @@ const en: Record<string, string> = {
   'ÜST GERİ': 'UPPER BACK',
   'ÜST İLERİ': 'UPPER FWD',
   'S1 MİN/MAKS': 'S1 MIN/MAX',
+  'CSV İÇE AKTAR': 'IMPORT CSV',
+  '{n} kayıt içe aktarıldı': '{n} logs imported',
+  hatalı: 'invalid',
 }
 
 export default en
