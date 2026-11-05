@@ -6,6 +6,7 @@ import { readFile } from 'fs/promises'
 import { join } from 'path'
 
 import { IS_DEMO } from '@main/demo/DemoMachine'
+import { changeDemoZoom, currentDemoZoomPercent, demoWindowFitActive } from '@main/demo/demoWindow'
 import { childLogger } from '@main/lib/logger'
 import { connectivityService } from '@main/services/connectivity/ConnectivityService'
 import { Ipc } from '@shared'
@@ -30,6 +31,13 @@ function resolveUserGuidePath(): string {
 export function registerSystemHandlers(): void {
   // Demo modu mu? (CORVENTA_DEMO=1) — demoya özel ekranlar (tahliye) bununla açılır
   ipcMain.handle(Ipc.IpcInvoke.SystemIsDemo, async () => IS_DEMO)
+
+  // 2026-11-05 — demo pencere boyutu (başka PC'de büyük/küçük görünürse). Demo pencere modu değilse null.
+  ipcMain.handle(Ipc.IpcInvoke.DemoWindowZoom, async (_evt, action?: string) => {
+    if (!demoWindowFitActive()) return null
+    if (action === 'in' || action === 'out' || action === 'reset') return changeDemoZoom(action)
+    return currentDemoZoomPercent()
+  })
 
   // İnternet erişimi (EXCEL 37) — son bilinen durum / şimdi kontrol et (Google generate_204)
   ipcMain.handle(Ipc.IpcInvoke.SystemGetInternetStatus, async () => connectivityService.getStatus())

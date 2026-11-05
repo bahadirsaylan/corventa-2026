@@ -157,6 +157,8 @@ export const IpcInvoke = {
   OpenUserGuide: 'system:open-user-guide',
   ReadUserGuide: 'system:read-user-guide',
   SystemIsDemo: 'system:is-demo',
+  // 2026-11-05 — sadece demo pencere modu: ekran boyutu (in / out / reset / get) → yüzde
+  DemoWindowZoom: 'demo:window-zoom',
   // İnternet erişimi (EXCEL 37) — son durum / şimdi kontrol et
   SystemGetInternetStatus: 'system:get-internet-status',
   SystemCheckInternetNow: 'system:check-internet-now',

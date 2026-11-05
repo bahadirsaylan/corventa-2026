@@ -65,8 +65,13 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false)
   // DEMO (2026-11-04): demo kullanıcıları ekranda yazsın — demoyu açan kişi giriş bilgisini bilmeden girebilsin
   const [isDemo, setIsDemo] = useState(false)
+  // Demo pencere boyutu (yüzde) — null = demo pencere modu değil
+  const [zoomPct, setZoomPct] = useState<number | null>(null)
+  const zoom = (a: 'in' | 'out' | 'reset') =>
+    window.corventa.system.demoZoom(a).then(setZoomPct).catch(() => undefined)
   useEffect(() => {
     window.corventa.system.isDemo().then(setIsDemo).catch(() => undefined)
+    window.corventa.system.demoZoom().then(setZoomPct).catch(() => undefined)
   }, [])
 
   // İlk kurulum gerekiyor mu? DataApi'ye ulaşılamazsa giriş formu + uyarı (giriş denemesi de aynı hatayı verir)
@@ -282,6 +287,23 @@ export default function LoginPage() {
           <p className={styles.demoHint}>
             {t('DEMO — Kullanıcı: operator / admin / super · Şifre: 1234')}
           </p>
+        )}
+
+        {isDemo && zoomPct != null && (
+          <div className={styles.demoZoom}>
+            <span>{t('EKRAN BOYUTU')}</span>
+            <button type="button" className={styles.demoZoomBtn} onClick={() => void zoom('out')} aria-label={t('Küçült')}>
+              −
+            </button>
+            <b>%{zoomPct * 2}</b>
+            <button type="button" className={styles.demoZoomBtn} onClick={() => void zoom('in')} aria-label={t('Büyüt')}>
+              +
+            </button>
+            <button type="button" className={styles.demoZoomBtn} onClick={() => void zoom('reset')}>
+              {t('OTOMATİK')}
+            </button>
+            <small>{t('Her ekranda: Ctrl + / Ctrl − / Ctrl 0')}</small>
+          </div>
         )}
 
         <p className={styles.version}>V.22.01.0186</p>

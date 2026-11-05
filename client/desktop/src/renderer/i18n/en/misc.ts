@@ -112,6 +112,11 @@ const en: Record<string, string> = {
     'Recipe sharing is on but the machine cannot reach the internet. Check the Wi-Fi / network cable and fix the connection.',
   'TEKRAR KONTROL ET': 'CHECK AGAIN',
   'DEMO — Kullanıcı: operator / admin / super · Şifre: 1234': 'DEMO — User: operator / admin / super · Password: 1234',
+  // 2026-11-05 — demo ekran boyutu
+  'EKRAN BOYUTU': 'SCREEN SIZE',
+  Küçült: 'Smaller',
+  Büyüt: 'Larger',
+  'Her ekranda: Ctrl + / Ctrl − / Ctrl 0': 'On every screen: Ctrl + / Ctrl − / Ctrl 0',
 }
 
 export default en

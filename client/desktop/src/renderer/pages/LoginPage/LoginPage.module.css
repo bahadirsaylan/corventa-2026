@@ -162,3 +162,36 @@
   font-weight: 800;
   text-align: center;
 }
+
+/* 2026-11-05 — demo: ekran boyutu (başka PC'de büyük/küçük görünürse) */
+.demoZoom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 18px;
+  font-weight: 800;
+}
+.demoZoom small {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.demoZoomBtn {
+  min-width: 56px;
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid #92400e;
+  border-radius: 8px;
+  background: #fff;
+  color: #92400e;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+}
