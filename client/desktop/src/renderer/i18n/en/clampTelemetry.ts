@@ -36,6 +36,25 @@ const en: Record<string, string> = {
   FAZ: 'PHASE',
   'KAYMA Ü/A': 'DRIFT U/L',
   'İlk {n} satır gösteriliyor — tamamı için CSV': 'Showing the first {n} rows — CSV has all',
+  // 2026-11-05 — iş boyunca izleme
+  'Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Büküm işinde kayıt iş bitene kadar sürer: boşluk alma ve üst/alt topun KOMUTSUZ kayması (sıkışma gevşemesi) her paso için ayrı izlenir. Satıra dokunun: paso tablosu, zaman çizgisi + CSV.':
+    'During every clamp the 4 piston positions, rotation and all oil data are recorded every 100 ms. In a bending job the log continues until the job ends: slack take-up and UNCOMMANDED upper/lower roll movement (clamp loosening) are tracked per pass. Tap a row: pass table, timeline + CSV.',
+  'İŞTE ÜST GERİ / BOŞLUK': 'JOB UPPER BACK / SLACK',
+  '{n}×': '{n}×',
+  'İŞ İZLEME': 'JOB WATCH',
+  'KOMUTSUZ ÜST GERİ (EN FAZLA)': 'UNCOMMANDED UPPER BACK (MAX)',
+  'KOMUTSUZ ÜST İLERİ (EN FAZLA)': 'UNCOMMANDED UPPER FORWARD (MAX)',
+  'KOMUTSUZ ALT': 'UNCOMMANDED LOWER',
+  'MİN S1 (TUTARKEN)': 'MIN S1 (HOLDING)',
+  'BOŞLUK ALMA': 'SLACK TAKE-UP',
+  '{n} kez · toplam {mm} mm': '{n} times · total {mm} mm',
+  'ÜST KOMUT': 'UPPER CMD',
+  'PASO ÖZETİ — boşluk alma ve sıkışma (komutsuz kayma, − = üst top geri itildi)':
+    'PASS SUMMARY — slack take-up and clamping (uncommanded drift, − = upper roll pushed back)',
+  'BOŞLUK KOMUT/GERÇEK': 'SLACK CMD/REAL',
+  'ÜST GERİ': 'UPPER BACK',
+  'ÜST İLERİ': 'UPPER FWD',
+  'S1 MİN/MAKS': 'S1 MIN/MAX',
 }
 
 export default en

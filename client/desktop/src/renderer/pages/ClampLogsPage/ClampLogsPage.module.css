@@ -29,3 +29,23 @@
 tr[data-phase='AFTER'] td { background: #f5f3ff; }
 td[data-moving] { color: #1d4ed8; font-weight: 800; }
 .noteRow td { background: #fff7ed; font-size: 12px; }
+
+/* 2026-11-05 — iş izlemesi */
+.cmd {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pasoTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+.pasoLabel {
+  font-size: 12px;
+  max-width: 330px;
+}

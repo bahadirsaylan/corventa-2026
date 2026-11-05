@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { translateProgress, useLang, useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
-import type { ClampTelemetryPage, ClampTelemetryPhase, ClampTelemetrySample, ClampTelemetrySession } from '@shared'
+import type { ClampTelemetryPage, ClampTelemetryPasoSummary, ClampTelemetryPhase, ClampTelemetrySample, ClampTelemetrySession } from '@shared'
 import styles from '@/pages/ErrorReportsPage/ErrorReportsPage.module.css'
 import own from './ClampLogsPage.module.css'
 
@@ -106,7 +106,7 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
       <div className={styles.card}>
         <div className={styles.filterRow}>
           <div className={styles.filterHint}>
-            {t('Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Sıkıştırmadan sonra üst/alt topun konum kaybı (KAYMA) izlenir. Satıra dokunun: zaman çizgisi + CSV.')}
+            {t('Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Büküm işinde kayıt iş bitene kadar sürer: boşluk alma ve üst/alt topun KOMUTSUZ kayması (sıkışma gevşemesi) her paso için ayrı izlenir. Satıra dokunun: paso tablosu, zaman çizgisi + CSV.')}
           </div>
           <button type="button" className={styles.refreshBtn} disabled={loading} onClick={() => void load()}>
             {loading ? t('YÜKLENİYOR…') : t('YENİLE')}
@@ -133,12 +133,13 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
               <th className={styles.thNum}>S1</th>
               <th className={styles.thNum}>{t('YAĞ')}</th>
               <th className={styles.thNum}>{t('KAYMA ÜST/ALT')}</th>
+              <th className={styles.thNum}>{t('İŞTE ÜST GERİ / BOŞLUK')}</th>
             </tr>
           </thead>
           <tbody>
             {data && data.items.length === 0 && (
               <tr>
-                <td colSpan={8} className={styles.empty}>{t('Henüz sıkıştırma kaydı yok')}</td>
+                <td colSpan={9} className={styles.empty}>{t('Henüz sıkıştırma kaydı yok')}</td>
               </tr>
             )}
             {data?.items.map((s) => (
@@ -164,6 +165,17 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
                   <span className={own.drift} data-kind={driftKind(s.maxUpperDriftMm)}>{n2(s.maxUpperDriftMm, 3)}</span>
                   {' / '}
                   <span className={own.drift} data-kind={driftKind(s.maxLowerDriftMm)}>{n2(s.maxLowerDriftMm, 3)}</span>
+                </td>
+                <td className={`${styles.tdMono} ${styles.tdNum}`}>
+                  {s.slackCount != null ? (
+                    <>
+                      <span className={own.drift} data-kind={driftKind(s.maxUpperRetreatMm)}>{n2(s.maxUpperRetreatMm, 3)}</span>
+                      {' / '}
+                      {t('{n}×', { n: s.slackCount })} {n2(s.slackTotalMm, 2)}
+                    </>
+                  ) : (
+                    '—'
+                  )}
                 </td>
               </tr>
             ))}
@@ -214,6 +226,13 @@ function SessionDetail({ id }: { id: number }) {
       return s?.settingsJson ? (JSON.parse(s.settingsJson) as Record<string, unknown>) : null
     } catch {
       return null
+    }
+  }, [s])
+  const pasos = useMemo<ClampTelemetryPasoSummary[]>(() => {
+    try {
+      return s?.pasoSummaryJson ? (JSON.parse(s.pasoSummaryJson) as ClampTelemetryPasoSummary[]) : []
+    } catch {
+      return []
     }
   }, [s])
 
@@ -268,6 +287,16 @@ function SessionDetail({ id }: { id: number }) {
           <Kv label={t('İZLEME (SONRASI)')} value={`${n2(s.postWatchSec, 0)} sn`} />
           <Kv label={t('MAKS KAYMA ÜST/ALT')} value={`${n2(s.maxUpperDriftMm, 3)} / ${n2(s.maxLowerDriftMm, 3)} mm`} kind={driftKind(Math.max(Math.abs(s.maxUpperDriftMm ?? 0), Math.abs(s.maxLowerDriftMm ?? 0)))} />
           <Kv label={t('SON KAYMA ÜST/ALT')} value={`${n2(s.finalUpperDriftMm, 3)} / ${n2(s.finalLowerDriftMm, 3)} mm`} />
+          {s.slackCount != null && (
+            <>
+              <Kv label={t('İŞ İZLEME')} value={s.jobEndedAt && s.clampEndedAt ? `${((parseUtc(s.jobEndedAt) - parseUtc(s.clampEndedAt)) / 1000).toFixed(0)} sn` : t('SÜRÜYOR')} />
+              <Kv label={t('KOMUTSUZ ÜST GERİ (EN FAZLA)')} value={`${n2(s.maxUpperRetreatMm, 3)} mm`} kind={driftKind(s.maxUpperRetreatMm)} />
+              <Kv label={t('KOMUTSUZ ÜST İLERİ (EN FAZLA)')} value={`${n2(s.maxUpperAdvanceMm, 3)} mm`} kind={driftKind(s.maxUpperAdvanceMm)} />
+              <Kv label={t('KOMUTSUZ ALT')} value={`${n2(s.maxLowerUncmdMm, 3)} mm`} kind={driftKind(s.maxLowerUncmdMm)} />
+              <Kv label={t('MİN S1 (TUTARKEN)')} value={`${ni(s.minS1HoldBar)} bar`} />
+              <Kv label={t('BOŞLUK ALMA')} value={t('{n} kez · toplam {mm} mm', { n: s.slackCount, mm: n2(s.slackTotalMm, 3) })} />
+            </>
+          )}
         </div>
         {settings && (
           <div className={own.settings}>
@@ -280,10 +309,12 @@ function SessionDetail({ id }: { id: number }) {
         )}
       </div>
 
+      {pasos.length > 0 && <PasoTable pasos={pasos} />}
+
       <div className={styles.viewTabs}>
-        {(['ALL', 'CLAMP', 'AFTER', 'NOTE'] as View[]).map((v) => (
+        {(['ALL', 'CLAMP', 'JOB', 'AFTER', 'NOTE'] as View[]).map((v) => (
           <button key={v} type="button" className={styles.viewTab} data-on={view === v || undefined} onClick={() => setView(v)}>
-            {v === 'ALL' ? t('TÜMÜ') : v === 'CLAMP' ? t('SIKIŞTIRMA') : v === 'AFTER' ? t('SONRASI') : t('NOTLAR')}
+            {v === 'ALL' ? t('TÜMÜ') : v === 'CLAMP' ? t('SIKIŞTIRMA') : v === 'JOB' ? t('BÜKÜM') : v === 'AFTER' ? t('SONRASI') : t('NOTLAR')}
           </button>
         ))}
         <button type="button" className={styles.refreshBtn} onClick={() => void exportCsv()}>
@@ -307,6 +338,7 @@ function SessionDetail({ id }: { id: number }) {
                 <th className={styles.thNum}>S2</th>
                 <th className={styles.thNum}>°C</th>
                 <th className={styles.thNum}>{t('KAYMA Ü/A')}</th>
+                <th>{t('ÜST KOMUT')}</th>
               </tr>
             </thead>
             <tbody>
@@ -314,7 +346,7 @@ function SessionDetail({ id }: { id: number }) {
                 r.phase === 'NOTE' ? (
                   <tr key={r.id} className={own.noteRow}>
                     <td className={`${styles.tdMono} ${styles.tdNum}`}>{r.elapsedMs}</td>
-                    <td colSpan={9} className={styles.tdLog}>
+                    <td colSpan={10} className={styles.tdLog}>
                       {t(translateProgress(r.note ?? '', lang))}
                     </td>
                   </tr>
@@ -324,7 +356,7 @@ function SessionDetail({ id }: { id: number }) {
               )}
               {rows.length > MAX_ROWS && (
                 <tr>
-                  <td colSpan={10} className={styles.empty}>
+                  <td colSpan={11} className={styles.empty}>
                     {t('İlk {n} satır gösteriliyor — tamamı için CSV', { n: MAX_ROWS })}
                   </td>
                 </tr>
@@ -342,7 +374,7 @@ function SampleRow({ r }: { r: ClampTelemetrySample }) {
   return (
     <tr data-phase={r.phase}>
       <td className={`${m} ${own.num}`}>{r.elapsedMs}</td>
-      <td className={own.phase}>{r.phase === 'CLAMP' ? 'SIK' : 'SON'}</td>
+      <td className={own.phase}>{r.phase === 'CLAMP' ? 'SIK' : r.phase === 'JOB' ? 'İŞ' : 'SON'}</td>
       <td className={`${m} ${own.num}`} data-moving={r.upperMoving || undefined}>{r.upperMm.toFixed(2)}</td>
       <td className={`${m} ${own.num}`} data-moving={r.lowerMoving || undefined}>{r.lowerMm.toFixed(2)}</td>
       <td className={`${m} ${own.num}`}>{r.leftMm.toFixed(2)}</td>
@@ -351,7 +383,16 @@ function SampleRow({ r }: { r: ClampTelemetrySample }) {
       <td className={`${m} ${own.num}`}>{r.s2Bar}</td>
       <td className={`${m} ${own.num}`}>{r.oilTempC}</td>
       <td className={`${m} ${own.num}`}>
-        {r.upperDriftMm != null ? (
+        {r.phase === 'JOB' ? (
+          r.upperUncmdMm != null || r.lowerUncmdMm != null ? (
+            <>
+              <span className={own.drift} data-kind={driftKind(r.upperUncmdMm)}>{r.upperUncmdMm != null ? r.upperUncmdMm.toFixed(3) : '—'}</span>/
+              <span className={own.drift} data-kind={driftKind(r.lowerUncmdMm)}>{r.lowerUncmdMm != null ? r.lowerUncmdMm.toFixed(3) : '—'}</span>
+            </>
+          ) : (
+            '—'
+          )
+        ) : r.upperDriftMm != null ? (
           <>
             <span className={own.drift} data-kind={driftKind(r.upperDriftMm)}>{r.upperDriftMm.toFixed(3)}</span>/
             <span className={own.drift} data-kind={driftKind(r.lowerDriftMm)}>{(r.lowerDriftMm ?? 0).toFixed(3)}</span>
@@ -360,7 +401,65 @@ function SampleRow({ r }: { r: ClampTelemetrySample }) {
           '—'
         )}
       </td>
+      <td className={own.cmd}>{r.upperCmd ?? ''}</td>
     </tr>
+  )
+}
+
+/** İş izlemesi: her paso için boşluk alma ve komutsuz kayma özeti */
+function PasoTable({ pasos }: { pasos: ClampTelemetryPasoSummary[] }) {
+  const t = useT()
+  const lang = useLang()
+  return (
+    <div className={styles.card}>
+      <div className={own.pasoTitle}>{t('PASO ÖZETİ — boşluk alma ve sıkışma (komutsuz kayma, − = üst top geri itildi)')}</div>
+      <table className={`${styles.table} ${own.samples}`}>
+        <thead>
+          <tr>
+            <th>{t('ADIM')}</th>
+            <th className={styles.thNum}>{t('SÜRE')}</th>
+            <th className={styles.thNum}>{t('BOŞLUK KOMUT/GERÇEK')}</th>
+            <th className={styles.thNum}>{t('ÜST GERİ')}</th>
+            <th className={styles.thNum}>{t('ÜST İLERİ')}</th>
+            <th className={styles.thNum}>{t('ALT')}</th>
+            <th className={styles.thNum}>{t('S1 MİN/MAKS')}</th>
+            <th className={styles.thNum}>{t('ROTASYON')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pasos.map((p) => (
+            <tr key={p.no}>
+              <td className={own.pasoLabel}>{t(translateProgress(p.label, lang))}</td>
+              <td className={`${own.mono} ${own.num}`}>{p.durationSec != null ? `${p.durationSec.toFixed(1)} sn` : '…'}</td>
+              <td className={`${own.mono} ${own.num}`}>
+                {p.slackCount > 0 ? (
+                  <span className={own.drift} data-kind={p.slackCmdMm > 0 && Math.abs(p.slackRealMm) < p.slackCmdMm * 0.5 ? 'warn' : undefined}>
+                    {p.slackCmdMm.toFixed(2)} / {p.slackRealMm.toFixed(3)}
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </td>
+              <td className={`${own.mono} ${own.num}`}>
+                <span className={own.drift} data-kind={driftKind(p.maxUpperRetreatMm)}>{p.maxUpperRetreatMm.toFixed(3)}</span>
+              </td>
+              <td className={`${own.mono} ${own.num}`}>
+                <span className={own.drift} data-kind={driftKind(p.maxUpperAdvanceMm)}>{p.maxUpperAdvanceMm.toFixed(3)}</span>
+              </td>
+              <td className={`${own.mono} ${own.num}`}>
+                <span className={own.drift} data-kind={driftKind(p.maxLowerUncmdMm)}>{p.maxLowerUncmdMm.toFixed(3)}</span>
+              </td>
+              <td className={`${own.mono} ${own.num}`}>
+                {p.minS1Bar ?? '—'} / {p.maxS1Bar ?? '—'}
+              </td>
+              <td className={`${own.mono} ${own.num}`}>
+                {p.rotStartMm.toFixed(0)} → {p.rotEndMm != null ? p.rotEndMm.toFixed(0) : '…'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
@@ -384,23 +483,27 @@ function buildCsv(s: ClampTelemetrySession): string {
   lines.push(
     `# Oturum #${s.id};${s.kind};İş #${s.bendingJobId ?? ''};${fmtDateTime(s.startedAt)};Sonuç ${s.success === true ? 'OK' : s.success === false ? 'HATA' : '?'};` +
       `Hedef ${f(s.targetPositionMm, 2)} mm;Bitiş üst ${f(s.endUpperMm)} alt ${f(s.endLowerMm)} mm;S1 ${s.endS1Bar ?? ''} bar;yağ ${s.endOilTempC ?? ''} °C;` +
-      `Maks kayma üst ${f(s.maxUpperDriftMm)} alt ${f(s.maxLowerDriftMm)} mm;${esc(s.errorMessage)}`,
+      `Maks kayma üst ${f(s.maxUpperDriftMm)} alt ${f(s.maxLowerDriftMm)} mm;` +
+      `Komutsuz üst geri ${f(s.maxUpperRetreatMm)} ileri ${f(s.maxUpperAdvanceMm)} alt ${f(s.maxLowerUncmdMm)} mm;` +
+      `Min S1 (tutarken) ${s.minS1HoldBar ?? ''} bar;Boşluk alma ${s.slackCount ?? ''} kez ${f(s.slackTotalMm)} mm;${esc(s.errorMessage)}`,
   )
+  if (s.pasoSummaryJson) lines.push(`# Paso özeti;${esc(s.pasoSummaryJson)}`)
   if (s.settingsJson) lines.push(`# Ayarlar;${esc(s.settingsJson)}`)
   lines.push(
-    'ms;saat;faz;ust_mm;alt_mm;sol_mm;sag_mm;ust_hareket;ust_konumda;alt_hareket;rotasyon_mm;S1_bar;S2_bar;S1_akis;S2_akis;yag_C;nem_%;seviye_%;motor;sol_parca;sag_parca;ust_kayma_mm;alt_kayma_mm;not',
+    'ms;saat;faz;ust_mm;alt_mm;sol_mm;sag_mm;ust_hareket;ust_konumda;alt_hareket;rotasyon_mm;S1_bar;S2_bar;S1_akis;S2_akis;yag_C;nem_%;seviye_%;motor;sol_parca;sag_parca;ust_kayma_mm;alt_kayma_mm;ust_komut;alt_komut;ust_komutsuz_mm;alt_komutsuz_mm;adim;not',
   )
   for (const r of s.samples) {
     const time = fmtDateTime(r.capturedAt).slice(11)
     if (r.phase === 'NOTE') {
-      lines.push(`${r.elapsedMs};${time};NOTE${';'.repeat(21)}${esc(r.note)}`)
+      lines.push(`${r.elapsedMs};${time};NOTE${';'.repeat(26)}${esc(r.note)}`)
       continue
     }
     lines.push(
       [
         r.elapsedMs, time, r.phase, f(r.upperMm), f(r.lowerMm), f(r.leftMm), f(r.rightMm), b(r.upperMoving), b(r.upperInPosition),
         b(r.lowerMoving), f(r.rotationMm, 2), r.s1Bar, r.s2Bar, r.s1FlowCms, r.s2FlowCms, r.oilTempC, r.oilHumidityPercent,
-        r.oilLevelPercent, r.motorState, b(r.leftPartSensor), b(r.rightPartSensor), f(r.upperDriftMm), f(r.lowerDriftMm), '',
+        r.oilLevelPercent, r.motorState, b(r.leftPartSensor), b(r.rightPartSensor), f(r.upperDriftMm), f(r.lowerDriftMm),
+        esc(r.upperCmd ?? null), esc(r.lowerCmd ?? null), f(r.upperUncmdMm), f(r.lowerUncmdMm), esc(r.step ?? null), '',
       ].join(';'),
     )
   }
