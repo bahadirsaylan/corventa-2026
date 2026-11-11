@@ -18,8 +18,6 @@ import styles from './PartLoadingPage.module.css'
 import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import readyBanner from '@/assets/images/itsready.png'
-import partIllustration from '@/assets/images/blend8-tasvir.png'
-import alertIcon from '@/assets/images/alert.png'
 import touchIcon from '@/assets/images/touch.png'
 
 type Phase = 'idle' | 'starting' | 'started' | 'error'
@@ -58,7 +56,7 @@ function PartLoadingContent() {
 
   const [phase, setPhase] = useState<Phase>('idle')
   const [activeStep, setActiveStep] = useState<OrchestrationStep | null>(null)
-  const [errorStep, setErrorStep] = useState<string | null>(null)
+  const [, setErrorStep] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   // bendingMode'a gore useAutoCorrect SABIT (operator toggle'i kaldirildi):
   //   mode='ai'   → true  (tam otomatik + geri esneme duzeltmesi)
@@ -154,6 +152,10 @@ function PartLoadingContent() {
         <div className={styles.loadedBar}>{t('PARÇA BAŞARIYLA YÜKLENDİ')}</div>
       )}
 
+      {phase === 'idle' && !sensorActive && !manualSide && !maintLock.active && (
+        <div className={styles.loadedBar} style={{ color: '#ffd166' }}>{t('SENSÖR PARÇAYI GÖRMÜYOR')}</div>
+      )}
+
       {phase === 'idle' && !sensorActive && manualSide && (
         <div className={styles.loadedBar} style={{ background: '#f59e0b', color: '#1f2937' }}>
           {t('PARÇA ELLE KONUMLANDIRILDI — SENSÖR ARAMASI YAPILMAYACAK')}
@@ -165,7 +167,8 @@ function PartLoadingContent() {
 
       {phase === 'error' && errorMessage && (
         <div className={styles.loadedBar} style={{ color: '#ff6b6b' }}>
-          {errorStep ? `[${errorStep.toUpperCase()}] ` : ''}
+          {/* 2026-11-12: teknik adım kodu ([MAPPING] vb.) operatöre gösterilmez */}
+          {t('BÜKÜM BAŞLATILAMADI')}:{' '}
           {/* Backend mesajı (ör. güvenlik engeli) önce translateProgress kuralıyla, yoksa sözlükten */}
           {t(translateProgress(errorMessage, lang))}
         </div>
@@ -226,55 +229,19 @@ function PartLoadingContent() {
             <span className={styles.startLabel}>{t('BAŞLAT')}</span>
           </button>
         ) : (
-          <>
-            <div className={styles.description}>
-              <div className={styles.descriptionText}>
-                <p>
-                  {t('MAKİNA KIVRIM İÇİN HAZIRLANMIŞTIR. LÜTFEN KIVRIM PARÇASINI SENSÖRÜN GÖRECEĞİ ŞEKİLDE YÜKLEYİNİZ.')}
-                </p>
-                <div className={styles.warningRow}>
-                  <img src={alertIcon} alt="Warning" className={styles.warningIcon} />
-                  <p>
-                    {zeroResetMm != null
-                      ? t('SENSÖR PARÇAYI GÖRMEDEN DEVAM EDİLEMEZ. SENSÖR ARIZALIYSA PARÇAYI MERKEZDEN {mm} MM UZAĞA YERLEŞTİRİP ELLE ONAYLAYIN.', {
-                          mm: Number.isInteger(zeroResetMm) ? zeroResetMm : zeroResetMm.toFixed(1),
-                        })
-                      : t('SENSÖR PARÇAYI GÖRMEDEN DEVAM EDİLEMEZ. SENSÖR ARIZALIYSA ELLE KONUMLANDIRIP ONAYLAYIN.')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.illustrationBox}>
-              <img
-                src={partIllustration}
-                alt="Part loading illustration"
-                className={styles.illustration}
-              />
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Sensör arızalıysa elle konumlandırma — alt paneldeki mesafe notunun hemen üstünde */}
-      {/* Başlatılırken de görünür kalır (gri/pasif) — alt kısım boş kalmasın */}
-      {phase !== 'started' && (
-        <div className={styles.manualRow}>
+          // 2026-11-12: sensör parçayı görmüyorsa KIVRIMI BAŞLAT yerine SENSÖRÜ EL İLE ONAYLA — onaylanınca
+          // (ELLE KONUMLANDIRMA penceresi) KIVRIMI BAŞLAT gelir.
           <button
-            type="button"
-            className={styles.manualBtn}
-            disabled={isBusy || !params.profileId || maintLock.active}
+            className={`${styles.startBtn} ${styles.manualConfirmBtn}`}
+            disabled={!params.profileId}
             onClick={() => setManualOpen(true)}
           >
-            {maintLock.active ? (
-              <Icon name="lock" size={26} className={styles.manualIconLocked} />
-            ) : (
-              <Icon name="warning" size={26} className={styles.manualIcon} />
-            )}
-            {t('SENSÖR ÇALIŞMIYOR — ELLE KONUMLANDIR')}
+            <span className={styles.startLabel}>{t('SENSÖRÜ EL İLE')}</span>
+            <img src={touchIcon} alt="touch" className={styles.startIcon} />
+            <span className={styles.startLabel}>{t('ONAYLA')}</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {manualOpen && (
         <ManualPlacementModal

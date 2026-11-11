@@ -396,3 +396,8 @@
   letter-spacing: 0.04em;
   cursor: pointer;
 }
+
+/* 2026-11-12 — sensör pasifken büyük düğme: SENSÖRÜ EL İLE ONAYLA (sarı) */
+.manualConfirmBtn {
+  background-color: #fcd679;
+}
