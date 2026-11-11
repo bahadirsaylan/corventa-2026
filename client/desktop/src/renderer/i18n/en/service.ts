@@ -224,6 +224,15 @@ const en: Record<string, string> = {
   'SERVİS TALEBİ SORGULA': 'TRACK SERVICE REQUEST',
   'Ana ekran': 'Home screen',
   '© OpenStreetMap katkıda bulunanlar': '© OpenStreetMap contributors',
+
+  // ── Talep detayı — tarihler / yanıt ───────────────────
+  BAŞLAMA: 'STARTED',
+  TAMAMLANMA: 'COMPLETED',
+  'YANIT SÜRESİ': 'RESPONSE TIME',
+  YANITLAYAN: 'RESPONDED BY',
+  YANIT: 'RESPONSE',
+  '{d} gün {h} sa': '{d} d {h} h',
+  '{h} sa {m} dk': '{h} h {m} min',
 }
 
 export default en

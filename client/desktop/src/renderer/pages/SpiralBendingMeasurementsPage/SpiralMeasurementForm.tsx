@@ -68,7 +68,8 @@ const FIELD_INFO: Record<SpiralFieldKey, FieldInfo> = {
 }
 
 const LEFT_FIELDS:  SpiralNumericKey[] = ['A', 'B', 'S', 'L']
-const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'H', 'Y']
+// Sağ sütun: yönteme özel alanlar (R, Y) → H (hız) en sonda — tüm formlarda aynı yerde
+const RIGHT_FIELDS: SpiralFieldKey[]   = ['R', 'Y', 'H']
 
 interface Props {
   values: SpiralMeasurementValues

@@ -19,6 +19,7 @@ import {
 } from '@/services/macroAxes'
 import { isPneumaticAxis, type Macro, type MacroStep } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
+import StatusBar from '@/components/StatusBar/StatusBar'
 import MacroStepDialog from './MacroStepDialog'
 import styles from './Macro.module.css'
 
@@ -142,6 +143,7 @@ export default function MacroEditorPage() {
       <div className={styles.page}>
         <ManuelHeader onDown={() => navigate('/bending/macros')} />
         <div className={styles.empty}>{t(error ?? 'Makro bulunamadı.')}</div>
+        <StatusBar backTo="/bending/macros" confirmDisabled />
       </div>
     )
   }
@@ -263,6 +265,9 @@ export default function MacroEditorPage() {
           </button>
         </div>
       </div>
+
+      {/* Standart geri — kaydedilmemiş değişiklik varsa çıkış onayı (leave) */}
+      <StatusBar onBack={leave} confirmDisabled />
 
       {dialog?.kind === 'name' && (
         <KeyboardModal

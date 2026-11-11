@@ -16,6 +16,7 @@ import { useCan } from '@/stores/sessionStore'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import type { MacroSummary } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
+import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './Macro.module.css'
 
 const dateFmt = new Intl.DateTimeFormat('tr-TR', {
@@ -173,6 +174,8 @@ export default function MacroListPage() {
           </button>
         </div>
       </div>
+
+      <StatusBar backTo="/bending/manual-mode" confirmDisabled />
 
       {deleteOpen && selected && (
         <ConfirmModal

@@ -37,8 +37,8 @@
 }
 
 .tileSelected {
-  background-color: #c97070;
-  outline: 3px solid #2a2a2a;
+  background-color: var(--color-selected);
+  outline: 3px solid var(--color-selected-border);
   outline-offset: -3px;
 }
 
@@ -84,8 +84,8 @@
 
 /* Kalıp kodu seçili */
 .specialTileSelected {
-  background-color: #c97070;
-  outline: 3px solid #2a2a2a;
+  background-color: var(--color-selected);
+  outline: 3px solid var(--color-selected-border);
   outline-offset: -3px;
 }
 

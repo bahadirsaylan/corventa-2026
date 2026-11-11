@@ -134,6 +134,14 @@ const en: Record<string, string> = {
     'Correction failed for this segment. Choose one of the two options below:',
   'Tüm Bükümü Bitir': 'Finish All Bending',
   'Bu Segmenti Atla': 'Skip This Segment',
+
+  // ── ArcMeasurementForm — canlı plan uyarısı (ONAYLA öncesi) ──
+  "İlk kıvrımdan önce yeterli düz parça yok — ONAYLA'da parçayı {n} mm uzatmanız istenecek":
+    'Not enough straight length before the first bend — on CONFIRM you will be asked to extend the part by {n} mm',
+  "Son kıvrımdan sonra yeterli düz parça yok — ONAYLA'da parçayı {n} mm uzatmanız istenecek":
+    'Not enough straight length after the last bend — on CONFIRM you will be asked to extend the part by {n} mm',
+  "ONAYLA'da kıvrımların ters sırada bükülmesi istenecek": 'On CONFIRM the bends will be planned in reverse order',
+  "Bu kıvrım düzeni ONAYLA'da kabul edilmeyecek": 'This bend layout will be rejected on CONFIRM',
 }
 
 export default en

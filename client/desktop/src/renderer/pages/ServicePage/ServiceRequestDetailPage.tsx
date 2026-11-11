@@ -15,8 +15,10 @@ import {
 
 import { useServiceRequest } from '@/hooks/useService'
 import { useT } from '@/i18n'
+import { useCloudConfig } from '@/stores/cloudConfigStore'
 
 import ServicePageShell from './ServicePageShell'
+import { durationParts, fmtDateTime } from './serviceDates'
 import styles from './ServiceRequestDetailPage.module.css'
 
 export default function ServiceRequestDetailPage() {
@@ -28,6 +30,8 @@ export default function ServiceRequestDetailPage() {
   const isReportMode = searchParams.get('mode') === 'report'
 
   const { request, loading, refresh } = useServiceRequest(Number.isFinite(id) ? id : null)
+  // Bulut durumu (localId = talep id) — atanan teknisyen / bulut notu (yanıt)
+  const cloudStates = useCloudConfig()?.serviceRequests ?? []
 
   const [confirmInput, setConfirmInput] = useState('')
   const [confirmError, setConfirmError] = useState<string | null>(null)
@@ -71,6 +75,19 @@ export default function ServiceRequestDetailPage() {
       </ServicePageShell>
     )
   }
+
+  const cloud = cloudStates.find((c) => c.localId === String(request.id)) ?? null
+  const resp = durationParts(request.createdAt, request.startedAt)
+  const responseTime = !resp
+    ? '—'
+    : resp.days > 0
+      ? t('{d} gün {h} sa', { d: resp.days, h: resp.hours })
+      : t('{h} sa {m} dk', { h: resp.hours, m: resp.minutes })
+  const responder = request.technicianName?.trim()
+    ? request.technicianName
+    : cloud?.assignedTo
+      ? `${cloud.assignedTo}${cloud.assignedOrg ? ` (${cloud.assignedOrg})` : ''}`
+      : '—'
 
   const showConfirmBox =
     isReportMode &&
@@ -132,6 +149,12 @@ export default function ServiceRequestDetailPage() {
           <Row label={t('TEKNİSYEN')} value={request.technicianName || t('(atanmamış)')} />
           <Row label={t('AMAÇ')} value={t(purposeLabel(request.purpose))} />
           <Row label={t('DURUM')} value={t(statusLabel(request.status))} />
+          <Row label={t('OLUŞTURULMA')} value={fmtDateTime(request.createdAt)} />
+          <Row label={t('BAŞLAMA')} value={fmtDateTime(request.startedAt)} />
+          <Row label={t('TAMAMLANMA')} value={fmtDateTime(request.completedAt)} />
+          <Row label={t('YANIT SÜRESİ')} value={responseTime} />
+          <Row label={t('YANITLAYAN')} value={responder} />
+          <Row label={t('YANIT')} value={cloud?.note?.trim() || '—'} />
           {request.rating !== null && (
             <Row label={t('DEĞERLENDİRME')} value={`${request.rating}/10`} />
           )}

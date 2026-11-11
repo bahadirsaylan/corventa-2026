@@ -30,8 +30,8 @@
 
 /* Seçili metot — tema pastel yeşili (ConfirmModal VAZGEÇ) + koyu yeşil çerçeve */
 .tileSelected {
-  background-color: #b8e6c5;
-  outline: 4px solid #16a34a;
+  background-color: var(--color-selected);
+  outline: 4px solid var(--color-selected-border);
   outline-offset: -4px;
 }
 

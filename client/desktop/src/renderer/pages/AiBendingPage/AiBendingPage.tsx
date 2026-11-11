@@ -1,12 +1,10 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import BendingProfileGrid from './BendingProfileGrid'
 import ProfileInfoPanel from './ProfileInfoPanel'
-import PipeTypeModal from './PipeTypeModal'
-import { NO_DIRECTION_DEFAULT, directionOptionsFor } from '@/constants/profileDirections'
+import { NO_DIRECTION_DEFAULT, hasDirectionPage } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './AiBendingPage.module.css'
@@ -23,9 +21,8 @@ export default function AiBendingPage() {
   const profileSubType = useBendingJobStore((s) => s.params.profileSubType)
   // Kalıp kodu (ÖZEL KIVRIM PROFİLLERİ, BULUT_API_V2.md §2.4) — profil + A/B/S kalıptan, yön sayfası atlanır
   const moldCode = useBendingJobStore((s) => s.params.moldCode)
-  // Boş boru → dikişli / etli seçimi (dolu boru ve diğer profiller sormaz; kalıpta sorulmaz)
-  const [pipeModalOpen, setPipeModalOpen] = useState(false)
-  const needsPipeType = !moldCode && profileId === 'circle' && !profileSubType
+  const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
+  // Boş boru → dikişli / etli seçimi yön sayfasında yapılır (dolu boru sormaz; kalıpta sorulmaz)
 
   return (
     <div className={styles.page}>
@@ -50,11 +47,19 @@ export default function AiBendingPage() {
         <BendingProfileGrid
           selected={moldCode ? null : profileId}
           specialSelected={!!moldCode}
-          onSpecial={() => navigate('/bending/ai/mold-code')}
+          onSpecial={() => {
+            // ÖZEL KIVRIM PROFİLLERİ'nden girişte "DİĞER yön → kalıp" işareti kalmasın (geri → profil seçimi)
+            if (bendingDirection === 'other') setParams({ bendingDirection: null })
+            navigate('/bending/ai/mold-code')
+          }}
           onSelect={(id) => {
-            if (id === 'circle') setPipeModalOpen(true)
-            // Normal profil seçimi kalıp kodunu bırakır (A/B/S kilidi kalkar)
-            else setParams({ profileId: id, profileSubType: null, moldCode: null, mold: null })
+            // Normal profil seçimi kalıp kodunu bırakır (A/B/S kilidi kalkar); boru tipi sadece boruda kalır
+            setParams({
+              profileId: id,
+              profileSubType: id === 'circle' && profileId === 'circle' ? profileSubType : null,
+              moldCode: null,
+              mold: null,
+            })
           }}
         />
         <ProfileInfoPanel />
@@ -68,7 +73,7 @@ export default function AiBendingPage() {
           resetJob()
           navigate(backTo)
         }}
-        confirmDisabled={!profileId || needsPipeType}
+        confirmDisabled={!profileId}
         onConfirm={() => {
           // Kalıp kodu: yön kalıp ekranında NO_DIRECTION_DEFAULT yapıldı → doğrudan metod
           if (moldCode) {
@@ -76,24 +81,13 @@ export default function AiBendingPage() {
             navigate('/bending/ai/method')
             return
           }
-          // Yön seçimi olmayan profil (boş boru) → yön sayfası atlanır
-          if (profileId && directionOptionsFor(profileId) === null) {
+          // Yön seçimi olmayan profil (dolu boru) → yön sayfası atlanır; boş boru yön sayfasında boru tipi seçer
+          if (profileId && !hasDirectionPage(profileId)) {
             setParams({ bendingDirection: NO_DIRECTION_DEFAULT })
             navigate('/bending/ai/method')
           } else navigate('/bending/ai/direction')
         }}
       />
-
-      {pipeModalOpen && (
-        <PipeTypeModal
-          selected={profileId === 'circle' ? profileSubType : null}
-          onSelect={(type) => {
-            setParams({ profileId: 'circle', profileSubType: type, moldCode: null, mold: null })
-            setPipeModalOpen(false)
-          }}
-          onClose={() => setPipeModalOpen(false)}
-        />
-      )}
     </div>
   )
 }

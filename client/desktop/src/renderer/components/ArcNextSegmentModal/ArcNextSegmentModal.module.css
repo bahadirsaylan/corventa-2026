@@ -212,3 +212,10 @@
 .submit:not(:disabled):hover {
   filter: brightness(0.95);
 }
+
+/* 2026-11-11 — UI kontrol raporu: seçim rengi her ekranda yeşil (globals.css --color-selected) */
+.modeActive {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}

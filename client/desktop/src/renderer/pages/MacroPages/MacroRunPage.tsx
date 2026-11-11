@@ -31,6 +31,7 @@ import { useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { isPneumaticAxis, type Macro } from '@shared/types'
 import ManuelHeader from '../ManuelBendingPage/ManuelHeader'
+import StatusBar from '@/components/StatusBar/StatusBar'
 import styles from './Macro.module.css'
 
 export default function MacroRunPage() {
@@ -109,6 +110,7 @@ export default function MacroRunPage() {
       <div className={styles.page}>
         <ManuelHeader onDown={() => navigate('/bending/macros')} />
         <div className={styles.empty}>{t(loadError ?? 'YÜKLENİYOR...')}</div>
+        <StatusBar backTo="/bending/macros" confirmDisabled />
       </div>
     )
   }
@@ -272,6 +274,8 @@ export default function MacroRunPage() {
           </button>
         </div>
       </div>
+
+      <StatusBar backTo="/bending/macros" confirmDisabled />
 
       {contextConfirm && (
         <ConfirmModal

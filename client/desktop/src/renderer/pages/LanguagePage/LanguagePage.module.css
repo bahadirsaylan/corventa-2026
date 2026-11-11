@@ -123,3 +123,10 @@
 }
 
 .note[data-ok] { color: #16a34a; border-left-color: #16a34a; }
+
+/* 2026-11-11 — UI kontrol raporu: seçim rengi her ekranda yeşil (globals.css --color-selected) */
+.langSelected {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}

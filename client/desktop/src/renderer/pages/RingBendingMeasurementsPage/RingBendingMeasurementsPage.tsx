@@ -8,7 +8,7 @@ import StatusBar from '@/components/StatusBar/StatusBar'
 import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
 import MeasurementForm, { MeasurementValues } from './MeasurementForm'
 import CapacityCheckModal from './CapacityCheckModal'
-import { checkCapacity, type CapacityCheck } from '@/constants/capacityCatalog'
+import { checkCapacity, type CapacityCheck, type CapacityIssue } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
@@ -58,10 +58,33 @@ export default function RingBendingMeasurementsPage() {
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const bendingDirection = useBendingJobStore((s) => s.params.bendingDirection)
   const [capacityCheck, setCapacityCheck] = useState<CapacityCheck | null>(null)
+  // Canlı kapasite uyarısı — numpad onayında A/B/R/G değişince aynı checkCapacity çalışır (engellemez,
+  // ONAYLA'daki kontrol aynen kalır). Formun altında kırmızı metin olarak gösterilir.
+  const [liveCapacityIssues, setLiveCapacityIssues] = useState<CapacityIssue[]>([])
+
+  function runCapacityCheck(v: MeasurementValues) {
+    return checkCapacity({
+      profileId,
+      direction: bendingDirection,
+      a: parseFloat(v.A),
+      b: parseFloat(v.B),
+      diameterMm: parseFloat(v.R),
+      stepMm: parseFloat(v.G),
+    })
+  }
+
+  function handleFormChange(v: MeasurementValues) {
+    setValues(v)
+    const keys = ['A', 'B', 'R', 'G'] as const
+    if (!keys.some((k) => v[k] !== values[k])) return
+    const allPresent = keys.every((k) => v[k].trim() !== '' && Number.isFinite(parseFloat(v[k])))
+    setLiveCapacityIssues(allPresent ? runCapacityCheck(v).issues : [])
+  }
 
   function handleReset() {
     setValues({ ...EMPTY })
     setParams({ ringBending: null })
+    setLiveCapacityIssues([])
   }
 
   function persistAndNavigate() {
@@ -82,14 +105,7 @@ export default function RingBendingMeasurementsPage() {
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
 
   function handleConfirm() {
-    const check = checkCapacity({
-      profileId,
-      direction: bendingDirection,
-      a: parseFloat(values.A),
-      b: parseFloat(values.B),
-      diameterMm: parseFloat(values.R),
-      stepMm: parseFloat(values.G),
-    })
+    const check = runCapacityCheck(values)
     if (check.issues.length > 0) {
       setCapacityCheck(check)
       return
@@ -139,10 +155,11 @@ export default function RingBendingMeasurementsPage() {
       <div className={styles.content}>
         <MeasurementForm
           values={values}
-          onChange={setValues}
+          onChange={handleFormChange}
           onReset={handleReset}
           onConfirm={handleConfirm}
           confirmDisabled={!isComplete(values)}
+          capacityIssues={liveCapacityIssues}
         />
       </div>
 

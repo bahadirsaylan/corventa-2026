@@ -209,8 +209,10 @@
 }
 
 .modeActive {
-  background-color: #c0392b;
-  color: #fff;
+  background-color: var(--color-selected);
+  color: var(--color-selected-text);
+  outline: 2px solid var(--color-selected-border);
+  outline-offset: -2px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
@@ -409,6 +411,34 @@
 .budgetOver {
   background-color: rgba(231, 76, 60, 0.12);
   border-left: 4px solid #c0392b;
+  color: #a93226;
+}
+
+/* Canlı plan: ONAYLA'da parça uzatma istenecek (amber — engel değil, uyarı) */
+.budgetWarn {
+  background-color: rgba(245, 158, 11, 0.14);
+  border-left: 4px solid #d97706;
+  color: #92400e;
+}
+
+.livePlanWarn,
+.livePlanError {
+  margin-top: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.livePlanWarn {
+  background-color: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(217, 119, 6, 0.5);
+  color: #92400e;
+}
+
+.livePlanError {
+  background-color: rgba(231, 76, 60, 0.12);
+  border: 1px solid rgba(231, 76, 60, 0.4);
   color: #a93226;
 }
 

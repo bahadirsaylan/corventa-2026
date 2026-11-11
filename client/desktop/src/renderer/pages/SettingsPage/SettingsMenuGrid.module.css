@@ -183,3 +183,10 @@
   flex-shrink: 0;
   color: var(--color-text);
 }
+
+/* 2026-11-11 — UI kontrol raporu: seçim rengi her ekranda yeşil (globals.css --color-selected) */
+.radioActive {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}

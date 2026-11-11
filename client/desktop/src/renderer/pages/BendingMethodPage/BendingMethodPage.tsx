@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
-import { directionOptionsFor } from '@/constants/profileDirections'
+import { hasDirectionPage } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import BendingMethodGrid from './BendingMethodGrid'
@@ -17,10 +17,11 @@ export default function BendingMethodPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const moldCode = useBendingJobStore((s) => s.params.moldCode)
-  // Kalıp kodu akışında geri → KALIP KODU ekranı; yön seçimi olmayan profilde (boş boru) → profil seçimi
+  // Kalıp kodu akışında geri → KALIP KODU ekranı; yön seçimi olmayan profilde (dolu boru) → profil seçimi;
+  // diğerleri (boş boru dahil — boru tipi yön sayfasında) → yön sayfası
   const backTo = moldCode
     ? '/bending/ai/mold-code'
-    : directionOptionsFor(profileId) === null ? '/bending/ai' : '/bending/ai/direction'
+    : hasDirectionPage(profileId) ? '/bending/ai/direction' : '/bending/ai'
 
   return (
     <div className={styles.page}>

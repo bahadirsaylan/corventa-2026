@@ -149,12 +149,6 @@ function PartLoadingContent() {
         <div className={styles.loadedBar}>{t('PARÇA BAŞARIYLA YÜKLENDİ')}</div>
       )}
 
-      {phase === 'starting' && (
-        <div className={styles.loadedBar}>
-          {activeStep ? t(STEP_LABELS[activeStep]) : t('BÜKÜM BAŞLATILIYOR…')}
-        </div>
-      )}
-
       {phase === 'error' && errorMessage && (
         <div className={styles.loadedBar} style={{ color: '#ff6b6b' }}>
           {errorStep ? `[${errorStep.toUpperCase()}] ` : ''}
@@ -171,7 +165,17 @@ function PartLoadingContent() {
         </div>
       )}
       <div className={styles.content}>
-        {maintLock.active ? (
+        {isBusy ? (
+          // Akış sürerken (hesap → job → stage → start) sayfa boş kalmasın: büyük durum paneli + adım metni
+          <div className={styles.busyPanel} role="status" aria-live="polite">
+            <div className={styles.busySpinner} />
+            <div className={styles.busyTitle}>{t('BÜKÜM BAŞLATILIYOR…')}</div>
+            <div className={styles.busyStep}>
+              {activeStep ? t(STEP_LABELS[activeStep]) : null}
+            </div>
+            <div className={styles.busyHint}>{t('LÜTFEN BEKLEYİN, PARÇAYA DOKUNMAYIN')}</div>
+          </div>
+        ) : maintLock.active ? (
           // BAKIM KİLİDİ — başlat butonu yerine kırmızı kilit paneli + Bakım Süresi sayfasına geçiş
           <div className={styles.lockPanel} role="alert">
             <Icon name="lock" size={72} className={styles.lockIcon} />
@@ -239,7 +243,8 @@ function PartLoadingContent() {
       </div>
 
       {/* Sensör arızalıysa elle konumlandırma — alt paneldeki mesafe notunun hemen üstünde */}
-      {phase !== 'starting' && phase !== 'started' && (
+      {/* Başlatılırken de görünür kalır (gri/pasif) — alt kısım boş kalmasın */}
+      {phase !== 'started' && (
         <div className={styles.manualRow}>
           <button
             type="button"

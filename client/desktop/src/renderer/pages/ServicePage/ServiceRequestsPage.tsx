@@ -15,6 +15,7 @@ import { useT } from '@/i18n'
 import { useCloudConfig } from '@/stores/cloudConfigStore'
 
 import CategoryBadge from './CategoryBadge'
+import { fmtDate } from './serviceDates'
 import ServiceRequestRating from './ServiceRequestRating'
 import ServicePageShell from './ServicePageShell'
 import styles from './ServiceRequestsPage.module.css'
@@ -77,7 +78,11 @@ export default function ServiceRequestsPage() {
               >
                 <span className={styles.rowCode}>{r.code}</span>
                 <span className={styles.rowSep}>-</span>
-                <span className={styles.rowLabel}>{t(purposeLabel(r.purpose))}</span>
+                <span className={styles.rowLabel}>
+                  {t(purposeLabel(r.purpose))}
+                  {/* Oluşturulma tarihi (yerel saat) */}
+                  <span className={styles.rowDate}>{fmtDate(r.createdAt)}</span>
+                </span>
                 <span className={styles.rowStatus}>
                   {cloud?.status || cloud?.assignedTo ? (
                     <span className={styles.cloudStatus}>

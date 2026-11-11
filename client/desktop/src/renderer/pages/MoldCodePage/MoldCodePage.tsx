@@ -27,6 +27,8 @@ export default function MoldCodePage() {
   const setParams = useBendingJobStore((s) => s.setParams)
   // Geri dönüldüyse seçili kalıp kodu ile açılır ve yeniden sorgulanır (lisans durumu değişmiş olabilir)
   const storedCode = useBendingJobStore((s) => s.params.moldCode)
+  // Yön sayfasında DİĞER KIVRIM YÖNLERİ seçilip gelindiyse geri → yön sayfası, yön 'other' korunur
+  const fromOtherDirection = useBendingJobStore((s) => s.params.bendingDirection) === 'other'
   const lookup = useMoldLookup(storedCode ?? '')
 
   useEffect(() => {
@@ -47,8 +49,9 @@ export default function MoldCodePage() {
       profileSubType: null,
       moldCode: m.code,
       mold: m,
-      // Yön seçimi atlanır — yön seçimi olmayan profillerle (boş boru) aynı varsayılan (sadece kayıt)
-      bendingDirection: NO_DIRECTION_DEFAULT,
+      // Yön seçimi atlanır — yön seçimi olmayan profillerle aynı varsayılan (sadece kayıt);
+      // DİĞER yönden gelindiyse 'other' kalır
+      bendingDirection: fromOtherDirection ? 'other' : NO_DIRECTION_DEFAULT,
     })
     navigate('/bending/ai/method')
   }
@@ -74,7 +77,7 @@ export default function MoldCodePage() {
       </div>
 
       <StatusBar
-        backTo="/bending/ai"
+        backTo={fromOtherDirection ? '/bending/ai/direction' : '/bending/ai'}
         confirmDisabled={!canContinue}
         onConfirm={handleConfirm}
         hint={canContinue ? t('Onaylayınca yön seçimi atlanır, kıvrım metodu seçilir') : undefined}

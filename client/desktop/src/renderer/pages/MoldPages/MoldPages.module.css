@@ -267,3 +267,10 @@
   letter-spacing: 0.08em;
   cursor: pointer;
 }
+
+/* 2026-11-11 — UI kontrol raporu: seçim rengi her ekranda yeşil (globals.css --color-selected) */
+.filterOn, .pickerOn {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}

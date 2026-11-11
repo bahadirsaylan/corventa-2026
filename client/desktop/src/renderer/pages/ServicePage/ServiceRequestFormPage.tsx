@@ -3,7 +3,7 @@
 // şimdilik SettingsPage'deki gibi sabit placeholder. İleride MachineSettings dinamik gelir.
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
   ServicePurpose,
@@ -23,7 +23,14 @@ export default function ServiceRequestFormPage() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [purpose, setPurpose] = useState<ServicePurpose>(ServicePurpose.ArizaGiderme)
+  // ?purpose=<ServicePurpose> ile açılırsa (ör. Kurulum sayfası) başlangıç amacı o olur
+  const [searchParams] = useSearchParams()
+  const [purpose, setPurpose] = useState<ServicePurpose>(() => {
+    const p = Number(searchParams.get('purpose'))
+    return (Object.values(ServicePurpose) as number[]).includes(p) && searchParams.get('purpose') !== null
+      ? (p as ServicePurpose)
+      : ServicePurpose.ArizaGiderme
+  })
   // İleride MachineSettings'ten dinamik gelecek — şimdilik sabit
   const [customerName] = useState('SERSOVİS A.Ş.')
 

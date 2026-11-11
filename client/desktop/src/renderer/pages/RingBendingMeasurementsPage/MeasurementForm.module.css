@@ -155,3 +155,16 @@
 .infoBtn:hover {
   color: #2d6fb8;
 }
+
+/* ── Canlı kapasite uyarısı (numpad onayından sonra, engellemez) ── */
+.capacityNotice {
+  margin: 0;
+  padding: 6px 10px 6px 26px;
+  border-left: 4px solid #c0392b;
+  border-radius: 6px;
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #a93226;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}

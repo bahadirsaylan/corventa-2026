@@ -42,6 +42,11 @@ body,
   --color-input-bg: #d8d8d8;
   --color-input-border: #bbbbbb;
 
+  /* Seçili kutu / buton — her yerde aynı yeşil (koyu metinle okunur) */
+  --color-selected: #b8e6c5;
+  --color-selected-border: #16a34a;
+  --color-selected-text: #14532d;
+
   /* Status colours */
   --color-success: #22c55e;
   --color-warning: #f59e0b;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
@@ -9,6 +9,8 @@ import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import FormActionRow from '@/components/FormActionRow/FormActionRow'
+import { planArc, type PlanResult } from '@shared/arcPlanner'
+import type { StageInfo } from '@shared/types'
 
 // 2026-08-18: Alpha ile ArcLen arasında toggle. Backend her durumda α bekler,
 // ArcLen modunda α otomatik hesaplanır (α = 180 − L·180/(π·R)).
@@ -105,8 +107,10 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   },
 }
 
-const MAIN_LEFT: ArcMainFieldKey[] = ['A', 'B', 'S', 'H']
-const MAIN_RIGHT: ArcMainFieldKey[] = ['P', 'G', 'LT']
+// Alan düzeni tüm ölçü formlarında aynı: sol A, B, S + uzunluk (LT);
+// sağ yönteme özel alan (P) → H (hız) → G (adım) en sonda.
+const MAIN_LEFT: ArcMainFieldKey[] = ['A', 'B', 'S', 'LT']
+const MAIN_RIGHT: ArcMainFieldKey[] = ['P', 'H', 'G']
 
 export type ArcFormStage = 'main' | 'segments' | 'summary'
 
@@ -177,6 +181,21 @@ export function isArcBelowMin(arc: number): boolean {
   return Math.round(arc * 10) / 10 < MIN_ARC_LENGTH_MM
 }
 
+// Canlı plan uyarısı (ONAYLA öncesi): ONAYLA'daki backend validate-plan ile aynı girdiler.
+//   Bükülebilirlik |XA1| = backend varsayılanı (sayfa xa1AbsMm: 0 gönderiyor → 465).
+//   Ölçüm mesafesi T = profil A'ya önerilen stage'in |XA1|'i (backend StageSelector ile aynı kural), yoksa |XA1|.
+//   ONAYLA davranışı değişmez — burası sadece operatöre erken bilgi verir.
+const PLANNER_DEFAULT_XA1_ABS_MM = 465
+
+function measurementDistanceFor(stages: StageInfo[] | null, profileA: number): number {
+  if (!stages || !(profileA > 0)) return PLANNER_DEFAULT_XA1_ABS_MM
+  const stage = stages
+    .filter((s) => s.isActive !== false && s.maxProfileAMm != null && profileA <= s.maxProfileAMm)
+    .sort((a, b) => (a.maxProfileAMm as number) - (b.maxProfileAMm as number))[0]
+  const xa1 = stage?.xA1Mm
+  return xa1 != null && Math.abs(xa1) > 0 ? Math.abs(xa1) : PLANNER_DEFAULT_XA1_ABS_MM
+}
+
 export function makeEmptySegment(): ArcSegmentValues {
   return { R: '', Alpha: '', ArcLen: '', L: '' }
 }
@@ -211,6 +230,17 @@ export default function ArcMeasurementForm({
   const methodImage = useMethodTileImage('arc', defaultMethodImage)
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
+  // Stage listesi — canlı plan uyarısındaki ölçüm mesafesi için (okunamazsa varsayılan |XA1|)
+  const [stages, setStages] = useState<StageInfo[] | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    window.corventa.settings
+      .getStages()
+      .then((list) => { if (alive && Array.isArray(list)) setStages(list) })
+      .catch(() => { /* varsayılan |XA1| kullanılır */ })
+    return () => { alive = false }
+  }, [])
 
   // P input değişince segments dizisini otomatik boyutlandır (append/pop, verileri korur)
   useEffect(() => {
@@ -374,6 +404,26 @@ export default function ArcMeasurementForm({
   //   (ArcExtensionPlanner → /api/bending/arc/validate-plan).
   const anyMinArcViolation = budgets.some((b) => b.valid && isArcBelowMin(b.arc))
 
+  // Canlı plan: tüm kıvrımlar geçerli, LT girilmiş ve aşım/min-yay yoksa ONAYLA'daki planlayıcıyı çalıştır.
+  const allSegmentsValid = values.segments.length > 0 && budgets.every((b) => b.valid)
+  const livePlan: PlanResult | null = useMemo(() => {
+    if (!allSegmentsValid || !ltValid || remainingOverflow || anyMinArcViolation) return null
+    return planArc({
+      segments: values.segments.map((seg, i) => ({
+        segmentOrder: i + 1,
+        radiusMm: parseFloat(seg.R),
+        angleDeg: parseFloat(seg.Alpha),
+        straightAfterMm: parseFloat(seg.L),
+      })),
+      partLengthMm: ltMm,
+      xa1AbsMm: PLANNER_DEFAULT_XA1_ABS_MM,
+      measurementDistanceMm: measurementDistanceFor(stages, parseFloat(values.A) || 0),
+    })
+  }, [allSegmentsValid, ltValid, remainingOverflow, anyMinArcViolation, values.segments, values.A, ltMm, stages])
+  const livePlanBlocked = livePlan != null && !livePlan.canBend
+  const livePlanExtension = livePlan != null && livePlan.canBend && livePlan.extensionMm > 0
+  const livePlanReversed = livePlan != null && livePlan.canBend && livePlan.extensionMm === 0 && livePlan.isReversed
+
   const currentNumpadValue = (() => {
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return values[numpadTarget.field] ?? ''
@@ -515,7 +565,9 @@ export default function ArcMeasurementForm({
             {anyBudgetValid && (
               <div
                 className={`${styles.totalBudgetInfo} ${
-                  remainingOverflow || anyMinArcViolation ? styles.budgetOver : styles.budgetOk
+                  remainingOverflow || anyMinArcViolation || livePlanBlocked
+                    ? styles.budgetOver
+                    : livePlanExtension ? styles.budgetWarn : styles.budgetOk
                 }`}
               >
                 <span>
@@ -544,6 +596,28 @@ export default function ArcMeasurementForm({
                   </span>
                 )}
                 {!ltValid && <span className={styles.budgetNote}>{t('LT giriniz')}</span>}
+              </div>
+            )}
+
+            {/* Canlı plan uyarısı — ONAYLA'da çıkacak uzatma / ters sıra / ret bilgisini önceden gösterir */}
+            {livePlanExtension && livePlan && (
+              <div className={styles.livePlanWarn}>
+                <IconLabel icon="warning">
+                  {livePlan.side === 'Leading'
+                    ? t("İlk kıvrımdan önce yeterli düz parça yok — ONAYLA'da parçayı {n} mm uzatmanız istenecek", { n: livePlan.extensionMm.toFixed(0) })
+                    : t("Son kıvrımdan sonra yeterli düz parça yok — ONAYLA'da parçayı {n} mm uzatmanız istenecek", { n: livePlan.extensionMm.toFixed(0) })}
+                </IconLabel>
+              </div>
+            )}
+            {livePlanReversed && (
+              <div className={styles.livePlanWarn}>
+                <IconLabel icon="warning">{t("ONAYLA'da kıvrımların ters sırada bükülmesi istenecek")}</IconLabel>
+              </div>
+            )}
+            {livePlanBlocked && livePlan && (
+              <div className={styles.livePlanError}>
+                <IconLabel icon="warning">{t("Bu kıvrım düzeni ONAYLA'da kabul edilmeyecek")}</IconLabel>
+                {livePlan.errorMessage && <div className={styles.warnDetail}>{livePlan.errorMessage}</div>}
               </div>
             )}
           </>

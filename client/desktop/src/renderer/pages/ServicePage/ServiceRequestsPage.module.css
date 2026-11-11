@@ -96,6 +96,15 @@
   white-space: nowrap;
 }
 
+.rowDate {
+  margin-left: 10px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+}
+
 .rowStatus,
 .rowRating {
   font-weight: 800;

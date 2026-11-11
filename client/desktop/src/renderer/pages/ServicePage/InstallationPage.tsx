@@ -52,7 +52,7 @@ export default function InstallationPage() {
 
       <button
         className={styles.newBtn}
-        onClick={() => navigate('/service/requests/new')}
+        onClick={() => navigate(`/service/requests/new?purpose=${ServicePurpose.Kurulum}`)}
       >
         {t('YENİ KURULUM TALEBİ OLUŞTUR')}
       </button>

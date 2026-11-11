@@ -69,12 +69,13 @@ const FIELD_INFO: Record<SivamaFieldKey, FieldInfo> = {
   Y: {
     title: 'Y :',
     description:
-      'MAKİNENİN SERPANTİNE YÖNÜNÜ SEÇMEMİZİ SAĞLAR. MAKİNE YAPILAN SEÇİM DOĞRULTUSUNDA GEOMETRİSEL KIVRIMINI GERÇEKLEŞTİRİR.',
+      'MAKİNENİN SIVAMA YÖNÜNÜ SEÇMEMİZİ SAĞLAR. MAKİNE YAPILAN SEÇİM DOĞRULTUSUNDA SIVAMA İŞLEMİNİ GERÇEKLEŞTİRİR.',
   },
 }
 
 const LEFT_FIELDS:  SivamaNumericKey[] = ['A', 'B', 'S', 'L']
-const RIGHT_FIELDS: SivamaFieldKey[]   = ['R', 'X', 'H', 'Y']
+// Sağ sütun: yönteme özel alanlar (R, X, Y) → H (hız) en sonda — tüm formlarda aynı yerde
+const RIGHT_FIELDS: SivamaFieldKey[]   = ['R', 'X', 'Y', 'H']
 
 interface Props {
   values: SivamaMeasurementValues

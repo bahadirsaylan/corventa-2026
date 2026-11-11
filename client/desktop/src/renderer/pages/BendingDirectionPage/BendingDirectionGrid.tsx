@@ -1,18 +1,18 @@
 // Kıvrım yönü kutuları — seçenekler profile göre (constants/profileDirections).
 // Görselli kutuda altta yön adı (YATAY / DİKİNE / DİK / YAN / TERS); görselsiz kutu sadece etiket.
+// Boş boruda aynı ızgara DİKİŞLİ / ETLİ boru tipini gösterir (id = PipeTypeId).
 
-import { BendingDirectionId } from '@/store/bendingJobStore'
 import type { DirectionOption } from '@/constants/profileDirections'
 import { useT } from '@/i18n'
 import styles from './BendingDirectionGrid.module.css'
 
-interface Props {
-  options: DirectionOption[]
-  selected: BendingDirectionId | null
-  onSelect: (id: BendingDirectionId) => void
+interface Props<Id extends string> {
+  options: DirectionOption<Id>[]
+  selected: Id | null
+  onSelect: (id: Id) => void
 }
 
-export default function BendingDirectionGrid({ options, selected, onSelect }: Props) {
+export default function BendingDirectionGrid<Id extends string>({ options, selected, onSelect }: Props<Id>) {
   const t = useT()
   return (
     <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${Math.max(options.length, 2)}, 1fr)` }}>
