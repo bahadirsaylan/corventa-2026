@@ -381,3 +381,18 @@
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }
+
+/* 2026-11-11 — elle konumlandırma onaylandı şeridindeki VAZGEÇ */
+.manualCancelBtn {
+  margin-left: 16px;
+  height: 34px;
+  padding: 0 14px;
+  border: 2px solid #1f2937;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}

@@ -1,6 +1,6 @@
 // ELLE KONUMLANDIRMA (sensörsüz) modalı — parça varlık sensörü arızalıyken açılır.
 // Operatör parça ucunu seçtiği tarafta merkezden ZeroResetDistanceMm uzağa (sensör hizasına) koyar,
-// onay kutusunu işaretler ve ONAYLA VE BAŞLAT'a basar. Bu yolda pipeline parça sensörünü BEKLEMEZ ve
+// onay kutusunu işaretler ve ONAYLA'ya basar; ardından sayfadaki KIVRIMI BAŞLAT ile büküm başlar. Bu yolda pipeline parça sensörünü BEKLEMEZ ve
 // Zero adımında "sensörden uzaklaş / yavaş yaklaş / sensör görünce dur" aramasını atlar — parça doğrudan
 // sıfır (başlangıç) pozisyonuna gider. Taraf = job'un ActiveSensorSide'ı (Left/Right); backend start'ta
 // manualPlacementSide ile job tarafının aynı olmasını şart koşar (farklıysa 400).
@@ -104,7 +104,7 @@ export default function ManualPlacementModal({ distanceMm, initialSide = 'Left',
             disabled={!canConfirm}
             onClick={() => canConfirm && onConfirm(side)}
           >
-            {t('ONAYLA VE BAŞLAT')}
+            {t('ONAYLA')}
           </button>
         </div>
       </div>

@@ -93,13 +93,18 @@ function PartLoadingContent() {
   // 2026-11-04 (kullanıcı direktifi): varlık sensörü parçayı GÖRMÜYORSA ileri devam YOK. Eski "TOUCH ile
   // onayla → başlat" kısayolu kaldırıldı; sensör görmüyorsa tek yol ELLE KONUMLANDIRMA modalı (DB'deki
   // sıfırlama mesafesi + "yerleştirdim" onayı). Touch/ONAYLA da bu modalı açar.
-  const canStart = sensorActive
   const isBusy = phase === 'starting'
 
   // ELLE KONUMLANDIRMA (sensörsüz) — sensör arızalıyken ayrı yol: modal → taraf + onay → start
   // manualPlacement=true ile (pipeline parça sensörünü beklemez, Zero'da sensör aramasını atlar).
   // Varsayılan sensörlü akış (handleStart parametresiz) birebir aynı kalır.
   const [manualOpen, setManualOpen] = useState(false)
+  // 2026-11-11: elle konumlandırma onayı bükümü HEMEN başlatmaz — onaydan sonra sensörlü akıştaki gibi
+  // "KIVRIMI BAŞLAT" ekranı çıkar, operatör ayrıca basar. Onaylanan taraf burada tutulur.
+  const [manualSide, setManualSide] = useState<PlacementSide | null>(null)
+  const canStart = sensorActive || manualSide != null
+  // Sensör parçayı görüyorsa her zaman normal (sensörlü) akış; görmüyorsa elle onaylanan tarafla
+  const startNow = () => void handleStart(sensorActive ? undefined : (manualSide ?? undefined))
 
   async function handleStart(manualSide?: PlacementSide) {
     if ((!manualSide && !canStart) || isBusy || maintLock.active) return
@@ -147,6 +152,15 @@ function PartLoadingContent() {
 
       {phase === 'idle' && sensorActive && (
         <div className={styles.loadedBar}>{t('PARÇA BAŞARIYLA YÜKLENDİ')}</div>
+      )}
+
+      {phase === 'idle' && !sensorActive && manualSide && (
+        <div className={styles.loadedBar} style={{ background: '#f59e0b', color: '#1f2937' }}>
+          {t('PARÇA ELLE KONUMLANDIRILDI — SENSÖR ARAMASI YAPILMAYACAK')}
+          <button type="button" className={styles.manualCancelBtn} onClick={() => setManualSide(null)}>
+            {t('VAZGEÇ')}
+          </button>
+        </div>
       )}
 
       {phase === 'error' && errorMessage && (
@@ -205,7 +219,7 @@ function PartLoadingContent() {
           <button
             className={styles.startBtn}
             disabled={isBusy || !params.profileId}
-            onClick={() => void handleStart()}
+            onClick={startNow}
           >
             <span className={styles.startLabel}>{t('KIVRIMI')}</span>
             <img src={touchIcon} alt="touch" className={styles.startIcon} />
@@ -266,7 +280,10 @@ function PartLoadingContent() {
         <ManualPlacementModal
           distanceMm={zeroResetMm}
           onCancel={() => setManualOpen(false)}
-          onConfirm={(side) => void handleStart(side)}
+          onConfirm={(side) => {
+            setManualSide(side)
+            setManualOpen(false)
+          }}
         />
       )}
 
@@ -283,7 +300,7 @@ function PartLoadingContent() {
           if (phase === 'error') setPhase('idle')
           else if (phase !== 'idle') return
           // Sensör görüyorsa normal başlat; görmüyorsa ileri gidilmez → elle konumlandırma onayı
-          else if (sensorActive) void handleStart()
+          else if (canStart) startNow()
           else if (!maintLock.active && params.profileId) setManualOpen(true)
         }}
         confirmDisabled={isBusy || phase === 'started'}
