@@ -57,7 +57,7 @@ export default function SpiralBendingMeasurementsPage() {
   const setValues = (v: SpiralMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {
-    setValues({ ...EMPTY })
+    setValues(applyMeasureDefaults({ ...EMPTY }))
     setParams({ spiralBending: null })
   }
 

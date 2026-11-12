@@ -82,7 +82,7 @@ export default function RingBendingMeasurementsPage() {
   }
 
   function handleReset() {
-    setValues({ ...EMPTY })
+    setValues(applyMeasureDefaults({ ...EMPTY }))
     setParams({ ringBending: null })
     setLiveCapacityIssues([])
   }

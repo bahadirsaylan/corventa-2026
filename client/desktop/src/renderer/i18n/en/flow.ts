@@ -41,6 +41,8 @@ const en: Record<string, string> = {
   'DİK': 'UPRIGHT',
   'YAN': 'SIDEWAYS',
   'TERS': 'REVERSE',
+  'KANAT İÇE': 'LEG IN',
+  'KANAT DIŞA': 'LEG OUT',
   'DİĞER\nKIVRIM YÖNLERİ': 'OTHER\nBEND DIRECTIONS',
 
   // ── BendingMethodPage ──

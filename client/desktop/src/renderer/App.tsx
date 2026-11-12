@@ -58,7 +58,6 @@ import TicketListPage from '@/pages/ServicePage/TicketListPage'
 import ServiceRequestsPage from '@/pages/ServicePage/ServiceRequestsPage'
 import ServiceRequestFormPage from '@/pages/ServicePage/ServiceRequestFormPage'
 import ServiceRequestDetailPage from '@/pages/ServicePage/ServiceRequestDetailPage'
-import InstallationPage from '@/pages/ServicePage/InstallationPage'
 import TrainingPage from '@/pages/ServicePage/TrainingPage'
 import TrainingTopicPage from '@/pages/ServicePage/TrainingTopicPage'
 import TrainingQuizPage from '@/pages/ServicePage/TrainingQuizPage'
@@ -168,7 +167,7 @@ export default function App() {
             <Route path="service/requests" element={<ServiceRequestsPage />} />
             <Route path="service/requests/new" element={<ServiceRequestFormPage />} />
             <Route path="service/requests/:id" element={<ServiceRequestDetailPage />} />
-            <Route path="service/installation" element={<InstallationPage />} />
+            <Route path="service/installation" element={<Navigate to="/service" replace />} />
             <Route path="service/training" element={<TrainingPage />} />
             <Route path="service/training/topic/:id" element={<TrainingTopicPage />} />
             <Route path="service/training/quiz/:id" element={<TrainingQuizPage />} />

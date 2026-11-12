@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SivamaMeasurementForm.module.css'
 import SivamaInfoModal from './SivamaInfoModal'
+import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -64,7 +65,7 @@ const FIELD_INFO: Record<SivamaFieldKey, FieldInfo> = {
   H: {
     title: 'H :',
     description:
-      'MAKİNE HIZINI METRE/DAKİKA PARAMETRESİNDE BELİRLENEN SINIRLAR İÇERİSİNDE AYARLAMANIZA OLANAK SAĞLAMAKTADIR.',
+      'KIVRIM HIZINI YÜZDE (%) OLARAK BELİRLER. %100 MAKİNENİN AYARLARDA TANIMLI EN YÜKSEK HIZIDIR.',
   },
   Y: {
     title: 'Y :',
@@ -97,7 +98,9 @@ export default function SivamaMeasurementForm({ values, onChange, onReset, onCon
   const [numpadField, setNumpadField] = useState<SivamaNumericKey | null>(null)
 
   function handleNumpadConfirm(value: string) {
-    if (numpadField) onChange({ ...values, [numpadField]: value })
+    if (!numpadField) return
+    // H = kıvrım hızı YÜZDE: tam sayı %1..%100 (dışı sınıra çekilir)
+    onChange({ ...values, [numpadField]: numpadField === 'H' ? normalizeMeasureHInput(value) : value })
   }
 
   function handleDirectionSelect(dir: SpiralDirection) {
@@ -119,7 +122,9 @@ export default function SivamaMeasurementForm({ values, onChange, onReset, onCon
           onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
-          {values[field] || <span className={styles.placeholder}>0</span>}
+          {field === 'H'
+            ? (values.H ? `%${values.H}` : <span className={styles.placeholder}>%</span>)
+            : (values[field] || <span className={styles.placeholder}>0</span>)}
           {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
         <button
@@ -210,8 +215,10 @@ export default function SivamaMeasurementForm({ values, onChange, onReset, onCon
       {/* ── Numpad modal ────────────────────────── */}
       {numpadField && (
         <NumpadModal
-          fieldLabel={numpadField}
+          fieldLabel={numpadField === 'H' ? 'H (%)' : numpadField}
           initialValue={values[numpadField]}
+          digitsOnly={numpadField === 'H'}
+          maxLength={numpadField === 'H' ? 3 : undefined}
           onConfirm={handleNumpadConfirm}
           onClose={() => setNumpadField(null)}
         />

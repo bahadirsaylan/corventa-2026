@@ -131,7 +131,7 @@ export default function ArcBendingMeasurementsPage() {
   const [acceptedPlan, setAcceptedPlan] = useState<ValidateArcPlanResponse | null>(null)
 
   function handleReset() {
-    setValues({ ...EMPTY, segments: [] })
+    setValues(applyMeasureDefaults({ ...EMPTY, segments: [] }))
     setParams({ arcBending: null })
     setStage('main')
     setValidationError(null)

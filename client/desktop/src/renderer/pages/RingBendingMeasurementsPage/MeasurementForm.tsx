@@ -5,6 +5,7 @@ import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
+import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
@@ -52,7 +53,7 @@ const FIELD_INFO: Record<FieldKey, FieldInfo> = {
   H: {
     title: 'H:',
     description:
-      'MAKİNE HIZINI METRE/DAKİKA PARAMETRESİNDE BELİRLENEN SINIRLAR İÇERİSİNDE AYARLAMANIZA OLANAK SAĞLAMAKTADIR.',
+      'KIVRIM HIZINI YÜZDE (%) OLARAK BELİRLER. %100 MAKİNENİN AYARLARDA TANIMLI EN YÜKSEK HIZIDIR.',
   },
   G: {
     title: 'G:',
@@ -91,7 +92,9 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
 
   function handleNumpadConfirm(value: string) {
-    if (numpadField) onChange({ ...values, [numpadField]: value })
+    if (!numpadField) return
+    // H = kıvrım hızı YÜZDE: tam sayı %1..%100 (dışı sınıra çekilir)
+    onChange({ ...values, [numpadField]: numpadField === 'H' ? normalizeMeasureHInput(value) : value })
   }
 
   function renderField(field: FieldKey) {
@@ -111,7 +114,9 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
           onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
-          {values[field] || <span className={styles.placeholder}>0</span>}
+          {field === 'H'
+            ? (values.H ? `%${values.H}` : <span className={styles.placeholder}>%</span>)
+            : (values[field] || <span className={styles.placeholder}>0</span>)}
           {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
 
@@ -173,8 +178,10 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
       {/* ── Numpad modal ────────────────────────── */}
       {numpadField && (
         <NumpadModal
-          fieldLabel={numpadField}
+          fieldLabel={numpadField === 'H' ? 'H (%)' : numpadField}
           initialValue={values[numpadField]}
+          digitsOnly={numpadField === 'H'}
+          maxLength={numpadField === 'H' ? 3 : undefined}
           onConfirm={handleNumpadConfirm}
           onClose={() => setNumpadField(null)}
         />

@@ -22,6 +22,7 @@ import {
 } from '@/components/SettingsForm/SettingsForm'
 import {
   MANUAL_SPEED,
+  MEASURE_H,
   UNLOAD_DEFAULT_PRESETS,
   UNLOAD_ROT_SEC,
   UNLOAD_SECONDS,
@@ -65,9 +66,18 @@ const LOCAL_SECTIONS: SectionDef[] = [
   },
   {
     title: 'ÖLÇÜ GİRİŞİ',
-    note: 'Ölçü ekranlarında alan boşsa bu değerler yazılır (G sadece çember ve çok açılıda). Boş = her işte operatör girer.',
+    note: 'Ölçü ekranlarında alan boşsa bu değerler yazılır (G sadece çember ve çok açılıda). H boşsa %100, G boşsa her işte operatör girer.',
     fields: [
-      { key: 'measureH', label: 'VARSAYILAN H (KIVRIM HIZI)', unit: 'm/dk', min: 0.1, max: 100, nullable: true },
+      {
+        key: 'measureH',
+        label: 'VARSAYILAN H (KIVRIM HIZI)',
+        unit: '%',
+        min: MEASURE_H.min,
+        max: MEASURE_H.max,
+        integer: true,
+        nullable: true,
+        desc: '%100 makinenin ayarlarda tanımlı en yüksek hızıdır. Boş bırakılırsa %100 kullanılır.',
+      },
       { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true },
     ],
   },
@@ -131,7 +141,7 @@ function readLocal(): Values {
   const v: Values = {
     manualSpeed: readManualSpeed(),
     manualRunSpeed: run.speedPercent,
-    measureH: d.H,
+    measureH: d.H ?? MEASURE_H.def,
     measureG: d.G,
   }
   return v

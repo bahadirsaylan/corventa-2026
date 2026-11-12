@@ -5,6 +5,10 @@
 //                 profileSubType), yön 'left' kaydedilir
 //   Dolu boru   → yön seçimi yok (sayfa atlanır, yön 'left' kaydedilir)
 //   Kare, dolu kare → YATAY / DİĞER
+//   Köşebent (L, iki kollu L) → KANAT İÇE (left=Inward) / KANAT DIŞA (right=Outward) / DİĞER
+//                 Görsel: yatay kanat halka düzleminde; DIŞA = yatay kanat merkezden dışarı uzanır
+//                 (dik kanat iç çapta), İÇE = yatay kanat merkeze doğru (dik kanat dış çapta).
+//                 Görseller SVG (kosebent*_kanat_*.svg); iki kollu = aynanın simetriği, kollar farklı boy.
 //   Lama        → değişmedi (yatay / dikine / diğer), görseller lamaya özel
 //   Diğerleri   → değişmedi (genel görseller)
 // Yön backend'de sadece kayıttır (BendingDirection: left=Inward, right=Outward, other=Other,
@@ -28,6 +32,10 @@ import tZor1 from '@/assets/images/directions/t_kiris_zor_1.png'
 import tZor2 from '@/assets/images/directions/t_kiris_zor_2.png'
 import kareKutu from '@/assets/images/directions/kare_kutu.png'
 import kareDolu from '@/assets/images/directions/kare_dolu.png'
+import kosebentDisa from '@/assets/images/directions/kosebent_kanat_disa.svg'
+import kosebentIce from '@/assets/images/directions/kosebent_kanat_ice.svg'
+import kosebent2Disa from '@/assets/images/directions/kosebent2_kanat_disa.svg'
+import kosebent2Ice from '@/assets/images/directions/kosebent2_kanat_ice.svg'
 import dikisliImage from '@/assets/images/pipe-dikisli.png'
 import etliImage from '@/assets/images/pipe-etli.png'
 
@@ -69,6 +77,16 @@ const PROFILE_DIRECTIONS: Partial<Record<BendingProfileId, DirectionOption[] | n
     { id: 'left', label: 'DİK', image: tKolay },
     { id: 'right', label: 'YAN', image: tZor1 },
     { id: 'reverse', label: 'TERS', image: tZor2 },
+  ],
+  'l-right': [
+    { id: 'left', label: 'KANAT İÇE', image: kosebentIce },
+    { id: 'right', label: 'KANAT DIŞA', image: kosebentDisa },
+    OTHER,
+  ],
+  'l-left': [
+    { id: 'left', label: 'KANAT İÇE', image: kosebent2Ice },
+    { id: 'right', label: 'KANAT DIŞA', image: kosebent2Disa },
+    OTHER,
   ],
   'square-out': [{ id: 'left', label: 'YATAY', image: kareKutu }, OTHER],
   'square-filled': [{ id: 'left', label: 'YATAY', image: kareDolu }, OTHER],

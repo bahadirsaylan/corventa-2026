@@ -26,6 +26,12 @@
   gap: 12px;
 }
 
+/* Üst sıra 2 rozet (KURULUM kaldırıldı) — alt sıradaki 3'lü ile aynı rozet genişliği, ortalı */
+.grid2 {
+  grid-template-columns: repeat(2, calc((100% - 24px) / 3));
+  justify-content: center;
+}
+
 /* ── Son ticket önizleme ──────────────────────── */
 .recentBox {
   background: #ffffff;

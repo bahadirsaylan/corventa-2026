@@ -71,7 +71,26 @@ const en: Record<string, string> = {
   // ── Yeni servis talebi formu ──────────────────────────
   'YENİ SERVİS TALEBİ': 'NEW SERVICE REQUEST',
   'SERVİSİN AMACI :': 'SERVICE PURPOSE :',
-  'TALEBİN BAŞLIĞINI GİRİNİZ...': 'ENTER THE REQUEST TITLE...',
+  'TALEBİN BAŞLIĞI :': 'REQUEST TITLE :',
+  'BAŞLIK SEÇİNİZ...': 'SELECT A TITLE...',
+  // Başlık seçenekleri (amaca göre). GÜNLÜK/HAFTALIK/AYLIK/6 AYLIK BAKIM → maintenanceRules.ts, DİĞER → settingsPages.ts
+  'HİDROLİK ARIZA': 'HYDRAULIC FAULT',
+  'ELEKTRİK / ELEKTRONİK ARIZA': 'ELECTRICAL / ELECTRONIC FAULT',
+  'PLC / YAZILIM ARIZASI': 'PLC / SOFTWARE FAULT',
+  'SENSÖR ARIZASI (ENCODER / BASINÇ / PARÇA SENSÖRÜ)': 'SENSOR FAULT (ENCODER / PRESSURE / PART SENSOR)',
+  'MOTOR / POMPA ARIZASI': 'MOTOR / PUMP FAULT',
+  'MEKANİK ARIZA (TOP / RULMAN / MİL)': 'MECHANICAL FAULT (ROLL / BEARING / SHAFT)',
+  'ACİL STOP / EMNİYET DEVRESİ': 'EMERGENCY STOP / SAFETY CIRCUIT',
+  'YILLIK BAKIM': 'ANNUAL MAINTENANCE',
+  'YAĞ / FİLTRE DEĞİŞİMİ': 'OIL / FILTER CHANGE',
+  'MÜŞTERİ TALEBİ': 'CUSTOMER REQUEST',
+  'İLK KURULUM / DEVREYE ALMA': 'INITIAL INSTALLATION / COMMISSIONING',
+  'MAKİNE TAŞIMA / YENİDEN KURULUM': 'MACHINE RELOCATION / REINSTALLATION',
+  'KALIP / APARAT MONTAJI': 'MOLD / FIXTURE MOUNTING',
+  'OPERATÖR EĞİTİMİ': 'OPERATOR TRAINING',
+  'BAKIM EĞİTİMİ': 'MAINTENANCE TRAINING',
+  'YAZILIM / YENİ ÖZELLİK EĞİTİMİ': 'SOFTWARE / NEW FEATURE TRAINING',
+  'İLERİ SEVİYE (AI BÜKÜM) EĞİTİMİ': 'ADVANCED (AI BENDING) TRAINING',
   'TALEBİNİZİN DETAYINI YAZINIZ...': 'DESCRIBE YOUR REQUEST IN DETAIL...',
   'TALEBİ GÖNDER': 'SUBMIT REQUEST',
 
@@ -212,12 +231,6 @@ const en: Record<string, string> = {
   MARULLAMA: 'WRINKLING',
   HİÇBİRİ: 'NONE',
 
-  // ── Kurulum ───────────────────────────────────────────
-  'KURULUM HİZMETLERİ': 'INSTALLATION SERVICES',
-  'Makinanın ilk kurulumu, operatör eğitimi ve devreye alma süreçleri burada listelenir. Yeni bir kurulum talep etmek için "Yeni Talep Oluştur" butonunu kullanın.':
-    'Initial machine installation, operator training and commissioning are listed here. To request a new installation, use the "Create New Request" button.',
-  'Henüz kurulum kaydı yok': 'No installation records yet',
-  'YENİ KURULUM TALEBİ OLUŞTUR': 'CREATE NEW INSTALLATION REQUEST',
 
   // ── Servis ağı (harita) ───────────────────────────────
   'SERVİS TALEBİ OLUŞTUR': 'CREATE SERVICE REQUEST',

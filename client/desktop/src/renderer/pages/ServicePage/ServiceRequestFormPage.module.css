@@ -64,22 +64,44 @@
   flex-direction: column;
 }
 
-.titleInput {
-  width: 100%;
-  border: none;
-  outline: none;
-  padding: 16px 18px;
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
   background: #f7f3e7;
   border-bottom: 1.5px solid #c5c1b6;
-  font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text);
-  letter-spacing: 0.04em;
 }
 
-.titleInput::placeholder {
-  color: var(--color-text-muted);
+.titleLabel {
+  flex: 0 0 auto;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+
+/* Dokunmatik: büyük kutu + büyük yazı; açılan seçenek listesi de büyük */
+.titleSelect {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 60px;
+  padding: 0 14px;
+  border: 2px solid #c5c1b6;
+  border-radius: 10px;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.titleSelect option {
+  font-size: 20px;
+  padding: 10px;
 }
 
 .descInput {

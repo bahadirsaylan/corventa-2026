@@ -168,9 +168,28 @@ export function saveManualSpeed(v: number): void {
   write(MANUAL_SPEED_KEY, JSON.stringify(v))
 }
 
-// ── Ölçü ekranı ön doldurma: H (kıvrım hızı m/dk) ve G (adım mm) ────
-// null = boş bırak (operatör her işte kendisi girer). Sadece alan BOŞSA doldurulur.
+// ── Ölçü ekranı ön doldurma: H (kıvrım hızı %) ve G (adım mm) ────
+// H YÜZDE (%1..%100): %100 = makine ayarlarındaki en yüksek hız. Değer sadece işe kaydedilir
+// (profileH / kivrimHizMetreDakika alan adları geriye uyum için aynı kaldı), hareketi etkilemez.
+// null = H için %100, G için boş. Sadece alan BOŞSA doldurulur.
 const MEASURE_DEFAULTS_KEY = 'corventa.measureDefaults'
+
+/** Kıvrım hızı (H) yüzde aralığı ve varsayılanı */
+export const MEASURE_H = { min: 1, max: 100, def: 100 }
+
+/** H'yi %1..%100 tam sayıya çeker (eski m/dk değeri > 100 ise 100). Geçersiz → null. */
+export function clampMeasureH(n: unknown): number | null {
+  const v = typeof n === 'number' ? n : Number(n)
+  if (!Number.isFinite(v) || v <= 0) return null
+  return Math.min(MEASURE_H.max, Math.max(MEASURE_H.min, Math.round(v)))
+}
+
+/** Numpad'den gelen H girdisi → '' veya "%1..%100" tam sayı metni (ölçü formları) */
+export function normalizeMeasureHInput(value: string): string {
+  if (value.trim() === '') return ''
+  const n = clampMeasureH(value)
+  return n == null ? '' : String(n)
+}
 
 export interface MeasureDefaults {
   H: number | null
@@ -180,17 +199,21 @@ export interface MeasureDefaults {
 export function readMeasureDefaults(): MeasureDefaults {
   const v = readJson(MEASURE_DEFAULTS_KEY) as MeasureDefaults | null
   const ok = (n: unknown) => (typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null)
-  return { H: ok(v?.H), G: ok(v?.G) }
+  return { H: clampMeasureH(ok(v?.H)), G: ok(v?.G) }
 }
 
 export function saveMeasureDefaults(d: MeasureDefaults): void {
-  write(MEASURE_DEFAULTS_KEY, JSON.stringify(d))
+  write(MEASURE_DEFAULTS_KEY, JSON.stringify({ H: d.H == null ? null : clampMeasureH(d.H), G: d.G }))
 }
 
-/** Ölçü formunda H / G boşsa operatör varsayılanıyla doldurur (dolu alana dokunmaz; G'si olmayan formlarda sadece H). */
+/**
+ * Ölçü formunda H / G boşsa doldurur (G'si olmayan formlarda sadece H):
+ * H → operatör varsayılanı, o da yoksa %100. Dolu H %1..%100'e çekilir (eski m/dk kaydı).
+ */
 export function applyMeasureDefaults<T extends { H: string; G?: string }>(v: T): T {
   const d = readMeasureDefaults()
-  const out = { ...v, H: v.H.trim() === '' && d.H != null ? String(d.H) : v.H }
+  const h = v.H.trim() === '' ? String(d.H ?? MEASURE_H.def) : String(clampMeasureH(v.H) ?? MEASURE_H.def)
+  const out = { ...v, H: h }
   if (typeof v.G === 'string') out.G = v.G.trim() === '' && d.G != null ? String(d.G) : v.G
   return out
 }

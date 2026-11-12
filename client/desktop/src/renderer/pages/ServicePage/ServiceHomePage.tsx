@@ -1,5 +1,6 @@
 // SEKIL-31 — Service modülü ana sayfası.
-// 3 üst (SERVİS, KURULUM, EĞİTİM) + 3 alt (SORU, ÖNERİ, ŞİKAYET) daire buton.
+// 2 üst (SERVİS, EĞİTİM) + 3 alt (SORU, ÖNERİ, ŞİKAYET) daire buton.
+// 2026-11-12: KURULUM sekmesi kaldırıldı (kullanıcı kararı); /service/installation → /service yönlendirilir.
 // Altta son ticket önizleme (en yeni 3 ticket — type bağımsız).
 
 import { useEffect, useState } from 'react'
@@ -51,18 +52,13 @@ export default function ServiceHomePage() {
   return (
     <ServicePageShell title="SERVİS & DESTEK MERKEZİ" onBack={() => navigate('/dashboard')}>
       <div className={styles.root}>
-        {/* ── Üst sıra: Servis / Kurulum / Eğitim ─── */}
+        {/* ── Üst sıra: Servis / Eğitim ─── */}
         <div className={styles.section}>
-          <div className={styles.grid}>
+          <div className={`${styles.grid} ${styles.grid2}`}>
             <CategoryBadge
               label="SERVİS"
               letter="S"
               onClick={() => navigate('/service/requests')}
-            />
-            <CategoryBadge
-              label="KURULUM"
-              letter="K"
-              onClick={() => navigate('/service/installation')}
             />
             <CategoryBadge
               label="EĞİTİM"

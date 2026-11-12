@@ -59,7 +59,7 @@ export default function SivamaBendingMeasurementsPage() {
   const setValues = (v: SivamaMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {
-    setValues({ ...EMPTY })
+    setValues(applyMeasureDefaults({ ...EMPTY }))
     setParams({ sivamaBending: null })
   }
 

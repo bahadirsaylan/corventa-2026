@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
+import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
@@ -93,7 +94,7 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   H: {
     title: 'H :',
     description:
-      'MAKİNE HIZINI METRE/DAKİKA PARAMETRESİNDE BELİRLENEN SINIRLAR İÇERİSİNDE AYARLAMANIZA OLANAK SAĞLAMAKTADIR.',
+      'KIVRIM HIZINI YÜZDE (%) OLARAK BELİRLER. %100 MAKİNENİN AYARLARDA TANIMLI EN YÜKSEK HIZIDIR.',
   },
   G: {
     title: 'G :',
@@ -290,7 +291,8 @@ export default function ArcMeasurementForm({
   function handleNumpadConfirm(value: string) {
     if (!numpadTarget) return
     if (numpadTarget.kind === 'main') {
-      onChange({ ...values, [numpadTarget.field]: value })
+      // H = kıvrım hızı YÜZDE: tam sayı %1..%100 (dışı sınıra çekilir)
+      onChange({ ...values, [numpadTarget.field]: numpadTarget.field === 'H' ? normalizeMeasureHInput(value) : value })
     } else {
       const nextSegments = values.segments.map((seg, i) =>
         i === numpadTarget.index ? { ...seg, [numpadTarget.field]: value } : seg,
@@ -314,7 +316,9 @@ export default function ArcMeasurementForm({
           onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadTarget({ kind: 'main', field }) }}
           aria-label={`Enter value for ${field}`}
         >
-          {values[field] || <span className={styles.placeholder}>0</span>}
+          {field === 'H'
+            ? (values.H ? `%${values.H}` : <span className={styles.placeholder}>%</span>)
+            : (values[field] || <span className={styles.placeholder}>0</span>)}
           {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
         <button
@@ -430,6 +434,7 @@ export default function ArcMeasurementForm({
     return values.segments[numpadTarget.index]?.[numpadTarget.field] ?? ''
   })()
 
+  const isHTarget = numpadTarget?.kind === 'main' && numpadTarget.field === 'H'
   const numpadLabel = (() => {
     if (!numpadTarget) return ''
     if (numpadTarget.kind === 'main') return numpadTarget.field
@@ -481,7 +486,7 @@ export default function ArcMeasurementForm({
               <span><b>A</b>={values.A || '—'}</span>
               {visibleFields.includes('B') && <span><b>B</b>={values.B || '—'}</span>}
               {visibleFields.includes('S') && <span><b>S</b>={values.S || '—'}</span>}
-              <span><b>H</b>={values.H || '—'}</span>
+              <span><b>H</b>={values.H ? `%${values.H}` : '—'}</span>
               <span><b>P</b>={values.P || '—'}</span>
               <span><b>G</b>={values.G || '—'}</span>
               <span><b>LT</b>={values.LT || '—'}mm</span>
@@ -636,8 +641,10 @@ export default function ArcMeasurementForm({
       {/* ── Numpad modal ────────────────────────── */}
       {numpadTarget && (
         <NumpadModal
-          fieldLabel={numpadLabel}
+          fieldLabel={isHTarget ? 'H (%)' : numpadLabel}
           initialValue={currentNumpadValue}
+          digitsOnly={isHTarget}
+          maxLength={isHTarget ? 3 : undefined}
           onConfirm={handleNumpadConfirm}
           onClose={() => setNumpadTarget(null)}
         />
