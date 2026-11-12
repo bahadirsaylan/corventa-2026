@@ -94,7 +94,7 @@ const FIELD_INFO: Record<ArcMainFieldKey | ArcSegmentFieldKey, FieldInfo> = {
   H: {
     title: 'H :',
     description:
-      'KIVRIM HIZINI YÜZDE (%) OLARAK BELİRLER. %100 MAKİNENİN AYARLARDA TANIMLI EN YÜKSEK HIZIDIR.',
+      'KIVRIM HIZI (%). DEĞER AYARLARDAKİ KIVRIM HIZI AYARINDAN OTOMATİK GELİR.',
   },
   G: {
     title: 'G :',

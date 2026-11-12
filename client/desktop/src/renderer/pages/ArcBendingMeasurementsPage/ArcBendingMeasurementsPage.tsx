@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
@@ -18,7 +18,7 @@ import ArcPlanSummary from './ArcPlanSummary'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
-import { applyMeasureDefaults } from '@/services/operatorPrefs'
+import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -117,6 +117,16 @@ export default function ArcBendingMeasurementsPage() {
   const [values, setRawValues] = useState<ArcMeasurementValues>(() =>
     applyMeasureDefaults(fillHiddenProfileFields(fromStore(arcBending), visibleFields)),
   )
+  // 2026-11-12: H (kıvrım hızı) makine ayarındaki KIVRIM HIZI'ndan gelir — sayfa açılınca güncel değeri yaz
+  useEffect(() => {
+    let alive = true
+    void loadMachineSpeedH().then((h) => {
+      if (alive && h != null) setRawValues((v) => ({ ...v, H: String(h) }))
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
   const setValues = (v: ArcMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
   const [inputMode, setInputMode] = useState<ArcInputMode>('angle')
   const [stage, setStage] = useState<ArcFormStage>('main')

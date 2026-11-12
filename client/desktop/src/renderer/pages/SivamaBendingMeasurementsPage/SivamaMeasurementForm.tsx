@@ -65,7 +65,7 @@ const FIELD_INFO: Record<SivamaFieldKey, FieldInfo> = {
   H: {
     title: 'H :',
     description:
-      'KIVRIM HIZINI YÜZDE (%) OLARAK BELİRLER. %100 MAKİNENİN AYARLARDA TANIMLI EN YÜKSEK HIZIDIR.',
+      'KIVRIM HIZI (%). DEĞER AYARLARDAKİ KIVRIM HIZI AYARINDAN OTOMATİK GELİR.',
   },
   Y: {
     title: 'Y :',

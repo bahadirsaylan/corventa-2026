@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
@@ -12,7 +12,7 @@ import { checkCapacity, type CapacityCheck, type CapacityIssue } from '@/constan
 import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
-import { applyMeasureDefaults } from '@/services/operatorPrefs'
+import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -49,6 +49,16 @@ export default function RingBendingMeasurementsPage() {
   const [values, setRawValues] = useState<MeasurementValues>(() =>
     applyMeasureDefaults(fillHiddenProfileFields(fromStore(ringBending), visibleFields)),
   )
+  // 2026-11-12: H (kıvrım hızı) makine ayarındaki KIVRIM HIZI'ndan gelir — sayfa açılınca güncel değeri yaz
+  useEffect(() => {
+    let alive = true
+    void loadMachineSpeedH().then((h) => {
+      if (alive && h != null) setRawValues((v) => ({ ...v, H: String(h) }))
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
   const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç

@@ -22,7 +22,6 @@ import {
 } from '@/components/SettingsForm/SettingsForm'
 import {
   MANUAL_SPEED,
-  MEASURE_H,
   UNLOAD_DEFAULT_PRESETS,
   UNLOAD_ROT_SEC,
   UNLOAD_SECONDS,
@@ -66,19 +65,9 @@ const LOCAL_SECTIONS: SectionDef[] = [
   },
   {
     title: 'ÖLÇÜ GİRİŞİ',
-    note: 'Ölçü ekranlarında alan boşsa bu değerler yazılır (G sadece çember ve çok açılıda). H boşsa %100, G boşsa her işte operatör girer.',
+    note: 'Ölçü ekranlarında G (adım) boşsa bu değer yazılır (G sadece çember ve çok açılıda). Boş bırakılırsa 30 mm. H (kıvrım hızı) aşağıdaki BÜKÜM bölümündeki KIVRIM HIZI ayarından gelir.',
     fields: [
-      {
-        key: 'measureH',
-        label: 'VARSAYILAN H (KIVRIM HIZI)',
-        unit: '%',
-        min: MEASURE_H.min,
-        max: MEASURE_H.max,
-        integer: true,
-        nullable: true,
-        desc: '%100 makinenin ayarlarda tanımlı en yüksek hızıdır. Boş bırakılırsa %100 kullanılır.',
-      },
-      { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true },
+      { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true, desc: 'Boş bırakılırsa 30 mm.' },
     ],
   },
 ]
@@ -111,9 +100,19 @@ const UNLOAD_SECTION: SectionDef = {
 }
 
 const MACHINE_SECTION: SectionDef = {
-  title: 'GERİ ESNEME',
+  title: 'BÜKÜM / GERİ ESNEME',
   note: 'Makinede saklanır — tüm kullanıcılar için geçerlidir.',
   fields: [
+    {
+      // 2026-11-12: ölçü ekranındaki H bu ayardan gelir (bükümde kullanılan rotasyon hızı — job.RotationSpeedPercent)
+      key: 'defaultRotationSpeedPercent',
+      label: 'KIVRIM HIZI (H)',
+      unit: '%',
+      min: 1,
+      max: 100,
+      integer: true,
+      desc: 'Büküm sırasında rotasyon hızı. Ölçü ekranındaki H bu değerle gelir.',
+    },
     {
       key: 'defaultToleranceMm',
       label: 'ÇAP TOLERANSI',
@@ -141,7 +140,6 @@ function readLocal(): Values {
   const v: Values = {
     manualSpeed: readManualSpeed(),
     manualRunSpeed: run.speedPercent,
-    measureH: d.H ?? MEASURE_H.def,
     measureG: d.G,
   }
   return v
@@ -150,7 +148,7 @@ function readLocal(): Values {
 function writeLocal(v: Values): void {
   saveManualSpeed(Number(v.manualSpeed))
   saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed) })
-  saveMeasureDefaults({ H: (v.measureH as number | null) ?? null, G: (v.measureG as number | null) ?? null })
+  saveMeasureDefaults({ H: readMeasureDefaults().H, G: (v.measureG as number | null) ?? null })
 }
 
 /** Makine ayarlarından tahliye ekran alanları (boş DB alanı → bu cihazdaki eski değer / varsayılan) */

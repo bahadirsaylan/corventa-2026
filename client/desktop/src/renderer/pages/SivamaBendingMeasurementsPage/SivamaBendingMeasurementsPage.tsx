@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import { applyMeasureDefaults } from '@/services/operatorPrefs'
+import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -56,6 +56,16 @@ export default function SivamaBendingMeasurementsPage() {
   const [values, setRawValues] = useState<SivamaMeasurementValues>(() =>
     applyMeasureDefaults(fillHiddenProfileFields(fromStore(sivamaBending), visibleFields)),
   )
+  // 2026-11-12: H (kıvrım hızı) makine ayarındaki KIVRIM HIZI'ndan gelir — sayfa açılınca güncel değeri yaz
+  useEffect(() => {
+    let alive = true
+    void loadMachineSpeedH().then((h) => {
+      if (alive && h != null) setRawValues((v) => ({ ...v, H: String(h) }))
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
   const setValues = (v: SivamaMeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
   function handleReset() {

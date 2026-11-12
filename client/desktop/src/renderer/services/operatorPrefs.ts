@@ -212,10 +212,34 @@ export function saveMeasureDefaults(d: MeasureDefaults): void {
  */
 export function applyMeasureDefaults<T extends { H: string; G?: string }>(v: T): T {
   const d = readMeasureDefaults()
-  const h = v.H.trim() === '' ? String(d.H ?? MEASURE_H.def) : String(clampMeasureH(v.H) ?? MEASURE_H.def)
+  // 2026-11-12: H her zaman makine ayarındaki KIVRIM HIZI'ndan (defaultRotationSpeedPercent) gelir; okunamadıysa eski davranış
+  const h =
+    machineSpeedH != null
+      ? String(machineSpeedH)
+      : v.H.trim() === ''
+        ? String(d.H ?? MEASURE_H.def)
+        : String(clampMeasureH(v.H) ?? MEASURE_H.def)
   const out = { ...v, H: h }
-  if (typeof v.G === 'string') out.G = v.G.trim() === '' && d.G != null ? String(d.G) : v.G
+  // G boşsa operatör varsayılanı, o da yoksa 30 mm (ileride algoritmaya bağlanacak)
+  if (typeof v.G === 'string') out.G = v.G.trim() === '' ? String(d.G ?? MEASURE_G_DEFAULT) : v.G
   return out
+}
+
+/** G (adım) boşken kullanılan varsayılan — şimdilik sabit 30 mm */
+export const MEASURE_G_DEFAULT = 30
+
+// Makine ayarı KIVRIM HIZI (MachineSettings.defaultRotationSpeedPercent) — ölçü ekranı H'si buradan gelir
+let machineSpeedH: number | null = null
+
+/** Makine ayarından H'yi okur (önbelleğe alır). Okunamazsa null (eski davranış). */
+export async function loadMachineSpeedH(): Promise<number | null> {
+  try {
+    const m = (await window.corventa.settings.getMachine()) as Record<string, unknown>
+    machineSpeedH = clampMeasureH(m.defaultRotationSpeedPercent)
+  } catch {
+    /* ayar okunamadı — önbellekteki değer kalır */
+  }
+  return machineSpeedH
 }
 
 // ── Manuel büküm ekranı (ManuelBendingRunPage) ──────────────────────

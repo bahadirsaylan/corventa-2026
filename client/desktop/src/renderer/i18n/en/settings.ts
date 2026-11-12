@@ -34,6 +34,11 @@ const en: Record<string, string> = {
   'DİĞER OPERATÖR AYARLARI': 'OTHER OPERATOR SETTINGS',
   'VARSAYILAN H (KIVRIM HIZI)': 'DEFAULT H (BENDING SPEED)',
   'VARSAYILAN G (ADIM)': 'DEFAULT G (STEP)',
+  'Ölçü ekranlarında G (adım) boşsa bu değer yazılır (G sadece çember ve çok açılıda). Boş bırakılırsa 30 mm. H (kıvrım hızı) aşağıdaki BÜKÜM bölümündeki KIVRIM HIZI ayarından gelir.':
+    'If G (step) is empty on the measurement screens this value is filled in (G only for ring and multi-angle). Empty = 30 mm. H (bending speed) comes from the BENDING SPEED setting in the BENDING section below.',
+  'Boş bırakılırsa 30 mm.': 'Empty = 30 mm.',
+  'BÜKÜM / GERİ ESNEME': 'BENDING / SPRINGBACK',
+  'Büküm sırasında rotasyon hızı. Ölçü ekranındaki H bu değerle gelir.': 'Rotation speed during bending. H on the measurement screen comes from this value.',
   'TAHLİYE': 'UNLOAD',
   'Büküm bitince açılan tahliye ekranının seçenekleri.': 'Options of the unload screen shown when bending finishes.',
   'SÜRE 1': 'TIME 1',
