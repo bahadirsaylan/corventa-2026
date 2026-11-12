@@ -135,6 +135,7 @@ const en: Record<string, string> = {
   'YAĞ NEMİ': 'OIL HUMIDITY',
   'YAĞ BASINCI': 'OIL PRESSURE',
   'AKIŞ S1 / S2': 'FLOW S1 / S2',
+  'YAĞ BASINCI S1 / S2': 'OIL PRESSURE S1 / S2',
   'TEMAS SENSÖRÜ': 'PART SENSOR',
   'AKTİF': 'ACTIVE',
   'PASİF': 'INACTIVE',

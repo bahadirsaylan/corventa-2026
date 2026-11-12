@@ -55,9 +55,10 @@ function OilStatsList() {
       state: okFail(sensors.oilHumidityPercent < 50),
     },
     {
-      label: t('YAĞ BASINCI'),
-      value: `${pressureBar} bar`,
-      state: pressureBar > 0 ? 'ok' : motorReady ? 'fail' : 'idle',
+      // 2026-11-12: S1 (üst/alt top) ve S2 (sağ/sol top) ayrı ayrı — "S1 / S2" (bar)
+      label: t('YAĞ BASINCI S1 / S2'),
+      value: `${sensors.s1PressureBar} / ${pressureBar} bar`,
+      state: pressureBar > 0 || sensors.s1PressureBar > 0 ? 'ok' : motorReady ? 'fail' : 'idle',
     },
     {
       label: t('AKIŞ S1 / S2'),
