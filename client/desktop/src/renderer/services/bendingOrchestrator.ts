@@ -9,6 +9,7 @@ import {
   mapToCreateRequest,
   type MapOptions,
 } from '@/services/mappers/jobPayloadMapper'
+import { loadLowerBallDiameterMm } from '@/services/machineGeometry'
 import type { BendingJob } from '@shared/types'
 import { t } from '@/i18n'
 
@@ -87,12 +88,22 @@ export async function executeBendingFlow(
     throw err
   }
 
+  // Alt top çapı makine ayarından (2026-11-16) — piston hedefi (Step 1/2) ve iş kaydı (Step 4)
+  // AYNI değeri kullanır; ayar okunamazsa tahmini 220 ile hesap yapılmaz, akış durur.
+  let ballDiameterMm: number
+  try {
+    ballDiameterMm = await loadLowerBallDiameterMm()
+    createReq.ballDiameterMm = ballDiameterMm
+  } catch (err) {
+    throw new BendingOrchestratorError('mapping', toMessage(err), err)
+  }
+
   // ---------- Step 1: Calculate ----------
   notify('calculate')
   let pistonPosition: number
   try {
     const calc = await window.corventa.bending.calculate({
-      ballDiameter: createReq.ballDiameterMm ?? 220,
+      ballDiameter: ballDiameterMm,
       thickness: createReq.profileA,  // ⚠ BendingCalculator "Thickness" = profilin radyal kesit boyutu (kenar A), duvar kalınlığı (S) DEĞİL. R2 = Rarc - Thickness - Rk formülünde kullanılır.
       centerDistance: createReq.centerDistanceMm ?? 300.82,
       targetBendingDiameter: createReq.targetDiameterMm,
@@ -125,7 +136,7 @@ export async function executeBendingFlow(
       activeSensorSide: createReq.activeSensorSide,
       // Step 1 calculate ile birebir aynı geometri → preview pasoSteps[].expectedRadiusMm dolar (sadece
       // önizleme bilgisi; monitör etiketi bunu KULLANMAZ — çalışan paso R'si progress'ten gelir, EXCEL 32)
-      ballDiameterMm: createReq.ballDiameterMm ?? 220,
+      ballDiameterMm,
       thicknessMm: createReq.profileA,
       centerDistanceMm: createReq.centerDistanceMm ?? 300.82,
       xA1: createReq.xA1 ?? -493,

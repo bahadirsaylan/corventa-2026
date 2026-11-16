@@ -134,7 +134,11 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         title: 'BÜKÜM GEOMETRİSİ',
         note: 'Bu değerler piston hedef hesabını doğrudan değiştirir. Sahada ölçülmeden değiştirmeyin.',
         fields: [
-          { key: 'defaultBallDiameterMm', label: 'TOP ÇAPI', unit: 'mm', min: 1, max: 1000 },
+          // 2026-11-16 — her vals topu ayrı (eski tek TOP ÇAPI dördüne kopyalandı)
+          { key: 'upperBallDiameterMm', label: 'ÜST TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Sıkıştırma hedefinde kullanılır.' },
+          { key: 'lowerBallDiameterMm', label: 'ALT TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Büküm hesabı, sıvama ve sıkıştırma hedefinde kullanılır.' },
+          { key: 'leftBallDiameterMm', label: 'SOL TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
+          { key: 'rightBallDiameterMm', label: 'SAĞ TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
           { key: 'defaultCenterDistanceMm', label: 'EKSEN MESAFESİ (NORMAL)', unit: 'mm', min: 1, max: 2000, desc: 'Sol-sağ top arası. Arc Normal / Ters Normal segmentler.' },
           { key: 'centerDistanceMiddleRadiusMm', label: 'EKSEN MESAFESİ (RADIUS ORTADA)', unit: 'mm', min: 1, max: 2000, nullable: true, desc: 'Arc Middle segmentler. Boş = normal eksen mesafesi kullanılır.' },
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },

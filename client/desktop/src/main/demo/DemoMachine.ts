@@ -75,6 +75,7 @@ const DEMO_MACHINE_SETTINGS = {
   circularSlackDistanceMm: 0.1, circularSlackPressureBar: 157, circularAdaptiveInitialSlackDistanceMm: null,
   arcSlackDistanceMm: 0.1, arcSlackPressureBar: 157, arcAdaptiveInitialSlackDistanceMm: null,
   defaultClampPressureBar: 150, defaultBallDiameterMm: 220, defaultCenterDistanceMm: 300.82,
+  upperBallDiameterMm: 220, lowerBallDiameterMm: 220, leftBallDiameterMm: 220, rightBallDiameterMm: 220,
   centerDistanceMiddleRadiusMm: 300, upperLowerCenterDistanceMm: 488, clampOverpressMm: 0.1,
   defaultThetaDeg: 63, defaultXA1: -465, defaultYA1: 0,
   slpisZeroOffsetMm: 0, slpisLMm: 70, slpisRulmanCapMm: 35,

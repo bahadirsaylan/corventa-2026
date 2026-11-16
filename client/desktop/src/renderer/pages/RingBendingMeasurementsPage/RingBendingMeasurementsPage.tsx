@@ -13,6 +13,7 @@ import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
 import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
+import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm } from '@/services/machineGeometry'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -135,17 +136,26 @@ export default function RingBendingMeasurementsPage() {
     // AI mod: parametreler tamsa AI eşleşme modalını aç.
     // Yağ sıcaklığı sadece burada lazım — abone olmadan anlık okunur (form 10 Hz yeniden çizilmesin)
     const oilTempC = useMachineStateStore.getState().state.sensors.oilTempC
-    const req: SimilarBendingJobRequest = {
+    const base: Omit<SimilarBendingJobRequest, 'ballDiameterMm'> = {
       targetDiameterMm: parseFloat(values.R),
       partLengthMm: parseFloat(values.L),
       stepDistanceMm: parseFloat(values.G),
       profileA: parseFloat(values.A),
       profileB: parseFloat(values.B),
       profileS: parseFloat(values.S),
-      ballDiameterMm: 220,
       oilTempC: oilTempC > 0 ? oilTempC : undefined,
     }
-    setAiModalRequest(req)
+    // Eşleşme, işin kaydedileceği çapla (makine ayarındaki ALT TOP ÇAPI) aranır — sabit 220 değil.
+    // Ayar okunamazsa AI önizleme atlanır (büküm akışı da ayarı ister, orada hata gösterilir).
+    void loadLowerBallDiameterMm()
+      .catch(() => cachedLowerBallDiameterMm())
+      .then((d) => {
+        if (d == null) {
+          persistAndNavigate()
+          return
+        }
+        setAiModalRequest({ ...base, ballDiameterMm: d })
+      })
   }
 
   return (
