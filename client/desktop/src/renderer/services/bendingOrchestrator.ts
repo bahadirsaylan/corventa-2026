@@ -10,6 +10,7 @@ import {
   type MapOptions,
 } from '@/services/mappers/jobPayloadMapper'
 import { loadLowerBallDiameterMm } from '@/services/machineGeometry'
+import { readApplyProductionTolerance, readProductionToleranceMm } from '@/services/operatorPrefs'
 import type { BendingJob } from '@shared/types'
 import { t } from '@/i18n'
 
@@ -81,6 +82,13 @@ export async function executeBendingFlow(
   try {
     createReq = mapToCreateRequest(params, opts)
     if (opts.partLengthMm) createReq.partLengthMm = opts.partLengthMm
+    // 2026-11-16: TOLERANSI BÜKÜME UYGULA (Operatör Ayarları, varsayılan KAPALI) açıksa ana ekranda seçilen
+    // üretim toleransı (± mm) işin toleransı olur. DataApi pozitif toleranceMm'i ezmez (sadece ≤ 0 iken
+    // ÇAP TOLERANSI'nı yazar). Kapalıyken alan gönderilmez → eski davranış.
+    if (readApplyProductionTolerance()) {
+      const tol = readProductionToleranceMm()
+      if (tol > 0) createReq.toleranceMm = tol
+    }
   } catch (err) {
     if (err instanceof JobMappingError) {
       throw new BendingOrchestratorError('mapping', err.message, err)

@@ -5,6 +5,7 @@
 //   GET  /api/mold-code/parse?code=                  biçim kontrolü
 //   GET  /api/cloud/config                           yönetilen veriler (bulut aktive değilse source 'local', hepsi boş)
 //   POST /api/checklist/results                      kalite kontrol sonucu
+//   GET  /api/checklist/results?limit=               checklist geçmişi (2026-11-16)
 //   GET  /api/service/requests                       1 demo servis talebi (bulutta atanmış — config.serviceRequests)
 //
 // Lisans anahtarları (demo):
@@ -236,6 +237,8 @@ const DEMO_SERVICE_REQUEST = {
 }
 
 let checklistSeq = 1
+/** 2026-11-16 — demo checklist geçmişi (en yeni önce, oturum boyunca) */
+const checklistResults: Record<string, unknown>[] = []
 
 /** İstek bu modülün ucu değilse undefined döner (DemoMachine sıradaki yönlendirmeye geçer) */
 export function demoCloudData(
@@ -298,7 +301,26 @@ export function demoCloudData(
   if (path === '/api/checklist/results' && method === 'POST') {
     if (!String(b.inspectorName ?? '').trim()) fail(400, rawUrl, 'Kontrolcü adı zorunlu')
     syncedAt = new Date().toISOString()
-    return done({ id: checklistSeq++, savedAt: syncedAt, pushed: demoCloudActivated() })
+    // 2026-11-16: geçmiş ekranı için bellekte tutulur (DataApi ToDto şekli)
+    const items = Array.isArray(b.items) ? (b.items as Record<string, unknown>[]) : []
+    const rec = {
+      id: checklistSeq++,
+      templateId: b.templateId == null ? null : String(b.templateId),
+      templateVersion: typeof b.templateVersion === 'number' ? b.templateVersion : null,
+      inspectorName: String(b.inspectorName).trim(),
+      items,
+      checkedCount: items.filter((i) => i?.checked === true).length,
+      totalCount: items.length,
+      createdAt: syncedAt,
+    }
+    checklistResults.unshift(rec)
+    if (checklistResults.length > 200) checklistResults.length = 200
+    return done(rec)
+  }
+
+  if (path === '/api/checklist/results' && method === 'GET') {
+    const limit = Math.min(500, Math.max(1, Number(u.searchParams.get('limit')) || 50))
+    return done(checklistResults.slice(0, limit))
   }
 
   if (path === '/api/service/requests' && method === 'GET') return done([DEMO_SERVICE_REQUEST])

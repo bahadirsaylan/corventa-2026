@@ -58,9 +58,10 @@ async function wrap<T>(fn: () => Promise<T>): Promise<CloudResult<T>> {
   }
 }
 
-function denied(min: 'ADMIN' | 'SUPERADMIN'): { ok: false; status: number; error: string } {
+// 2026-11-16: yetki matrisi (renderer constants/permissions.ts) — 'big-data' SERVICEMAN, 'cloud-deactivate' SUPERADMIN
+function denied(min: 'SERVICEMAN' | 'SUPERADMIN'): { ok: false; status: number; error: string } {
   log.warn('cloud action denied — role', { min, username: getAuthUser()?.username ?? null })
-  return { ok: false, status: 403, error: `${min === 'SUPERADMIN' ? 'SÜPERADMİN' : 'ADMİN'} yetkisi gerekli` }
+  return { ok: false, status: 403, error: `${min === 'SUPERADMIN' ? 'SÜPERADMİN' : 'SERVİS TEKNİSYENİ'} yetkisi gerekli` }
 }
 
 /** Piston / rotasyon hareket halinde mi (son SignalR state'i) */
@@ -129,7 +130,7 @@ function launchSetup(path: string): Promise<void> {
 
 async function installUpdate(rawPath: unknown): Promise<CloudInstallResult> {
   if (installing) return { ok: false, error: 'Kurulum zaten başlatıldı' }
-  if (!sessionHasRole('ADMIN')) return { ok: false, error: denied('ADMIN').error }
+  if (!sessionHasRole('SERVICEMAN')) return { ok: false, error: denied('SERVICEMAN').error }
   if (IS_DEMO) return { ok: false, error: 'DEMO MODU — güncelleme kurulmaz' }
   if (!app.isPackaged && process.env.CORVENTA_ALLOW_DEV_UPDATE !== '1') {
     return { ok: false, error: 'Geliştirme modunda kurulum kapalı (CORVENTA_ALLOW_DEV_UPDATE=1 ile açılır)' }
@@ -190,7 +191,7 @@ export function registerCloudHandlers(): void {
     wrap(() => dataApi.getCloudStatus()))
 
   ipcMain.handle(Ipc.IpcInvoke.CloudActivate, async (_evt, code: unknown): Promise<CloudResult<CloudStatus>> => {
-    if (!sessionHasRole('ADMIN')) return denied('ADMIN')
+    if (!sessionHasRole('SERVICEMAN')) return denied('SERVICEMAN')
     const c = String(code ?? '').trim().toUpperCase()
     if (!ACTIVATION_CODE_RE.test(c)) return { ok: false, status: 400, error: 'Aktivasyon kodu XXXX-XXXX-XXXX-XXXX biçiminde olmalı' }
     log.info('cloud-activate')
@@ -203,13 +204,13 @@ export function registerCloudHandlers(): void {
   })
 
   ipcMain.handle(Ipc.IpcInvoke.CloudDownloadUpdate, async (): Promise<CloudResult<unknown>> => {
-    if (!sessionHasRole('ADMIN')) return denied('ADMIN')
+    if (!sessionHasRole('SERVICEMAN')) return denied('SERVICEMAN')
     log.info('cloud-download-update')
     return wrap(() => dataApi.downloadCloudUpdate())
   })
 
   ipcMain.handle(Ipc.IpcInvoke.CloudSetShare, async (_evt, shareRecipes: unknown): Promise<CloudResult<unknown>> => {
-    if (!sessionHasRole('ADMIN')) return denied('ADMIN')
+    if (!sessionHasRole('SERVICEMAN')) return denied('SERVICEMAN')
     log.info('cloud-set-share', { shareRecipes: shareRecipes === true })
     return wrap(() => dataApi.setCloudShare(shareRecipes === true))
   })

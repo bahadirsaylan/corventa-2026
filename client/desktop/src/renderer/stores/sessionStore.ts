@@ -15,6 +15,8 @@ interface SessionStore {
   username: string | null
   displayName: string | null
   role: UserRole | null
+  /** EXCEL 40 (2026-11-16) — tek seferlik kurulum kullanıcısı: "KURULUMU TAMAMLA" düğmesi gösterilir */
+  isOneTimeSetup: boolean
   /** Girişten hemen sonra karşılama mesajı gösterilecek mi (gösterilince kapanır) */
   showWelcome: boolean
   /** Girişten sonra (karşılama mesajı kapanınca) bakım uyarı penceresi bir kez gösterilecek mi */
@@ -29,13 +31,14 @@ export const useSessionStore = create<SessionStore>((set) => ({
   username: null,
   displayName: null,
   role: null,
+  isOneTimeSetup: false,
   showWelcome: false,
   showMaintenanceAlert: false,
   setUsername: (username) => set({ username: username?.trim() || null }),
   dismissWelcome: () => set({ showWelcome: false }),
   dismissMaintenanceAlert: () => set({ showMaintenanceAlert: false }),
   clear: () =>
-    set({ username: null, displayName: null, role: null, showWelcome: false, showMaintenanceAlert: false }),
+    set({ username: null, displayName: null, role: null, isOneTimeSetup: false, showWelcome: false, showMaintenanceAlert: false }),
 }))
 
 /**
@@ -48,6 +51,7 @@ export function startSession(user: AuthUser, opts: { restore?: boolean } = {}): 
     username: user.username.trim() || null,
     displayName: user.displayName?.trim() || user.username,
     role: user.role,
+    isOneTimeSetup: user.isOneTimeSetup === true,
     showWelcome: first,
     showMaintenanceAlert: first,
   })
@@ -61,6 +65,17 @@ export async function endSession(): Promise<void> {
     /* main'e ulaşılamadı — yerel oturum yine kapanır */
   }
   useSessionStore.getState().clear()
+}
+
+/**
+ * EXCEL 40 — KURULUMU TAMAMLA: tek seferlik kurulum kullanıcısı DataApi'de kalıcı pasifleşir, oturum kapanır.
+ * Hata durumunda oturum AÇIK kalır (kullanıcı tekrar deneyebilir) ve hata metni döner.
+ */
+export async function completeSetupSession(): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const res = await window.corventa.auth.completeSetup()
+  if (!res.ok && res.status !== 401) return { ok: false, error: res.error, status: res.status }
+  useSessionStore.getState().clear()
+  return { ok: true }
 }
 
 /** Kullanıcı adı → DataApi anahtarı (a-z 0-9 . _ -, en fazla 64). Boşsa "varsayilan". */

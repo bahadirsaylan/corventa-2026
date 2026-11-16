@@ -44,10 +44,11 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     }
   }, [loggedIn, navigate])
 
-  // Oturum süresi (12 sa) main'de dolunca renderer'daki rol kendiliğinden düşmez. ADMIN+ yetkisi bu yüzden
+  // Oturum süresi (12 sa) main'de dolunca renderer'daki rol kendiliğinden düşmez. KULLANICI üstü yetki bu yüzden
   // açık kalmasın: dakikada bir main'e sor, oturum yoksa store'u temizle → yukarıdaki effect girişe döner.
   // OPERATOR'da yapılmaz (en düşük yetki — sızan yetki yok; büküm ortasında girişe atılmasın).
-  const privileged = useSessionStore((s) => s.role != null && hasRole(s.role, 'ADMIN'))
+  // 2026-11-16: 6 rol — KULLANICI (OPERATOR) üstü her rol (ATÖLYE SORUMLUSU+) denetlenir
+  const privileged = useSessionStore((s) => s.role != null && hasRole(s.role, 'SUPERVISOR'))
   useEffect(() => {
     if (!privileged) return
     const id = window.setInterval(() => {

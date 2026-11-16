@@ -144,10 +144,40 @@ export interface CloudConfig {
   source: CloudDataSource
 }
 
+/**
+ * Checklist madde sonucu. 2026-11-16: kim / ne zaman onayladı (checkedBy, checkedAt — işaretliyse) ve
+ * SERİ DIŞI üretim bilgisi (nonSerial + specialNote + partCode). Yeni alanlar opsiyonel (eski gövdeler geçerli).
+ */
+export interface ChecklistResultItem {
+  id: string
+  checked: boolean
+  note: string | null
+  checkedBy?: string | null
+  /** ISO */
+  checkedAt?: string | null
+  nonSerial?: boolean
+  /** ÖZEL ÜRETİM NOTU (≤1000) */
+  specialNote?: string | null
+  /** KOD NO — parça / malzeme kod numaraları (≤200) */
+  partCode?: string | null
+}
+
 /** POST /api/checklist/results */
 export interface ChecklistResultBody {
   templateId: string
   templateVersion: number
   inspectorName: string
-  items: { id: string; checked: boolean; note: string | null }[]
+  items: ChecklistResultItem[]
+}
+
+/** GET /api/checklist/results — kayıtlı sonuç (createdAt = sunucunun onay zamanı, UTC ISO) */
+export interface ChecklistResultRecord {
+  id: number
+  templateId: string | null
+  templateVersion: number | null
+  inspectorName: string
+  items: ChecklistResultItem[]
+  checkedCount: number
+  totalCount: number
+  createdAt: string
 }

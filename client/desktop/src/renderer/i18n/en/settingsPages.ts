@@ -215,6 +215,27 @@ const en: Record<string, string> = {
   'Soğutma fanı çalışıyor': 'Cooling fan running',
   'Anormal ses / titreşim yok': 'No abnormal noise / vibration',
   'Çalışma alanı temiz, parçalar yerleştirildi': 'Work area clean, parts in place',
+  // 2026-11-16 — onaylayan / seri dışı / geçmiş
+  'CHECK LIST GEÇMİŞİ': 'CHECKLIST HISTORY',
+  'FORM': 'FORM',
+  'GEÇMİŞ': 'HISTORY',
+  'SERİ DIŞI': 'NON-SERIAL',
+  'SERİ DIŞI: {n}': 'NON-SERIAL: {n}',
+  'SERİ DIŞI KALDIR': 'REMOVE NON-SERIAL',
+  'ONAYLAYAN': 'APPROVED BY',
+  'ONAY TARİHİ': 'APPROVAL DATE',
+  'KONTROLCÜ': 'INSPECTOR',
+  'KOD NO': 'CODE NO',
+  'ÖZEL ÜRETİM': 'SPECIAL PRODUCTION',
+  'ÖZEL ÜRETİM NOTU': 'SPECIAL PRODUCTION NOTE',
+  'Seri üretimden farklı bir durum varsa (ör. seride kullanılan sarı bronz daha kalın kullanıldıysa) açıklayın ve kod numaralarını yazın.':
+    'If anything differs from series production (e.g. a thicker yellow bronze than in the series was used), describe it and enter the code numbers.',
+  'Dokunarak yazın': 'Tap to type',
+  'Parça / malzeme kod numaraları': 'Part / material code numbers',
+  'KALİTE KONTROL': 'QUALITY CONTROL',
+  'İŞARETLENMEDİ': 'NOT CHECKED',
+  'Henüz kayıtlı check list sonucu yok': 'No saved checklist results yet',
+  '{n} MADDE İŞARETLENMEDİ. KONTROL SONUCU YİNE DE KAYDEDİLSİN Mİ': '{n} ITEMS ARE NOT CHECKED. SAVE THE INSPECTION RESULT ANYWAY',
 
   // ── UserManagementPage ──
   'Yeni kullanıcı formu (mock)': 'New user form (mock)',

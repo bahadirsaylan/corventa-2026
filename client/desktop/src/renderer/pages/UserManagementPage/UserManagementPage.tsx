@@ -1,16 +1,27 @@
-// Ayarlar > Kullanıcı Yönetimi — gerçek DataApi /api/users (rol sistemi 2026-11-01).
-// ADMIN: sadece OPERATOR ekler / düzenler / pasifleştirir (kendi profilini de düzenleyebilir).
-// SUPERADMIN: tüm roller. Kurallar backend'de de uygulanır; backend hata mesajı olduğu gibi gösterilir.
+// Ayarlar > Kullanıcı Yönetimi — gerçek DataApi /api/users (rol sistemi 2026-11-01; 6 rol 2026-11-16).
+// SUPERVISOR+ açar. Herkes SADECE kendi rolünden KESİN DÜŞÜK rolleri ekler / düzenler / pasifleştirir / atar
+// (canManageRole); SUPERADMIN tüm roller. Kendi profilini (ad / şifre) herkes düzenler.
+// EXCEL 40: ADMIN+ tek seferlik KURULUM KULLANICISI oluşturabilir (rol en fazla SERVİS TEKNİSYENİ);
+// kullanılmış kurulum kullanıcısı tekrar aktifleştirilemez. Bulut kullanıcıları yerelden düzenlenemez.
+// Kurallar backend'de de uygulanır; backend hata mesajı olduğu gibi gösterilir.
 // Silme yok — pasifleştirme (aktif/pasif). Şifre sıfırlama hesabın kilidini de açar ve oturumlarını kapatır.
 
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { USER_ROLES, type AuthResult, type UserListItem, type UserRole } from '@shared/types'
+import {
+  ONE_TIME_SETUP_MAX_ROLE,
+  ROLE_RANK,
+  USER_ROLES,
+  canManageRole,
+  type AuthResult,
+  type UserListItem,
+  type UserRole,
+} from '@shared/types'
 
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import { LockIcon } from '@/components/RoleNotice/LockIcon'
-import { ROLE_LABELS, hasRole, roleCan } from '@/constants/permissions'
+import { ROLE_COLORS, ROLE_LABELS, roleCan } from '@/constants/permissions'
 import { endSession, useRole, useSessionStore } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -18,16 +29,19 @@ import styles from './UserManagementPage.module.css'
 
 const MIN_PASSWORD = 6
 
-const ROLE_COLORS: Record<UserRole, string> = {
-  OPERATOR: '#1a6fd4',
-  ADMIN: '#d97706',
-  SUPERADMIN: '#c93235',
+/** Aktör bu role sahip kullanıcıyı yönetebilir mi (SUPERADMIN hepsi, diğerleri sadece kendinden düşük roller) */
+function canManage(actor: UserRole | null, target: UserRole): boolean {
+  return canManageRole(actor, target)
 }
 
-/** Aktör bu role sahip kullanıcıyı yönetebilir mi (SUPERADMIN hepsi, ADMIN sadece OPERATOR) */
-function canManage(actor: UserRole | null, target: UserRole): boolean {
-  if (!actor) return false
-  return roleCan(actor, 'manage-admins') || (hasRole(actor, 'ADMIN') && target === 'OPERATOR')
+/** Bir üst rol (yetki uyarısında gösterilecek en düşük yeterli rol) */
+function roleAbove(role: UserRole): UserRole {
+  return USER_ROLES.find((r) => ROLE_RANK[r] > ROLE_RANK[role]) ?? 'SUPERADMIN'
+}
+
+/** Kullanılmış (tekrar açılamaz) tek seferlik kurulum kullanıcısı mı */
+function isUsedSetupUser(u: UserListItem): boolean {
+  return u.isOneTimeSetup === true && !!u.setupUsedAt
 }
 
 /** Aktörün atayabileceği roller */
@@ -112,8 +126,9 @@ export default function UserManagementPage() {
   const isSelf = (u: UserListItem) => u.username.toLocaleLowerCase('tr-TR') === (actorName ?? '').toLocaleLowerCase('tr-TR')
 
   function openEdit(u: UserListItem) {
+    if (u.source === 'cloud') return
     if (!isSelf(u) && !canManage(actorRole, u.role)) {
-      showRoleNotice('SUPERADMIN')
+      showRoleNotice(roleAbove(u.role))
       return
     }
     setEditor({ mode: 'edit', user: u })
@@ -181,12 +196,18 @@ export default function UserManagementPage() {
               </thead>
               <tbody>
                 {filtered.map((u) => {
-                  const editable = isSelf(u) || canManage(actorRole, u.role)
+                  const editable = u.source !== 'cloud' && (isSelf(u) || canManage(actorRole, u.role))
                   return (
                     <tr key={u.id} className={!u.isActive ? styles.rowPassive : ''}>
                       <td className={styles.tdName}>
                         {u.displayName}
                         {isSelf(u) && <span className={styles.selfTag}>{t('SİZ')}</span>}
+                        {u.isOneTimeSetup && (
+                          <span className={styles.setupTag}>
+                            {isUsedSetupUser(u) ? t('KURULUM KULLANICISI — KULLANILDI') : t('KURULUM KULLANICISI (TEK SEFERLİK)')}
+                          </span>
+                        )}
+                        {u.source === 'cloud' && <span className={styles.cloudTag}>{t('BULUT')}</span>}
                       </td>
                       <td className={styles.tdMono}>{u.username}</td>
                       <td>
@@ -220,7 +241,7 @@ export default function UserManagementPage() {
         </div>
 
         <p className={styles.note}>
-          {t('Pasif kullanıcılar sisteme giriş yapamaz. 5 hatalı şifre denemesinde hesap 5 dakika kilitlenir; şifre sıfırlama kilidi açar. ADMİN sadece operatörleri, SÜPERADMİN tüm kullanıcıları yönetir.')}
+          {t('Pasif kullanıcılar sisteme giriş yapamaz. 5 hatalı şifre denemesinde hesap 5 dakika kilitlenir; şifre sıfırlama kilidi açar. Her rol sadece kendinden düşük rolleri yönetir; SÜPERADMİN tüm kullanıcıları yönetir. Kurulum kullanıcısı bir kez giriş yapar; çıkışta veya KURULUMU TAMAMLA ile kalıcı pasifleşir.')}
         </p>
       </div>
 
@@ -267,6 +288,14 @@ function UserEditor({
   const [username, setUsername] = useState(editing?.username ?? '')
   const [role, setRole] = useState<UserRole>(editing?.role ?? roles[0] ?? 'OPERATOR')
   const [isActive, setIsActive] = useState(editing?.isActive ?? true)
+  // EXCEL 40 — tek seferlik kurulum kullanıcısı (sadece yeni kayıtta, ADMIN+)
+  const canCreateSetupUser = !editing && roleCan(actorRole, 'one-time-setup-user')
+  const [oneTime, setOneTime] = useState(false)
+  const setupLocked = editing ? isUsedSetupUser(editing) : false
+  const oneTimeTarget = oneTime || editing?.isOneTimeSetup === true
+  const visibleRoles = oneTimeTarget
+    ? roleOptions.filter((r) => ROLE_RANK[r] <= ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE])
+    : roleOptions
   const [password, setPassword] = useState('')
   const [password2, setPassword2] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -293,7 +322,16 @@ function UserEditor({
     try {
       let res: AuthResult<UserListItem>
       if (!editing) {
-        res = await window.corventa.auth.createUser({ username: username.trim(), displayName: dn, password, role })
+        if (oneTime && ROLE_RANK[role] > ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE]) {
+          return setError(t('KURULUM KULLANICISININ ROLÜ EN FAZLA SERVİS TEKNİSYENİ OLABİLİR'))
+        }
+        res = await window.corventa.auth.createUser({
+          username: username.trim(),
+          displayName: dn,
+          password,
+          role,
+          ...(oneTime ? { isOneTimeSetup: true } : {}),
+        })
       } else {
         // Sadece değişen alanlar gönderilir
         const body: { displayName?: string; role?: UserRole; isActive?: boolean; password?: string } = {}
@@ -333,8 +371,8 @@ function UserEditor({
         )}
 
         <Field label={t('ROL')}>
-          <div className={styles.segment}>
-            {roleOptions.map((r) => (
+          <div className={`${styles.segment} ${styles.roleSegment}`}>
+            {visibleRoles.map((r) => (
               <button
                 key={r}
                 type="button"
@@ -345,10 +383,31 @@ function UserEditor({
               </button>
             ))}
           </div>
-          {!editing && roles.length === 1 && (
-            <span className={styles.fieldHint}>{t('ADMİN sadece OPERATÖR ekleyebilir')}</span>
+          {!editing && (
+            <span className={styles.fieldHint}>{t('Sadece kendi rolünüzden düşük rolleri atayabilirsiniz')}</span>
           )}
         </Field>
+
+        {canCreateSetupUser && (
+          <Field label={t('KURULUM KULLANICISI (TEK SEFERLİK)')}>
+            <label className={styles.checkRow}>
+              <input
+                type="checkbox"
+                className={styles.checkbox}
+                checked={oneTime}
+                onChange={(e) => {
+                  const on = e.target.checked
+                  setOneTime(on)
+                  if (on && ROLE_RANK[role] > ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE]) {
+                    const fallback = [...roles].reverse().find((r) => ROLE_RANK[r] <= ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE])
+                    if (fallback) setRole(fallback)
+                  }
+                }}
+              />
+              <span>{t('Bir kez giriş yapar; çıkışta veya KURULUMU TAMAMLA ile kalıcı pasifleşir (rol en fazla SERVİS TEKNİSYENİ)')}</span>
+            </label>
+          </Field>
+        )}
 
         {editing && (
           <Field label={t('DURUM')}>
@@ -357,6 +416,7 @@ function UserEditor({
                 type="button"
                 className={`${styles.segmentBtn} ${isActive ? styles.segmentActive : ''}`}
                 onClick={() => setIsActive(true)}
+                disabled={setupLocked && !editing.isActive}
               >
                 {t('AKTİF')}
               </button>
@@ -370,6 +430,7 @@ function UserEditor({
               </button>
             </div>
             {isSelf && <span className={styles.fieldHint}>{t('Kendinizi pasifleştiremezsiniz')}</span>}
+            {setupLocked && <span className={styles.fieldHint}>{t('TEK SEFERLİK KURULUM KULLANICISI TEKRAR AÇILAMAZ')}</span>}
           </Field>
         )}
 

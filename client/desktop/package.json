@@ -1,6 +1,6 @@
 {
   "name": "corventa-desktop",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "private": true,
   "description": "Corventa Desktop Client - Bending Machine Software",
   "author": "Corventa",
@@ -23,6 +23,7 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@microsoft/signalr": "^10.0.0",
     "lucide-react": "1.56.0",
+    "pdfjs-dist": "4.10.38",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.6.0",

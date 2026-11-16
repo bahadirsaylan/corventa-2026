@@ -237,6 +237,53 @@
   color: #16a34a;
 }
 
+/* 2026-11-16 — seviye satırı: seçim + DEĞİŞTİR (değer numpad ile) */
+.tolOptionRow {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.tolOptionRow .tolOption {
+  flex: 1;
+}
+
+.tolEditBtn {
+  flex-shrink: 0;
+  padding: 0 18px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.tolEditBtn:active {
+  background: #f7f3ea;
+}
+
+.tolError {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fae0e0;
+  color: #c93235;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Toleransı büküme uygula KAPALI → seçim sadece gösterim (soluk küçük not) */
+.tolHint {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  opacity: 0.8;
+}
+
 .headerCenter {
   display: flex;
   flex-direction: column;
@@ -456,4 +503,19 @@
 .monitorGrid .ballGrid {
   width: 100%;
   max-width: 760px;
+}
+
+/* 2026-11-16 — usta kaydı monitörü: o an oynatılan eksen (topların yeşiliyle aynı) */
+
+.macroAxis {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.posCurrent.axisWorking,
+.macroAxis.axisWorking {
+  color: #16a34a;
 }

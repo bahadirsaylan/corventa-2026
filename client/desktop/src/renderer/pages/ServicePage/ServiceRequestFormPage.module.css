@@ -133,6 +133,35 @@
   font-size: 16px;
 }
 
+/* 2026-11-16 (EXCEL 41) — internet yok: talep gönderilemez */
+.offlineBox {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 18px;
+}
+
+.offlineBox > span {
+  flex: 1;
+}
+
+.offlineCheckBtn {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #c93235;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.offlineCheckBtn:disabled {
+  opacity: 0.6;
+}
+
 .actionRow {
   display: grid;
   grid-template-columns: 1fr 1.6fr;

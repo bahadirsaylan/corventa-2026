@@ -262,24 +262,103 @@ export function saveManualRunPrefs(p: ManualRunPrefs): void {
 }
 
 // ── Üretim toleransı (ana ekran başlığındaki TOLERANS seçimi) ──────
-// Şimdilik sadece gösterim / operatör tercihi — büküm hesabına bağlı değil.
+// 2026-11-16: iki seviye (HASSAS / STANDART) değerleri artık ayarlanabilir (test geri bildirimi:
+// "hassas 1 yerine 5, normal 10 yerine 40 gibi değiştirilebilir olmalı"). Seçim SEVİYE olarak saklanır,
+// mm değeri seviyenin ayarından türetilir. Eski kayıt (mm: '1' / '10') seviyeye çevrilir.
+// Büküme bağlantı: TOLERANSI BÜKÜME UYGULA (varsayılan KAPALI) açıksa bendingOrchestrator işin toleranceMm'ini
+// seçili değerle doldurur; kapalıyken eski davranış (iş, makine ayarı ÇAP TOLERANSI'nı kullanır — DataApi doldurur).
 const PRODUCTION_TOL_KEY = 'corventa.productionTolerance'
+const PRODUCTION_TOL_VALUES_KEY = 'corventa.productionToleranceValues'
+const PRODUCTION_TOL_APPLY_KEY = 'corventa.productionToleranceApply'
+/** Başlık / ayar sayfası aynı anda açık olabilir — değişiklik bu olayla duyurulur */
+export const PRODUCTION_TOL_EVENT = 'corventa:production-tolerance'
 
-export const PRODUCTION_TOLERANCES = [
-  { mm: 1, label: 'HASSAS ÜRETİM' },
-  { mm: 10, label: 'STANDART ÜRETİM' },
-] as const
+export type ProductionToleranceLevel = 'hassas' | 'standart'
 
-export function readProductionTolerance(): number {
+export const PRODUCTION_TOLERANCE_LEVELS: readonly {
+  level: ProductionToleranceLevel
+  label: string
+  min: number
+  max: number
+  def: number
+}[] = [
+  { level: 'hassas', label: 'HASSAS ÜRETİM', min: 1, max: 5, def: 1 },
+  { level: 'standart', label: 'STANDART ÜRETİM', min: 6, max: 100, def: 10 },
+]
+
+export type ProductionToleranceValues = Record<ProductionToleranceLevel, number>
+
+function tolLevelDef(level: ProductionToleranceLevel) {
+  return PRODUCTION_TOLERANCE_LEVELS.find((o) => o.level === level)!
+}
+
+/** Değer seviyenin aralığında mı (aralık dışı → false) */
+export function isValidProductionTolerance(level: ProductionToleranceLevel, mm: number): boolean {
+  const d = tolLevelDef(level)
+  return Number.isFinite(mm) && mm >= d.min && mm <= d.max
+}
+
+/** Seçili seviye — eski mm kaydı (1 / 10) seviyeye çevrilir */
+export function readProductionToleranceLevel(): ProductionToleranceLevel {
   try {
-    const v = Number(localStorage.getItem(PRODUCTION_TOL_KEY))
-    if (PRODUCTION_TOLERANCES.some((o) => o.mm === v)) return v
+    const v = localStorage.getItem(PRODUCTION_TOL_KEY)
+    if (v === 'hassas' || v === 'standart') return v
+    if (v === '10') return 'standart'
   } catch {
     /* varsayılan */
   }
-  return PRODUCTION_TOLERANCES[0].mm
+  return 'hassas'
 }
 
-export function saveProductionTolerance(mm: number): void {
-  write(PRODUCTION_TOL_KEY, String(mm))
+export function readProductionToleranceValues(): ProductionToleranceValues {
+  const v = readJson(PRODUCTION_TOL_VALUES_KEY) as Partial<ProductionToleranceValues> | null
+  const pick = (level: ProductionToleranceLevel) => {
+    const n = Number(v?.[level])
+    return v?.[level] != null && isValidProductionTolerance(level, n) ? n : tolLevelDef(level).def
+  }
+  return { hassas: pick('hassas'), standart: pick('standart') }
+}
+
+/** Seçili seviyenin değeri (mm, ± tolerans) */
+export function readProductionToleranceMm(): number {
+  return readProductionToleranceValues()[readProductionToleranceLevel()]
+}
+
+/** TOLERANSI BÜKÜME UYGULA — varsayılan KAPALI */
+export function readApplyProductionTolerance(): boolean {
+  return readJson(PRODUCTION_TOL_APPLY_KEY) === true
+}
+
+function notifyProductionTolerance(): void {
+  try {
+    window.dispatchEvent(new Event(PRODUCTION_TOL_EVENT))
+  } catch {
+    /* olay gönderilemedi — ekranlar açılışta yeniden okur */
+  }
+}
+
+export function saveProductionToleranceLevel(level: ProductionToleranceLevel): void {
+  write(PRODUCTION_TOL_KEY, level)
+  notifyProductionTolerance()
+}
+
+/** Aralık dışı değer kaydedilmez (o seviye eski değerinde kalır) */
+export function saveProductionToleranceValues(v: Partial<ProductionToleranceValues>): void {
+  const cur = readProductionToleranceValues()
+  for (const o of PRODUCTION_TOLERANCE_LEVELS) {
+    const n = v[o.level]
+    if (n != null && isValidProductionTolerance(o.level, n)) cur[o.level] = n
+  }
+  write(PRODUCTION_TOL_VALUES_KEY, JSON.stringify(cur))
+  notifyProductionTolerance()
+}
+
+export function saveApplyProductionTolerance(on: boolean): void {
+  write(PRODUCTION_TOL_APPLY_KEY, JSON.stringify(on))
+  notifyProductionTolerance()
+}
+
+/** "±1 mm" — tam sayı değilse en fazla 2 ondalık */
+export function formatProductionTolerance(mm: number): string {
+  return `±${Number.isInteger(mm) ? mm : Number(mm.toFixed(2))} mm`
 }

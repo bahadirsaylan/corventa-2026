@@ -133,7 +133,7 @@ export function demoMacros(rawUrl: string, path: string, method: string, b: Reco
       return structuredClone(macros[idx])
     }
     if (method === 'DELETE') {
-      demoRequireRole(rawUrl, 'ADMIN')
+      demoRequireRole(rawUrl, 'SERVICEMAN') // 2026-11-16: makro silme SERVİS TEKNİSYENİ+ (DataApi ile aynı)
       if (idx < 0) fail(404, rawUrl, `Makro #${id} bulunamadı`)
       macros.splice(idx, 1)
       return { ok: true }

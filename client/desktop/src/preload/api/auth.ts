@@ -1,6 +1,6 @@
 // window.corventa.auth.* — Rol sistemi köprüsü (DataApi /api/auth + /api/users).
 // Token main süreçte kalır; burada sadece kimlik ({ username, displayName, role }) ve sonuç zarfları geçer.
-// Demo modunda istekler main → DemoMachine'e gider (operator/admin/super, şifre 1234).
+// Demo modunda istekler main → DemoMachine'e gider (operator/sorumlu/servis/bayi/admin/super/kurulum, şifre 1234).
 
 import { ipcRenderer } from 'electron'
 
@@ -28,10 +28,13 @@ export const authApi = {
   /** Main'deki token'ı siler + DataApi /api/auth/logout */
   logout: (): Promise<{ ok: true }> => ipcRenderer.invoke(Ipc.IpcInvoke.AuthLogout),
 
+  /** EXCEL 40 — KURULUMU TAMAMLA: tek seferlik kurulum kullanıcısını kalıcı pasifleştirir + oturumu kapatır */
+  completeSetup: (): Promise<AuthResult<{ ok: boolean }>> => ipcRenderer.invoke(Ipc.IpcInvoke.AuthCompleteSetup),
+
   /** Main'de açık oturum (renderer yeniden yüklenince kimliği geri almak için) */
   getCurrent: (): Promise<AuthUser | null> => ipcRenderer.invoke(Ipc.IpcInvoke.AuthGetCurrent),
 
-  // ---------- Kullanıcı yönetimi (ADMIN+) ----------
+  // ---------- Kullanıcı yönetimi (SUPERVISOR+, sadece kendinden düşük roller) ----------
   listUsers: (): Promise<AuthResult<UserListItem[]>> => ipcRenderer.invoke(Ipc.IpcInvoke.UsersList),
 
   createUser: (body: CreateUserBody): Promise<AuthResult<UserListItem>> =>

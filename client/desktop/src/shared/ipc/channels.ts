@@ -123,13 +123,14 @@ export const IpcInvoke = {
   AuthSetup: 'auth:setup',
   AuthLogin: 'auth:login',
   AuthLogout: 'auth:logout',
+  AuthCompleteSetup: 'auth:complete-setup', // EXCEL 40 — tek seferlik kurulum kullanıcısı
   AuthGetCurrent: 'auth:get-current',
   UsersList: 'users:list',
   UsersCreate: 'users:create',
   UsersUpdate: 'users:update',
   UsersDeactivate: 'users:deactivate',
 
-  // DataApi — Usta öğrenme programı / makro (EXCEL 28). Silme ADMIN+ (DataApi [RequireRole]).
+  // DataApi — Usta öğrenme programı / makro (EXCEL 28). Silme SERVICEMAN+ (DataApi [RequireRole]).
   MacroList: 'macro:list',
   MacroGet: 'macro:get',
   MacroCreate: 'macro:create',
@@ -152,6 +153,8 @@ export const IpcInvoke = {
   MoldActivate: 'mold:activate',
   CloudGetConfig: 'cloud:get-config',
   ChecklistSubmitResult: 'checklist:submit-result',
+  // 2026-11-16 — checklist geçmişi (GET /api/checklist/results)
+  ChecklistListResults: 'checklist:list-results',
 
   // System / utilities
   OpenUserGuide: 'system:open-user-guide',

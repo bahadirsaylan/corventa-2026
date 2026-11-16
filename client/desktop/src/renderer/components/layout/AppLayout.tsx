@@ -12,6 +12,7 @@ import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/
 import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useCloudConfigStore } from '@/stores/cloudConfigStore'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import { useT } from '@/i18n'
 import type { UnloadJobOutcome } from '@/pages/UnloadPage/UnloadPage'
 import styles from './AppLayout.module.css'
@@ -30,6 +31,8 @@ export default function AppLayout() {
   const inMaintenanceMode = useMaintenanceStore((s) => s.state?.isInMaintenanceMode === true)
   const maintenanceCollapsed = useMaintenanceStore((s) => s.screenCollapsed)
   const bendingActive = useBendingActive()
+  // Usta öğrenme (makro) kaydı açıkken üst alanda bükümdeki gibi toplar (oynatılan top yeşil)
+  const macroRecording = useMacroRecorderStore((s) => s.recording)
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const t = useT()
@@ -129,6 +132,8 @@ export default function AppLayout() {
       <div className={styles.top}>
         {bendingActive ? (
           <BendingBallsPanel variant="monitor" />
+        ) : macroRecording ? (
+          <BendingBallsPanel variant="macro" />
         ) : (
           <div className={styles.topStack}>
             {inMaintenanceMode && <MaintenanceModeScreen />}

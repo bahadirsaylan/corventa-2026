@@ -9,6 +9,7 @@ import type {
   BendingLogsResponse,
   Certificate,
   ChecklistResultBody,
+  ChecklistResultRecord,
   CloudConfig,
   CloudStatus,
   CustomerChangeConfirmResponse,
@@ -430,6 +431,11 @@ export class DataApiClient {
     return http.post<unknown>(`${this.baseUrl}/api/checklist/results`, body)
   }
 
+  /** 2026-11-16 — checklist geçmişi (en yeni önce) */
+  listChecklistResults(limit = 50): Promise<ChecklistResultRecord[]> {
+    return http.get<ChecklistResultRecord[]>(`${this.baseUrl}/api/checklist/results?limit=${limit}`)
+  }
+
   // ---------- Rol sistemi (auth + users) ----------
   // Bearer başlığını http katmanı ekler (authSession başlık sağlayıcısı) — burada token yok.
   // Hatalar HttpError (status + body.error / body.lockedUntil) — IPC handler sonuç zarfına çevirir.
@@ -448,6 +454,11 @@ export class DataApiClient {
 
   authLogout(): Promise<{ ok: boolean }> {
     return http.post<{ ok: boolean }>(`${this.baseUrl}/api/auth/logout`, {})
+  }
+
+  /** EXCEL 40 — tek seferlik kurulum kullanıcısını kalıcı pasifleştir (400 = kurulum kullanıcısı değil) */
+  authCompleteSetup(): Promise<{ ok: boolean }> {
+    return http.post<{ ok: boolean }>(`${this.baseUrl}/api/auth/complete-setup`, {})
   }
 
   listUsers(): Promise<UserListItem[]> {
@@ -472,7 +483,7 @@ export class DataApiClient {
 export interface AuthLoginResponse {
   token: string
   expiresAt: string | null
-  user: { id: number; username: string; displayName: string | null; role: string }
+  user: { id: number; username: string; displayName: string | null; role: string; isOneTimeSetup?: boolean }
 }
 
 export const dataApi = new DataApiClient()

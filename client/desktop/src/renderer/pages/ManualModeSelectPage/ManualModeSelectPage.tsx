@@ -23,12 +23,12 @@ const INFO: Record<ModeKey, { title: string; description: string }> = {
   manual: {
     title: 'MANUEL BÜKÜM',
     description:
-      'BÜKÜMÜ USTA YAPAR VE KAYDEDER. YENİ KAYIT İLE KAYDI BAŞLATIN, ANA EKRANDAKİ ORTA TUŞ TAKIMIYLA PİSTONLARI VE ROTASYONU HAREKET ETTİRİN. FARKLI BİR EKSEN HAREKET ETMEYE BAŞLADIĞINDA ÖNCEKİ EKSENİN SON GERÇEK DEĞERİ ADIM OLARAK KAYDEDİLİR. KAYDI BİTİRİNCE İSİM VERİLİR. KAYITLI BÜKÜMLER LİSTEDEN SÜREKLİ VEYA ADIM ADIM OYNATILIR, ADIMLAR DÜZENLENEBİLİR. MAKİNE OTOMATİK HESAPLAMA, GERİ ESNEME ÖLÇÜMÜ VE DÜZELTMESİ YAPMAZ.',
+      'ÖĞRENME MODU AKTİF BÜKÜM: BÜKÜMÜ USTA YAPAR VE KAYDEDER. YENİ KAYIT İLE KAYDI BAŞLATIN, ANA EKRANDAKİ ORTA TUŞ TAKIMIYLA PİSTONLARI VE ROTASYONU HAREKET ETTİRİN. FARKLI BİR EKSEN HAREKET ETMEYE BAŞLADIĞINDA ÖNCEKİ EKSENİN SON GERÇEK DEĞERİ ADIM OLARAK KAYDEDİLİR. KAYDI BİTİRİNCE İSİM VERİLİR. KAYITLI BÜKÜMLER LİSTEDEN SÜREKLİ VEYA ADIM ADIM OYNATILIR, ADIMLAR DÜZENLENEBİLİR. MAKİNE OTOMATİK HESAPLAMA, GERİ ESNEME ÖLÇÜMÜ VE DÜZELTMESİ YAPMAZ.',
   },
   semi: {
     title: 'YARI OTOMATİK BÜKÜM',
     description:
-      'PROFİL, KIVRIM YÖNÜ, BÜKÜM METODU VE ÖLÇÜLERİ SİZ GİRERSİNİZ; MAKİNE BÜKÜMÜ OTOMATİK OLARAK YAPAR. BÜKÜM SONUNDA GERİ ESNEME ÖLÇÜMÜ VE DÜZELTMESİ YAPILMAZ — PARÇANIN SON KONTROLÜ VE GEREKİRSE DÜZELTMESİ USTAYA AİTTİR. YAPAY ZEKA REÇETE ÖNERİSİ KULLANILMAZ.',
+      'SADECE GEOMETRİSEL BÜKÜM: PROFİL, KIVRIM YÖNÜ, BÜKÜM METODU VE ÖLÇÜLERİ SİZ GİRERSİNİZ; MAKİNE BÜKÜMÜ OTOMATİK OLARAK YAPAR. BÜKÜM SONUNDA GERİ ESNEME ÖLÇÜMÜ VE DÜZELTMESİ YAPILMAZ — PARÇANIN SON KONTROLÜ VE GEREKİRSE DÜZELTMESİ USTAYA AİTTİR. YAPAY ZEKA REÇETE ÖNERİSİ KULLANILMAZ.',
   },
 }
 
@@ -57,8 +57,8 @@ export default function ManualModeSelectPage() {
       <h2 className={styles.title}>{t('BÜKÜM TÜRÜ SEÇİNİZ')}</h2>
 
       <div className={styles.cardGrid}>
-        <ModeCard title={t('MANUEL BÜKÜM')} subtitle={t('USTA KAYDI / KAYITLI BÜKÜMLER')} onSelect={selectManual} onInfo={() => setInfo('manual')} />
-        <ModeCard title={t('YARI OTO BÜKÜM')} subtitle={t('GERİ ESNEME USTADA')} onSelect={selectSemi} onInfo={() => setInfo('semi')} />
+        <ModeCard title={t('MANUEL BÜKÜM')} subtitle={t('ÖĞRENME MODU AKTİF BÜKÜM')} onSelect={selectManual} onInfo={() => setInfo('manual')} />
+        <ModeCard title={t('YARI OTO BÜKÜM')} subtitle={t('SADECE GEOMETRİSEL BÜKÜM — GERİ ESNEME HESAPLANMAZ')} onSelect={selectSemi} onInfo={() => setInfo('semi')} />
       </div>
 
       <StatusBar backTo="/dashboard" confirmDisabled />

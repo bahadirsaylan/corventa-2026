@@ -16,6 +16,7 @@ import { normalizeMoldCode } from '@shared/moldCode'
 import {
   Ipc,
   type ChecklistResultBody,
+  type ChecklistResultRecord,
   type CloudConfig,
   type CloudResult,
   type MoldListQuery,
@@ -107,19 +108,40 @@ export function registerMoldHandlers(): void {
         templateId: str(body.templateId, 64),
         templateVersion: Math.round(Number(body.templateVersion) || 0),
         inspectorName,
-        items: items.map((i) => ({
-          id: str(i?.id, 64),
-          checked: i?.checked === true,
-          note: str(i?.note, 500) || null,
-        })),
+        items: items.map((i) => {
+          const checked = i?.checked === true
+          const nonSerial = i?.nonSerial === true
+          const at = checked && i?.checkedAt ? new Date(String(i.checkedAt)) : null
+          return {
+            id: str(i?.id, 64),
+            checked,
+            note: str(i?.note, 500) || null,
+            // 2026-11-16: onaylayan + zaman (sadece işaretli), seri dışı not + kod no
+            checkedBy: checked ? str(i?.checkedBy, 120) || null : null,
+            checkedAt: at && !Number.isNaN(at.getTime()) ? at.toISOString() : null,
+            nonSerial,
+            specialNote: nonSerial ? str(i?.specialNote, 1000) || null : null,
+            partCode: nonSerial ? str(i?.partCode, 200) || null : null,
+          }
+        }),
       }
       log.info('checklist-submit', {
         templateId: clean.templateId,
         version: clean.templateVersion,
         checked: clean.items.filter((i) => i.checked).length,
         total: clean.items.length,
+        nonSerial: clean.items.filter((i) => i.nonSerial).length,
       })
       return wrap(() => dataApi.submitChecklistResult(clean))
+    },
+  )
+
+  ipcMain.handle(
+    Ipc.IpcInvoke.ChecklistListResults,
+    async (_evt, limit?: unknown): Promise<CloudResult<ChecklistResultRecord[]>> => {
+      if (!sessionHasRole('ADMIN')) return { ok: false, status: 403, error: 'ADMİN yetkisi gerekli' }
+      const n = Math.min(200, Math.max(1, Math.round(Number(limit) || 50)))
+      return wrap(() => dataApi.listChecklistResults(n))
     },
   )
 }

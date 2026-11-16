@@ -47,6 +47,7 @@ function openSession(res: AuthLoginResponse): AuthUser {
     username: res.user.username,
     displayName: res.user.displayName?.trim() || res.user.username,
     role: normalizeRole(res.user.role),
+    isOneTimeSetup: res.user.isOneTimeSetup === true,
   }
   setAuthSession(res.token, res.expiresAt ?? null, user)
   log.info('session opened', { username: user.username, role: user.role })
@@ -118,9 +119,20 @@ export function registerAuthHandlers(): void {
     return { ok: true }
   })
 
+  // EXCEL 40 — KURULUMU TAMAMLA: DataApi hesabı kalıcı pasifleştirir; başarıda (veya 401 = oturum zaten yok) main oturumu kapanır
+  ipcMain.handle(Ipc.IpcInvoke.AuthCompleteSetup, async (): Promise<AuthResult<{ ok: boolean }>> => {
+    const user = getAuthUser()
+    const res = await withSession('complete-setup', () => dataApi.authCompleteSetup())
+    if (res.ok || res.status === 401) {
+      clearAuthSession()
+      log.info('setup user retired (KURULUMU TAMAMLA)', { username: user?.username ?? null })
+    }
+    return res
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.AuthGetCurrent, async (): Promise<AuthUser | null> => getAuthUser())
 
-  // ---------- Kullanıcı yönetimi (ADMIN+ — yetkiyi backend de kontrol eder) ----------
+  // ---------- Kullanıcı yönetimi (SUPERVISOR+, sadece kendinden düşük roller — yetkiyi backend de kontrol eder) ----------
 
   ipcMain.handle(Ipc.IpcInvoke.UsersList, async (): Promise<AuthResult<UserListItem[]>> =>
     withSession('users:list', async () => ((await dataApi.listUsers()) ?? []).map(normalizeUser)),

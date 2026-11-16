@@ -33,6 +33,8 @@ function failureMessage(res: Extract<AuthResult<unknown>, { ok: false }>, setup:
     case 401:
       return tr('KULLANICI ADI VEYA ŞİFRE HATALI')
     case 403:
+      // EXCEL 40 (2026-11-16): kullanılmış tek seferlik kurulum kullanıcısı ayrı mesaj
+      if (res.error === 'KURULUM KULLANICISI ZATEN KULLANILDI') return tr('KURULUM KULLANICISI ZATEN KULLANILDI')
       return tr('KULLANICI PASİF — YÖNETİCİNİZE BAŞVURUN')
     case 423: {
       const until = lockTime(res.lockedUntil)
@@ -285,7 +287,7 @@ export default function LoginPage() {
 
         {isDemo && mode === 'login' && (
           <p className={styles.demoHint}>
-            {t('DEMO — Kullanıcı: operator / admin / super · Şifre: 1234')}
+            {t('DEMO — Kullanıcı: operator / sorumlu / servis / bayi / admin / super / kurulum · Şifre: 1234')}
           </p>
         )}
 

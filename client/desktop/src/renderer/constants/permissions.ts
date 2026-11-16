@@ -1,17 +1,22 @@
-// YETKİ MATRİSİ — rol sistemi (2026-11-01). Tek kaynak: hangi işlem hangi en düşük rolü ister.
-// Rol sırası OPERATOR < ADMIN < SUPERADMIN; üst rol alttakinin her şeyini yapabilir.
+// YETKİ MATRİSİ — rol sistemi (2026-11-01; 6 rol 2026-11-16). Tek kaynak: hangi işlem hangi en düşük rolü ister.
+// Rol sırası OPERATOR (KULLANICI) < SUPERVISOR (ATÖLYE SORUMLUSU) < SERVICEMAN (SERVİS TEKNİSYENİ) < DEALER (BAYİ)
+// < ADMIN (MAKİNE ÜRETİCİSİ) < SUPERADMIN (YAZILIM ÜRETİCİSİ); üst rol alttakinin her şeyini yapabilir.
 // Kullanıldığı yerler: Ayarlar ızgarası (SettingsMenuGrid), rota koruması (RequireRole / App.tsx),
 // sağ hızlı menü (SideMenu), kiosk çıkışı (KioskExitCorner), Kullanıcı Yönetimi rol seçimi.
 // Yetkisiz düğmeler gizlenmez: soluk + kilit + dokununca "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ".
-// DİKKAT: Backend'de şimdilik SADECE /api/users, /api/auth/logout|me, PUT /api/maintenance/rules,
-// PUT /api/maintenance ve /api/macros yazma uçları (POST/PUT OPERATOR, DELETE ADMIN) [RequireRole] ile korunuyor. Admin ayarları, cetvel/encoder sıfırlama (Bending API),
-// müşteri değişikliği, garanti, karşılama mesajı, checklist, büyük veri vb. için kilit ŞİMDİLİK SADECE UI'da
+// Kullanıcı yönetimi: herkes SADECE kendi rolünden KESİN DÜŞÜK rolleri yönetir (canManageRole, @shared/types);
+// SUPERADMIN herkesi. Aynı kural DataApi UsersController'da da uygulanır.
+// DİKKAT: Backend'de şimdilik SADECE /api/users (SUPERVISOR+), /api/auth/*, PUT /api/maintenance/rules (ADMIN),
+// PUT /api/maintenance (SUPERADMIN) ve /api/macros yazma uçları (POST/PUT OPERATOR, DELETE SERVICEMAN) [RequireRole]
+// ile korunuyor. Main süreç ayrıca bulut (big-data: SERVICEMAN, cloud-deactivate: SUPERADMIN), checklist sonucu (ADMIN)
+// ve kiosk çıkışını (SUPERADMIN) kontrol eder. Admin ayarları, cetvel/encoder sıfırlama (Bending API), müşteri
+// değişikliği, garanti, karşılama mesajı vb. için kilit ŞİMDİLİK SADECE UI'da
 // (servis token'ı tasarlanınca backend'e taşınacak — YAPILACAKLAR "Rol sistemi — bilinen açıklar").
 
 import { ROLE_RANK, type UserRole } from '@shared/types'
 
 export const PERMISSIONS = {
-  // ── OPERATOR ──
+  // ── OPERATOR (KULLANICI) ──
   'bending': 'OPERATOR',            // otomatik / yarı oto büküm akışları
   'manual': 'OPERATOR',             // manuel mod + manuel programlar
   'service': 'OPERATOR',            // servis modülü + servis talebi
@@ -28,21 +33,24 @@ export const PERMISSIONS = {
   'macro': 'OPERATOR',              // usta öğrenme programı (EXCEL 28): makro kaydı / düzenleme / oynatma
   'mold-query': 'OPERATOR',         // KALIP KODU SORGULA (bulut v2 §2.4) — lisans etkinleştirme dahil (anahtar gerekir; main de kontrol eder)
   'mold-library': 'OPERATOR',       // KALIP KÜTÜPHANESİ (önbellekteki kalıplar)
-  // ── ADMIN ──
-  'admin-settings': 'ADMIN',        // Admin Ayarları (cetvel sıfırlama dahil)
-  'encoder-reset': 'ADMIN',
-  'user-management': 'ADMIN',       // Kullanıcı Yönetimi (ADMIN → sadece operatörler)
-  'welcome-message': 'ADMIN',
-  'checklist': 'ADMIN',
-  'warranty': 'ADMIN',
-  'customer-change': 'ADMIN',
+  // ── SUPERVISOR (ATÖLYE SORUMLUSU) ──
+  'user-management': 'SUPERVISOR',  // Kullanıcı Yönetimi (sadece kendinden düşük roller — SUPERVISOR → KULLANICI)
+  'welcome-message': 'SUPERVISOR',
+  // ── SERVICEMAN (SERVİS TEKNİSYENİ) ──
+  'admin-settings': 'SERVICEMAN',   // Admin Ayarları (cetvel sıfırlama dahil) + sıkıştırma kayıtları
+  'encoder-reset': 'SERVICEMAN',
+  'macro-delete': 'SERVICEMAN',     // makro silme (DataApi DELETE /api/macros/{id} [RequireRole(Serviceman)])
+  'big-data': 'SERVICEMAN',         // Bulut Bağlantısı sayfası: durum, aktivasyon, reçete paylaşımı, güncelleme (main de kontrol eder)
+  // ── DEALER (BAYİ) ──
+  'customer-change': 'DEALER',
+  'warranty': 'DEALER',
+  // ── ADMIN (MAKİNE ÜRETİCİSİ) ──
+  'checklist': 'ADMIN',             // (main de kontrol eder: checklist sonucu gönderme)
   'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
-  'macro-delete': 'ADMIN',          // makro silme (DataApi DELETE /api/macros/{id} [RequireRole(Admin)])
-  'big-data': 'ADMIN',              // Bulut Bağlantısı sayfası: durum, aktivasyon, reçete paylaşımı, güncelleme (main de kontrol eder)
-  // ── SUPERADMIN ──
+  'one-time-setup-user': 'ADMIN',   // EXCEL 40: tek seferlik KURULUM KULLANICISI oluşturma (DataApi de kontrol eder)
+  // ── SUPERADMIN (YAZILIM ÜRETİCİSİ) ──
   'cloud-deactivate': 'SUPERADMIN', // BULUT BAĞLANTISINI KALDIR (main de kontrol eder)
-  'kiosk-exit': 'SUPERADMIN',     // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
-  'manage-admins': 'SUPERADMIN',    // ADMIN / SUPERADMIN kullanıcı ekleme-düzenleme
+  'kiosk-exit': 'SUPERADMIN',       // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
 } as const satisfies Record<string, UserRole>
 
 export type Permission = keyof typeof PERMISSIONS
@@ -80,7 +88,30 @@ export function requiredRoleForPath(pathname: string): UserRole | null {
 
 /** Ekranda gösterilen rol adı (t() ile çevrilir — sözlük en/roles.ts) */
 export const ROLE_LABELS: Record<UserRole, string> = {
-  OPERATOR: 'OPERATÖR',
+  OPERATOR: 'KULLANICI',
+  SUPERVISOR: 'ATÖLYE SORUMLUSU',
+  SERVICEMAN: 'SERVİS TEKNİSYENİ',
+  DEALER: 'BAYİ',
+  ADMIN: 'ADMİN — MAKİNE ÜRETİCİSİ',
+  SUPERADMIN: 'SÜPERADMİN — YAZILIM ÜRETİCİSİ',
+}
+
+/** Rozetlerde / dar alanlarda kısa rol adı (t() ile çevrilir) */
+export const ROLE_SHORT_LABELS: Record<UserRole, string> = {
+  OPERATOR: 'KULLANICI',
+  SUPERVISOR: 'ATÖLYE SORUMLUSU',
+  SERVICEMAN: 'SERVİS TEKNİSYENİ',
+  DEALER: 'BAYİ',
   ADMIN: 'ADMİN',
   SUPERADMIN: 'SÜPERADMİN',
+}
+
+/** Rol rengi (rozet / kullanıcı listesi) — düşükten yükseğe: mavi → camgöbeği → yeşil → mor → turuncu → kırmızı */
+export const ROLE_COLORS: Record<UserRole, string> = {
+  OPERATOR: '#1a6fd4',
+  SUPERVISOR: '#0e7490',
+  SERVICEMAN: '#15803d',
+  DEALER: '#7c3aed',
+  ADMIN: '#d97706',
+  SUPERADMIN: '#c93235',
 }

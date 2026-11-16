@@ -111,12 +111,30 @@ const en: Record<string, string> = {
   'Reçete paylaşımı açık ama makine internete ulaşamıyor. Wi-Fi / ağ kablosunu kontrol edip bağlantıyı düzeltin.':
     'Recipe sharing is on but the machine cannot reach the internet. Check the Wi-Fi / network cable and fix the connection.',
   'TEKRAR KONTROL ET': 'CHECK AGAIN',
-  'DEMO — Kullanıcı: operator / admin / super · Şifre: 1234': 'DEMO — User: operator / admin / super · Password: 1234',
+  'DEMO — Kullanıcı: operator / sorumlu / servis / bayi / admin / super / kurulum · Şifre: 1234': 'DEMO — User: operator / sorumlu / servis / bayi / admin / super / kurulum · Password: 1234',
   // 2026-11-05 — demo ekran boyutu
   'EKRAN BOYUTU': 'SCREEN SIZE',
   Küçült: 'Smaller',
   Büyüt: 'Larger',
   'Her ekranda: Ctrl + / Ctrl − / Ctrl 0': 'On every screen: Ctrl + / Ctrl − / Ctrl 0',
+  // 2026-11-16 — üretim toleransı (ana ekran + Operatör Ayarları)
+  '{label}: ±{min} – ±{max} mm ARASINDA OLMALI': '{label}: MUST BE BETWEEN ±{min} AND ±{max} mm',
+  GÖSTERİM: 'DISPLAY ONLY',
+  'ÜRETİM TOLERANSI': 'PRODUCTION TOLERANCE',
+  'Ana ekrandaki TOLERANS seçeneklerinin değerleri (± mm). Seçim ana ekrandan yapılır. TOLERANSI BÜKÜME UYGULA kapalıyken seçim sadece gösterimdir; büküm aşağıdaki ÇAP TOLERANSI ayarını kullanır.':
+    'Values of the TOLERANCE options on the main screen (± mm). The selection is made on the main screen. While APPLY TOLERANCE TO BENDING is off the selection is display only; bending uses the DIAMETER TOLERANCE setting below.',
+  'HASSAS ÜRETİM (±)': 'PRECISION PRODUCTION (±)',
+  'STANDART ÜRETİM (±)': 'STANDARD PRODUCTION (±)',
+  'TOLERANSI BÜKÜME UYGULA': 'APPLY TOLERANCE TO BENDING',
+  'Açıkken ana ekranda seçilen tolerans yeni büküm işinin toleransı olur (ÇAP TOLERANSI yerine).':
+    'When on, the tolerance selected on the main screen becomes the new bending job tolerance (instead of DIAMETER TOLERANCE).',
+  // 2026-11-16 — kullanım kitabı sayfa sayfa
+  'SAYFA {n}': 'PAGE {n}',
+  'SAYFA (1 – {total})': 'PAGE (1 – {total})',
+  SAYFA: 'PAGE',
+  // 2026-11-16 (EXCEL 41) — internet zorunlu
+  'İNTERNET BAĞLANTISI YOK — SERVİS / KURULUM TALEBİ GÖNDERİLEMEZ. BAĞLANTIYI KONTROL EDİN.':
+    'NO INTERNET CONNECTION — SERVICE / INSTALLATION REQUEST CANNOT BE SENT. CHECK THE CONNECTION.',
 }
 
 export default en

@@ -11,6 +11,7 @@ import {
 } from '@shared/types'
 
 import { useCreateServiceRequest } from '@/hooks/useService'
+import { useInternetStore } from '@/stores/internetStore'
 import { useT } from '@/i18n'
 import {
   checkAlertText,
@@ -80,6 +81,11 @@ export default function ServiceRequestFormPage() {
   const navigate = useNavigate()
   const t = useT()
   const { create, submitting, error } = useCreateServiceRequest()
+  // 2026-11-16 (EXCEL 41) — internet zorunlu: bağlantı YOK biliniyorsa servis / kurulum talebi gönderilmez.
+  // Durum bilinmiyorsa (açılış) engellenmez; demo modu her zaman çevrimiçi bildirir.
+  const internetOffline = useInternetStore((s) => s.status.state === 'offline')
+  const internetChecking = useInternetStore((s) => s.status.checking)
+  const checkInternetNow = useInternetStore((s) => s.checkNow)
 
   // ?purpose=<ServicePurpose> ile açılırsa başlangıç amacı o olur
   const [searchParams] = useSearchParams()
@@ -129,6 +135,7 @@ export default function ServiceRequestFormPage() {
 
   async function handleSubmit() {
     if (!title.trim() || !description.trim()) return
+    if (useInternetStore.getState().status.state === 'offline') return
     const req: ServiceRequestCreateRequest = {
       customerName: customerName.trim(),
       customerAddress: '40.198517, 28.836939',
@@ -210,6 +217,20 @@ export default function ServiceRequestFormPage() {
 
         {error && <div className={styles.errorBox}>{t('Hata: {err}', { err: error })}</div>}
 
+        {internetOffline && (
+          <div className={`${styles.errorBox} ${styles.offlineBox}`} role="alert">
+            <span>{t('İNTERNET BAĞLANTISI YOK — SERVİS / KURULUM TALEBİ GÖNDERİLEMEZ. BAĞLANTIYI KONTROL EDİN.')}</span>
+            <button
+              type="button"
+              className={styles.offlineCheckBtn}
+              onClick={() => void checkInternetNow()}
+              disabled={internetChecking}
+            >
+              {internetChecking ? t('KONTROL EDİLİYOR…') : t('ŞİMDİ KONTROL ET')}
+            </button>
+          </div>
+        )}
+
         {/* Aksiyon */}
         <div className={styles.actionRow}>
           <button
@@ -222,7 +243,7 @@ export default function ServiceRequestFormPage() {
           <button
             className={styles.submitBtn}
             onClick={handleSubmit}
-            disabled={submitting || !title.trim() || !description.trim()}
+            disabled={submitting || internetOffline || !title.trim() || !description.trim()}
           >
             {t('TALEBİ GÖNDER')}
           </button>

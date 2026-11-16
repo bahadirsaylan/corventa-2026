@@ -6,6 +6,7 @@ import { ipcRenderer } from 'electron'
 import {
   Ipc,
   type ChecklistResultBody,
+  type ChecklistResultRecord,
   type CloudConfig,
   type CloudInstallBlockers,
   type CloudInstallResult,
@@ -37,6 +38,9 @@ export const cloudApi = {
   /** ADMIN+ — kalite kontrol checklist sonucu (yerel kayıt + bulut push) */
   submitChecklistResult: (body: ChecklistResultBody): Promise<CloudResult<unknown>> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ChecklistSubmitResult, body),
+  /** ADMIN+ — checklist geçmişi (en yeni önce, 2026-11-16) */
+  listChecklistResults: (limit?: number): Promise<CloudResult<ChecklistResultRecord[]>> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ChecklistListResults, limit),
 }
 
 export type CloudApi = typeof cloudApi

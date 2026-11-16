@@ -1,6 +1,9 @@
 // DEMO MODU — rol sistemi uçları (DataApi /api/auth/* + /api/users/* sözleşmesiyle birebir).
 //
-// Kullanıcılar bellekte (süreç boyunca): operator/1234 (OPERATOR), admin/1234 (ADMIN), super/1234 (SUPERADMIN).
+// Kullanıcılar bellekte (süreç boyunca), şifre hepsinde 1234 (2026-11-16: 6 rol):
+//   operator (OPERATOR = KULLANICI), sorumlu (SUPERVISOR), servis (SERVICEMAN), bayi (DEALER), admin (ADMIN),
+//   super (SUPERADMIN), kurulum (SERVICEMAN, EXCEL 40 tek seferlik kurulum kullanıcısı — bir kez girer).
+// Kullanıcı yönetimi kuralı gerçek DataApi ile aynı: sadece kendinden KESİN DÜŞÜK roller (SUPERADMIN hepsi).
 // setup-status her zaman needsSetup=false. Hata kodları + { error } gövdeleri gerçek backend ile aynı
 // (400 / 401 / 403 / 404 / 409 / 423 + lockedUntil).
 //
@@ -11,7 +14,7 @@ import { randomUUID } from 'node:crypto'
 
 import { HttpError } from '@main/lib/http'
 import { getAuthToken } from '@main/services/auth/authSession'
-import { ROLE_RANK, normalizeRole, type UserRole } from '@shared/types'
+import { ONE_TIME_SETUP_MAX_ROLE, ROLE_RANK, USER_ROLES, canManageRole, normalizeRole, type UserRole } from '@shared/types'
 
 interface DemoUser {
   id: number
@@ -24,6 +27,10 @@ interface DemoUser {
   lastLoginAt: string | null
   lockedUntil: number | null
   failed: number
+  /** EXCEL 40 — tek seferlik kurulum kullanıcısı */
+  isOneTimeSetup?: boolean
+  setupUsedAt?: string | null
+  source?: 'local' | 'cloud'
 }
 
 const MIN_PASSWORD = 6
@@ -33,14 +40,20 @@ const SESSION_MS = 12 * 3_600_000
 const INVALID = 'Kullanıcı adı veya şifre hatalı'
 
 const created = new Date(Date.now() - 30 * 86_400_000).toISOString()
+const base = { isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 } as const
 const users: DemoUser[] = [
-  { id: 1, username: 'super', displayName: 'Süper Yönetici', role: 'SUPERADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
-  { id: 2, username: 'admin', displayName: 'Atölye Yöneticisi', role: 'ADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
-  { id: 3, username: 'operator', displayName: 'Makine Operatörü', role: 'OPERATOR', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
-  // Bulut v2 §4 — bulut kullanıcısı (e-posta ile giriş; SERVICEMAN → makinede ADMIN)
-  { id: 4, username: 'servis.teknisyeni@corventabending.com', displayName: 'Serkan Öztürk (Bulut)', role: 'ADMIN', isActive: true, password: '1234', createdAt: created, lastLoginAt: null, lockedUntil: null, failed: 0 },
+  { ...base, id: 1, username: 'super', displayName: 'Yazılım Üreticisi', role: 'SUPERADMIN' },
+  { ...base, id: 2, username: 'admin', displayName: 'Makine Üreticisi', role: 'ADMIN' },
+  { ...base, id: 3, username: 'operator', displayName: 'Makine Kullanıcısı', role: 'OPERATOR' },
+  // Bulut v2 §4 — bulut kullanıcısı (e-posta ile giriş; 2026-11-16: SERVICEMAN → makinede SERVICEMAN)
+  { ...base, id: 4, username: 'servis.teknisyeni@corventabending.com', displayName: 'Serkan Öztürk (Bulut)', role: 'SERVICEMAN', source: 'cloud' },
+  { ...base, id: 5, username: 'sorumlu', displayName: 'Atölye Sorumlusu', role: 'SUPERVISOR' },
+  { ...base, id: 6, username: 'servis', displayName: 'Servis Teknisyeni', role: 'SERVICEMAN' },
+  { ...base, id: 7, username: 'bayi', displayName: 'Bayi', role: 'DEALER' },
+  // EXCEL 40 — tek seferlik kurulum kullanıcısı (demo süreci boyunca bir kez girilir)
+  { ...base, id: 8, username: 'kurulum', displayName: 'Kurulum Kullanıcısı', role: 'SERVICEMAN', isOneTimeSetup: true, setupUsedAt: null },
 ]
-let nextId = 5
+let nextId = 9
 
 /** token → { userId, expiresAt } */
 const sessions = new Map<string, { userId: number; expiresAt: number }>()
@@ -59,7 +72,19 @@ function dto(u: DemoUser): Record<string, unknown> {
     createdAt: u.createdAt,
     lastLoginAt: u.lastLoginAt,
     lockedUntil: u.lockedUntil != null && u.lockedUntil > Date.now() ? new Date(u.lockedUntil).toISOString() : null,
+    source: u.source ?? (u.username.includes('@') ? 'cloud' : 'local'),
+    isOneTimeSetup: u.isOneTimeSetup === true,
+    setupUsedAt: u.setupUsedAt ?? null,
   }
+}
+
+const ROLE_LIST = USER_ROLES.join('|')
+
+/** EXCEL 40 — kurulum kullanıcısını kalıcı pasifleştir + tüm oturumlarını kapat */
+function retireSetupUser(u: DemoUser): void {
+  u.isActive = false
+  u.setupUsedAt ??= new Date().toISOString()
+  revokeAll(u.id)
 }
 
 function findByName(name: string): DemoUser | undefined {
@@ -101,9 +126,9 @@ export function demoRequireRole(url: string, min: UserRole): DemoUser {
   return actor
 }
 
-/** SUPERADMIN her rolü, ADMIN sadece OPERATOR'ı yönetir */
+/** SUPERADMIN her rolü, diğerleri sadece kendinden kesin düşük rolleri yönetir (DataApi UserRoles.CanManage) */
 function canManage(actor: DemoUser, role: UserRole): boolean {
-  return actor.role === 'SUPERADMIN' || (actor.role === 'ADMIN' && role === 'OPERATOR')
+  return canManageRole(actor.role, role)
 }
 
 function activeSuperAdmins(): number {
@@ -118,7 +143,14 @@ function loginResponse(u: DemoUser): Record<string, unknown> {
   return {
     token,
     expiresAt: new Date(expiresAt).toISOString(),
-    user: { id: u.id, username: u.username, displayName: u.displayName, role: u.role, ...(u.username.includes('@') ? { source: 'cloud' } : {}) },
+    user: {
+      id: u.id,
+      username: u.username,
+      displayName: u.displayName,
+      role: u.role,
+      ...(u.username.includes('@') ? { source: 'cloud' } : {}),
+      isOneTimeSetup: u.isOneTimeSetup === true,
+    },
   }
 }
 
@@ -149,42 +181,58 @@ export function demoAuth(rawUrl: string, path: string, method: string, b: Record
       }
       fail(401, rawUrl, INVALID)
     }
+    if (u.isOneTimeSetup && u.setupUsedAt) fail(403, rawUrl, 'KURULUM KULLANICISI ZATEN KULLANILDI')
     if (!u.isActive) fail(403, rawUrl, 'Kullanıcı pasif — yöneticinize başvurun')
     u.failed = 0
     u.lockedUntil = null
+    if (u.isOneTimeSetup) u.setupUsedAt = new Date().toISOString()
     return loginResponse(u)
   }
   if (path === '/api/auth/logout' && method === 'POST') {
+    const actor = currentUser()
     const token = getAuthToken()
     if (token) sessions.delete(token)
+    if (actor?.isOneTimeSetup) retireSetupUser(actor) // EXCEL 40 — çıkışta kalıcı pasif
+    return { ok: true }
+  }
+  if (path === '/api/auth/complete-setup' && method === 'POST') {
+    const actor = demoRequireRole(rawUrl, 'OPERATOR')
+    if (!actor.isOneTimeSetup) fail(400, rawUrl, 'Bu işlem sadece tek seferlik kurulum kullanıcısı içindir')
+    retireSetupUser(actor)
     return { ok: true }
   }
   if (path === '/api/auth/me' && method === 'GET') {
     const u = currentUser()
     if (!u) fail(401, rawUrl, 'Oturum geçersiz')
-    return { id: u.id, username: u.username, displayName: u.displayName, role: u.role }
+    return { id: u.id, username: u.username, displayName: u.displayName, role: u.role, isOneTimeSetup: u.isOneTimeSetup === true }
   }
 
-  // ── /api/users (ADMIN+) ──
+  // ── /api/users (SUPERVISOR+) ──
   if (path === '/api/users') {
-    const actor = demoRequireRole(rawUrl, 'ADMIN')
+    const actor = demoRequireRole(rawUrl, 'SUPERVISOR')
     if (method === 'GET') return users.map(dto)
     if (method === 'POST') {
       const username = String(b.username ?? '').trim()
       const err = validateUsername(username) ?? validatePassword(b.password)
       if (err) fail(400, rawUrl, err)
       const roleRaw = String(b.role ?? '').trim().toUpperCase()
-      if (!['OPERATOR', 'ADMIN', 'SUPERADMIN'].includes(roleRaw)) {
-        fail(400, rawUrl, `Geçersiz rol '${String(b.role ?? '')}'. Beklenen: OPERATOR|ADMIN|SUPERADMIN`)
+      if (!(USER_ROLES as readonly string[]).includes(roleRaw)) {
+        fail(400, rawUrl, `Geçersiz rol '${String(b.role ?? '')}'. Beklenen: ${ROLE_LIST}`)
       }
       const role = normalizeRole(roleRaw)
-      if (!canManage(actor, role)) fail(403, rawUrl, `${actor.role} sadece OPERATOR kullanıcı oluşturabilir`)
+      if (!canManage(actor, role)) fail(403, rawUrl, `${actor.role} sadece kendinden düşük rolde kullanıcı oluşturabilir (${role} atanamaz)`)
+      const oneTime = b.isOneTimeSetup === true
+      if (oneTime) {
+        if (ROLE_RANK[actor.role] < ROLE_RANK.ADMIN) fail(403, rawUrl, 'Kurulum kullanıcısını sadece ADMIN veya SUPERADMIN oluşturabilir')
+        if (ROLE_RANK[role] > ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE]) fail(400, rawUrl, 'Kurulum kullanıcısının rolü en fazla SERVICEMAN olabilir')
+      }
       const displayName = String(b.displayName ?? '').trim() || username
       if (displayName.length > 100) fail(400, rawUrl, 'Görünen ad en fazla 100 karakter olabilir')
       if (findByName(username)) fail(409, rawUrl, `'${username}' kullanıcı adı zaten kullanılıyor`)
       const u: DemoUser = {
         id: nextId++, username, displayName, role, isActive: true, password: String(b.password),
         createdAt: new Date().toISOString(), lastLoginAt: null, lockedUntil: null, failed: 0,
+        isOneTimeSetup: oneTime, setupUsedAt: null,
       }
       users.push(u)
       return dto(u)
@@ -193,19 +241,20 @@ export function demoAuth(rawUrl: string, path: string, method: string, b: Record
 
   const m = /^\/api\/users\/(\d+)$/.exec(path)
   if (m) {
-    const actor = demoRequireRole(rawUrl, 'ADMIN')
+    const actor = demoRequireRole(rawUrl, 'SUPERVISOR')
     const id = Number(m[1])
     const target = users.find((u) => u.id === id)
     if (!target) fail(404, rawUrl, `Kullanıcı ${id} bulunamadı`)
     const isSelf = target.id === actor.id
 
     if (method === 'PUT') {
-      if (!isSelf && !canManage(actor, target.role)) fail(403, rawUrl, `${actor.role} sadece OPERATOR kullanıcıları düzenleyebilir`)
+      if (target.source === 'cloud') fail(409, rawUrl, 'Bulut kullanıcısı yerelden düzenlenemez — Corventa bulut panelinden yönetin')
+      if (!isSelf && !canManage(actor, target.role)) fail(403, rawUrl, `${actor.role} sadece kendinden düşük roldeki kullanıcıları düzenleyebilir`)
       let newRole: UserRole | null = null
       if (b.role != null) {
         const r = String(b.role).trim().toUpperCase()
-        if (!['OPERATOR', 'ADMIN', 'SUPERADMIN'].includes(r)) {
-          fail(400, rawUrl, `Geçersiz rol '${String(b.role)}'. Beklenen: OPERATOR|ADMIN|SUPERADMIN`)
+        if (!(USER_ROLES as readonly string[]).includes(r)) {
+          fail(400, rawUrl, `Geçersiz rol '${String(b.role)}'. Beklenen: ${ROLE_LIST}`)
         }
         newRole = normalizeRole(r)
         if (newRole === target.role) newRole = null
@@ -213,6 +262,12 @@ export function demoAuth(rawUrl: string, path: string, method: string, b: Record
       if (newRole) {
         if (isSelf && ROLE_RANK[newRole] < ROLE_RANK[target.role]) fail(409, rawUrl, 'Kendi rolünüzü düşüremezsiniz')
         if (!canManage(actor, newRole)) fail(403, rawUrl, `${actor.role} bu rolü atayamaz (${newRole})`)
+        if (target.isOneTimeSetup && ROLE_RANK[newRole] > ROLE_RANK[ONE_TIME_SETUP_MAX_ROLE]) {
+          fail(400, rawUrl, 'Kurulum kullanıcısının rolü en fazla SERVICEMAN olabilir')
+        }
+      }
+      if (b.isActive === true && target.isOneTimeSetup && target.setupUsedAt) {
+        fail(409, rawUrl, 'TEK SEFERLİK KURULUM KULLANICISI TEKRAR AÇILAMAZ')
       }
       const deactivate = b.isActive === false && target.isActive
       if (deactivate && isSelf) fail(409, rawUrl, 'Kendinizi pasifleştiremezsiniz')
@@ -240,8 +295,9 @@ export function demoAuth(rawUrl: string, path: string, method: string, b: Record
     }
 
     if (method === 'DELETE') {
+      if (target.source === 'cloud') fail(409, rawUrl, 'Bulut kullanıcısı yerelden pasifleştirilemez — Corventa bulut panelinden yönetin')
       if (isSelf) fail(409, rawUrl, 'Kendinizi pasifleştiremezsiniz')
-      if (!canManage(actor, target.role)) fail(403, rawUrl, `${actor.role} sadece OPERATOR kullanıcıları pasifleştirebilir`)
+      if (!canManage(actor, target.role)) fail(403, rawUrl, `${actor.role} sadece kendinden düşük roldeki kullanıcıları pasifleştirebilir`)
       if (!target.isActive) return dto(target)
       if (target.role === 'SUPERADMIN' && activeSuperAdmins() <= 1) fail(409, rawUrl, 'Son aktif SUPERADMIN pasifleştirilemez')
       target.isActive = false

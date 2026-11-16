@@ -86,15 +86,25 @@ interface Props {
   right: BallState
   /** Band üstünde gösterilecek yarıçap etiketi, ör. "R 1500" */
   radiusLabel: string
+  /**
+   * 'manual' (usta kaydı): yeşil = SADECE hareket eden / o an tuşla oynatılan top (highlight).
+   * Varsayılan 'bending': yan toplarda parçaya daha derin basan (büken) top da yeşil kalır.
+   */
+  mode?: 'bending' | 'manual'
+  /** manual modda: tuşla oynatılan (kayıtta açık) eksen — hareket bitse de yeşil */
+  highlight?: Partial<Record<'top' | 'bottom' | 'left' | 'right', boolean>>
 }
 
-export default function ProfileArcStage({ top, bottom, left, right, radiusLabel }: Props) {
+export default function ProfileArcStage({ top, bottom, left, right, radiusLabel, mode = 'bending', highlight }: Props) {
   const [labelX, labelY] = polar((ARC.rIn + ARC.rOut) / 2, 0)
   // Çalışan top (yeşil): hareket eden + yan toplardan parçaya DAHA DERİN basan (büken) top.
   // Pasif top geri çekildiği için ≥1mm fark büken tarafı gösterir; rotasyon sırasında da yeşil kalır.
   const sideDiff = left.positionMm - right.positionMm
-  const leftWorking = left.moving || sideDiff > 1
-  const rightWorking = right.moving || sideDiff < -1
+  const manual = mode === 'manual'
+  const leftWorking = left.moving || (manual ? highlight?.left === true : sideDiff > 1)
+  const rightWorking = right.moving || (manual ? highlight?.right === true : sideDiff < -1)
+  const topWorking = top.moving || (manual && highlight?.top === true)
+  const bottomWorking = bottom.moving || (manual && highlight?.bottom === true)
 
   return (
     <div className={styles.stage} style={{ width: REGION.w * S, height: REGION.h * S }}>
@@ -135,7 +145,7 @@ export default function ProfileArcStage({ top, bottom, left, right, radiusLabel 
 
       {/* Vals topları (salt-okunur) */}
       <div className={styles.ball} style={ballStyle(BALLS.top)}>
-        <BendingBall id="top" value={top.positionMm} active={top.moving || top.inPosition} working={top.moving} disabled />
+        <BendingBall id="top" value={top.positionMm} active={top.moving || top.inPosition} working={topWorking} disabled />
       </div>
       <div className={styles.ball} style={ballStyle(BALLS.left)}>
         <BendingBall id="left" value={left.positionMm} active={left.moving || left.inPosition} working={leftWorking} disabled />
@@ -144,7 +154,7 @@ export default function ProfileArcStage({ top, bottom, left, right, radiusLabel 
         <BendingBall id="right" value={right.positionMm} active={right.moving || right.inPosition} working={rightWorking} disabled />
       </div>
       <div className={styles.ball} style={ballStyle(BALLS.bottom)}>
-        <BendingBall id="bottom" value={bottom.positionMm} active={bottom.moving || bottom.inPosition} working={bottom.moving} disabled />
+        <BendingBall id="bottom" value={bottom.positionMm} active={bottom.moving || bottom.inPosition} working={bottomWorking} disabled />
       </div>
     </div>
   )

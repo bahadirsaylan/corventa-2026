@@ -6,7 +6,7 @@
 //   • Kısayollar: Dil, Karşılama Mesajı, Hızlı Menü, Check List (kendi sayfalarında kaydedilir)
 // Makine ayarlarının tamamı Admin Ayarları'nda.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ConfirmChangesModal,
@@ -22,6 +22,8 @@ import {
 } from '@/components/SettingsForm/SettingsForm'
 import {
   MANUAL_SPEED,
+  PRODUCTION_TOLERANCE_LEVELS,
+  PRODUCTION_TOL_EVENT,
   UNLOAD_DEFAULT_PRESETS,
   UNLOAD_ROT_SEC,
   UNLOAD_SECONDS,
@@ -29,9 +31,13 @@ import {
   readManualRunPrefs,
   readManualSpeed,
   readMeasureDefaults,
+  readApplyProductionTolerance,
+  readProductionToleranceValues,
+  saveApplyProductionTolerance,
   saveManualRunPrefs,
   saveManualSpeed,
   saveMeasureDefaults,
+  saveProductionToleranceValues,
   saveUnloadConfig,
   unloadConfigFromSettings,
 } from '@/services/operatorPrefs'
@@ -68,6 +74,30 @@ const LOCAL_SECTIONS: SectionDef[] = [
     note: 'Ölçü ekranlarında G (adım) boşsa bu değer yazılır (G sadece çember ve çok açılıda). Boş bırakılırsa 30 mm. H (kıvrım hızı) aşağıdaki BÜKÜM bölümündeki KIVRIM HIZI ayarından gelir.',
     fields: [
       { key: 'measureG', label: 'VARSAYILAN G (ADIM)', unit: 'mm', min: 0.1, max: 1000, nullable: true, desc: 'Boş bırakılırsa 30 mm.' },
+    ],
+  },
+  {
+    // 2026-11-16 — ana ekran başlığındaki TOLERANS seçeneklerinin değerleri (başlıktan DEĞİŞTİR ile de düzenlenir)
+    title: 'ÜRETİM TOLERANSI',
+    note: 'Ana ekrandaki TOLERANS seçeneklerinin değerleri (± mm). Seçim ana ekrandan yapılır. TOLERANSI BÜKÜME UYGULA kapalıyken seçim sadece gösterimdir; büküm aşağıdaki ÇAP TOLERANSI ayarını kullanır.',
+    fields: [
+      ...PRODUCTION_TOLERANCE_LEVELS.map((o) => ({
+        key: o.level === 'hassas' ? 'prodTolHassas' : 'prodTolStandart',
+        label: o.level === 'hassas' ? 'HASSAS ÜRETİM (±)' : 'STANDART ÜRETİM (±)',
+        unit: 'mm',
+        min: o.min,
+        max: o.max,
+      })),
+      {
+        type: 'select' as const,
+        key: 'prodTolApply',
+        label: 'TOLERANSI BÜKÜME UYGULA',
+        desc: 'Açıkken ana ekranda seçilen tolerans yeni büküm işinin toleransı olur (ÇAP TOLERANSI yerine).',
+        options: [
+          { value: false, label: 'KAPALI' },
+          { value: true, label: 'AÇIK' },
+        ],
+      },
     ],
   },
 ]
@@ -142,6 +172,10 @@ function readLocal(): Values {
     manualRunSpeed: run.speedPercent,
     measureG: d.G,
   }
+  const tol = readProductionToleranceValues()
+  v.prodTolHassas = tol.hassas
+  v.prodTolStandart = tol.standart
+  v.prodTolApply = readApplyProductionTolerance()
   return v
 }
 
@@ -149,6 +183,8 @@ function writeLocal(v: Values): void {
   saveManualSpeed(Number(v.manualSpeed))
   saveManualRunPrefs({ speedPercent: Number(v.manualRunSpeed) })
   saveMeasureDefaults({ H: readMeasureDefaults().H, G: (v.measureG as number | null) ?? null })
+  saveProductionToleranceValues({ hassas: Number(v.prodTolHassas), standart: Number(v.prodTolStandart) })
+  saveApplyProductionTolerance(v.prodTolApply === true)
 }
 
 /** Makine ayarlarından tahliye ekran alanları (boş DB alanı → bu cihazdaki eski değer / varsayılan) */
@@ -170,6 +206,8 @@ export default function OperatorSettingsPage() {
 
   const [local0, setLocal0] = useState<Values>(readLocal)
   const [local, setLocal] = useState<Values>(local0)
+  const local0Ref = useRef(local0)
+  local0Ref.current = local0
   const [machine0, setMachine0] = useState<Values>({})
   const [machine, setMachine] = useState<Values>({})
   const [machineError, setMachineError] = useState<string | null>(null)
@@ -198,6 +236,28 @@ export default function OperatorSettingsPage() {
 
   useEffect(() => {
     void loadMachine()
+  }, [])
+
+  // 2026-11-16: ana ekran başlığından (DEĞİŞTİR) tolerans değeri değişirse burası da güncellenir;
+  // operatörün bu sayfada henüz kaydetmediği düzenleme ezilmez.
+  useEffect(() => {
+    const keys = ['prodTolHassas', 'prodTolStandart', 'prodTolApply'] as const
+    const sync = () => {
+      const fresh = readLocal()
+      const prev0 = local0Ref.current
+      setLocal0((o) => {
+        const n = { ...o }
+        for (const k of keys) n[k] = fresh[k]
+        return n
+      })
+      setLocal((cur) => {
+        const n = { ...cur }
+        for (const k of keys) if (cur[k] === prev0[k]) n[k] = fresh[k]
+        return n
+      })
+    }
+    window.addEventListener(PRODUCTION_TOL_EVENT, sync)
+    return () => window.removeEventListener(PRODUCTION_TOL_EVENT, sync)
   }, [])
 
   const changes = useMemo(

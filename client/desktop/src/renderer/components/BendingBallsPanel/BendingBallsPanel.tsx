@@ -15,18 +15,33 @@ import ManualControlPad from '@/components/ManualControlPad/ManualControlPad'
 import MacroRecordBar from '@/pages/MacroPages/MacroRecordBar'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
+import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
+import { AXIS_LABELS } from '@/services/macroAxes'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
-import { PRODUCTION_TOLERANCES, readProductionTolerance, saveProductionTolerance } from '@/services/operatorPrefs'
+import {
+  PRODUCTION_TOLERANCE_LEVELS,
+  PRODUCTION_TOL_EVENT,
+  formatProductionTolerance,
+  isValidProductionTolerance,
+  readApplyProductionTolerance,
+  readProductionToleranceLevel,
+  readProductionToleranceValues,
+  saveProductionToleranceLevel,
+  saveProductionToleranceValues,
+  type ProductionToleranceLevel,
+} from '@/services/operatorPrefs'
+import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { t as tr, translateProgress, useLang, useT, type LangCode } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
 interface Props {
-  variant: 'control' | 'monitor'
+  variant: 'control' | 'monitor' | 'macro'
 }
 
 export default function BendingBallsPanel({ variant }: Props) {
+  if (variant === 'macro') return <MacroMonitorPanel />
   return variant === 'control' ? <ControlPanel /> : <MonitorPanel />
 }
 
@@ -51,12 +66,39 @@ function ControlPanel() {
   const [cancelInfo, setCancelInfo] = useState<string | null>(null)
 
   // ── Üretim toleransı seçimi (başlıktaki TOLERANS'a dokununca) ──
-  const [tolerance, setTolerance] = useState(readProductionTolerance)
+  // 2026-11-16: seçim SEVİYE (hassas / standart), değer ayardan; menüden DEĞİŞTİR ile değer düzenlenir.
+  // Operatör Ayarları'ndaki değişiklik PRODUCTION_TOL_EVENT ile buraya yansır.
+  const [tolLevel, setTolLevel] = useState<ProductionToleranceLevel>(readProductionToleranceLevel)
+  const [tolValues, setTolValues] = useState(readProductionToleranceValues)
+  const [tolApplied, setTolApplied] = useState(readApplyProductionTolerance)
   const [tolMenuOpen, setTolMenuOpen] = useState(false)
-  function chooseTolerance(mm: number) {
-    setTolerance(mm)
-    saveProductionTolerance(mm)
+  const [tolEditing, setTolEditing] = useState<ProductionToleranceLevel | null>(null)
+  const [tolError, setTolError] = useState<string | null>(null)
+  useEffect(() => {
+    const sync = () => {
+      setTolLevel(readProductionToleranceLevel())
+      setTolValues(readProductionToleranceValues())
+      setTolApplied(readApplyProductionTolerance())
+    }
+    window.addEventListener(PRODUCTION_TOL_EVENT, sync)
+    return () => window.removeEventListener(PRODUCTION_TOL_EVENT, sync)
+  }, [])
+  function chooseTolerance(level: ProductionToleranceLevel) {
+    setTolLevel(level)
+    saveProductionToleranceLevel(level)
+    setTolError(null)
     setTolMenuOpen(false)
+  }
+  function commitToleranceValue(level: ProductionToleranceLevel, raw: string) {
+    const def = PRODUCTION_TOLERANCE_LEVELS.find((o) => o.level === level)!
+    const n = Number(raw)
+    if (raw.trim() === '' || !isValidProductionTolerance(level, n)) {
+      setTolError(t('{label}: ±{min} – ±{max} mm ARASINDA OLMALI', { label: t(def.label), min: def.min, max: def.max }))
+      return
+    }
+    setTolError(null)
+    saveProductionToleranceValues({ [level]: n })
+    setTolValues(readProductionToleranceValues())
   }
 
   useEffect(() => {
@@ -147,8 +189,10 @@ function ControlPanel() {
             aria-expanded={tolMenuOpen}
           >
             <span className={styles.headerLabel}>{t('TOLERANS')}</span>
-            <span className={styles.headerValue}>{tolerance}</span>
+            <span className={styles.headerValue}>±{tolValues[tolLevel]}</span>
             <span className={styles.headerUnit}>mm</span>
+            {/* 2026-11-16: TOLERANSI BÜKÜME UYGULA kapalıyken seçim sadece gösterim — küçük soluk not */}
+            {!tolApplied && <span className={styles.tolHint}>{t('GÖSTERİM')}</span>}
             <span className={styles.tolCaret}><Icon name="chevronDown" size="md" /></span>
           </button>
         </div>
@@ -156,25 +200,55 @@ function ControlPanel() {
 
       {tolMenuOpen && (
         <>
-          <div className={styles.tolBackdrop} onClick={() => setTolMenuOpen(false)} />
+          <div
+            className={styles.tolBackdrop}
+            onClick={() => {
+              setTolMenuOpen(false)
+              setTolError(null)
+            }}
+          />
           <div className={styles.tolMenu} role="menu">
-            {PRODUCTION_TOLERANCES.map((o) => (
-              <button
-                key={o.mm}
-                type="button"
-                role="menuitemradio"
-                aria-checked={tolerance === o.mm}
-                className={styles.tolOption}
-                data-selected={tolerance === o.mm || undefined}
-                onClick={() => chooseTolerance(o.mm)}
-              >
-                <span className={styles.tolOptionValue}>{o.mm} mm</span>
-                <span className={styles.tolOptionLabel}>{t(o.label)}</span>
-                {tolerance === o.mm && <span className={styles.tolCheck}><Icon name="check" size="lg" /></span>}
-              </button>
+            {PRODUCTION_TOLERANCE_LEVELS.map((o) => (
+              <div key={o.level} className={styles.tolOptionRow}>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={tolLevel === o.level}
+                  className={styles.tolOption}
+                  data-selected={tolLevel === o.level || undefined}
+                  onClick={() => chooseTolerance(o.level)}
+                >
+                  <span className={styles.tolOptionValue}>{formatProductionTolerance(tolValues[o.level])}</span>
+                  <span className={styles.tolOptionLabel}>{t(o.label)}</span>
+                  {tolLevel === o.level && <span className={styles.tolCheck}><Icon name="check" size="lg" /></span>}
+                </button>
+                <button
+                  type="button"
+                  className={styles.tolEditBtn}
+                  onClick={() => {
+                    setTolError(null)
+                    setTolEditing(o.level)
+                  }}
+                >
+                  {t('DEĞİŞTİR')}
+                </button>
+              </div>
             ))}
+            {tolError && <div className={styles.tolError}>{tolError}</div>}
           </div>
         </>
+      )}
+
+      {tolEditing && (
+        <NumpadModal
+          fieldLabel={(() => {
+            const d = PRODUCTION_TOLERANCE_LEVELS.find((o) => o.level === tolEditing)!
+            return `${t(d.label)} ±mm (${d.min}–${d.max})`
+          })()}
+          initialValue={String(tolValues[tolEditing])}
+          onConfirm={(raw) => commitToleranceValue(tolEditing, raw)}
+          onClose={() => setTolEditing(null)}
+        />
       )}
 
       {cancelInfo && <div className={styles.cancelInfoBar}>{cancelInfo}</div>}
@@ -313,6 +387,68 @@ function MonitorPanel() {
           ) : (
             <p className={styles.statusText}>{t('HAZIRLANIYOR…')}</p>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Üst alan (usta öğrenme / makro KAYDI sırasında) — 2026-11-16
+// Bükümdeki gibi 4 vals topu; usta hangi topu tuşla oynatıyorsa (kayıtta açık eksen) veya hareket eden
+// top YEŞİL. Altta rotasyon, kayıt adım sayısı ve o an oynatılan eksen. Salt-okunur gösterim —
+// hareket orta alandaki tuş takımıyla yapılır, kayıt mantığına dokunmaz.
+// ─────────────────────────────────────────────────────────────
+
+const BALL_BY_AXIS = { Upper: 'top', Lower: 'bottom', Left: 'left', Right: 'right' } as const
+
+function MacroMonitorPanel() {
+  const top = usePiston('upperPiston')
+  const bottom = usePiston('lowerPiston')
+  const left = usePiston('leftPiston')
+  const right = usePiston('rightPiston')
+  const rotationMm = useMachineStateStore((s) => s.state.rotation.positionMm)
+  const rotationMoving = useMachineStateStore((s) => s.state.rotation.activeDirection !== 0)
+  const currentAxis = useMacroRecorderStore((s) => s.current?.axis ?? null)
+  const stepCount = useMacroRecorderStore((s) => s.steps.length + (s.current ? 1 : 0))
+  const t = useT()
+
+  const ball = currentAxis != null && currentAxis in BALL_BY_AXIS
+    ? BALL_BY_AXIS[currentAxis as keyof typeof BALL_BY_AXIS]
+    : null
+  const highlight = ball ? { [ball]: true } : undefined
+  const rotationActive = rotationMoving || currentAxis === 'Rotation'
+
+  return (
+    <div className={`${styles.panel} ${styles.monitor}`}>
+      <div className={styles.monitorGrid}>
+        <ProfileArcStage
+          top={top}
+          bottom={bottom}
+          left={left}
+          right={right}
+          radiusLabel={t('USTA KAYDI')}
+          mode="manual"
+          highlight={highlight}
+        />
+      </div>
+
+      <div className={styles.statsBar}>
+        <div className={styles.statsCol}>
+          <p className={styles.finishLabel}>{t('ROTASYON')}</p>
+          <p className={`${styles.posCurrent} ${rotationActive ? styles.axisWorking : ''}`}>{rotationMm.toFixed(1)}</p>
+          <p className={styles.posSmall}>mm</p>
+        </div>
+        <div className={`${styles.statsCol} ${styles.statsColCenter}`}>
+          <p className={styles.finishLabel}>{t('USTA KAYDI')}</p>
+          <p className={styles.posCurrent}>{stepCount}</p>
+          <p className={styles.posSmall}>{t('ADIM')}</p>
+        </div>
+        <div className={styles.statsCol}>
+          <p className={styles.finishLabel}>{t('HAREKET EDEN')}</p>
+          <p className={`${styles.macroAxis} ${currentAxis ? styles.axisWorking : ''}`}>
+            {currentAxis ? t(AXIS_LABELS[currentAxis]) : '—'}
+          </p>
         </div>
       </div>
     </div>
