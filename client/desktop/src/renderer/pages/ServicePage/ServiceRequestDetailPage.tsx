@@ -143,7 +143,7 @@ export default function ServiceRequestDetailPage() {
 
         {/* Müşteri / makina meta */}
         <div className={styles.metaBox}>
-          <Row label={t('MÜŞTERİ')} value={`${request.customerName} – ${request.customerAddress}`} />
+          <Row wide label={t('MÜŞTERİ')} value={`${request.customerName} – ${request.customerAddress}`} />
           <Row label={t('MAKİNA MODELİ')} value={`${request.machineModel} – ${request.machineProductionYear}`} />
           <Row label={t('MAKİNA KODU')} value={`${request.machineCode} / ${request.machineVeAiCode}`} />
           <Row label={t('TEKNİSYEN')} value={request.technicianName || t('(atanmamış)')} />
@@ -154,7 +154,7 @@ export default function ServiceRequestDetailPage() {
           <Row label={t('TAMAMLANMA')} value={fmtDateTime(request.completedAt)} />
           <Row label={t('YANIT SÜRESİ')} value={responseTime} />
           <Row label={t('YANITLAYAN')} value={responder} />
-          <Row label={t('YANIT')} value={cloud?.note?.trim() || '—'} />
+          <Row wide label={t('YANIT')} value={cloud?.note?.trim() || '—'} />
           {request.rating !== null && (
             <Row label={t('DEĞERLENDİRME')} value={`${request.rating}/10`} />
           )}
@@ -179,9 +179,10 @@ export default function ServiceRequestDetailPage() {
   )
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+// 2026-11-16 — üst alana sığsın diye bilgi tablosu iki sütun; uzun değerli satırlar (wide) tam genişlik
+function Row({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
   return (
-    <div className={styles.row}>
+    <div className={`${styles.row} ${wide ? styles.rowWide : ''}`}>
       <span className={styles.rowLabel}>{label}</span>
       <span className={styles.rowSep}>:</span>
       <span className={styles.rowValue}>{value}</span>

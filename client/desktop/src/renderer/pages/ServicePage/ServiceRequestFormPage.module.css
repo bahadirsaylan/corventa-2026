@@ -278,3 +278,96 @@
 .descInputExtra {
   min-height: 90px;
 }
+
+/* ── 2026-11-16: ÜST ALANA SIĞDIR (kullanıcı: servis formunda kaydırma çubuğu istenmiyor) ──
+   Form gövdenin tam yüksekliğini alır; boyu sabit olmayan tek parça EK AÇIKLAMA kutusudur — kalan alanı
+   o doldurur, yer azalınca o küçülür. Diğer bloklar sıkılaştırıldı (dokunmatik için ≥ 46 px korunur). */
+.root {
+  height: 100%;
+  gap: 10px;
+}
+
+.purposeBox {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  gap: 6px;
+}
+
+.purposeLabel {
+  font-size: 15px;
+}
+
+.purposeBtn {
+  min-height: 52px;
+  padding: 8px 4px;
+  font-size: 15px;
+}
+
+.formBox {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.titleRow {
+  flex-shrink: 0;
+  padding: 6px 14px;
+}
+
+.titleSelect {
+  min-height: 48px;
+}
+
+.itemsBox {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  gap: 6px;
+}
+
+.itemsLabel {
+  font-size: 12px;
+}
+
+.itemsGrid {
+  gap: 6px;
+}
+
+.itemBtn {
+  min-height: 46px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.itemCheck {
+  width: 24px;
+  height: 24px;
+}
+
+.descInput,
+.descInputExtra {
+  flex: 1 1 auto;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 14px;
+  font-size: 16px;
+}
+
+.errorBox {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+.offlineCheckBtn {
+  padding: 8px 16px;
+}
+
+.actionRow {
+  flex-shrink: 0;
+}
+
+.cancelBtn,
+.submitBtn {
+  min-height: 56px;
+  padding: 10px 16px;
+  font-size: 18px;
+}

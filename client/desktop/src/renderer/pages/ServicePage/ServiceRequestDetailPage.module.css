@@ -191,3 +191,74 @@
   font-weight: 700;
   font-size: 16px;
 }
+
+/* ── 2026-11-16: ÜST ALANA SIĞDIR (kaydırma çubuğu istenmiyor) ──
+   Bilgi tablosu iki sütun, satırlar sıkı; problem tanımı kalan yüksekliği doldurur
+   (çok uzun metin yalnız kendi kutusunda kayar, sayfa kaymaz). */
+.root {
+  height: 100%;
+  gap: 10px;
+}
+
+.confirmBox,
+.metaBox,
+.completeBtn,
+.errorBox {
+  flex-shrink: 0;
+}
+
+.metaBox {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+  row-gap: 0;
+  padding: 6px 16px;
+}
+
+.row {
+  grid-template-columns: 150px 10px minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 15px;
+  border-bottom: 1px dashed #e5e1d6;
+}
+
+.row:last-child {
+  border-bottom: 1px dashed #e5e1d6;
+}
+
+.rowWide {
+  grid-column: 1 / -1;
+}
+
+.rowValue {
+  overflow-wrap: anywhere;
+}
+
+.detailBox {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.detailHeader {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 16px;
+}
+
+.detailBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 18px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.completeBtn {
+  min-height: 56px;
+  padding: 10px 18px;
+  font-size: 18px;
+}
