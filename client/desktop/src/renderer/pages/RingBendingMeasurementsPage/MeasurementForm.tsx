@@ -14,6 +14,13 @@ import type { CapacityIssue } from '@/constants/capacityCatalog'
 
 export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
 
+/** Çap girilince hesaplanan hedef konum + adım sayısı (sadece gösterim, 2026-11-16) */
+export interface PlanPreview {
+  state: 'idle' | 'loading' | 'ok' | 'error'
+  targetMm?: number
+  totalSteps?: number | null
+}
+
 export interface MeasurementValues {
   A: string
   B: string
@@ -79,9 +86,11 @@ interface Props {
   confirmDisabled?: boolean
   /** Canlı kapasite kontrolü sonucu (A/B/R/G girilince) — sadece bilgi, ONAYLA'yı engellemez */
   capacityIssues?: CapacityIssue[]
+  /** Hedef konum + adım sayısı önizlemesi — verilirse sağ sütunda G'nin altında gösterilir */
+  plan?: PlanPreview
 }
 
-export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled, capacityIssues }: Props) {
+export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled, capacityIssues, plan }: Props) {
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
@@ -152,6 +161,7 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
+            {plan && <PlanRow plan={plan} />}
           </div>
         </div>
 
@@ -186,6 +196,32 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
           onClose={() => setNumpadField(null)}
         />
       )}
+    </div>
+  )
+}
+
+/**
+ * Sağ sütunda G'nin altındaki boş satır: HEDEF KONUM (aktif top, mm) + ADIM SAYISI (G ile).
+ * A ve çap (R) girilmeden "—"; adım sayısı için L de gerekir.
+ */
+function PlanRow({ plan }: { plan: PlanPreview }) {
+  const t = useT()
+  const loading = plan.state === 'loading'
+  const ok = plan.state === 'ok'
+  const target = ok && plan.targetMm != null ? plan.targetMm.toFixed(1) : null
+  const steps = ok && plan.totalSteps != null ? String(plan.totalSteps) : null
+  return (
+    <div className={styles.planRow} data-state={plan.state} aria-live="polite">
+      <div className={styles.planCell}>
+        <span className={styles.planLabel}>{t('HEDEF KONUM')}</span>
+        <span className={styles.planValue}>
+          {loading ? '…' : target != null ? <>{target}<small> mm</small></> : '—'}
+        </span>
+      </div>
+      <div className={styles.planCell}>
+        <span className={styles.planLabel}>{t('ADIM SAYISI')}</span>
+        <span className={styles.planValue}>{loading ? '…' : steps ?? '—'}</span>
+      </div>
     </div>
   )
 }

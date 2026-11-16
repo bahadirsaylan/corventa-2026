@@ -203,3 +203,78 @@
   color: var(--color-selected-text);
   border-color: var(--color-selected-border);
 }
+
+/* ── 2026-11-16: başlığa göre hazır maddeler (dokunmatik işaret kutuları) ── */
+.itemsBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1.5px solid #c5c1b6;
+}
+
+.itemsLabel {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.itemBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 2px solid #d9d4c4;
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: left;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.itemBtnOn {
+  background: var(--color-selected);
+  border-color: var(--color-selected-border);
+  color: var(--color-selected-text);
+}
+
+.itemCheck {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid #b9b3a3;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.itemBtnOn .itemCheck {
+  background: var(--color-selected-border);
+  border-color: var(--color-selected-border);
+}
+
+.itemText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+/* Hazır madde varken serbest metin "ek açıklama" — daha kısa */
+.descInputExtra {
+  min-height: 90px;
+}

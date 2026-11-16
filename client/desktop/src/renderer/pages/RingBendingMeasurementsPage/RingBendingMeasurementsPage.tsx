@@ -6,7 +6,8 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import AiRecipePreviewModal from '@/components/AiRecipePreviewModal/AiRecipePreviewModal'
-import MeasurementForm, { MeasurementValues } from './MeasurementForm'
+import MeasurementForm, { MeasurementValues, type PlanPreview } from './MeasurementForm'
+import { computeRingPlan } from '@/services/bendingPlanPreview'
 import CapacityCheckModal from './CapacityCheckModal'
 import { checkCapacity, type CapacityCheck, type CapacityIssue } from '@/constants/capacityCatalog'
 import styles from './RingBendingMeasurementsPage.module.css'
@@ -72,6 +73,31 @@ export default function RingBendingMeasurementsPage() {
   // Canlı kapasite uyarısı — numpad onayında A/B/R/G değişince aynı checkCapacity çalışır (engellemez,
   // ONAYLA'daki kontrol aynen kalır). Formun altında kırmızı metin olarak gösterilir.
   const [liveCapacityIssues, setLiveCapacityIssues] = useState<CapacityIssue[]>([])
+
+  // 2026-11-16 — çap (R) girilince HEDEF KONUM + ADIM SAYISI (G ile) önizlemesi. Sadece gösterim;
+  // büküm akışı ONAYLA'da kendi hesabını yapar. A ve R şart, adım sayısı için G ve L de gerekir.
+  const [plan, setPlan] = useState<PlanPreview>({ state: 'idle' })
+  useEffect(() => {
+    const a = parseFloat(values.A)
+    const d = parseFloat(values.R)
+    if (!(a > 0) || !(d > 0)) {
+      setPlan({ state: 'idle' })
+      return
+    }
+    const g = parseFloat(values.G)
+    const l = parseFloat(values.L)
+    let alive = true
+    setPlan((p) => ({ ...p, state: 'loading' }))
+    const timer = setTimeout(() => {
+      computeRingPlan({ a, diameterMm: d, stepMm: g > 0 ? g : 30, partLengthMm: l > 0 ? l : null })
+        .then((r) => { if (alive) setPlan({ state: 'ok', targetMm: r.targetMm, totalSteps: r.totalSteps }) })
+        .catch(() => { if (alive) setPlan({ state: 'error' }) })
+    }, 250)
+    return () => {
+      alive = false
+      clearTimeout(timer)
+    }
+  }, [values.A, values.R, values.G, values.L])
 
   function runCapacityCheck(v: MeasurementValues) {
     return checkCapacity({
@@ -180,6 +206,7 @@ export default function RingBendingMeasurementsPage() {
           onConfirm={handleConfirm}
           confirmDisabled={!isComplete(values)}
           capacityIssues={liveCapacityIssues}
+          plan={plan}
         />
       </div>
 

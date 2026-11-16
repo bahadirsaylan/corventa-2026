@@ -168,3 +168,54 @@
   font-weight: 700;
   line-height: 1.35;
 }
+
+/* ── Hedef konum + adım sayısı (sağ sütun, G'nin altı — 2026-11-16) ── */
+.planRow {
+  display: flex;
+  gap: 8px;
+  height: 56px;
+  margin-left: 34px; /* alan etiketi (26px) + boşluk hizası — giriş kutusuyla aynı sol kenar */
+}
+
+.planCell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--color-border);
+  background-color: #fff;
+  line-height: 1.1;
+}
+
+.planRow[data-state='ok'] .planCell {
+  border-style: solid;
+  border-color: var(--color-selected-border);
+  background-color: var(--color-selected);
+}
+
+.planLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.planRow[data-state='ok'] .planLabel {
+  color: var(--color-selected-text);
+}
+
+.planValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.planValue small {
+  font-size: 13px;
+  font-weight: 700;
+}

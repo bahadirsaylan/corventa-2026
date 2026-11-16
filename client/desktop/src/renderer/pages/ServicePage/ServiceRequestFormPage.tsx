@@ -12,6 +12,8 @@ import {
 
 import { useCreateServiceRequest } from '@/hooks/useService'
 import { useInternetStore } from '@/stores/internetStore'
+import { serviceItemsFor } from '@/constants/serviceRequestItems'
+import { Icon } from '@/components/Icon'
 import { useT } from '@/i18n'
 import {
   checkAlertText,
@@ -105,13 +107,14 @@ export default function ServiceRequestFormPage() {
       const codes = check.payload.blocked
         ? ['OilTempCritical']
         : (check.payload.warnings ?? []).map((w) => w.code)
+      // 2026-11-16: ekrana teknik kod ([EncoderStall] vb.) yazılmaz — sadece okunur uyarı metni
       const text = checkAlertText(check, t)
-      if (text) lines.push(`[${codes.join(', ') || 'SafetyCheck'}] ${text}`)
+      if (text) lines.push(text)
       for (const c of codes) suggested ??= faultTitleForCode(c)
     }
     const stall = selectLatestStall(stalls)
     if (stall) {
-      lines.push(`[EncoderStall] ${stallAlertText(stall, t)}`)
+      lines.push(stallAlertText(stall, t))
       suggested ??= faultTitleForCode('EncoderStall')
     }
     return lines.length > 0 ? { text: lines.join('\n'), title: suggested } : null
@@ -119,7 +122,11 @@ export default function ServiceRequestFormPage() {
   const prefillFor = (p: ServicePurpose) => (p === ServicePurpose.ArizaGiderme ? faultPrefill : null)
 
   const [title, setTitle] = useState(() => prefillFor(purpose)?.title ?? firstTitle(purpose))
+  // EK AÇIKLAMA (serbest metin) — arıza uyarısı varsa otomatik dolar
   const [description, setDescription] = useState(() => prefillFor(purpose)?.text ?? '')
+  // 2026-11-16 — başlığa göre hazır maddeler (constants/serviceRequestItems); işaretlenenler gönderilir
+  const [checked, setChecked] = useState<string[]>([])
+  const items = serviceItemsFor(title)
   // Kullanıcı açıklamaya yazdıysa amaç değişimi / otomatik doldurma onu ezmez
   const descTouched = useRef(false)
 
@@ -128,13 +135,35 @@ export default function ServiceRequestFormPage() {
     setPurpose(p)
     const pre = prefillFor(p)
     setTitle(pre?.title ?? firstTitle(p))
+    setChecked([])
     if (!descTouched.current) setDescription(pre?.text ?? '')
+  }
+
+  function changeTitle(v: string) {
+    setTitle(v)
+    setChecked([])
+  }
+
+  function toggleItem(label: string) {
+    setChecked((c) => (c.includes(label) ? c.filter((x) => x !== label) : [...c, label]))
+  }
+
+  // Gönderilecek gövde: işaretli maddeler (liste sırasıyla) + ek açıklama
+  const checkedInOrder = items.map((i) => i.label).filter((l) => checked.includes(l))
+  const hasBody = checkedInOrder.length > 0 || description.trim() !== ''
+  function buildBody(): string {
+    const parts: string[] = []
+    if (checkedInOrder.length > 0) parts.push(checkedInOrder.map((l) => `- ${l}`).join('\n'))
+    if (description.trim()) {
+      parts.push(checkedInOrder.length > 0 ? `EK AÇIKLAMA:\n${description.trim()}` : description.trim())
+    }
+    return parts.join('\n\n')
   }
   // İleride MachineSettings'ten dinamik gelecek — şimdilik sabit
   const [customerName] = useState('SERSOVİS A.Ş.')
 
   async function handleSubmit() {
-    if (!title.trim() || !description.trim()) return
+    if (!title.trim() || !hasBody) return
     if (useInternetStore.getState().status.state === 'offline') return
     const req: ServiceRequestCreateRequest = {
       customerName: customerName.trim(),
@@ -144,7 +173,7 @@ export default function ServiceRequestFormPage() {
       machineCode: '2010-400-001',
       machineVeAiCode: 'A-400-001',
       purpose,
-      problemDescription: `${title.trim()}\n\n${description.trim()}`,
+      problemDescription: `${title.trim()}\n\n${buildBody()}`,
     }
     const created = await create(req)
     if (created) navigate('/service/requests')
@@ -189,7 +218,7 @@ export default function ServiceRequestFormPage() {
             <select
               className={styles.titleSelect}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => changeTitle(e.target.value)}
             >
               {!title && (
                 <option value="" disabled>
@@ -203,14 +232,38 @@ export default function ServiceRequestFormPage() {
               ))}
             </select>
           </label>
+          {items.length > 0 && (
+            <div className={styles.itemsBox}>
+              <span className={styles.itemsLabel}>{t('DETAY — İLGİLİ MADDELERİ İŞARETLEYİN')}</span>
+              <div className={styles.itemsGrid}>
+                {items.map((it) => {
+                  const on = checked.includes(it.label)
+                  return (
+                    <button
+                      key={it.label}
+                      type="button"
+                      className={`${styles.itemBtn} ${on ? styles.itemBtnOn : ''}`}
+                      aria-pressed={on}
+                      onClick={() => toggleItem(it.label)}
+                    >
+                      <span className={styles.itemCheck}>{on && <Icon name="check" size="md" strokeWidth={3} />}</span>
+                      <span className={styles.itemText}>{t(it.label)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
           <textarea
-            className={styles.descInput}
+            className={`${styles.descInput} ${items.length > 0 ? styles.descInputExtra : ''}`}
             value={description}
             onChange={(e) => {
               descTouched.current = true
               setDescription(e.target.value)
             }}
-            placeholder={t('TALEBİNİZİN DETAYINI YAZINIZ...')}
+            placeholder={items.length > 0
+              ? t('EK AÇIKLAMA (İSTEĞE BAĞLI)...')
+              : t('TALEBİNİZİN DETAYINI YAZINIZ...')}
             maxLength={2000}
           />
         </div>
@@ -243,7 +296,7 @@ export default function ServiceRequestFormPage() {
           <button
             className={styles.submitBtn}
             onClick={handleSubmit}
-            disabled={submitting || internetOffline || !title.trim() || !description.trim()}
+            disabled={submitting || internetOffline || !title.trim() || !hasBody}
           >
             {t('TALEBİ GÖNDER')}
           </button>
