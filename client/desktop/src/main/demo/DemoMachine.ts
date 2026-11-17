@@ -1298,7 +1298,9 @@ export class DemoMachine extends EventEmitter {
       // Ölçüm: yay sonundan stage |XA1| kadar daha (backend daf4989, yay boyundan bağımsız)
       const rotMeas = rotAcc + rs * fwd * (p.arcEf + xA1Abs)
       const rotYay = rotAcc + rs * fwd * p.arcEf
-      if (Math.abs(rotMeas) <= maxRot) {
+      // STANDART SÜRÜM (2026-11-17): backend SkipMeasurement=true gibi — ölçüm / SPLIT düzeltmesi YOK,
+      // parça yay sonunda kalır, sonraki segmente geçilir (operatör sonucu kendisi ölçer)
+      if (!IS_STANDARD && Math.abs(rotMeas) <= maxRot) {
         await this.rotateTo(rotMeas, token, 100)
         const measSide: 'left' | 'right' = rev ? 'left' : 'right' // Normal/Middle: sensörün tersi
         let curPos = target

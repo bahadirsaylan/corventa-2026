@@ -6,6 +6,7 @@
 // Backend SignalR /machineHub'tan gelen MachineState'i selector ile dinler.
 
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { BendingMethod, type BendingJob, type BendingProgress } from '@shared/types'
 
@@ -16,6 +17,7 @@ import MacroRecordBar from '@/pages/MacroPages/MacroRecordBar'
 import { useBendingProgress, usePiston } from '@/hooks/useMachineState'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
+import { useBendingJobStore } from '@/store/bendingJobStore'
 import { AXIS_LABELS } from '@/services/macroAxes'
 import { useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import {
@@ -59,6 +61,17 @@ function ControlPanel() {
   // 2026-11-02 — BASINÇ = S2 (sağ + sol vals topları)
   const s2Pressure = useMachineStateStore((s) => s.state.sensors.s2PressureBar)
   const t = useT()
+  // 2026-11-17 (QA): başlıktaki mod göstergesi bulunulan ekrana göre — manuel / makro ekranlarında
+  // ve usta kaydı sürerken MANUEL MOD (el ikonu), Yarı Oto akışında (Manuel > Yarı Oto, /bending/* ekranları) YARI OTOMATİK MOD
+  // (usta ikonu); diğer her yerde eski gösterim (AI: YAPAY ZEKA MODU, Standart: OTOMATİK MOD).
+  const { pathname } = useLocation()
+  const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
+  const macroRecording = useMacroRecorderStore((s) => s.recording)
+  const headerMode: 'manual' | 'semi' | 'auto' = macroRecording || /^\/bending\/(manual|macros)/.test(pathname)
+    ? 'manual'
+    : !IS_STANDARD && bendingMode === 'semi' && pathname.startsWith('/bending/')
+      ? 'semi'
+      : 'auto'
 
   // ── İptal butonu state'i ────────────────────────
   // Önce emergency-stop (makineyi durdurur), sonra job iptali (/bending-job/{id}/cancel → Cancelled).
@@ -129,7 +142,7 @@ function ControlPanel() {
       setCancelInfo(
         jobCancelled
           ? t('BÜKÜM İPTAL EDİLDİ.')
-          : t('BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. JOB STATE TEMİZLENMEZSE SETTINGS\'TEN KONTROL EDİN.'),
+          : t('BÜKÜM İPTAL TALEBİ GÖNDERİLDİ. İŞİN DURUMUNU BÜKÜM GEÇMİŞİNDEN KONTROL EDİN.'), // 2026-11-17 (QA): teknik terim yok
       )
     } catch (e) {
       setCancelInfo(t('İPTAL ÇAĞRISI BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }))
@@ -163,8 +176,12 @@ function ControlPanel() {
 
         <div className={styles.headerCenter}>
           {/* STANDART SÜRÜM (2026-11-17): AI görseli / 'YAPAY ZEKA MODU' yerine nötr ikon + 'OTOMATİK MOD' */}
-          {IS_STANDARD ? (
-            <Icon name="rotateCw" size={64} strokeWidth={1.75} className={styles.aiIcon} />
+          {headerMode === 'manual' ? (
+            <Icon name="hand" size={64} strokeWidth={1.75} className={styles.aiIcon} />
+          ) : headerMode === 'semi' ? (
+            <Icon name="technician" size={64} strokeWidth={1.75} className={styles.aiIcon} />
+          ) : IS_STANDARD ? (
+            <Icon name="autoBend" size={64} strokeWidth={1.75} className={styles.aiIcon} />
           ) : (
             <img
               src={artificialIntelligenceIcon}
@@ -174,7 +191,15 @@ function ControlPanel() {
               height={80}
             />
           )}
-          <span className={styles.aiLabel}>{IS_STANDARD ? t('OTOMATİK MOD') : t('YAPAY ZEKA MODU')}</span>
+          <span className={styles.aiLabel}>
+            {headerMode === 'manual'
+              ? t('MANUEL MOD')
+              : headerMode === 'semi'
+                ? t('YARI OTOMATİK MOD')
+                : IS_STANDARD
+                  ? t('OTOMATİK MOD')
+                  : t('YAPAY ZEKA MODU')}
+          </span>
         </div>
 
         <div className={styles.headerRight}>
@@ -283,7 +308,8 @@ function ControlPanel() {
               {t('BÜKÜM İPTAL EDİLECEK — TÜM HAREKET ANINDA DURDURULACAK')}
               <br />
               <span style={{ fontSize: 14, fontWeight: 500 }}>
-                {t('(Hidrolik motor + valfler kapatılacak, job state Failed olarak işaretlenmeyebilir)')}
+                {/* 2026-11-17 (QA): operatöre teknik terim ("job state Failed") gösterilmez */}
+                {t('(Hidrolik motor ve valfler kapatılacak, iş İPTAL EDİLDİ olarak kaydedilecek)')}
               </span>
             </>
           }

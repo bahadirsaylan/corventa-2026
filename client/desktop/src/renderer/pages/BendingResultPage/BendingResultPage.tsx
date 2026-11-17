@@ -28,6 +28,7 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 import { manualTargetKey, useBendingJobStore } from '@/store/bendingJobStore'
 import type { BendingJob, ManualCorrectStatus, SavedBendCorrection } from '@shared/types'
 import styles from './BendingResultPage.module.css'
+import MethodResult from './MethodResult'
 
 /** Parçaya uygulama eşiği (backend ile aynı: yeni > mevcut + 0,05 mm) */
 const APPLY_MIN_DELTA_MM = 0.05
@@ -52,7 +53,16 @@ function readNav(state: unknown): { jobId: number | null; savedBendId: number | 
 
 const round2 = (v: number) => Math.round(v * 100) / 100
 
+/**
+ * BÜKÜM SONUCU — metoda göre: ÇEMBER bugünkü ekran (RingResult, birebir) · ÇOK AÇILI / SERPANTİN / SIVAMA
+ * MethodResult (2026-11-17; parçaya düzeltme yok, düzeltme yeni parçaya). Metot mağazadaki büküm parametresinden.
+ */
 export default function BendingResultPage() {
+  const method = useBendingJobStore((s) => s.params.bendingMethod)
+  return method === 'arc' || method === 'spiral' || method === 'sivama' ? <MethodResult /> : <RingResult />
+}
+
+function RingResult() {
   const t = useT()
   const navigate = useNavigate()
   const { state: navState } = useLocation()

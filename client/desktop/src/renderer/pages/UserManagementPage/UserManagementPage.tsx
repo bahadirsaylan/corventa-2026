@@ -24,7 +24,7 @@ import { LockIcon } from '@/components/RoleNotice/LockIcon'
 import { ROLE_COLORS, ROLE_LABELS, roleCan } from '@/constants/permissions'
 import { endSession, useRole, useSessionStore } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
-import { Icon } from '@/components/Icon'
+import { Icon, IconLabel } from '@/components/Icon'
 import styles from './UserManagementPage.module.css'
 
 const MIN_PASSWORD = 6
@@ -69,6 +69,9 @@ function errorText(res: Extract<AuthResult<unknown>, { ok: false }>): string {
 
 type Editor = { mode: 'create' } | { mode: 'edit'; user: UserListItem }
 
+/** Kullanıcı tablosu sayfa boyu (2026-11-17) — özet + filtre + tablo + not üst alana kaydırmasız sığar */
+const USERS_PER_PAGE = 5
+
 export default function UserManagementPage() {
   const navigate = useNavigate()
   const t = useT()
@@ -79,6 +82,8 @@ export default function UserManagementPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'active' | 'passive'>('all')
   const [editor, setEditor] = useState<Editor | null>(null)
+  // 2026-11-17: tablo sayfalı — üst alanda (750 px) kaydırma çubuğu oluşmasın
+  const [page, setPage] = useState(1)
 
   /** 401 → oturum geçersiz (süre doldu / kullanıcı pasifleşti): girişe dön */
   const handleUnauthorized = useCallback(
@@ -116,6 +121,15 @@ export default function UserManagementPage() {
   const filtered = users.filter((u) =>
     filter === 'all' ? true : filter === 'active' ? u.isActive : !u.isActive,
   )
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / USERS_PER_PAGE))
+  const safePage = Math.min(page, totalPages)
+  const pageRows = filtered.slice((safePage - 1) * USERS_PER_PAGE, safePage * USERS_PER_PAGE)
+
+  function changeFilter(f: 'all' | 'active' | 'passive') {
+    setFilter(f)
+    setPage(1)
+  }
 
   const stats = {
     total: users.length,
@@ -165,9 +179,9 @@ export default function UserManagementPage() {
 
         {/* ── Filtre butonları ───────────────────── */}
         <div className={styles.filterRow}>
-          <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>{t('TÜMÜ ({n})', { n: users.length })}</FilterBtn>
-          <FilterBtn active={filter === 'active'} onClick={() => setFilter('active')}>{t('AKTİF ({n})', { n: stats.active })}</FilterBtn>
-          <FilterBtn active={filter === 'passive'} onClick={() => setFilter('passive')}>{t('PASİF ({n})', { n: users.length - stats.active })}</FilterBtn>
+          <FilterBtn active={filter === 'all'} onClick={() => changeFilter('all')}>{t('TÜMÜ ({n})', { n: users.length })}</FilterBtn>
+          <FilterBtn active={filter === 'active'} onClick={() => changeFilter('active')}>{t('AKTİF ({n})', { n: stats.active })}</FilterBtn>
+          <FilterBtn active={filter === 'passive'} onClick={() => changeFilter('passive')}>{t('PASİF ({n})', { n: users.length - stats.active })}</FilterBtn>
           <button type="button" className={styles.refreshBtn} onClick={() => void load()} disabled={loading}>
             {t('YENİLE')}
           </button>
@@ -195,7 +209,7 @@ export default function UserManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((u) => {
+                {pageRows.map((u) => {
                   const editable = u.source !== 'cloud' && (isSelf(u) || canManage(actorRole, u.role))
                   return (
                     <tr key={u.id} className={!u.isActive ? styles.rowPassive : ''}>
@@ -237,6 +251,17 @@ export default function UserManagementPage() {
                 })}
               </tbody>
             </table>
+          )}
+          {totalPages > 1 && (
+            <div className={styles.pager}>
+              <button type="button" className={styles.pagerBtn} disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>
+                <IconLabel icon="chevronLeft">{t('ÖNCEKİ')}</IconLabel>
+              </button>
+              <span className={styles.pagerInfo}>{t('SAYFA {p} / {n}', { p: safePage, n: totalPages })}</span>
+              <button type="button" className={styles.pagerBtn} disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>
+                <IconLabel icon="chevronRight" trailing>{t('SONRAKİ')}</IconLabel>
+              </button>
+            </div>
           )}
         </div>
 

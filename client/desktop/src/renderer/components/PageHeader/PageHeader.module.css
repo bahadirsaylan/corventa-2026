@@ -9,6 +9,13 @@
   background-color: var(--color-bg);
 }
 
+/* 2026-11-17 (QA): ev butonu kadar sağ boşluk — mod etiketi tam ortada dursun (sola butonla kayıyordu) */
+.header::after {
+  content: '';
+  flex-shrink: 0;
+  width: 56px;
+}
+
 .homeBtn {
   flex-shrink: 0;
   background: none;

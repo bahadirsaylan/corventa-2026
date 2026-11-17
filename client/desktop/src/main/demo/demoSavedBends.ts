@@ -86,10 +86,14 @@ function validate(b: Record<string, unknown>, create: boolean): string | null {
     if (!name) return 'İsim zorunlu'
     if (name.length > 100) return 'İsim en fazla 100 karakter'
   }
+  // Backend ile aynı (SavedBendsController, 2026-11-17): ÇEMBER dışı metotta hedef çap / itme / adım opsiyonel
+  // (gönderilmezse 0), parametreler paramsJson'da (zorunlu)
+  const isFullCircle = typeof b.method !== 'string' || !b.method || b.method === 'FullCircle'
+  if (create && !isFullCircle && !str(b.paramsJson)) return 'paramsJson zorunlu (ÇEMBER dışı metot)'
   for (const k of ['targetDiameterMm', 'profileA', 'pushDepthMm', 'stepDistanceMm'] as const) {
     const v = num(b[k])
     if (v == null) {
-      if (create) return `${k} zorunlu`
+      if (create && (isFullCircle || k === 'profileA')) return `${k} zorunlu`
       continue
     }
     if (!(v > 0)) return `${k} 0'dan büyük olmalı`
@@ -111,10 +115,10 @@ export function demoSavedBends(rawUrl: string, path: string, method: string, b: 
       name: String(b.name).trim(),
       method: typeof b.method === 'string' && b.method ? b.method : 'FullCircle',
       paramsJson: str(b.paramsJson),
-      targetDiameterMm: Number(b.targetDiameterMm),
+      targetDiameterMm: num(b.targetDiameterMm) ?? 0,
       profileA: Number(b.profileA),
-      pushDepthMm: Number(b.pushDepthMm),
-      stepDistanceMm: Number(b.stepDistanceMm),
+      pushDepthMm: num(b.pushDepthMm) ?? 0,
+      stepDistanceMm: num(b.stepDistanceMm) ?? 0,
       stageNumber: num(b.stageNumber),
       correctionsJson: str(b.correctionsJson),
       sourceJobId: num(b.sourceJobId),

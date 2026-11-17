@@ -59,7 +59,8 @@ export default function MacroRecordBar({ disabled, hideWhenIdle }: { disabled?: 
   return (
     <>
       {showBar && (
-      <div className={`${styles.recordBar} ${recording ? styles.recordBarActive : ''}`}>
+      // 2026-11-17: ana ekran tuş takımının üstünde (hideWhenIdle) — tuş takımı küçülür, çubuk başlık altında kesilmez
+      <div className={`${styles.recordBar} ${recording ? styles.recordBarActive : ''} ${hideWhenIdle ? styles.recordBarInPad : ''}`}>
         {recording ? (
           <>
             <Icon name="record" size="lg" className={styles.recordDot} />

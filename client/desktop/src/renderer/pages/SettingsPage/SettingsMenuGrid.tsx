@@ -30,6 +30,8 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="PDF KULLANIM KİTABI" permission="pdf-guide" onClick={() => setShowGuide(true)} />
         <SettingsBtn label="BAKIM SÜRESİ" permission="maintenance" onClick={() => navigate('/settings/maintenance')} />
         {FEATURES.moldLicense && <SettingsBtn label="KALIP KODU SORGULA" permission="mold-query" onClick={() => navigate('/settings/mold-code')} />}
+        {/* 2026-11-17: Standart sürümde bulut / kalıp girişleri yokken sütunlar 7 / 9 kalıyordu — HIZLI MENÜ sola geçer (8 / 8) */}
+        {!FEATURES.moldLicense && <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />}
         {/* CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin) */}
       </div>
 
@@ -44,7 +46,7 @@ export default function SettingsMenuGrid() {
         {FEATURES.moldLicense && <SettingsBtn label="KALIP KÜTÜPHANESİ" permission="mold-library" onClick={() => navigate('/settings/mold-library')} />}
         {/* SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17) */}
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" permission="customer-change" onClick={() => navigate('/settings/customer-change')} />
-        <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />
+        {FEATURES.moldLicense && <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />}
         <SettingsBtn label="ADMİN AYARLARI" permission="admin-settings" onClick={() => navigate('/settings/admin')} />
       </div>
     </div>

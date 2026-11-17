@@ -97,7 +97,10 @@ export default function TwoHandUnloadPage() {
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.bandText}>{t('ACİL STOP')}</span>
+        {/* 2026-11-17 (QA): uzun çeviride yazı küçülür — yan oklar kırpılmasın (AlarmPage ile aynı) */}
+        <span className={styles.bandText} data-long={t('ACİL STOP').length > 10 || undefined}>
+          {t('ACİL STOP')}
+        </span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>

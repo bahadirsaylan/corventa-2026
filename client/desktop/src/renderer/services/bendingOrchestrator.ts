@@ -77,7 +77,9 @@ export async function executeBendingFlow(
   const notify = (step: OrchestrationStep) => opts.onStep?.(step)
   // STANDART SÜRÜM (2026-11-17) — elle hedef konum (BÜKÜM SONUCU → YENİ PARÇAYLA BÜK / KAYITLI BÜKÜM ÇALIŞTIR).
   // Doluyken hedef hesaplanmaz; iş bu itme derinliği + manualTargetLocked=true ile kaydedilir. Yoksa akış birebir eski.
+  // Sadece ÇEMBER: ÇOK AÇILI / SERPANTİN / SIVAMA'da düzeltme parametrelere yazılır, hedef her zaman hesaplanır.
   const manualTarget =
+    params.bendingMethod === 'ring' &&
     params.manualTarget &&
     Number.isFinite(params.manualTarget.pushDepthMm) &&
     params.manualTarget.pushDepthMm > 0 &&

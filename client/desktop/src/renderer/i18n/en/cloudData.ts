@@ -23,7 +23,7 @@ const en: Record<string, string> = {
   'KAYDET VE GÖNDER': 'SAVE AND SEND',
   'MADDE NOTU': 'ITEM NOTE',
   'Kontrol sonucu kaydedildi ({at})': 'Inspection result saved ({at})',
-  '{n} MADDE İŞARETLENMEDİ. KONTROL SONUCU YİNE DE GÖNDERİLSİN Mİ': '{n} ITEMS ARE NOT CHECKED. SEND THE INSPECTION RESULT ANYWAY',
+  '{n} MADDE İŞARETLENMEDİ. KONTROL SONUCU YİNE DE GÖNDERİLSİN Mİ': '{n} ITEMS ARE NOT CHECKED. SEND THE INSPECTION RESULT ANYWAY?',
   'Kontrolcü adı zorunlu': 'Inspector name is required',
   'Elektrik': 'Electrical',
   'Ölçüm': 'Measurement',

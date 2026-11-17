@@ -24,19 +24,23 @@
 .list {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 20px;
+  /* 2026-11-17: iki sütun (yukarıdan aşağı akar) — 15 maddelik liste üst alana kaydırmasız sığar.
+     Çok uzun bulut şablonlarında taşarsa kaydırma son çare olarak kalır. */
+  display: block;
+  columns: 2;
+  column-gap: 12px;
+  column-fill: balance;
+  padding: 8px 16px;
   overflow-y: auto;
 }
 
 .row {
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
   min-height: 47px;
-  flex-shrink: 0;
+  margin-bottom: 4px;
+  break-inside: avoid;
 }
 
 .checkArea {
@@ -70,7 +74,7 @@
 .note { font-size: 12px; font-weight: 700; color: #1e40af; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .sideBtn {
-  width: 96px;
+  width: 84px;
   flex-shrink: 0;
   border-radius: 6px;
   border: 1.5px solid #d07070;

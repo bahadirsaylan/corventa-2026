@@ -273,6 +273,32 @@ export function manualTargetKey(params: BendingJobParams): string {
   return [params.profileId, params.bendingMethod, r?.A ?? '', r?.R ?? ''].join('|')
 }
 
+// ── STANDART SÜRÜM (2026-11-17) — ÇOK AÇILI / SERPANTİN / SIVAMA düzeltme bağlamı ──
+/**
+ * ÇEMBER dışı metotlarda düzeltme parçaya değil YENİ PARÇAYA uygulanır: düzeltilmiş girdiler (R / G / X)
+ * doğrudan metot parametrelerine yazılır (hedef konum kilidi YOK — orkestratör yeniden hesaplar).
+ * Burada sadece operatörün İSTEDİĞİ (tasarım) değerler, kayıt bağlantısı ve düzeltme geçmişi tutulur.
+ * resetJob ile temizlenir. AI sürümünde hiç set edilmez.
+ */
+export interface MethodRunContext {
+  /** Tasarım hedefleri — alan id'si → değer (ÇOK AÇILI: R1..Rn · SERPANTİN/SIVAMA: R · SIVAMA: X) */
+  targets: Record<string, number>
+  /** Kayıtlı bükümden geldiyse kaydın id'si (BÜKÜM SONUCU'nda GÜNCELLE seçeneği) */
+  savedBendId?: number | null
+  /** Önceki düzeltmeler — BÜKÜM SONUCU geçmişi bununla başlar, KAYDET'te yazılır */
+  corrections?: SavedBendCorrection[]
+  /** methodParamsKey — operatör parametreleri sonradan elle değiştirirse bağlam geçersiz sayılır */
+  paramsKey?: string
+}
+
+/** ÇEMBER dışı metot parametrelerinin anahtarı (profil + metot + metot ölçüleri) */
+export function methodParamsKey(params: BendingJobParams): string {
+  const m = params.bendingMethod
+  const body =
+    m === 'arc' ? params.arcBending : m === 'spiral' ? params.spiralBending : m === 'sivama' ? params.sivamaBending : null
+  return JSON.stringify([params.profileId, m, body ?? null])
+}
+
 // ── Parameters that will be collected across multiple screens ────────────────
 export interface BendingJobParams {
   /** Profile shape selected on the AI Bending profile screen */
@@ -362,6 +388,9 @@ export interface BendingJobParams {
 
   /** STANDART SÜRÜM (2026-11-17) — elle hedef konum; null = hedef hesaplanır (bugünkü davranış) */
   manualTarget: ManualTargetOverride | null
+
+  /** STANDART SÜRÜM (2026-11-17) — ÇEMBER dışı metot düzeltme bağlamı; null = ilk büküm (bugünkü davranış) */
+  methodRun: MethodRunContext | null
 }
 
 // ── Store state + actions ────────────────────────────────────────────────────
@@ -396,6 +425,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   moldCode: null,
   mold: null,
   manualTarget: null,
+  methodRun: null,
 }
 
 export const useBendingJobStore = create<BendingJobState>((set) => ({

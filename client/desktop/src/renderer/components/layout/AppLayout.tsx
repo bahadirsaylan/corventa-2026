@@ -92,7 +92,10 @@ export default function AppLayout() {
           // kalır; operatör ölçer → parçaya uygula / yeni parçayla bük / kaydet). Failed / Cancelled eskisi gibi.
           // AI sürümünde FEATURES.manualResult=false → bu dal hiç çalışmaz.
           if (completed && FEATURES.manualResult) {
-            const savedBendId = useBendingJobStore.getState().params.manualTarget?.savedBendId ?? null
+            const bp = useBendingJobStore.getState().params
+            // ÇEMBER: elle hedef bağlamı · ÇOK AÇILI / SERPANTİN / SIVAMA: metot düzeltme bağlamı (2026-11-17)
+            const savedBendId =
+              (bp.bendingMethod === 'ring' ? bp.manualTarget?.savedBendId : bp.methodRun?.savedBendId) ?? null
             navigate('/bending/result', {
               state: {
                 jobId,

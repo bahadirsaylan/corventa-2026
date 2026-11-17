@@ -242,7 +242,7 @@ export default function MacroEditorPage() {
             <IconLabel icon="down">{t('AŞAĞI')}</IconLabel>
           </button>
           <button className={styles.actionBtn} disabled={!sel} onClick={() => setDialog({ kind: 'delete' })}>
-            {t('ADIMI SİL')}
+            <IconLabel icon="trash">{t('ADIMI SİL')}</IconLabel>
           </button>
         </div>
         <div className={`${styles.actions} ${styles.actions3}`}>

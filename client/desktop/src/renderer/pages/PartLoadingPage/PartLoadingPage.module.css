@@ -121,6 +121,11 @@
   color: #7fff00;
 }
 
+/* 2026-11-17 (QA): art arda iki bilgi şeridi birbirine yapışmasın */
+.loadedBar + .loadedBar {
+  margin-top: 8px;
+}
+
 /* ── Content area ───────────────────────────── */
 .content {
   flex: 1;

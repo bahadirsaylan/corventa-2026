@@ -108,7 +108,8 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
                 <div><b>{t('Hedef:')}</b> Ø {request.targetDiameterMm} mm</div>
                 <div><b>{t('Parça:')}</b> {request.partLengthMm} mm</div>
                 <div><b>{t('Adım:')}</b> {request.stepDistanceMm} mm</div>
-                <div><b>{t('Profil:')}</b> {request.profileA}×{request.profileB}×{request.profileS}</div>
+                {/* 2026-11-17 (QA): profilde olmayan ölçü (0) gösterilmez — L profilde "40×0×3" yerine "40×3" */}
+                <div><b>{t('Profil:')}</b> {[request.profileA, request.profileB, request.profileS].filter((v) => Number(v) > 0).join('×')}</div>
               </div>
             </div>
           )}

@@ -41,10 +41,11 @@
 /* ── Right: section wrapper ─────────────────── */
 .inputSection {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 16px;
+  gap: 14px; /* 2026-11-17: bilgi şeridi + kapasite uyarısı birlikteyken de üst alana sığar */
 }
 
 /* ── Right: 2-column input grid ─────────────── */
@@ -169,42 +170,81 @@
   line-height: 1.35;
 }
 
-/* ── Hedef konum + adım sayısı (sağ sütun, G'nin altı — 2026-11-16) ── */
-.planRow {
+/* ── Hedef konum + adım sayısı — ızgara altında tam genişlik bilgi şeridi (2026-11-17) ──
+   Girişlerle aynı dil: 2px kenarlık, radius-md, açık yüzey; sonuç gelince seçili (yeşil) tonu.
+   Sabit yükseklik: içerik değişince (—/değer/ipucu) form kaymaz. */
+.planStrip {
+  flex-shrink: 0;
   display: flex;
-  gap: 8px;
-  height: 56px;
-  margin-left: 34px; /* alan etiketi (26px) + boşluk hizası — giriş kutusuyla aynı sol kenar */
+  align-items: stretch;
+  height: 52px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  overflow: hidden;
+}
+
+.planStrip[data-state='ok'] {
+  border-color: var(--color-selected-border);
+  background-color: var(--color-selected);
 }
 
 .planCell {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  border: 2px dashed var(--color-border);
-  background-color: #fff;
+  gap: 2px;
+  padding: 0 8px;
   line-height: 1.1;
 }
 
-.planRow[data-state='ok'] .planCell {
-  border-style: solid;
-  border-color: var(--color-selected-border);
-  background-color: var(--color-selected);
+.planCell + .planCell {
+  border-left: 1px solid var(--color-border);
+}
+
+.planStrip[data-state='ok'] .planCell + .planCell {
+  border-left-color: rgba(22, 163, 74, 0.35);
+}
+
+/* İpucu varken hücreler sabit genişlik, ipucu kalan yeri alır (2 satıra kadar sarar) */
+.planStrip:has(.planHint) .planCell {
+  flex: 0 0 132px;
+}
+
+.planHint {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-left: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--color-text-muted);
+  overflow: hidden;
+}
+
+.planStrip[data-state='error'] .planHint {
+  color: #a93226;
 }
 
 .planLabel {
+  max-width: 100%;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.planRow[data-state='ok'] .planLabel {
+.planStrip[data-state='ok'] .planLabel {
   color: var(--color-selected-text);
 }
 

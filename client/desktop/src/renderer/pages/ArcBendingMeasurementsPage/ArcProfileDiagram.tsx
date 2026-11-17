@@ -29,6 +29,7 @@ interface Props {
 const H = 100
 const BASE = 22
 const ARC_W = 132
+const ARC_W_MIN = 72
 
 type Piece =
   | { kind: 'straight'; seg: number; length: number; label: string }
@@ -48,9 +49,17 @@ export default function ArcProfileDiagram({ segments, trailing, active = null }:
   const t = useT()
   const pieces = buildPieces(segments, trailing)
   const isActive = (p: Piece) => !!active && active.kind === p.kind && active.seg === p.seg
+  // 2026-11-17 (QA): çok kıvrımda (5+) şerit sağdan taşıyordu (son parça / KALAN / SON kırpılıyordu) —
+  // yay genişliği kıvrım sayısına göre daralır, sıkışık düzende yazılar küçülür (~960 px kullanılabilir genişlik)
+  const nArc = pieces.filter((p) => p.kind === 'arc').length
+  const nStraight = pieces.length - nArc
+  const compact = nArc > 0 && nArc * ARC_W + nStraight * 64 > 960
+  const arcW = compact
+    ? Math.max(ARC_W_MIN, Math.min(ARC_W, Math.floor((960 - nStraight * 52) / nArc)))
+    : ARC_W
 
   return (
-    <div className={styles.diagram}>
+    <div className={styles.diagram} data-compact={compact || undefined}>
       <span className={styles.endCap} data-side="start">{t('BAŞ')}</span>
       <div className={styles.row}>
         {pieces.map((p, i) =>
@@ -67,7 +76,7 @@ export default function ArcProfileDiagram({ segments, trailing, active = null }:
             </div>
           ) : (
             <div key={i} className={styles.arcPiece} data-active={isActive(p) || undefined}>
-              <ArcShape order={i + 1} bendDeg={180 - p.data.alpha} />
+              <ArcShape order={i + 1} bendDeg={180 - p.data.alpha} width={arcW} />
               <span className={styles.label}>R {p.data.R.toFixed(0)}</span>
               <span className={styles.value}>{t('YAY')} {p.data.arc.toFixed(0)} mm</span>
             </div>
@@ -79,18 +88,18 @@ export default function ArcProfileDiagram({ segments, trailing, active = null }:
   )
 }
 
-function ArcShape({ order, bendDeg }: { order: number; bendDeg: number }) {
-  // Sagitta: 14..52 px arası, büküm açısıyla orantılı
+function ArcShape({ order, bendDeg, width = ARC_W }: { order: number; bendDeg: number; width?: number }) {
+  // Sagitta: 14..52 px arası, büküm açısıyla orantılı (dar yayda genişlikle orantılı küçülür)
   const bend = Math.max(0, Math.min(180, bendDeg))
-  const h = 14 + (bend / 180) * 38
-  const half = ARC_W / 2
+  const h = (14 + (bend / 180) * 38) * Math.min(1, width / ARC_W)
+  const half = width / 2
   const r = (half * half + h * h) / (2 * h)
   const bottomY = BASE + h
   const badgeY = Math.min(H - 13, bottomY + 16)
 
   return (
-    <svg className={styles.svgArc} viewBox={`0 0 ${ARC_W} ${H}`} width={ARC_W} height={H} aria-hidden>
-      <path d={`M 0 ${BASE} A ${r} ${r} 0 0 0 ${ARC_W} ${BASE}`} className={styles.line} />
+    <svg className={styles.svgArc} viewBox={`0 0 ${width} ${H}`} width={width} height={H} aria-hidden>
+      <path d={`M 0 ${BASE} A ${r} ${r} 0 0 0 ${width} ${BASE}`} className={styles.line} />
       <circle cx={half} cy={badgeY} r="12" className={styles.badge} />
       <text x={half} y={badgeY} className={styles.badgeText} textAnchor="middle" dominantBaseline="central">
         {order}

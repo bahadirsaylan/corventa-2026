@@ -22,6 +22,7 @@ import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPref
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
+import { FEATURES } from '@shared/edition'
 
 const EMPTY: ArcMeasurementValues = {
   A: '', B: '', S: '', H: '', P: '', G: '', LT: '',
@@ -271,7 +272,7 @@ export default function ArcBendingMeasurementsPage() {
           backTo="/bending/ai/method"
           confirmDisabled={!mainFieldsValid(values)}
           onConfirm={() => setStage('segments')}
-          hint={moldHint}
+          hint={FEATURES.moldLicense ? moldHint : undefined}
         />
       )}
       {stage === 'segments' && (

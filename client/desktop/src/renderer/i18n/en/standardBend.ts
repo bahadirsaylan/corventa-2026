@@ -56,7 +56,7 @@ const en: Record<string, string> = {
   OLUŞTURAN: 'CREATED BY',
   'Henüz kayıtlı büküm yok. Büküm sonucu ekranında KAYDET ile eklenir.':
     'No saved bends yet. Add one with SAVE on the bending result screen.',
-  '"{name}" kaydını silmek istediğinizden emin misiniz': 'Are you sure you want to delete record "{name}"',
+  '"{name}" kaydını silmek istediğinizden emin misiniz': 'Are you sure you want to delete record "{name}"?',
   'KAYITLI BÜKÜMLER YÜKLENEMEDİ': 'SAVED BENDS COULD NOT BE LOADED',
   'KAYIT PARAMETRELERİ OKUNAMADI': 'RECORD PARAMETERS COULD NOT BE READ',
   'KAYIT YÜKLENEMEDİ': 'RECORD COULD NOT BE LOADED',
@@ -65,6 +65,24 @@ const en: Record<string, string> = {
   'ÖLÇÜLEN ÇAP ANLAMSIZ ({d} mm) — TEKRAR GİRİN': 'MEASURED DIAMETER NOT PLAUSIBLE ({d} mm) — ENTER AGAIN',
   'HEDEF KONUM GEÇERSİZ ({n} mm) — TEKRAR GİRİN': 'TARGET POSITION INVALID ({n} mm) — ENTER AGAIN',
   'BÜKÜM BİTİNCE ÇAPI SİZ ÖLÇECEKSİNİZ — KAYDET VEYA DÜZELT': 'AFTER BENDING YOU MEASURE THE DIAMETER — SAVE OR CORRECT',
+  // ── 2026-11-17 BÜKÜM SONUCU — ÇOK AÇILI / SERPANTİN / SIVAMA (düzeltme yeni parçaya) ──
+  ÇEMBER: 'RING',
+  'PARÇAYI ÖLÇÜN — DÜZELTME YENİ PARÇAYA UYGULANIR': 'MEASURE THE PART — CORRECTION APPLIES TO A NEW PART',
+  'SIVAMADA TOPLAR STAGE KONUMUNDA KALIR — R / X ÇAPI DEĞİŞTİRMEZ':
+    'IN SIVAMA THE ROLLS STAY AT STAGE POSITION — R / X DO NOT CHANGE THE DIAMETER',
+  'ÖLÇÜLEN DEĞER ANLAMSIZ ({d} mm) — TEKRAR GİRİN': 'MEASURED VALUE NOT PLAUSIBLE ({d} mm) — ENTER AGAIN',
+  'PLAN KONTROLÜ BAŞARISIZ': 'PLAN CHECK FAILED',
+  İSTENEN: 'WANTED',
+  BÜKÜLEN: 'BENT WITH',
+  ÖLÇÜLEN: 'MEASURED',
+  'YENİ PARÇA İÇİN': 'FOR NEW PART',
+  GİR: 'ENTER',
+  AYNI: 'SAME',
+  'ÖLÇÜLEN DEĞER KAYDA YAZILIR': 'MEASURED VALUE IS RECORDED',
+  'ÖNERİ: YENİ R = BÜKÜLEN R × İSTENEN R / ÖLÇÜLEN R': 'SUGGESTION: NEW R = BENT R × WANTED R / MEASURED R',
+  'ÖLÇÜLEN {f} (mm)': 'MEASURED {f} (mm)',
+  'YENİ {f} ({u})': 'NEW {f} ({u})',
+  'DEĞER GEÇERSİZ ({n}) — TEKRAR GİRİN': 'VALUE INVALID ({n}) — ENTER AGAIN',
 }
 
 export default en

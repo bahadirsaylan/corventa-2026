@@ -56,6 +56,12 @@ function inferLabel(el: TargetEl): string {
     if (txt) return txt.toUpperCase()
   }
 
+  // 2026-11-17 (QA): <label> yerine hemen önündeki başlık öğesi (ör. "AD SOYAD" span'ı) — klavyede
+  // genel "METİN" yerine alan adı görünsün
+  const prev = el.previousElementSibling
+  const prevText = prev && !(prev instanceof HTMLInputElement) ? prev.textContent?.trim() : ''
+  if (prevText && prevText.length <= 40) return prevText.toUpperCase()
+
   const name = el.getAttribute('name')
   if (name) return name.toUpperCase()
 

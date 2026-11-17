@@ -349,6 +349,16 @@
   color: #fff;
 }
 
+/* 2026-11-17 (QA): pasif buton nötr gri — soluk kırmızı birincil buton, aktif ikincil (pembe) butonla
+   karışıyordu (PARÇAYA UYGULA pasifken aktif gibi görünüyordu) */
+.btn:disabled,
+.btnPrimary:disabled {
+  opacity: 1;
+  background-color: #ececec;
+  border-color: #d6d6d6;
+  color: #a8a8a8;
+}
+
 .btnStop {
   width: 70%;
   background-color: #c62828;

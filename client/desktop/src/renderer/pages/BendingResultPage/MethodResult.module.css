@@ -1,0 +1,247 @@
+/* STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU (ÇOK AÇILI / SERPANTİN / SIVAMA).
+   Üst alan 750 px: kaydırma çubuğu YOK — en fazla 4 satır, fazlası sayfalanır. Ortak parçalar BendingResultPage.module.css. */
+
+.table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.row {
+  flex-shrink: 0;
+  height: 78px;
+  display: grid;
+  grid-template-columns: 190px 120px 120px 150px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.head {
+  height: 40px;
+  background: #fdf8e8;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+}
+
+.newHead {
+  text-align: center;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.head .num {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.labelMain {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.unit {
+  margin-left: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.labelSub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.measBtn {
+  height: 60px;
+  border: 2px dashed #8a8a8a;
+  border-radius: var(--radius-md);
+  background: #f7f7f7;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.measBtn[data-filled] {
+  border-style: solid;
+  border-color: #1d4f7a;
+  background: #e3eef9;
+  color: #1d4f7a;
+}
+
+.measBtn:disabled,
+.newBtn:disabled,
+.step:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.newCell {
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  gap: 6px;
+  align-items: center;
+}
+
+.step {
+  height: 60px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #f5f5f5;
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.step:active:not(:disabled),
+.measBtn:active:not(:disabled),
+.newBtn:active:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+.newBtn {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border: 3px solid #8a8a8a;
+  border-radius: var(--radius-md);
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.newBtn[data-changed] {
+  border-color: var(--color-primary);
+  background: #fff4f4;
+}
+
+.newVal {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.newDiff {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.newDiff[data-sign='pos'] { color: #1f6b3d; }
+.newDiff[data-sign='neg'] { color: #c62828; }
+
+/* ── bilgi + sayfa satırı ── */
+.infoRow {
+  flex-shrink: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: #f1f1f1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.formula {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.histInfo {
+  flex-shrink: 0;
+  max-width: 330px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1d4f7a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pager {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 56px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  min-width: 48px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.actions {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}

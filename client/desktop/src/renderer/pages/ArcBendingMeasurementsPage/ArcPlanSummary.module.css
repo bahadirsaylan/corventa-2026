@@ -70,8 +70,8 @@
 .strip {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  /* 2026-11-17 (QA): yatay kaydırma yerine alt satıra kayar (dokunmatik ekranda kaydırma çubuğu yok) */
+  flex-wrap: wrap;
   padding: 8px 4px 12px;
   flex: 0 0 auto;
   align-items: flex-start;

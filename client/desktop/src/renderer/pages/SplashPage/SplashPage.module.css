@@ -6,6 +6,8 @@
   gap: 24px;
   align-items: center;
   justify-content: center;
+  padding-bottom: 24px; /* 2026-11-17: STANDART yazısı açık zeminin alt kenarına yapışıyordu */
+  box-sizing: border-box;
   background-color: var(--color-bg);
   /* thin dark border visible in the design around the whole screen */
   outline: 6px solid var(--color-bg-dark);

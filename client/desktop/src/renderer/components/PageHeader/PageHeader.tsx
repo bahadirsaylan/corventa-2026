@@ -15,6 +15,8 @@ interface PageHeaderProps {
 export default function PageHeader({ icon, iconAlt, label }: PageHeaderProps) {
   const navigate = useNavigate()
   const resetJob = useBendingJobStore((s) => s.resetJob)
+  // 2026-11-17 (QA): AI sürümünde Yarı Oto akışında AI görseli yerine usta ikonu (etiket zaten YARI OTOMATİK MOD)
+  const isSemi = useBendingJobStore((s) => s.params.bendingMode === 'semi')
 
   return (
     <div className={styles.header}>
@@ -27,9 +29,11 @@ export default function PageHeader({ icon, iconAlt, label }: PageHeaderProps) {
       </button>
 
       <div className={styles.headerCenter}>
-        {/* STANDART SÜRÜM (2026-11-17): AI görseli yerine nötr "otomatik" ikonu — sayfalar aynı prop'u vermeye devam eder */}
+        {/* STANDART SÜRÜM (2026-11-17): AI görseli yerine OTOMATİK BÜKÜM çizgi ikonu (ana ekranla aynı) — sayfalar aynı prop'u vermeye devam eder */}
         {IS_STANDARD && icon === artificialIntelligenceIcon ? (
-          <Icon name="rotateCw" size={32} className={styles.icon} />
+          <Icon name="autoBend" size={32} className={styles.icon} />
+        ) : isSemi && icon === artificialIntelligenceIcon ? (
+          <Icon name="technician" size={32} className={styles.icon} />
         ) : (
           <img src={icon} alt={iconAlt} className={styles.icon} width={32} height={32} />
         )}

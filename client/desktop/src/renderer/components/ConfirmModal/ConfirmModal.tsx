@@ -24,12 +24,22 @@ export default function ConfirmModal({
   onConfirm,
 }: Props) {
   const t = useT()
+  // 2026-11-17 (QA): mesajın sonundaki "?" ikonu (bilgi butonlarıyla aynı daire-soru ikonu) kafa karıştırıyordu.
+  // Artık üstte varyanta göre ikon (tehlikeli işlem → uyarı üçgeni, diğer → bilgi); Türkçe soru ekiyle biten
+  // metinlerde ("… SİLİNSİN Mİ", "… emin misiniz") eksik soru işareti düz karakter olarak eklenir
+  // (İngilizce karşılıklar sözlükte zaten "?" ile biter).
+  const text = typeof message === 'string' ? t(message) : message
+  const needsQuestionMark =
+    typeof text === 'string' && /(?:^|\s)(?:m[ıiuü]|M[IİUÜ])(?:s[ıiuü]n[ıiuü]z|S[IİUÜ]N[IİUÜ]Z)?\s*$/u.test(text)
   return (
     <div className={styles.overlay} onClick={onCancel}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <span className={styles.headIcon} data-variant={variant}>
+          <Icon name={variant === 'danger' ? 'warning' : 'info'} size={48} />
+        </span>
         <p className={styles.message}>
-          {typeof message === 'string' ? t(message) : message}
-          <span className={styles.qmark}><Icon name="help" size={28} /></span>
+          {text}
+          {needsQuestionMark && '?'}
         </p>
         <div className={styles.actions}>
           <button className={`${styles.btn} ${styles.cancel}`} onClick={onCancel}>

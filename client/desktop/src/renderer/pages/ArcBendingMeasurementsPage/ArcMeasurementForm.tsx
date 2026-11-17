@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
 import ArcInfoModal from './ArcInfoModal'
@@ -213,6 +213,10 @@ export function resizeSegments(
   return [...current, ...extra]
 }
 
+/** 2026-11-17 (QA): bir sayfada en fazla gösterilen kıvrım kartı — uyarı satırları yer kaplarsa sayfa
+ *  boyu otomatik küçülür (liste ölçülür), üst alanda kaydırma çubuğu çıkmaz */
+const MAX_SEGMENTS_PER_PAGE = 5
+
 export default function ArcMeasurementForm({
   values,
   onChange,
@@ -231,6 +235,12 @@ export default function ArcMeasurementForm({
   const methodImage = useMethodTileImage('arc', defaultMethodImage)
   const [openInfo, setOpenInfo] = useState<ArcMainFieldKey | ArcSegmentFieldKey | null>(null)
   const [numpadTarget, setNumpadTarget] = useState<NumpadTarget | null>(null)
+  // 2026-11-17 (QA): kıvrım kartları sayfalı — üst alanda kaydırma çubuğu olmasın (5+ kıvrımda liste taşıyordu)
+  const [segPage, setSegPage] = useState(0)
+  const [segPageSize, setSegPageSize] = useState(MAX_SEGMENTS_PER_PAGE)
+  const segListRef = useRef<HTMLDivElement>(null)
+  // Son düzenlenen kıvrım — sayfa boyu küçülünce o kartın sayfasında kalınır (kart gözden kaybolmasın)
+  const lastEditedSegRef = useRef<number | null>(null)
   // Stage listesi — canlı plan uyarısındaki ölçüm mesafesi için (okunamazsa varsayılan |XA1|)
   const [stages, setStages] = useState<StageInfo[] | null>(null)
 
@@ -449,6 +459,30 @@ export default function ArcMeasurementForm({
     return `${t('{n}. KIVRIM', { n: numpadTarget.index + 1 })} · ${disp}`
   })()
 
+  // 2026-11-17 (QA): kıvrım sayfalaması — sayfa P küçülünce geçerli aralığa çekilir
+  const SEGMENTS_PER_PAGE = segPageSize
+  const segPageCount = Math.max(1, Math.ceil(values.segments.length / SEGMENTS_PER_PAGE))
+  const segPageClamped = Math.min(segPage, segPageCount - 1)
+  const segPageStart = segPageClamped * SEGMENTS_PER_PAGE
+  // Kıvrım sayısı / aşama değişince en büyük sayfa boyundan yeniden başla
+  useLayoutEffect(() => {
+    setSegPageSize(MAX_SEGMENTS_PER_PAGE)
+  }, [values.segments.length, stage])
+  // Liste taşıyorsa (uyarı satırları, uzun notlar) sayfa boyunu bir azalt — sığana kadar; son düzenlenen
+  // (yoksa ilk görünen) kart ekranda kalacak sayfaya geçilir
+  useLayoutEffect(() => {
+    const el = segListRef.current
+    if (el && el.scrollHeight > el.clientHeight + 1 && segPageSize > 1) {
+      const next = segPageSize - 1
+      const keep = lastEditedSegRef.current ?? segPageStart
+      setSegPageSize(next)
+      setSegPage(Math.floor(keep / next))
+    }
+  })
+  useEffect(() => {
+    if (numpadTarget?.kind === 'segment') lastEditedSegRef.current = numpadTarget.index
+  }, [numpadTarget])
+
   // 2026-09-03: 2-aşamalı wizard. Aşama 1'de görseller + ana parametreler; aşama 2'de
   // özet bant + tam genişlik segmentler + mode toggle + toplam bütçe.
   const isMainStage = stage === 'main'
@@ -511,13 +545,14 @@ export default function ArcMeasurementForm({
             </div>
 
             {/* Segment kartları — P adet dinamik. */}
-            <div className={styles.segmentsList}>
+            <div className={styles.segmentsList} ref={segListRef}>
               {values.segments.length === 0 && (
                 <div className={styles.segmentsHint}>
                   <IconLabel icon="warning">{t('Önce P (kıvrım sayısı) giriniz — kartlar otomatik açılır.')}</IconLabel>
                 </div>
               )}
               {values.segments.map((_, i) => {
+                if (i < segPageStart || i >= segPageStart + SEGMENTS_PER_PAGE) return null
                 const b = budgets[i]
                 const minArcViolation = b?.valid && isArcBelowMin(b.arc)
                 return (
@@ -527,7 +562,27 @@ export default function ArcMeasurementForm({
                       minArcViolation ? styles.segmentCardInfeasible : ''
                     }`}
                   >
-                    <div className={styles.segmentHeader}>{t('{n}. KIVRIM', { n: i + 1 })}</div>
+                    <div className={styles.segmentHeader}>
+                      {t('{n}. KIVRIM', { n: i + 1 })}
+                      {/* 2026-11-17 (QA): bütçe bilgisi başlık sütununda — kart tek satır kalır */}
+                      {b?.valid && (
+                        <div className={styles.segmentBudgetInfo}>
+                          {t('Yay')}: <b>{b.arc.toFixed(1)}mm</b>
+                          <br />
+                          {t('Bütçe')}: <b>{b.total.toFixed(1)}mm</b>
+                          {i + 1 === totalP && b.effArc !== b.arc && (
+                            <span className={styles.budgetNote}>
+                              {' '}{t('(son seg yay −{n}mm safety)', { n: DEFAULT_SAFETY_MM })}
+                            </span>
+                          )}
+                          {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
+                            <span className={styles.budgetNote}>
+                              {' '}{t('(seg1 düzlük min={n}mm safety)', { n: DEFAULT_SAFETY_MM })}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <div className={styles.segmentFields}>
                       {renderSegmentField(i, 'L', 'L')}
                       {inputMode === 'angle'
@@ -535,22 +590,6 @@ export default function ArcMeasurementForm({
                         : renderSegmentField(i, 'ArcLen', t('Yay'))}
                       {renderSegmentField(i, 'R', 'R')}
                     </div>
-                    {b?.valid && (
-                      <div className={styles.segmentBudgetInfo}>
-                        {t('Yay')}: <b>{b.arc.toFixed(1)}mm</b>
-                        {' · '}{t('Bütçe')}: <b>{b.total.toFixed(1)}mm</b>
-                        {i + 1 === totalP && b.effArc !== b.arc && (
-                          <span className={styles.budgetNote}>
-                            {' '}{t('(son seg yay −{n}mm safety)', { n: DEFAULT_SAFETY_MM })}
-                          </span>
-                        )}
-                        {i === 0 && b.effStraight !== parseFloat(values.segments[0].L || '0') && (
-                          <span className={styles.budgetNote}>
-                            {' '}{t('(seg1 düzlük min={n}mm safety)', { n: DEFAULT_SAFETY_MM })}
-                          </span>
-                        )}
-                      </div>
-                    )}
                     {minArcViolation && (
                       <div className={styles.segmentInfeasibleWarn}>
                         <div className={styles.warnHead}>
@@ -565,6 +604,37 @@ export default function ArcMeasurementForm({
                 )
               })}
             </div>
+
+            {/* 2026-11-17 (QA): sayfa geçişi — sadece kıvrım sayısı bir sayfaya sığmıyorsa */}
+            {segPageCount > 1 && (
+              <div className={styles.segmentPager}>
+                <button
+                  type="button"
+                  className={styles.pagerBtn}
+                  disabled={segPageClamped === 0}
+                  onClick={() => setSegPage(segPageClamped - 1)}
+                  aria-label={t('ÖNCEKİ')}
+                >
+                  <Icon name="chevronLeft" size={22} />
+                </button>
+                <span className={styles.pagerText}>
+                  {t('{from}–{to}. KIVRIM / {n}', {
+                    from: segPageStart + 1,
+                    to: Math.min(segPageStart + SEGMENTS_PER_PAGE, values.segments.length),
+                    n: values.segments.length,
+                  })}
+                </span>
+                <button
+                  type="button"
+                  className={styles.pagerBtn}
+                  disabled={segPageClamped >= segPageCount - 1}
+                  onClick={() => setSegPage(segPageClamped + 1)}
+                  aria-label={t('SONRAKİ')}
+                >
+                  <Icon name="chevronRight" size={22} />
+                </button>
+              </div>
+            )}
 
             {/* Toplam bütçe + kalan gösterge */}
             {anyBudgetValid && (

@@ -10,7 +10,7 @@ const en: Record<string, string> = {
   'PROGRAMI BAŞLAT': 'START PROGRAM',
   'YENİ KIVRIM': 'NEW BEND',
   'SEÇİLİ PROGRAMIN\nGEOMETRİSEL ÇAPI': 'GEOMETRIC DIAMETER\nOF SELECTED PROGRAM',
-  'SEÇİLİ PROGRAMI SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ': 'ARE YOU SURE YOU WANT TO DELETE THE SELECTED PROGRAM',
+  'SEÇİLİ PROGRAMI SİLMEK İSTEDİĞİNİZDEN EMİN MİSİNİZ': 'ARE YOU SURE YOU WANT TO DELETE THE SELECTED PROGRAM?',
   SİL: 'DELETE',
 
   // ── ManuelHeader / ManuelFooter ──
@@ -50,7 +50,7 @@ const en: Record<string, string> = {
   'ÖNE SATIR EKLE': 'INSERT LINE ABOVE',
   'SATIR SİL': 'DELETE LINE',
   'DEĞİŞİKLİKLER SONUCU\nOLUŞAN GEOMETRİSEL ÇAP': 'RESULTING GEOMETRIC\nDIAMETER AFTER CHANGES',
-  'S.{no} satırını silmek istediğinizden emin misiniz': 'Are you sure you want to delete line S.{no}',
+  'S.{no} satırını silmek istediğinizden emin misiniz': 'Are you sure you want to delete line S.{no}?',
 
   // ── StepFormDialog ──
   'SATIRI DÜZENLE': 'EDIT LINE',

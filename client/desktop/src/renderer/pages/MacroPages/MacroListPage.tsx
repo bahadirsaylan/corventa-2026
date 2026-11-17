@@ -152,7 +152,8 @@ export default function MacroListPage() {
             aria-disabled={!canDelete || undefined}
             onClick={() => (canDelete ? setDeleteOpen(true) : showRoleNotice(PERMISSIONS['macro-delete']))}
           >
-            {t('SİL')}
+            {/* 2026-11-17 (QA): kardeş butonlar gibi ikonlu */}
+            <IconLabel icon="trash">{t('SİL')}</IconLabel>
             {!canDelete && <LockIcon className={styles.lockIcon} />}
           </button>
           <button

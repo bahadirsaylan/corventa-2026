@@ -115,7 +115,10 @@ export default function AlarmPage() {
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.bandText}>{t('ACİL STOP')}</span>
+        {/* 2026-11-17 (QA): uzun çeviride (EMERGENCY STOP) yazı küçülür — yan oklar kırpılmasın */}
+        <span className={styles.bandText} data-long={t('ACİL STOP').length > 10 || undefined}>
+          {t('ACİL STOP')}
+        </span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>

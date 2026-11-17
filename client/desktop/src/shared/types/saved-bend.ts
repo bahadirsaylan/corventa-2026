@@ -45,6 +45,15 @@ export interface SavedBendCorrection {
   measuredDiameterMm?: number | null
   /** part = parçaya uygulandı (manual-correct) · newPart = yeni parçayla bükmek için hedef değişti */
   mode: 'part' | 'newPart'
+  /**
+   * 2026-11-17 — ÇEMBER dışı metotlar: düzeltilen alan (ÇOK AÇILI R1..Rn / G · SERPANTİN R · SIVAMA R / X).
+   * Doluyken fromMm / toMm o alanın girdi değeridir (hedef konum DEĞİL). ÇEMBER kayıtlarında yok.
+   */
+  field?: string | null
+  /** ÇEMBER dışı: operatörün ölçtüğü değer (R ise yarıçap mm) */
+  measuredValue?: number | null
+  /** ÇEMBER dışı: tasarım hedefi (operatörün istediği değer) */
+  targetValue?: number | null
 }
 
 /** GET /api/saved-bends liste satırı */

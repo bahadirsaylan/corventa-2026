@@ -86,7 +86,7 @@ interface Props {
   confirmDisabled?: boolean
   /** Canlı kapasite kontrolü sonucu (A/B/R/G girilince) — sadece bilgi, ONAYLA'yı engellemez */
   capacityIssues?: CapacityIssue[]
-  /** Hedef konum + adım sayısı önizlemesi — verilirse sağ sütunda G'nin altında gösterilir */
+  /** Hedef konum + adım sayısı önizlemesi — verilirse giriş ızgarasının altında tam genişlik şerit olarak gösterilir */
   plan?: PlanPreview
 }
 
@@ -161,9 +161,12 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
-            {plan && <PlanRow plan={plan} />}
           </div>
         </div>
+
+        {/* 2026-11-17: HEDEF KONUM + ADIM SAYISI artık sağ sütunda değil — ızgara ile eylem satırı arasında
+            tek, tam genişlik bilgi şeridi (sütun yüksekliklerini bozmaz, SIFIRLA / ONAYLA'yı itmez/sıkıştırmaz) */}
+        {plan && <PlanStrip plan={plan} />}
 
         {capacityIssues && capacityIssues.length > 0 && (
           <ul className={styles.capacityNotice}>
@@ -201,17 +204,25 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
 }
 
 /**
- * Sağ sütunda G'nin altındaki boş satır: HEDEF KONUM (aktif top, mm) + ADIM SAYISI (G ile).
- * A ve çap (R) girilmeden "—"; adım sayısı için L de gerekir.
+ * Giriş ızgarasının altındaki bilgi şeridi (2026-11-17): HEDEF KONUM (aktif top, mm) + ADIM SAYISI (G ile).
+ * A ve çap (R) girilmeden "—" + kısa ipucu; hesap / adım sayısı alınamazsa ipucu. Sadece gösterim.
  */
-function PlanRow({ plan }: { plan: PlanPreview }) {
+function PlanStrip({ plan }: { plan: PlanPreview }) {
   const t = useT()
   const loading = plan.state === 'loading'
   const ok = plan.state === 'ok'
   const target = ok && plan.targetMm != null ? plan.targetMm.toFixed(1) : null
   const steps = ok && plan.totalSteps != null ? String(plan.totalSteps) : null
+  const hint =
+    plan.state === 'idle'
+      ? t('A VE R GİRİLİNCE HESAPLANIR')
+      : plan.state === 'error'
+        ? t('HESAPLANAMADI — ÖLÇÜLERİ KONTROL EDİN')
+        : ok && steps == null
+          ? t('ADIM SAYISI HESAPLANAMADI')
+          : null
   return (
-    <div className={styles.planRow} data-state={plan.state} aria-live="polite">
+    <div className={styles.planStrip} data-state={plan.state} aria-live="polite">
       <div className={styles.planCell}>
         <span className={styles.planLabel}>{t('HEDEF KONUM')}</span>
         <span className={styles.planValue}>
@@ -222,6 +233,7 @@ function PlanRow({ plan }: { plan: PlanPreview }) {
         <span className={styles.planLabel}>{t('ADIM SAYISI')}</span>
         <span className={styles.planValue}>{loading ? '…' : steps ?? '—'}</span>
       </div>
+      {hint && <span className={styles.planHint}>{hint}</span>}
     </div>
   )
 }

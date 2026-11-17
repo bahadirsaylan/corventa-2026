@@ -16,7 +16,15 @@ import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import StatusBar from '@/components/StatusBar/StatusBar'
 import { PERMISSIONS } from '@/constants/permissions'
 import { useT } from '@/i18n'
-import { cleanIpcError, fmtNum, loadSavedBendIntoStore, parseCorrections } from '@/services/savedBends'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
+import {
+  cleanIpcError,
+  fmtNum,
+  isRingSavedBend,
+  loadSavedBendIntoStore,
+  parseCorrections,
+  savedBendMethodLabel,
+} from '@/services/savedBends'
 import { useCan } from '@/stores/sessionStore'
 import type { SavedBend, SavedBendSummary } from '@shared/types'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -24,7 +32,7 @@ import styles from './SavedBendsPage.module.css'
 
 const PAGE_SIZE = 6
 /** Detay penceresinde gösterilen son düzeltme sayısı */
-const DETAIL_CORRECTIONS = 8
+const DETAIL_CORRECTIONS = 6 // 2026-11-17: METOT satırı eklendi — pencere üst alana sığsın
 
 const dateFmt = new Intl.DateTimeFormat('tr-TR', {
   day: '2-digit',
@@ -45,6 +53,8 @@ function fmtDate(iso: string | null | undefined): string {
 
 export default function SavedBendsPage() {
   const t = useT()
+  // 2026-11-17 (QA): üst şerit akış modunu gösterir (diğer otomatik büküm ekranları gibi) — sayfa başlığıyla aynı yazı tekrarlanmasın
+  const modeLabel = useBendingModeLabel()
   const navigate = useNavigate()
   const canDelete = useCan('saved-bend-delete')
 
@@ -128,7 +138,7 @@ export default function SavedBendsPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Saved bends" label={t('KAYITLI BÜKÜMLER')} />
+      <PageHeader icon={artificialIntelligenceIcon} iconAlt="Saved bends" label={modeLabel} />
 
       <div className={styles.content}>
         <h2 className={styles.title}>{t('KAYITLI BÜKÜMLER')}</h2>
@@ -142,6 +152,7 @@ export default function SavedBendsPage() {
         <div className={styles.table}>
           <div className={`${styles.row} ${styles.head}`}>
             <span>{t('KAYIT ADI')}</span>
+            <span>{t('METOT')}</span>
             <span className={styles.num}>Ø</span>
             <span className={styles.num}>A</span>
             <span className={styles.num}>{t('HEDEF')}</span>
@@ -158,10 +169,12 @@ export default function SavedBendsPage() {
               onClick={() => setSelectedId(s.id)}
             >
               <span className={styles.name}>{s.name}</span>
-              <span className={styles.num}>{fmtNum(s.targetDiameterMm)}</span>
+              <span className={styles.method}>{t(savedBendMethodLabel(s.method))}</span>
+              {/* ÇEMBER dışı: tek hedef konum yok (parametreler kayıtta) — 0 değerler "—" */}
+              <span className={styles.num}>{fmtNum(posOrNull(s.targetDiameterMm))}</span>
               <span className={styles.num}>{fmtNum(s.profileA)}</span>
-              <span className={styles.num}>{fmtNum(s.pushDepthMm)}</span>
-              <span className={styles.num}>{fmtNum(s.stepDistanceMm)}</span>
+              <span className={styles.num}>{isRingSavedBend(s.method) ? fmtNum(s.pushDepthMm) : '—'}</span>
+              <span className={styles.num}>{fmtNum(posOrNull(s.stepDistanceMm))}</span>
               <span className={styles.num}>{s.runCount}</span>
               <span className={styles.date}>{fmtDate(s.updatedAt)}</span>
             </button>
@@ -206,7 +219,8 @@ export default function SavedBendsPage() {
             aria-disabled={!canDelete || undefined}
             onClick={() => (canDelete ? setDeleteOpen(true) : showRoleNotice(PERMISSIONS['saved-bend-delete']))}
           >
-            {t('SİL')}
+            {/* 2026-11-17 (QA): kardeş butonlar gibi ikonlu */}
+            <IconLabel icon="trash">{t('SİL')}</IconLabel>
             {!canDelete && <LockIcon className={styles.lockIcon} />}
           </button>
           <button
@@ -237,10 +251,17 @@ export default function SavedBendsPage() {
           <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
             <div className={styles.dialogTitle}>{detail.name}</div>
             <div className={styles.kvGrid}>
-              <KV label={t('HEDEF ÇAP')} value={`Ø ${fmtNum(detail.targetDiameterMm)} mm`} />
+              <KV label={t('METOT')} value={t(savedBendMethodLabel(detail.method))} />
+              <KV
+                label={t('HEDEF ÇAP')}
+                value={detail.targetDiameterMm > 0 ? `Ø ${fmtNum(detail.targetDiameterMm)} mm` : '—'}
+              />
               <KV label={t('PROFİL A')} value={`${fmtNum(detail.profileA)} mm`} />
-              <KV label={t('HEDEF KONUM')} value={`${fmtNum(detail.pushDepthMm)} mm`} />
-              <KV label={t('ADIM (G)')} value={`${fmtNum(detail.stepDistanceMm)} mm`} />
+              <KV
+                label={t('HEDEF KONUM')}
+                value={isRingSavedBend(detail.method) ? `${fmtNum(detail.pushDepthMm)} mm` : '—'}
+              />
+              <KV label={t('ADIM (G)')} value={detail.stepDistanceMm > 0 ? `${fmtNum(detail.stepDistanceMm)} mm` : '—'} />
               <KV label={t('STAGE')} value={detail.stageNumber != null ? String(detail.stageNumber) : '—'} />
               <KV label={t('ÇALIŞMA')} value={String(detail.runCount)} />
               <KV label={t('OLUŞTURAN')} value={detail.createdBy ?? '—'} />
@@ -260,10 +281,15 @@ export default function SavedBendsPage() {
                 <div key={`${c.at}-${i}`} className={styles.corrRow}>
                   <span className={styles.corrMode}>{c.mode === 'part' ? t('PARÇA') : t('YENİ PARÇA')}</span>
                   <span className={styles.num}>
-                    {fmtNum(c.fromMm)} → {fmtNum(c.toMm)} mm
+                    {c.field ? `${c.field} ` : ''}
+                    {fmtNum(c.fromMm)} → {fmtNum(c.toMm)} {c.field === 'X' ? '°' : 'mm'}
                   </span>
                   <span className={styles.num}>
-                    {c.measuredDiameterMm != null ? `Ø ${fmtNum(c.measuredDiameterMm)}` : ''}
+                    {c.measuredDiameterMm != null
+                      ? `Ø ${fmtNum(c.measuredDiameterMm)}`
+                      : c.measuredValue != null
+                        ? `${t('ÖLÇÜLEN')} ${fmtNum(c.measuredValue)}`
+                        : ''}
                   </span>
                   <span className={styles.date}>{fmtDate(c.at)}</span>
                 </div>
@@ -277,6 +303,11 @@ export default function SavedBendsPage() {
       )}
     </div>
   )
+}
+
+/** ÇEMBER dışı kayıtlarda 0 saklanan alanlar (hedef çap / adım) "—" gösterilsin */
+function posOrNull(v: number | null | undefined): number | null {
+  return v != null && v > 0 ? v : null
 }
 
 function KV({ label, value }: { label: string; value: string }) {

@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useT } from '@/i18n'
+import { useLang, useT } from '@/i18n'
 import { CLAMP_ESTOP_RE, CLAMP_ESTOP_TEMPLATE } from '@/i18n/progress'
 import { Icon, IconLabel } from '@/components/Icon'
 import {
@@ -102,6 +102,7 @@ export default function UnloadPage() {
   const clampEstop = clampEstopRise != null
   const hasAlerts = measurementFlagged || (outcome === 'warning' && !!jobMessage) || isBad
   const t = useT()
+  const lang = useLang()
   // Tahliye ayarları makinede (DB); açılışta cihaz önbelleğiyle başlar, DB gelince güncellenir
   const [presets, setPresets] = useState<number[]>(readPresets)
   const [selected, setSelected] = useState<number>(readSelected)
@@ -260,7 +261,13 @@ export default function UnloadPage() {
         <div className={styles.chevrons} aria-hidden>
           <span /><span /><span /><span />
         </div>
-        <span className={styles.doneText} data-long={outcome !== 'completed' || undefined}>{t(OUTCOME_TITLE[outcome])}</span>
+        {/* 2026-11-17 (QA): tamamlanan işte de uzun başlık (İŞLEM TAMAM) küçük yazılır — sağ oklar kırpılıyordu */}
+        <span
+          className={styles.doneText}
+          data-long={outcome !== 'completed' || t(OUTCOME_TITLE[outcome]).length > 9 || undefined}
+        >
+          {t(OUTCOME_TITLE[outcome])}
+        </span>
         <div className={`${styles.chevrons} ${styles.chevronsLeft}`} aria-hidden>
           <span /><span /><span /><span />
         </div>
@@ -341,7 +348,11 @@ export default function UnloadPage() {
             onClick={() => choose(i)}
           >
             <span className={styles.presetNum}>{sec}</span>
-            <span className={styles.presetUnit}>{t('SANİYE')}</span>
+            {/* 2026-11-17 (QA): ön ayarlar çoğunlukla > 1 sn — İngilizcede 'SECONDS'. 'SANİYE' anahtarı tekil kalır
+                (misc.ts), çoğul birim için mevcut 'saniye' → 'seconds' anahtarı büyük harfe çevrilerek kullanılır. */}
+            <span className={styles.presetUnit}>
+              {sec === 1 ? t('SANİYE') : t('saniye').toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : lang)}
+            </span>
           </button>
         ))}
         <button

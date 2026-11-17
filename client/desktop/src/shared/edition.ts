@@ -36,7 +36,7 @@ export interface EditionFeatures {
   cloud: boolean
   /** Yarı otomatik mod seçim ekranı (Manuel / Yarı Oto) */
   semiAutoSelect: boolean
-  /** Standart sürüm metotları: sadece ÇEMBER açık; diğerleri (YAY / SPİRAL / SIVAMA) */
+  /** Büküm metotları ÇOK AÇILI / SERPANTİN / SIVAMA (ÇEMBER her zaman açık) — 2026-11-17'den beri iki sürümde de açık */
   arcBending: boolean
   spiralBending: boolean
   sivamaBending: boolean
@@ -54,9 +54,11 @@ export const FEATURES: Readonly<EditionFeatures> = Object.freeze(
         moldLicense: false,
         cloud: false,
         semiAutoSelect: false,
-        arcBending: false,
-        spiralBending: false,
-        sivamaBending: false,
+        // 2026-11-17: ÇOK AÇILI / SERPANTİN / SIVAMA Standart'ta da açık — ölçümsüz geometrik büküm
+        // (backend Arc SkipMeasurement), sonuç ekranında düzeltme yeni parçaya (BendingResultPage/MethodResult)
+        arcBending: true,
+        spiralBending: true,
+        sivamaBending: true,
         manualResult: true,
       }
     : {

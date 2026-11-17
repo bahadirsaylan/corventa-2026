@@ -121,3 +121,17 @@
 .straight[data-active] .value {
   color: var(--piece-active);
 }
+
+/* 2026-11-17 (QA): çok kıvrımlı sıkışık şerit — düzlükler ve yazılar daralır, şerit sağdan taşmaz */
+.diagram[data-compact] .straight {
+  min-width: 52px;
+}
+
+.diagram[data-compact] .label {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+.diagram[data-compact] .value {
+  font-size: 11px;
+}

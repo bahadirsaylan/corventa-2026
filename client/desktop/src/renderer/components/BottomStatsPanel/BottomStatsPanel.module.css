@@ -72,9 +72,14 @@
   color: var(--color-text);
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  white-space: nowrap;
+  /* 2026-11-17: uzun uyarı tek satırda kesilmesin — en fazla 2 satır (46 px şeride sığar), sonra … */
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .hasError .warnText {

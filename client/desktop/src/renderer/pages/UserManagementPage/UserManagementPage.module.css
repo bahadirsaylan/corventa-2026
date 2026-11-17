@@ -32,7 +32,7 @@
 .body {
   flex: 1;
   display: flex; flex-direction: column;
-  gap: 16px; padding: 20px 24px;
+  gap: 10px; padding: 12px 24px; /* 2026-11-17: sıkılaştırıldı — üst alana kaydırmasız sığar */
   overflow-y: auto;
 }
 
@@ -41,12 +41,12 @@
 
 .statCard {
   background: #fff; border: 1.5px solid #d07070; border-radius: 10px;
-  padding: 16px 20px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 20px;
+  display: flex; flex-direction: row; align-items: baseline; justify-content: center; gap: 14px; /* 2026-11-17: tek satır */
 }
 
 .statLabel { font-size: 12px; font-weight: 800; letter-spacing: 0.1em; color: var(--color-text-muted); }
-.statValue { font-size: 36px; font-weight: 900; font-family: var(--font-mono); }
+.statValue { font-size: 28px; font-weight: 900; font-family: var(--font-mono); }
 
 /* Filter row */
 .filterRow { display: flex; gap: 8px; }
@@ -65,8 +65,8 @@
 /* Card + section */
 .card {
   background: #fff; border: 1.5px solid #d07070; border-radius: 12px;
-  padding: 20px 24px;
-  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px 20px;
+  display: flex; flex-direction: column; gap: 10px;
 }
 
 .sectionTitle {
@@ -87,7 +87,7 @@
 }
 
 .table tbody td {
-  padding: 12px;
+  padding: 6px 12px; /* 2026-11-17 (QA): 8 → 6 — İngilizcede uzun rol rozetleri 3 satıra çıkınca sayfa kayıyordu */
   font-size: 14px;
   border-bottom: 1px dotted #d1d5db;
   vertical-align: middle;
@@ -116,7 +116,8 @@
 .pillActive { background: #dcfce7; color: #14532d; }
 .pillPassive { background: #f3f4f6; color: #6b7280; }
 
-.tdActions { display: flex; gap: 6px; }
+.tdActions { white-space: nowrap; } /* 2026-11-17: td üzerinde display:flex alt çizgiyi kaydırıyordu */
+.tdActions > * + * { margin-left: 6px; }
 
 .actionBtn, .actionBtnRed {
   background: #f4ecdc; border: 1.5px solid #d07070; border-radius: 4px;
@@ -131,7 +132,7 @@
 .actionBtnRed:hover { filter: brightness(0.95); }
 
 .note {
-  font-size: 12px; color: var(--color-text-muted); line-height: 1.5;
+  font-size: 12px; color: var(--color-text-muted); line-height: 1.35;
   padding: 10px 14px;
   background: #f4ecdc; border-left: 4px solid var(--color-primary);
   border-radius: 4px; margin: 0;
@@ -299,3 +300,15 @@
 }
 
 .checkbox { width: 26px; height: 26px; flex-shrink: 0; accent-color: #b45309; cursor: pointer; }
+
+/* ── Sayfalama (2026-11-17) — Hata Raporları ile aynı görünüm ── */
+.pager { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.pagerInfo { font-family: var(--font-mono); font-size: 13px; font-weight: 800; color: var(--color-text); }
+.pagerBtn {
+  background: #2a2a2a; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.pagerBtn:disabled { opacity: 0.4; cursor: default; }

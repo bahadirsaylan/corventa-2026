@@ -69,7 +69,7 @@ function display(f: FieldDef, v: SettingValue | undefined, t: (s: string) => str
     const o = f.options.find((x) => x.value === v)
     return o ? t(o.label) : formatValue(v)
   }
-  return formatValue(v, f.unit)
+  return formatValue(v, f.unit ? t(f.unit) : undefined)
 }
 
 /** Değişen alanlar (eski → yeni) — sadece tanımlı alanlar arasında. */
@@ -296,7 +296,8 @@ function FieldRow({
           {field.type !== 'select' && (field.min != null || field.max != null) && (
             <span className={styles.range}>
               {t('Aralık')}: {field.min ?? '…'} – {field.max ?? '…'}
-              {field.unit ? ` ${field.unit}` : ''}
+              {/* 2026-11-17 (QA): birim çevrilir (İngilizcede 'sn' → 's', 'dk' → 'min') */}
+              {field.unit ? ` ${t(field.unit)}` : ''}
             </span>
           )}
         </span>
@@ -323,7 +324,7 @@ function FieldRow({
         <div className={styles.valueBlock}>
           <button type="button" className={styles.valueBtn} disabled={disabled} onClick={() => setEditing(true)}>
             <span className={styles.valueNum}>{formatValue(value)}</span>
-            {field.unit && value != null && <span className={styles.unit}>{field.unit}</span>}
+            {field.unit && value != null && <span className={styles.unit}>{t(field.unit)}</span>}
           </button>
           {field.nullable && (
             <button

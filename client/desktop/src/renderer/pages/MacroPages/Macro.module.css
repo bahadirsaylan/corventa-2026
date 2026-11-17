@@ -361,6 +361,19 @@
   background: #fbd9d9;
 }
 
+/* 2026-11-17 — orta alandaki tuş takımının ÜSTÜNDE (BendingBallsPanel .padArea): tuş takımı sabit 620 px,
+   alan 648 px → çubuk + takım sığmıyor, ortalı içerik çubuğu başlığın altına itip kesiyordu.
+   Çubuk görünürken tuş takımı (son kardeş) %92'ye küçülür; boşalan yer negatif alt boşlukla geri alınır. */
+.recordBarInPad {
+  padding: 4px 10px;
+}
+
+.recordBarInPad ~ :last-child {
+  transform: scale(0.92);
+  transform-origin: 50% 0;
+  margin-bottom: -50px; /* 620 × 0,08 */
+}
+
 .recordDot {
   color: #c62828;
   animation: recordBlink 1s steps(2, start) infinite;

@@ -90,9 +90,9 @@ const en: Record<string, string> = {
   'GÖNYE ALINIYOR…': 'SQUARING…',
   'GÖNYE AL': 'SQUARE',
   'TÜM PİSTONLAR HAREKET EDECEK VE CETVELLER SIFIRLANACAK. GÖNYE ALINSIN MI':
-    'ALL PISTONS WILL MOVE AND THE ENCODERS WILL BE RESET. START SQUARING',
+    'ALL PISTONS WILL MOVE AND THE ENCODERS WILL BE RESET. START SQUARING?',
   'SOL, ALT VE SAĞ PİSTONLAR {name} KONUMUNA GİDECEK. DEVAM EDİLSİN Mİ':
-    'LEFT, LOWER AND RIGHT PISTONS WILL MOVE TO {name} POSITION. CONTINUE',
+    'LEFT, LOWER AND RIGHT PISTONS WILL MOVE TO {name} POSITION. CONTINUE?',
   "{name}'E GEÇ": 'GO TO {name}',
 
   // ── ErrorReportsPage ──
@@ -235,7 +235,7 @@ const en: Record<string, string> = {
   'KALİTE KONTROL': 'QUALITY CONTROL',
   'İŞARETLENMEDİ': 'NOT CHECKED',
   'Henüz kayıtlı check list sonucu yok': 'No saved checklist results yet',
-  '{n} MADDE İŞARETLENMEDİ. KONTROL SONUCU YİNE DE KAYDEDİLSİN Mİ': '{n} ITEMS ARE NOT CHECKED. SAVE THE INSPECTION RESULT ANYWAY',
+  '{n} MADDE İŞARETLENMEDİ. KONTROL SONUCU YİNE DE KAYDEDİLSİN Mİ': '{n} ITEMS ARE NOT CHECKED. SAVE THE INSPECTION RESULT ANYWAY?',
 
   // ── UserManagementPage ──
   'Yeni kullanıcı formu (mock)': 'New user form (mock)',

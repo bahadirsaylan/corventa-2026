@@ -124,10 +124,16 @@
   letter-spacing: 0.02em;
 }
 
+/* 2026-11-17 (QA): ikon yüksekliği rakamla aynı — DEĞİŞTİR etiketi SANİYE etiketleriyle aynı hizada */
 .editIcon {
-  width: 66px;
-  height: 66px;
+  width: 58px;
+  height: 58px;
   color: #1f1f1f;
+}
+
+.page[data-compact] .editIcon {
+  width: 44px;
+  height: 44px;
 }
 
 .editRow {

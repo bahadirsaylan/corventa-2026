@@ -61,7 +61,8 @@
 .row {
   height: 52px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 80px 60px 90px 60px 90px 150px;
+  /* 2026-11-17: METOT sütunu (ÇEMBER / ÇOK AÇILI / SERPANTİN / SIVAMA) */
+  grid-template-columns: minmax(0, 1fr) 108px 64px 52px 80px 52px 96px 150px;
   align-items: center;
   gap: 14px; /* 2026-11-17: ÇALIŞMA / GÜNCELLENME başlıkları birbirine yapışmasın */
   padding: 0 14px;
@@ -96,6 +97,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.method {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .num {

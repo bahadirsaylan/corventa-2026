@@ -11,6 +11,7 @@ import {
 } from '@/services/bendingOrchestrator'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useMaintenanceLock } from '@/hooks/useMaintenance'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMaintenanceStore } from '@/stores/maintenanceStore'
 import { translateProgress, useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
@@ -44,6 +45,8 @@ export default function PartLoadingPage() {
 function PartLoadingContent() {
   const navigate = useNavigate()
   const t = useT()
+  // 2026-11-17 (QA): başlık akışın modu (YAPAY ZEKA / YARI OTOMATİK / Standart OTOMATİK) — eski 'ALARM MODU' yanıltıcıydı
+  const modeLabel = useBendingModeLabel()
   const lang = useLang()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
@@ -142,8 +145,8 @@ function PartLoadingContent() {
     <div className={styles.page}>
       <PageHeader
         icon={artificialIntelligenceIcon}
-        iconAlt="Alarm Mode"
-        label={IS_STANDARD ? t('OTOMATİK MOD') : t('ALARM MODU')}
+        iconAlt="Artificial Intelligence"
+        label={modeLabel}
       />
 
       <div className={styles.banner}>

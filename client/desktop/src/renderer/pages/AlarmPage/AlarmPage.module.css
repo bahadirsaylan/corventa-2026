@@ -53,6 +53,12 @@
   color: #e3121b;
 }
 
+/* 2026-11-17 (QA): uzun çeviri (EMERGENCY STOP) — 4+4 ok tam görünsün */
+.bandText[data-long] {
+  font-size: 42px;
+  padding: 0 8px;
+}
+
 .card {
   flex: 1;
   min-height: 0;

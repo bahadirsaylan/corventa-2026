@@ -173,6 +173,11 @@
   gap: 2px 8px;
   padding-bottom: 6px;
   border-bottom: 1px dotted #d0d0d0;
+  /* 2026-11-17: uzun dilde (6-Monthly / every 180 days) başlık 2 satıra iniyor, kartların DURUM satırları
+     kayıyordu — tüm kartlarda aynı başlık yüksekliği (2 satıra yer) */
+  box-sizing: border-box;
+  min-height: 51px;
+  align-content: flex-start;
 }
 .periodLabel {
   font-size: 16px;

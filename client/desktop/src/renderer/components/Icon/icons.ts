@@ -58,6 +58,7 @@ import {
   Sparkles,
   Square,
   Star,
+  Trash2,
   TriangleAlert,
   User,
   Wifi,
@@ -67,6 +68,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react'
+import { AutoBend } from './customIcons'
 
 export const ICONS = {
   // ── Durum ────────────────────────────────────────────
@@ -86,6 +88,7 @@ export const ICONS = {
   cancel: X,
   play: Play, //             ▶ DEVAM / başlat
   stop: Square, //           ■ / ⏹ durdur / iptal
+  trash: Trash2, //          SİL (kayıt / makro silme — 2026-11-17, QA)
   skip: SkipForward, //      ⏭ atla
   reset: RotateCcw, //       ↺ SIFIRLA
   reference: RefreshCw, //   ↻ GÖNYE AL
@@ -147,6 +150,7 @@ export const ICONS = {
   award: Award,
   record: CircleDot, //       ⏺ makro kaydı (EXCEL 28)
   macro: ListOrdered, //      usta öğrenme programı / makro adımları
+  autoBend: AutoBend, //      OTOMATİK BÜKÜM (vals topları + bükülmüş profil + çevrim oku — customIcons.ts, 2026-11-17)
 } as const satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof ICONS

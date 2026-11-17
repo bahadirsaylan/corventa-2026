@@ -8,6 +8,7 @@ import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPref
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
+import { FEATURES } from '@shared/edition'
 import SpiralMeasurementForm, { SpiralMeasurementValues } from './SpiralMeasurementForm'
 import styles from './SpiralBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
@@ -115,7 +116,7 @@ export default function SpiralBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
-        hint={moldHint}
+        hint={FEATURES.moldLicense ? moldHint : undefined}
       />
 
     </div>

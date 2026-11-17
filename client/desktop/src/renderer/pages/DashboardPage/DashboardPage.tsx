@@ -38,7 +38,7 @@ export default function DashboardPage() {
         >
           <span className={styles.navBtnLabel}>{t('OTOMATİK')}<br />{t('BÜKÜM')}</span>
           {IS_STANDARD ? (
-            <span className={styles.navBtnIcon}><Icon name="rotateCw" size={96} strokeWidth={1.75} /></span>
+            <span className={styles.navBtnIcon}><Icon name="autoBend" size={96} strokeWidth={1.75} /></span>
           ) : (
             <>
               <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />

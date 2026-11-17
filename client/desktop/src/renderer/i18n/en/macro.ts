@@ -22,7 +22,7 @@ const en: Record<string, string> = {
     'No saved macros yet. Start recording on the manual screen with "NEW RECORDING".',
   'YÜKLENİYOR...': 'LOADING...',
   'YENİ KAYIT': 'NEW RECORDING',
-  '"{name}" makrosunu silmek istediğinizden emin misiniz': 'Are you sure you want to delete macro "{name}"',
+  '"{name}" makrosunu silmek istediğinizden emin misiniz': 'Are you sure you want to delete macro "{name}"?',
   'MAKROLAR YÜKLENEMEDİ': 'MACROS COULD NOT BE LOADED',
   'MAKRO SİLİNEMEDİ': 'MACRO COULD NOT BE DELETED',
 
@@ -42,8 +42,8 @@ const en: Record<string, string> = {
   'ADIMI SİL': 'DELETE STEP',
   'ADIM EKLE': 'ADD STEP',
   'KAYDEDİLİYOR...': 'SAVING...',
-  '{no}. adımı silmek istediğinizden emin misiniz': 'Are you sure you want to delete step {no}',
-  'KAYDEDİLMEMİŞ DEĞİŞİKLİKLER VAR. KAYDETMEDEN ÇIKILSIN MI': 'THERE ARE UNSAVED CHANGES. LEAVE WITHOUT SAVING',
+  '{no}. adımı silmek istediğinizden emin misiniz': 'Are you sure you want to delete step {no}?',
+  'KAYDEDİLMEMİŞ DEĞİŞİKLİKLER VAR. KAYDETMEDEN ÇIKILSIN MI': 'THERE ARE UNSAVED CHANGES. LEAVE WITHOUT SAVING?',
   ÇIK: 'LEAVE',
   'MAKRO YÜKLENEMEDİ': 'MACRO COULD NOT BE LOADED',
   'MAKRO KAYDEDİLEMEDİ': 'MACRO COULD NOT BE SAVED',
@@ -83,7 +83,7 @@ const en: Record<string, string> = {
   'İsim vermek için dokunun': 'Tap to give a name',
   Opsiyonel: 'Optional',
   KAYDETME: "DON'T SAVE",
-  'KAYIT KAYDEDİLMEDEN SİLİNSİN Mİ': 'DELETE THE RECORDING WITHOUT SAVING',
+  'KAYIT KAYDEDİLMEDEN SİLİNSİN Mİ': 'DELETE THE RECORDING WITHOUT SAVING?',
 
   // ── oynatma ──
   'OYNATMA MODU': 'PLAYBACK MODE',
