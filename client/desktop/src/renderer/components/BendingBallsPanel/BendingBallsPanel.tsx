@@ -35,6 +35,7 @@ import { t as tr, translateProgress, useLang, useT, type LangCode } from '@/i18n
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BendingBallsPanel.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import { IS_STANDARD, FEATURES } from '@shared/edition'
 
 interface Props {
   variant: 'control' | 'monitor' | 'macro'
@@ -161,14 +162,19 @@ function ControlPanel() {
         </div>
 
         <div className={styles.headerCenter}>
-          <img
-            src={artificialIntelligenceIcon}
-            alt="Artificial Intelligence"
-            className={styles.aiIcon}
-            width={80}
-            height={80}
-          />
-          <span className={styles.aiLabel}>{t('YAPAY ZEKA MODU')}</span>
+          {/* STANDART SÜRÜM (2026-11-17): AI görseli / 'YAPAY ZEKA MODU' yerine nötr ikon + 'OTOMATİK MOD' */}
+          {IS_STANDARD ? (
+            <Icon name="rotateCw" size={64} strokeWidth={1.75} className={styles.aiIcon} />
+          ) : (
+            <img
+              src={artificialIntelligenceIcon}
+              alt="Artificial Intelligence"
+              className={styles.aiIcon}
+              width={80}
+              height={80}
+            />
+          )}
+          <span className={styles.aiLabel}>{IS_STANDARD ? t('OTOMATİK MOD') : t('YAPAY ZEKA MODU')}</span>
         </div>
 
         <div className={styles.headerRight}>
@@ -182,6 +188,8 @@ function ControlPanel() {
               <IconLabel icon="stop">{t('İPTAL')}</IconLabel>
             </button>
           )}
+          {/* 2026-11-17: Standart sürümde geri esneme ölçümü yok → üretim toleransı seçimi gösterilmez */}
+          {FEATURES.springbackMeasure && (
           <button
             type="button"
             className={styles.tolBtn}
@@ -195,6 +203,7 @@ function ControlPanel() {
             {!tolApplied && <span className={styles.tolHint}>{t('GÖSTERİM')}</span>}
             <span className={styles.tolCaret}><Icon name="chevronDown" size="md" /></span>
           </button>
+          )}
         </div>
       </div>
 

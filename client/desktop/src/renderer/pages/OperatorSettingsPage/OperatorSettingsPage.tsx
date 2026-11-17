@@ -1,3 +1,4 @@
+import { FEATURES } from '@shared/edition'
 // Ayarlar > Operatör Ayarları — operatörün değiştirebileceği ayarlar (eski "Varsayılan Hız" sayfası).
 //   • Bu cihazda saklananlar (services/operatorPrefs): manuel tuş takımı hızı, manuel büküm ekranı
 //     hızı, ölçü ekranı H/G ön değerleri
@@ -348,7 +349,8 @@ export default function OperatorSettingsPage() {
       )}
 
       <PagedColumns>
-      {LOCAL_SECTIONS.map((s) => (
+      {/* 2026-11-17: Standart sürümde ölçüm yok → ÜRETİM TOLERANSI bölümü gösterilmez */}
+      {LOCAL_SECTIONS.filter((s) => FEATURES.springbackMeasure || s.title !== 'ÜRETİM TOLERANSI').map((s) => (
         <SettingsSection key={s.title} section={s} values={local} original={local0} onChange={onChange(setLocal)} />
       ))}
 

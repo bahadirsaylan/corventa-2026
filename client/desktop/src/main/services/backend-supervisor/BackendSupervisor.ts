@@ -12,6 +12,7 @@ import { homedir } from 'os'
 import { join } from 'path'
 import { app } from 'electron'
 import { childLogger } from '@main/lib/logger'
+import { BACKEND_EDITION } from '@shared/edition'
 
 const log = childLogger('backend-supervisor')
 
@@ -229,6 +230,8 @@ export class BackendSupervisor {
       env: {
         ...process.env,
         ASPNETCORE_ENVIRONMENT: process.env.CORVENTA_ASPNETCORE_ENV ?? 'Production',
+        // STANDART SÜRÜM (2026-11-17) — backend kilitleri (docs/STANDART_SURUM.md): 'Standard' | 'AI'
+        Corventa__Edition: BACKEND_EDITION,
         Database__Path: join(DATA_DIR, 'machine.db'),
         FileLogging__Directory: join(DATA_DIR, 'logs'),
         FileLogging__Prefix: p.logPrefix,
@@ -279,6 +282,8 @@ export class BackendSupervisor {
         env: {
           ...process.env,
           ASPNETCORE_ENVIRONMENT: process.env.CORVENTA_ASPNETCORE_ENV ?? 'Development',
+          // STANDART SÜRÜM (2026-11-17) — UI'nın derleme sürümü backend'e de geçer ('Standard' | 'AI')
+          Corventa__Edition: BACKEND_EDITION,
         },
       },
     )

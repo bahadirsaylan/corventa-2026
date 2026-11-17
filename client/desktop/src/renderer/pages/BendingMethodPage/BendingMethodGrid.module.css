@@ -9,6 +9,7 @@
 }
 
 .tile {
+  position: relative;
   background-color: #f0a0a0;
   border: none;
   border-radius: var(--radius-md);
@@ -39,4 +40,33 @@
   width: 85%;
   height: 85%;
   object-fit: contain;
+}
+
+/* STANDART SÜRÜM (2026-11-17) — bu sürümde kapalı metot: soluk + köşede "YAKINDA" etiketi */
+.tileDisabled,
+.tileDisabled:hover,
+.tileDisabled:active {
+  cursor: default;
+  filter: none;
+  background-color: #e4d8d8;
+}
+
+.tileDisabled .image {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.soonTag {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: var(--color-bg-dark, #333);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }

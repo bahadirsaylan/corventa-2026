@@ -36,6 +36,7 @@ export const PERMISSIONS = {
   // ── SUPERVISOR (ATÖLYE SORUMLUSU) ──
   'user-management': 'SUPERVISOR',  // Kullanıcı Yönetimi (sadece kendinden düşük roller — SUPERVISOR → KULLANICI)
   'welcome-message': 'SUPERVISOR',
+  'saved-bend-delete': 'SUPERVISOR', // STANDART SÜRÜM (2026-11-17) kayıtlı büküm silme (DataApi DELETE /api/saved-bends/{id})
   // ── SERVICEMAN (SERVİS TEKNİSYENİ) ──
   'admin-settings': 'SERVICEMAN',   // Admin Ayarları (cetvel sıfırlama dahil) + sıkıştırma kayıtları
   'encoder-reset': 'SERVICEMAN',

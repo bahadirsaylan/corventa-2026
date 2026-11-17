@@ -26,6 +26,8 @@ import { app, type BrowserWindow } from 'electron'
 
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
+import { demoSavedBends } from '@main/demo/demoSavedBends'
+import { IS_STANDARD } from '@shared/edition'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
@@ -261,6 +263,11 @@ export class DemoMachine extends EventEmitter {
   private jobLogs = new Map<number, BendingLogEntry[]>()
   private nextLogId = 1
   private historySeeded = false
+  // STANDART SÜRÜM (2026-11-17) — çember işinin ekran ölçeği (push → gösterilen encoder) — elle düzeltme aynı ölçekle oynar
+  private circleDisplay = new Map<number, { pushMax: number; rest: number; far: number; shortDelta: number }>()
+  // STANDART SÜRÜM (2026-11-17) — elle düzeltme pasosu durumu (iş başına; GET /manual-correct/status)
+  private manualCorrect = new Map<number, Record<string, unknown>>()
+  private manualCorrectRunning: number | null = null
 
   // ── yaşam döngüsü ──
 
@@ -900,7 +907,12 @@ export class DemoMachine extends EventEmitter {
   private async runCircle(job: DemoJob, st: (typeof STAGES)[number], token: number): Promise<void> {
     const base = { ball: BALL, thickness: job.profileA, center: CENTER_NORMAL, xa1: st.xa1, ya1: 0, theta: THETA }
     const T = job.targetDiameterMm
-    const push = calcPush({ ...base, diameter: T }) ?? 280
+    // STANDART SÜRÜM (2026-11-17): manualTargetLocked → hedef konum (itme derinliği) yeniden hesaplanmaz, aynen kullanılır
+    const lockedPush = job.manualTargetLocked === true && Number(job.calculatedPistonPositionMm) > 0
+      ? Number(job.calculatedPistonPositionMm)
+      : null
+    const push = lockedPush ?? calcPush({ ...base, diameter: T }) ?? 280
+    if (!(Number(job.calculatedPistonPositionMm) > 0)) job.calculatedPistonPositionMm = push
     const safety = job.safetyMarginMm || 50
     const tol = Number(job.toleranceMm) > 0 ? Number(job.toleranceMm) : 5
     const doSpringback = !job.skipAutoCorrect
@@ -925,6 +937,7 @@ export class DemoMachine extends EventEmitter {
     const home = 0
     const far = Math.max(300, Math.round(job.partLengthMm - 2 * safety))
     const shortDelta = Math.abs(st.xa1) + job.profileA
+    this.circleDisplay.set(job.id, { pushMax, rest: Math.max(st.left, st.right), far, shortDelta })
 
     // Toplam paso tahmini (EstimateTotalPasos gibi — paso 1 sonrası güncellenir)
     let total = 2
@@ -1369,8 +1382,20 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/bending/geometric/preview') {
       const target = Number(b.targetPositionMm) || 0
       const step = Number(b.stepDistanceMm) || 10
-      const contact = Math.max(0, target - 60)
-      const totalPasos = Math.max(1, Math.ceil((target - contact) / step))
+      // Backend BendingCalculator.GeneratePasoSteps: global hedef 0'dan adım adım (ilk adım firstStepDistanceMm
+      // verilirse o) hedefe kadar artar, sonra karşı tarafta 1 TEKRAR pasosu → toplam = ceil(hedef/adım) + 1
+      const firstStep = Number(b.firstStepDistanceMm) > 0 ? Number(b.firstStepDistanceMm) : step
+      const pushes: number[] = []
+      for (let g = 0; pushes.length < 10_000; ) {
+        g += pushes.length === 0 ? firstStep : step
+        if (g >= target) {
+          pushes.push(target)
+          break
+        }
+        pushes.push(g)
+      }
+      pushes.push(target) // tekrar pasosu (karşı taraf)
+      const totalPasos = pushes.length
       // EXCEL 32 — geometri verildiyse paso başına beklenen R (backend LiveBendRadiusEstimator ile aynı ters hesap)
       const geo =
         Number(b.ballDiameterMm) > 0 && Number(b.thicknessMm) > 0 && Number(b.centerDistanceMm) > 0
@@ -1384,17 +1409,16 @@ export class DemoMachine extends EventEmitter {
             }
           : null
       const side = b.activeSensorSide === 'Right' ? 'Right' : 'Left'
-      const pasoSteps = Array.from({ length: totalPasos }, (_, i) => {
-        const push = Math.min(target, contact + step * (i + 1))
+      const pasoSteps = pushes.map((push, i) => {
         const r = geo ? radiusFromPush(push, geo) : null
         return {
           pasoNumber: i + 1,
           activeSide: (i % 2 === 0) === (side === 'Left') ? 'Left' : 'Right',
           activePistonTargetMm: Math.round(push * 100) / 100,
-          passivePistonTargetMm: 0,
+          passivePistonTargetMm: SAFE_BACKWARD_MM,
           rotationDirection: (i % 2 === 0) === (side === 'Left') ? -1 : 1,
           rotationDistanceMm: Math.max(0, (Number(b.partLengthMm) || 0) - 2 * (Number(b.safetyMarginMm) || 0)),
-          isRepeatPaso: false,
+          isRepeatPaso: i === totalPasos - 1,
           expectedRadiusMm: r != null ? Math.round(r * 10) / 10 : null,
         }
       })
@@ -1557,12 +1581,18 @@ export class DemoMachine extends EventEmitter {
     if ((m = /^\/api\/bending-jobs\/(\d+)$/.exec(path))) {
       const job = this.jobs.get(Number(m[1]))
       if (!job) throw new HttpError(404, rawUrl, 'Job bulunamadı')
+      // DataApi PUT gibi gelen alanlar işe yazılır (ör. manualTargetLocked, calculatedPistonPositionMm) — id/durum korunur
+      if (method === 'PUT') {
+        const { id: _id, status: _st, ...rest } = b
+        Object.assign(job, rest)
+      }
       return job
     }
     if ((m = /^\/api\/bending-job\/(\d+)\/start$/.exec(path))) {
       const job = this.jobs.get(Number(m[1]))
       if (!job) return { success: false, error: 'Job bulunamadı' }
-      job.skipAutoCorrect = u.searchParams.get('skipAutoCorrect') === 'true'
+      // STANDART SÜRÜM (2026-11-17): backend gibi geri esneme düzeltmesi her zaman atlanır
+      job.skipAutoCorrect = IS_STANDARD || u.searchParams.get('skipAutoCorrect') === 'true'
       // ELLE KONUMLANDIRMA (sensörsüz) — gerçek BendingJobController.StartJob ile aynı doğrulama
       const manualPlacement = u.searchParams.get('manualPlacement') === 'true'
       if (manualPlacement) {
@@ -1596,6 +1626,10 @@ export class DemoMachine extends EventEmitter {
       if (path === '/api/machine/emergency-stop') this.captureErrorSnapshot('EmergencyStop', 'Acil stop (yazılım)')
       this.abort()
       return ok
+    }
+    // STANDART SÜRÜM (2026-11-17) — elle düzeltme pasosu (BÜKÜM SONUCU ekranı)
+    if ((m = /^\/api\/bending-job\/(\d+)\/manual-correct(\/status|\/stop)?$/.exec(path))) {
+      return this.handleManualCorrect(Number(m[1]), m[2] ?? '', method, rawUrl, b)
     }
     // 2026-11-01 — acil stop kesintisi: demoda kesinti üretilmez, alarm sayfası açılırsa devam yok
     if (/^\/api\/bending-job\/\d+\/resume-status$/.test(path))
@@ -1780,11 +1814,109 @@ export class DemoMachine extends EventEmitter {
     if (/^\/api\/service\/(tickets|requests|reports)$/.test(path) && method === 'GET') return []
     // EXCEL 28 — usta öğrenme programı / makro (demoMacros.ts)
     if (path === '/api/macros' || path.startsWith('/api/macros/')) return demoMacros(rawUrl, path, method, b)
+    if (path === '/api/saved-bends' || path.startsWith('/api/saved-bends/')) return demoSavedBends(rawUrl, path, method, b)
     // Bulut bağlantısı (BULUT_API.md §4) — demoCloud.ts
     if (path.startsWith('/api/cloud/')) return demoCloud(rawUrl, path, method, b)
 
     log.warn('DEMO: karşılanmayan istek', { method, path })
     throw new HttpError(404, rawUrl, 'Demo modunda desteklenmiyor')
+  }
+
+  // ── STANDART SÜRÜM (2026-11-17): elle düzeltme pasosu — docs/STANDART_SURUM.md §3.2 ──
+  // Geri esneme düzeltmesinin TEK iterasyonunun hareketi, ölçüm YOK: üst top boşluk → parçanın olduğu taraftaki
+  // top yeni hedefe → swap + bölünmüş rotasyon karşıya. Bitince job.calculatedPistonPositionMm = yeni hedef.
+
+  private handleManualCorrect(jobId: number, sub: string, method: string, rawUrl: string, b: Record<string, unknown>): unknown {
+    const fail = (status: number, error: string): never => {
+      throw new HttpError(status, rawUrl, error, { error })
+    }
+    const job = this.jobs.get(jobId)
+    if (sub === '/status') {
+      return (
+        this.manualCorrect.get(jobId) ?? {
+          state: 'Idle', message: null, pushDepthMm: null, previousPushDepthMm: null, startedAt: null, finishedAt: null,
+        }
+      )
+    }
+    if (sub === '/stop') {
+      if (this.manualCorrectRunning === jobId) this.stopMotion()
+      return { success: true }
+    }
+    if (method !== 'POST') fail(404, 'Demo modunda desteklenmiyor')
+    if (!job) fail(404, `İş #${jobId} bulunamadı`)
+    const pushDepthMm = Number(b.pushDepthMm)
+    if (!Number.isFinite(pushDepthMm) || pushDepthMm <= 0) fail(400, "pushDepthMm 0'dan büyük olmalı")
+    if (job!.status !== 4) fail(400, 'Elle düzeltme sadece tamamlanmış işte yapılabilir')
+    if (this.manualCorrectRunning != null) fail(409, 'Elle düzeltme zaten sürüyor')
+    if (this.unloadRunning) fail(409, 'Tahliye sürüyor — elle düzeltme yapılamaz')
+    if (this.activeJobId != null && this.jobs.get(this.activeJobId)?.status === 3) fail(409, 'Çalışan bir büküm var')
+    if (this.state.hydraulicMotorState !== 2) fail(409, 'Hidrolik motor çalışmıyor')
+    const prev = Number(job!.calculatedPistonPositionMm) || 0
+    if (!(pushDepthMm > prev + 0.05))
+      fail(400, 'YENİ HEDEF MEVCUT HEDEFTEN BÜYÜK OLMALI — PARÇA FAZLA BÜKÜLDÜYSE YENİ PARÇAYLA BÜKÜN')
+    const speedPct = Math.min(100, Math.max(1, Number(b.speedPercent) || 100))
+    void this.runManualCorrect(job!, prev, pushDepthMm, speedPct)
+    return { started: true }
+  }
+
+  private async runManualCorrect(job: DemoJob, prev: number, pushDepthMm: number, speedPct: number): Promise<void> {
+    const token = ++this.runToken
+    const rec: Record<string, unknown> = {
+      state: 'Running', message: 'Elle düzeltme başlıyor...', pushDepthMm, previousPushDepthMm: prev,
+      startedAt: new Date().toISOString(), finishedAt: null,
+    }
+    this.manualCorrect.set(job.id, rec)
+    this.manualCorrectRunning = job.id
+    const st = this.currentStage()
+    const map = this.circleDisplay.get(job.id) ?? {
+      pushMax: prev || pushDepthMm, rest: Math.max(st.left, st.right),
+      far: Math.max(300, Math.round(job.partLengthMm - 2 * (job.safetyMarginMm || 50))),
+      shortDelta: Math.abs(st.xa1) + job.profileA,
+    }
+    const disp = this.displayMapper(map.pushMax, map.rest)
+    const f2 = (v: number) => v.toFixed(2).replace('.', ',')
+    try {
+      const partOnRight = this.state.rotation.positionMm > map.far / 2
+      const act: PistonKey = partOnRight ? 'rightPiston' : 'leftPiston'
+      const pas: PistonKey = partOnRight ? 'leftPiston' : 'rightPiston'
+      const target = partOnRight ? 0 : map.far
+      const pos = Math.min(400, disp(pushDepthMm))
+      // 1) üst top boşluk alma
+      rec.message = 'Üst top boşluk alıyor'
+      this.pressureHold = null
+      await this.movePistons({ upperPiston: this.state.upperPiston.positionMm + SLACK_UPPER_MM }, token, 30)
+      // 2) parça tarafındaki top yeni hedefe (pasif güvenli geride)
+      rec.message = `Düzeltme bükümü (${partOnRight ? 'SAĞ' : 'SOL'} top ${f2(pushDepthMm)} mm)`
+      await this.movePistons({ [pas]: SAFE_BACKWARD_MM }, token, 100)
+      await this.movePistons({ [act]: pos }, token, speedPct)
+      // 3) swap + bölünmüş rotasyon karşıya (kısa rot → büken top geri → diğer top aynı konuma → uzun rot)
+      rec.message = 'Parça karşı tarafa geçiriliyor'
+      const cur = this.state.rotation.positionMm
+      const dir = target > cur ? 1 : -1
+      let mid = cur + dir * map.shortDelta
+      if ((dir > 0 && mid > target) || (dir < 0 && mid < target)) mid = target
+      if (Math.abs(mid - cur) > 0.5) await this.rotateTo(mid, token, 100)
+      await this.movePistons({ [act]: SAFE_BACKWARD_MM }, token, 100)
+      await this.movePistons({ [pas]: pos }, token, 100)
+      if (Math.abs(mid - target) > 0.5) await this.rotateTo(target, token, 100)
+      job.calculatedPistonPositionMm = pushDepthMm
+      this.addJobLog(job.id, 'General', `ELLE DÜZELTME ${f2(prev)}→${f2(pushDepthMm)} mm`, [prev, pushDepthMm], 'fromMm|toMm')
+      rec.state = 'Completed'
+      rec.message = `Elle düzeltme tamamlandı (${f2(prev)} → ${f2(pushDepthMm)} mm)`
+    } catch (err) {
+      if (err instanceof Cancelled) {
+        rec.state = 'Cancelled'
+        rec.message = 'Elle düzeltme durduruldu'
+        this.addJobLog(job.id, 'General', 'Elle düzeltme durduruldu', null, null, true)
+      } else {
+        rec.state = 'Failed'
+        rec.message = (err as Error).message || 'Elle düzeltme başarısız'
+        this.addJobLog(job.id, 'General', `Elle düzeltme başarısız: ${String(rec.message)}`, null, null, true)
+      }
+    } finally {
+      rec.finishedAt = new Date().toISOString()
+      if (this.manualCorrectRunning === job.id) this.manualCorrectRunning = null
+    }
   }
 
   /** Durdurma: mevcut hızdan rampa ile duracağı nokta */

@@ -22,6 +22,7 @@ import { useBendingActive } from '@/stores/bendingActivityStore'
 import { endSession, useRole, useUserKey } from '@/stores/sessionStore'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
 import { useT } from '@/i18n'
+import { AUTO_BENDING_MODE } from '@shared/edition'
 import { SideMenuIcon, GearIcon } from './SideMenuIcons'
 import styles from './SideMenu.module.css'
 
@@ -101,7 +102,7 @@ export default function SideMenu() {
     if (a.type === 'route') navigate(a.to)
     else if (a.type === 'new-bending') {
       resetJob()
-      setJobParams({ bendingMode: 'ai' })
+      setJobParams({ bendingMode: AUTO_BENDING_MODE }) // STANDART SÜRÜM (2026-11-17): Standart'ta 'semi'
       navigate('/bending/ai')
     } else if (a.type === 'logout') {
       resetJob()

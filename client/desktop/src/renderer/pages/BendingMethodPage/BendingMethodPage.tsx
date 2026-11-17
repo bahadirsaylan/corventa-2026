@@ -3,7 +3,7 @@ import { useBendingJobStore } from '@/store/bendingJobStore'
 import { hasDirectionPage } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import BendingMethodGrid from './BendingMethodGrid'
+import BendingMethodGrid, { isMethodEnabled } from './BendingMethodGrid'
 import styles from './BendingMethodPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import { useT } from '@/i18n'
@@ -13,7 +13,9 @@ export default function BendingMethodPage() {
   const navigate = useNavigate()
   const t = useT()
   const modeLabel = useBendingModeLabel()
-  const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
+  // STANDART SÜRÜM (2026-11-17): bu sürümde kapalı bir metot önceden seçiliyse seçilmemiş sayılır
+  const storedMethod = useBendingJobStore((s) => s.params.bendingMethod)
+  const bendingMethod = isMethodEnabled(storedMethod) ? storedMethod : null
   const setParams = useBendingJobStore((s) => s.setParams)
   const profileId = useBendingJobStore((s) => s.params.profileId)
   const moldCode = useBendingJobStore((s) => s.params.moldCode)

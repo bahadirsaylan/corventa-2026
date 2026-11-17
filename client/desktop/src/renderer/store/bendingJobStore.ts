@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { MoldDto } from '@shared/types'
+import type { MoldDto, SavedBendCorrection } from '@shared/types'
 
 // ── Bending mode (2026-09-05) — Otomatik akış varyantı ─────────────────────
 // 'ai'   = tam otomatik + geri esneme + AI recipe hızlandırma
@@ -246,6 +246,33 @@ export function prepareBendingJobPayload(
   return { profileId, bendingDirection, bendingMethod }
 }
 
+// ── STANDART SÜRÜM (2026-11-17) — elle hedef konum (BÜKÜM SONUCU / KAYITLI BÜKÜM) ──
+/**
+ * Doluyken orkestratör hedef konumu HESAPLAMAZ: iş pushDepthMm ile + manualTargetLocked=true kaydedilir
+ * (backend StartJob XA1/YA1 yeniden hesabını atlar). stageNumber verilirse stage önerisi yerine o kullanılır.
+ * resetJob ile temizlenir. AI sürümünde hiç set edilmez → davranış değişmez.
+ */
+export interface ManualTargetOverride {
+  /** İtme derinliği (mm) — job.calculatedPistonPositionMm olarak gider */
+  pushDepthMm: number
+  stageNumber?: number | null
+  /** Kayıtlı bükümden geldiyse kaydın id'si (BÜKÜM SONUCU'nda GÜNCELLE seçeneği) */
+  savedBendId?: number | null
+  /** Önceki düzeltmeler (kayıttan / önceki parçalardan) — BÜKÜM SONUCU geçmişi bununla başlar, KAYDET'te yazılır */
+  corrections?: SavedBendCorrection[]
+  /**
+   * Hedefin ait olduğu parametre anahtarı (manualTargetKey). Operatör sonradan profil / A / çapı değiştirirse
+   * anahtar tutmaz → orkestratör elle hedefi YOK SAYAR ve hedefi yeniden hesaplar (eski hedefle yanlış büküm olmasın).
+   */
+  paramsKey?: string
+}
+
+/** Elle hedefin geçerli olduğu parametreler: profil + metot + A + hedef çap (hedef konumu belirleyenler) */
+export function manualTargetKey(params: BendingJobParams): string {
+  const r = params.ringBending
+  return [params.profileId, params.bendingMethod, r?.A ?? '', r?.R ?? ''].join('|')
+}
+
 // ── Parameters that will be collected across multiple screens ────────────────
 export interface BendingJobParams {
   /** Profile shape selected on the AI Bending profile screen */
@@ -332,6 +359,9 @@ export interface BendingJobParams {
 
   /** Seçilen kalıbın kaydı (ölçüler, önerilen adım) — moldCode ile birlikte set/sıfırlanır */
   mold: MoldDto | null
+
+  /** STANDART SÜRÜM (2026-11-17) — elle hedef konum; null = hedef hesaplanır (bugünkü davranış) */
+  manualTarget: ManualTargetOverride | null
 }
 
 // ── Store state + actions ────────────────────────────────────────────────────
@@ -365,6 +395,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   rollArrangementConfirmed: false,
   moldCode: null,
   mold: null,
+  manualTarget: null,
 }
 
 export const useBendingJobStore = create<BendingJobState>((set) => ({

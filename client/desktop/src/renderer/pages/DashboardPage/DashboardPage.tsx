@@ -6,6 +6,7 @@ import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import styles from './DashboardPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import { AUTO_BENDING_MODE, FEATURES, IS_STANDARD } from '@shared/edition'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -14,10 +15,16 @@ export default function DashboardPage() {
   const setParams = useBendingJobStore((s) => s.setParams)
 
   // Otomatik büküm = AI (tam otomatik). Yarı oto artık Manuel altında seçiliyor.
+  // STANDART SÜRÜM (2026-11-17): aynı akış 'semi' anlamında (geri esneme düzeltmesi / AI reçete yok)
   function startAiBending() {
     resetJob()
-    setParams({ bendingMode: 'ai' })
+    setParams({ bendingMode: AUTO_BENDING_MODE })
     navigate('/bending/ai')
+  }
+
+  // STANDART SÜRÜM (2026-11-17): MANUEL BÜKÜM doğrudan usta kayıtlarına (Manuel / Yarı Oto seçimi yok)
+  function openManual() {
+    navigate(FEATURES.semiAutoSelect ? '/bending/manual-mode' : '/bending/macros')
   }
 
   return (
@@ -30,16 +37,26 @@ export default function DashboardPage() {
           onClick={startAiBending}
         >
           <span className={styles.navBtnLabel}>{t('OTOMATİK')}<br />{t('BÜKÜM')}</span>
-          <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
-          <span className={styles.navBtnSub}>{t('YZ')}</span>
+          {IS_STANDARD ? (
+            <span className={styles.navBtnIcon}><Icon name="rotateCw" size={96} strokeWidth={1.75} /></span>
+          ) : (
+            <>
+              <img src={artificialIntelligenceIcon} alt="Artificial Intelligence" className={styles.navBtnIcon} width={120} height={120} />
+              <span className={styles.navBtnSub}>{t('YZ')}</span>
+            </>
+          )}
         </button>
 
         <button
           className={`${styles.navBtn} ${styles.navBtnSecondary}`}
-          onClick={() => navigate('/bending/manual-mode')}
+          onClick={openManual}
         >
           <span className={styles.navBtnLabel}>{t('MANUEL')}<br />{t('BÜKÜM')}</span>
-          <span className={styles.navBtnSub}>{t('MANUEL / YARI OTO')}</span>
+          {IS_STANDARD ? (
+            <span className={styles.navBtnIcon}><Icon name="hand" size={96} strokeWidth={1.75} /></span>
+          ) : (
+            <span className={styles.navBtnSub}>{t('MANUEL / YARI OTO')}</span>
+          )}
         </button>
       </div>
 

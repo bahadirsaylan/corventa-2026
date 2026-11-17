@@ -16,6 +16,7 @@ import {
   type BendingLogExportRequest,
   type BendingLogExportResult,
   type BendingLogQuery,
+  type ManualCorrectRequest,
   type SimilarBendingJobRequest,
   type UnloadPartRequest,
   type OilHeatingStartRequest,
@@ -230,6 +231,30 @@ export function registerBendingHandlers(): void {
   ipcMain.handle(Ipc.IpcInvoke.AbandonBendingJob, async (_evt, jobId: number) => {
     log.warn('abandon-bending-job (MANUEL TAHLİYE)', { jobId })
     return engineApi.abandonBendingJob(jobId)
+  })
+
+  // STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU elle düzeltme pasosu (parça sıkılıyken, STANDART_SURUM.md §3.2)
+  ipcMain.handle(
+    Ipc.IpcInvoke.ManualCorrectStart,
+    async (_evt, payload: { jobId: number; req: ManualCorrectRequest }) => {
+      const jobId = Math.round(Number(payload?.jobId))
+      const pushDepthMm = Number(payload?.req?.pushDepthMm)
+      if (!Number.isFinite(jobId) || jobId <= 0) return { started: false, error: 'jobId zorunlu' }
+      if (!Number.isFinite(pushDepthMm) || pushDepthMm <= 0) return { started: false, error: 'Geçersiz hedef konum' }
+      const speed = Number(payload?.req?.speedPercent)
+      const req: ManualCorrectRequest = Number.isFinite(speed) && speed > 0
+        ? { pushDepthMm, speedPercent: Math.min(100, Math.round(speed)) }
+        : { pushDepthMm }
+      log.warn('manual-correct-start', { jobId, ...req })
+      return engineApi.manualCorrectStart(jobId, req)
+    },
+  )
+  ipcMain.handle(Ipc.IpcInvoke.ManualCorrectStatus, async (_evt, jobId: number) =>
+    engineApi.manualCorrectStatus(Math.round(Number(jobId))),
+  )
+  ipcMain.handle(Ipc.IpcInvoke.ManualCorrectStop, async (_evt, jobId: number) => {
+    log.warn('manual-correct-stop', { jobId })
+    return engineApi.manualCorrectStop(Math.round(Number(jobId)))
   })
 
   ipcMain.handle(Ipc.IpcInvoke.ConfirmSideSupport, async (_evt, jobId: number) => {

@@ -18,6 +18,7 @@ import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm } from '@/services/m
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
+import { FEATURES } from '@shared/edition'
 
 const EMPTY: MeasurementValues = { A: '', B: '', S: '', R: '', H: '', G: '', L: '' }
 
@@ -154,7 +155,8 @@ export default function RingBendingMeasurementsPage() {
     // Yari oto mod'da AI recipe uygulanmiyor (skipAutoCorrect=true → AutoCorrect
     // adimi atlanir, recipe fetch bloku da orada). Preview modal bilgi amaciyla
     // acilirdi ama gereksiz — direkt PartLoading'e gec.
-    if (bendingMode === 'semi') {
+    // STANDART SÜRÜM (2026-11-17): AI reçete özelliği yoksa modal hiç açılmaz (yarı oto gibi)
+    if (bendingMode === 'semi' || !FEATURES.aiRecipe) {
       persistAndNavigate()
       return
     }
@@ -215,7 +217,7 @@ export default function RingBendingMeasurementsPage() {
         backTo="/bending/ai/method"
         confirmDisabled={!isComplete(values)}
         onConfirm={handleConfirm}
-        hint={moldHint}
+        hint={FEATURES.moldLicense ? moldHint : undefined}
       />
 
       {capacityCheck && (

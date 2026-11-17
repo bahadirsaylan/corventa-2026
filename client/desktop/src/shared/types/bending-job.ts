@@ -56,6 +56,9 @@ export interface BendingJob {
 
   // Calculated
   calculatedPistonPositionMm: number | null
+  /** STANDART SÜRÜM (2026-11-17) — true: StartJob XA1/YA1 yeniden hesabını atlar, calculatedPistonPositionMm aynen
+   *  itme derinliği olarak kullanılır (elle düzeltilmiş / kayıtlı büküm). Eski backend: alan yok (= false). */
+  manualTargetLocked?: boolean
 
   // Progress
   totalPasos: number
@@ -124,6 +127,8 @@ export interface BendingJobCreateRequest {
   stepDistanceMm: number
   totalPasos?: number
   calculatedPistonPositionMm?: number | null
+  /** STANDART SÜRÜM (2026-11-17) — elle hedef: true iken backend calculatedPistonPositionMm'i yeniden hesaplamaz */
+  manualTargetLocked?: boolean
 
   // Arc-only fields (Method=Arc ise zorunlu; diğer method'larda null)
   totalSegmentCount?: number | null       // P

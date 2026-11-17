@@ -5,6 +5,12 @@ import react from '@vitejs/plugin-react'
 // Tek dosya demo paketi (npm run package:demo) main/preload kodunu da küçültür; normal build değişmez.
 const minifyDemo = process.env.CORVENTA_MINIFY === '1'
 
+// STANDART SÜRÜM (2026-11-17) — derleme anında sürüm: CORVENTA_EDITION=standard → 'standard', yoksa 'ai'.
+// Tek okuma noktası src/shared/edition.ts (docs/STANDART_SURUM.md). main, preload ve renderer aynı değeri görür.
+const editionDefine = {
+  __CORVENTA_EDITION__: JSON.stringify(process.env.CORVENTA_EDITION === 'standard' ? 'standard' : 'ai'),
+}
+
 const sharedAliases = [
   { find: /^@shared$/, replacement: resolve('src/shared/index.ts') },
   { find: /^@shared\/(.*)$/, replacement: resolve('src/shared') + '/$1' },
@@ -12,6 +18,7 @@ const sharedAliases = [
 
 export default defineConfig({
   main: {
+    define: editionDefine,
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: [
@@ -25,6 +32,7 @@ export default defineConfig({
     },
   },
   preload: {
+    define: editionDefine,
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: sharedAliases,
@@ -36,6 +44,7 @@ export default defineConfig({
   },
   renderer: {
     root: 'src/renderer',
+    define: editionDefine,
     resolve: {
       alias: [
         { find: /^@\/(.*)$/, replacement: resolve('src/renderer') + '/$1' },

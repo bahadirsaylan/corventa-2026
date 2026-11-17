@@ -8,7 +8,8 @@
 //   usta ana ekrandaki orta tuş takımıyla büker, kaydeder; listeden oynatır / düzenler.
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { FEATURES } from '@shared/edition'
 import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -38,6 +39,10 @@ export default function ManualModeSelectPage() {
   const resetJob = useBendingJobStore((s) => s.resetJob)
   const setParams = useBendingJobStore((s) => s.setParams)
   const [info, setInfo] = useState<ModeKey | null>(null)
+
+  // STANDART SÜRÜM (2026-11-17): Manuel / Yarı Oto seçimi yok — bu ekrana dönen geri tuşları
+  // (kayıtlı bükümler listesi, profil seçimi) ana ekrana düşer.
+  if (!FEATURES.semiAutoSelect) return <Navigate to="/dashboard" replace />
 
   function selectManual() {
     navigate('/bending/macros')

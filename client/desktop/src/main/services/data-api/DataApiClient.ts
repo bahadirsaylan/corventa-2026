@@ -25,6 +25,9 @@ import type {
   MacroSaveBody,
   MacroSummary,
   MachineIdentity,
+  SavedBend,
+  SavedBendSaveBody,
+  SavedBendSummary,
   UserPreference,
   MaintenancePeriodKey,
   MaintenanceState,
@@ -368,6 +371,33 @@ export class DataApiClient {
 
   deleteMacro(id: number): Promise<unknown> {
     return http.delete<unknown>(`${this.baseUrl}/api/macros/${id}`)
+  }
+
+  // ---------- STANDART SÜRÜM — kayıtlı bükümler (2026-11-17, STANDART_SURUM.md §3.3) ----------
+  // POST/PUT/ran OPERATOR+, DELETE SUPERVISOR+ — Bearer başlığını http katmanı ekler (makrolar gibi).
+
+  listSavedBends(): Promise<SavedBendSummary[]> {
+    return http.get<SavedBendSummary[]>(`${this.baseUrl}/api/saved-bends`)
+  }
+
+  getSavedBend(id: number): Promise<SavedBend> {
+    return http.get<SavedBend>(`${this.baseUrl}/api/saved-bends/${id}`)
+  }
+
+  createSavedBend(body: SavedBendSaveBody): Promise<SavedBend> {
+    return http.post<SavedBend>(`${this.baseUrl}/api/saved-bends`, body)
+  }
+
+  updateSavedBend(id: number, body: SavedBendSaveBody): Promise<SavedBend> {
+    return http.put<SavedBend>(`${this.baseUrl}/api/saved-bends/${id}`, body)
+  }
+
+  markSavedBendRan(id: number): Promise<SavedBend> {
+    return http.post<SavedBend>(`${this.baseUrl}/api/saved-bends/${id}/ran`)
+  }
+
+  deleteSavedBend(id: number): Promise<unknown> {
+    return http.delete<unknown>(`${this.baseUrl}/api/saved-bends/${id}`)
   }
 
   // ---------- Bulut bağlantısı (BULUT_API.md §4) ----------

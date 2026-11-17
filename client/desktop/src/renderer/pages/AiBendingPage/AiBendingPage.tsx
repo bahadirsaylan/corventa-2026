@@ -7,6 +7,8 @@ import ProfileInfoPanel from './ProfileInfoPanel'
 import { NO_DIRECTION_DEFAULT, hasDirectionPage } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
+import { Icon } from '@/components/Icon'
+import { FEATURES } from '@shared/edition'
 import styles from './AiBendingPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 
@@ -47,7 +49,7 @@ export default function AiBendingPage() {
         <BendingProfileGrid
           selected={moldCode ? null : profileId}
           specialSelected={!!moldCode}
-          onSpecial={() => {
+          onSpecial={!FEATURES.moldLicense ? undefined : () => {
             // ÖZEL KIVRIM PROFİLLERİ'nden girişte "DİĞER yön → kalıp" işareti kalmasın (geri → profil seçimi)
             if (bendingDirection === 'other') setParams({ bendingDirection: null })
             navigate('/bending/ai/mold-code')
@@ -74,6 +76,15 @@ export default function AiBendingPage() {
           navigate(backTo)
         }}
         confirmDisabled={!profileId}
+        // STANDART SÜRÜM (2026-11-17) — KAYITLI BÜKÜMLER girişi (AI sürümünde yok)
+        hint={
+          FEATURES.manualResult ? (
+            <button type="button" className={styles.savedBtn} onClick={() => navigate('/bending/saved')}>
+              <Icon name="macro" size="lg" />
+              {t('KAYITLI BÜKÜMLER')}
+            </button>
+          ) : undefined
+        }
         onConfirm={() => {
           // Kalıp kodu: yön kalıp ekranında NO_DIRECTION_DEFAULT yapıldı → doğrudan metod
           if (moldCode) {

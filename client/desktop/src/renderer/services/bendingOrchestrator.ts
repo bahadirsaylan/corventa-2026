@@ -1,7 +1,7 @@
 // 6-step bending flow — UI'dan PartLoadingPage "Kıvrımı Başlat" tetiklediğinde çalışır.
 // Adımlar bağımsız, her biri kendi hatasını fırlatır; UI tek try/catch ile yakalar.
 
-import { useBendingJobStore } from '@/store/bendingJobStore'
+import { manualTargetKey, useBendingJobStore } from '@/store/bendingJobStore'
 import { refreshMaintenance, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { maintenanceLockActive } from '@/services/maintenanceStatus'
 import {
@@ -75,6 +75,16 @@ export async function executeBendingFlow(
 ): Promise<OrchestrationResult> {
   const params = useBendingJobStore.getState().params
   const notify = (step: OrchestrationStep) => opts.onStep?.(step)
+  // STANDART SÜRÜM (2026-11-17) — elle hedef konum (BÜKÜM SONUCU → YENİ PARÇAYLA BÜK / KAYITLI BÜKÜM ÇALIŞTIR).
+  // Doluyken hedef hesaplanmaz; iş bu itme derinliği + manualTargetLocked=true ile kaydedilir. Yoksa akış birebir eski.
+  const manualTarget =
+    params.manualTarget &&
+    Number.isFinite(params.manualTarget.pushDepthMm) &&
+    params.manualTarget.pushDepthMm > 0 &&
+    // Parametre değiştiyse (profil / A / çap) elle hedef geçersiz → hesap yapılır
+    (params.manualTarget.paramsKey == null || params.manualTarget.paramsKey === manualTargetKey(params))
+      ? params.manualTarget
+      : null
 
   // ---------- Mapping ----------
   notify('mapping')
@@ -109,7 +119,12 @@ export async function executeBendingFlow(
   // ---------- Step 1: Calculate ----------
   notify('calculate')
   let pistonPosition: number
-  try {
+  if (manualTarget) {
+    // Elle hedef: hesap yok — kayıtlı / düzeltilmiş itme derinliği aynen (preview toplam pasoyu bununla hesaplar)
+    pistonPosition = manualTarget.pushDepthMm
+    createReq.calculatedPistonPositionMm = pistonPosition
+    createReq.manualTargetLocked = true
+  } else try {
     const calc = await window.corventa.bending.calculate({
       ballDiameter: ballDiameterMm,
       thickness: createReq.profileA,  // ⚠ BendingCalculator "Thickness" = profilin radyal kesit boyutu (kenar A), duvar kalınlığı (S) DEĞİL. R2 = Rarc - Thickness - Rk formülünde kullanılır.
@@ -165,8 +180,11 @@ export async function executeBendingFlow(
   }
 
   // ---------- Step 3: Recommend stage (opsiyonel) ----------
-  let recommendedStage = opts.forceStage ?? 0
-  if (!opts.forceStage) {
+  // Elle hedefte kayıttaki stage (opsiyonel) — hedef konum o stage'e göre ölçülmüştü
+  const forceStage =
+    opts.forceStage ?? (manualTarget?.stageNumber != null && manualTarget.stageNumber > 0 ? manualTarget.stageNumber : undefined)
+  let recommendedStage = forceStage ?? 0
+  if (!forceStage) {
     notify('recommend-stage')
     try {
       const rec = await window.corventa.bending.recommendStage(createReq.profileA)

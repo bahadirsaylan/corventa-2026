@@ -40,6 +40,7 @@ import { maintenanceTierTitle, type MaintenancePeriodStatus } from '@/services/m
 import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BottomStatsPanel.module.css'
+import { FEATURES } from '@shared/edition'
 
 type WarningLevel = 'none' | 'warning' | 'error'
 
@@ -66,7 +67,8 @@ export default function BottomStatsPanel() {
     fanThermalOK: s.state.safety.fanThermalOK,
   })))
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
-  const shareOn = useCloudStore((s) => s.status?.shareRecipes === true)
+  // STANDART SÜRÜM (2026-11-17): bulut reçete paylaşımı yok → internet uyarısı da yok
+  const shareOn = useCloudStore((s) => FEATURES.cloudRecipes && s.status?.shareRecipes === true)
   const internetState = useInternetStore((s) => s.status.state)
   const internetChecking = useInternetStore((s) => s.status.checking)
   const checkInternetNow = useInternetStore((s) => s.checkNow)

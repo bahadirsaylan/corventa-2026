@@ -19,6 +19,7 @@ import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import readyBanner from '@/assets/images/itsready.png'
 import touchIcon from '@/assets/images/touch.png'
+import { FEATURES, IS_STANDARD } from '@shared/edition'
 
 type Phase = 'idle' | 'starting' | 'started' | 'error'
 
@@ -64,7 +65,8 @@ function PartLoadingContent() {
   //   mode=null   → true  (AI gibi davran — duzeltme acik)
   // Mod: ana ekran OTOMATİK BÜKÜM → 'ai', Manuel > Yarı Oto → 'semi' (ManualModeSelectPage).
   const isSemiAuto = params.bendingMode === 'semi'
-  const useAutoCorrect = !isSemiAuto
+  // STANDART SÜRÜM (2026-11-17): geri esneme ölçümü yok → her zaman false (backend de zorla true skip eder)
+  const useAutoCorrect = !isSemiAuto && FEATURES.springbackMeasure
 
   // Sensör sıfırlama mesafesi (mm) — MachineSettings.ZeroResetDistanceMm (sensör ↔ merkez).
   // Zero handler'ları parçayı sensörden bu mesafeye göre konumlar; sensör görmüyorsa operatör
@@ -141,7 +143,7 @@ function PartLoadingContent() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Alarm Mode"
-        label={t('ALARM MODU')}
+        label={IS_STANDARD ? t('OTOMATİK MOD') : t('ALARM MODU')}
       />
 
       <div className={styles.banner}>
@@ -177,7 +179,9 @@ function PartLoadingContent() {
       {phase !== 'starting' && phase !== 'started' && isSemiAuto && (
         <div className={styles.loadedBar} style={{ background: '#27ae60', color: '#fff' }}>
           <IconLabel icon="technician" size="lg">
-            {t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
+            {IS_STANDARD
+              ? t('BÜKÜM BİTİNCE ÇAPI SİZ ÖLÇECEKSİNİZ — KAYDET VEYA DÜZELT')
+              : t('YARI OTO MOD — Büküm bitince geri esneme ölçümü/düzeltmesi SİZE bırakılacak')}
           </IconLabel>
         </div>
       )}

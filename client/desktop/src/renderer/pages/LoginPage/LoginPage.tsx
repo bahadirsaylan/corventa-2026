@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import type { AuthResult, AuthUser } from '@shared/types'
 
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
+import { EDITION_LABEL, IS_STANDARD } from '@shared/edition'
 import { startSession } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
 import styles from './LoginPage.module.css'
@@ -160,6 +161,8 @@ export default function LoginPage() {
     <div className={styles.page}>
       <div className={styles.center}>
         <CorventaLogo size="compact" />
+        {/* STANDART SÜRÜM (2026-11-17) — logonun altında küçük sürüm adı (AI sürümünde hiçbir şey eklenmez) */}
+        {IS_STANDARD && <p className={styles.edition}>{t(EDITION_LABEL)}</p>}
 
         {mode === 'loading' && <p className={styles.hint}>{t('BAĞLANILIYOR…')}</p>}
 

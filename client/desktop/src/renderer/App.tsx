@@ -19,6 +19,7 @@ import WelcomeMessagePage from '@/pages/WelcomeMessagePage/WelcomeMessagePage'
 import WarrantyPage from '@/pages/WarrantyPage/WarrantyPage'
 import MaintenancePage from '@/pages/MaintenancePage/MaintenancePage'
 import ChecklistPage from '@/pages/ChecklistPage/ChecklistPage'
+import { FEATURES } from '@shared/edition'
 import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnectionPage'
 import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
 import OperatorSettingsPage from '@/pages/OperatorSettingsPage/OperatorSettingsPage'
@@ -49,6 +50,8 @@ import UnloadPage from '@/pages/UnloadPage/UnloadPage'
 import AlarmPage from '@/pages/AlarmPage/AlarmPage'
 import TwoHandUnloadPage from '@/pages/AlarmPage/TwoHandUnloadPage'
 import NextActionPage from '@/pages/NextActionPage/NextActionPage'
+import BendingResultPage from '@/pages/BendingResultPage/BendingResultPage'
+import SavedBendsPage from '@/pages/SavedBendsPage/SavedBendsPage'
 import RollArrangementPage from '@/pages/RollArrangementPage/RollArrangementPage'
 import MacroListPage from '@/pages/MacroPages/MacroListPage'
 import MacroEditorPage from '@/pages/MacroPages/MacroEditorPage'
@@ -103,7 +106,7 @@ export default function App() {
             <Route path="settings/warranty" element={<RequireRole permission="warranty"><WarrantyPage /></RequireRole>} />
             <Route path="settings/maintenance" element={<MaintenancePage />} />
             <Route path="settings/checklist" element={<RequireRole permission="checklist"><ChecklistPage /></RequireRole>} />
-            <Route path="settings/big-data" element={<RequireRole permission="big-data"><BigDataConnectionPage /></RequireRole>} />
+            <Route path="settings/big-data" element={FEATURES.cloud ? <RequireRole permission="big-data"><BigDataConnectionPage /></RequireRole> : <Navigate to="/settings" replace />} />
             <Route path="settings/users" element={<RequireRole permission="user-management"><UserManagementPage /></RequireRole>} />
             <Route path="settings/operator" element={<OperatorSettingsPage />} />
             <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
@@ -118,14 +121,15 @@ export default function App() {
             <Route path="settings/language" element={<LanguagePage />} />
             <Route path="settings/certificate" element={<CertificateQueryPage />} />
             {/* Bulut v2 — kalıp kodu (BULUT_API_V2.md §2.4) */}
-            <Route path="settings/mold-code" element={<RequireRole permission="mold-query"><MoldQueryPage /></RequireRole>} />
-            <Route path="settings/mold-library" element={<RequireRole permission="mold-library"><MoldLibraryPage /></RequireRole>} />
+            {/* 2026-11-17 — Standart sürümde kalıp / bulut sayfaları doğrudan adresle de açılmaz (FEATURES) */}
+            <Route path="settings/mold-code" element={FEATURES.moldLicense ? <RequireRole permission="mold-query"><MoldQueryPage /></RequireRole> : <Navigate to="/settings" replace />} />
+            <Route path="settings/mold-library" element={FEATURES.moldLicense ? <RequireRole permission="mold-library"><MoldLibraryPage /></RequireRole> : <Navigate to="/settings" replace />} />
             <Route path="settings/customer-change" element={<RequireRole permission="customer-change"><CustomerChangePage /></RequireRole>} />
             {/* Satış / takas / hibe artık müşteri değişikliğinin içinde (neden seçimi) — eski rota yönlendirilir */}
             <Route path="settings/machine-transfer" element={<Navigate to="/settings/customer-change" replace />} />
             <Route path="bending/manual-mode" element={<ManualModeSelectPage />} />
             <Route path="bending/ai" element={<AiBendingPage />} />
-            <Route path="bending/ai/mold-code" element={<MoldCodePage />} />
+            <Route path="bending/ai/mold-code" element={FEATURES.moldLicense ? <MoldCodePage /> : <Navigate to="/bending/ai/method" replace />} />
             <Route path="bending/ai/direction" element={<BendingDirectionPage />} />
             <Route path="bending/ai/method" element={<BendingMethodPage />} />
             <Route path="bending/ai/measurements/ring" element={<RingBendingMeasurementsPage />} />
@@ -140,6 +144,9 @@ export default function App() {
             <Route path="bending/alarm" element={<AlarmPage />} />
             <Route path="bending/alarm/manual-unload" element={<TwoHandUnloadPage />} />
             <Route path="bending/next" element={<NextActionPage />} />
+            {/* STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU (ölç → düzelt / kaydet) + KAYITLI BÜKÜMLER */}
+            <Route path="bending/result" element={<RequireRole permission="bending"><BendingResultPage /></RequireRole>} />
+            <Route path="bending/saved" element={<RequireRole permission="bending"><SavedBendsPage /></RequireRole>} />
 
             {/* Manuel Büküm = usta öğrenme kayıtları (EXCEL 28, 2026-11-01). Eski manuel program ekranları
                 ve ayrı kayıt ekranı kaldırıldı — kayıt ana ekrandaki orta tuş takımıyla yapılır. */}

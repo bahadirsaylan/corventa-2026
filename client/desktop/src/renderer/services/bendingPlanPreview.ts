@@ -21,8 +21,11 @@ export interface RingPlanInput {
 }
 
 export interface RingPlanResult {
-  /** Aktif top hedef konumu (mm) */
+  /** Aktif top hedef konumu — CETVEL değeri (mm): stage ofseti + itme derinliği. Büküm bitince işte
+   *  görünen hedef konumla aynı birim (StartJob FullCircle'da stage ofsetini ekleyip işe yazar). */
   targetMm: number
+  /** Gönyeden itme derinliği (mm) — hesaptaki ham değer */
+  pushDepthMm: number
   /** Toplam adım (paso) sayısı — L yoksa / önizleme başarısızsa null */
   totalSteps: number | null
   stageNumber: number | null
@@ -43,7 +46,7 @@ interface Geometry {
   thetaDeg: number
   defaultXA1: number
   defaultYA1: number
-  stages: { stageNumber: number; xA1Mm?: number | null; yA1Mm?: number | null }[]
+  stages: { stageNumber: number; leftOffsetMm?: number; xA1Mm?: number | null; yA1Mm?: number | null }[]
 }
 
 function loadGeometry(): Promise<Geometry> {
@@ -79,10 +82,14 @@ export async function computeRingPlan(input: RingPlanInput): Promise<RingPlanRes
   let stageNumber: number | null = null
   let xA1 = geo.defaultXA1
   let yA1 = geo.defaultYA1
+  // StartJob (FullCircle) aktif taraf stage ofsetini > 0,5 mm ise itme derinliğine ekler; akış sensörü sol varsayar
+  let stageOffsetMm = 0
   try {
     const rec = await window.corventa.bending.recommendStage(input.a)
     stageNumber = rec.stageNumber
     const st = geo.stages.find((s) => s.stageNumber === rec.stageNumber)
+    const off = Number(st?.leftOffsetMm)
+    if (Number.isFinite(off) && off > 0.5) stageOffsetMm = off
     if (st?.xA1Mm != null && Number.isFinite(st.xA1Mm)) {
       xA1 = st.xA1Mm
       yA1 = st.yA1Mm != null && Number.isFinite(st.yA1Mm) ? st.yA1Mm : 0
@@ -104,22 +111,30 @@ export async function computeRingPlan(input: RingPlanInput): Promise<RingPlanRes
     throw new Error(calc.error ?? 'HESAP YAPILAMADI')
   }
 
+  // ADIM SAYISI — gerçek büküm gibi (BendingHandlers): 1. paso ADAPTİF, top parçaya değene kadar gider;
+  // sonra her paso G kadar ilerler, hedef − 0,5 mm'ye ulaşınca biter (simetri / tekrar pasosu yok —
+  // EstimateTotalPasos). Temas konumu düz parçanın (çok büyük çap) itme derinliğiyle tahmin edilir.
+  // (Önizleme ucu /geometric/preview 0'dan + tekrar pasosuyla saydığı için gerçek sayıdan fazla çıkar.)
   let totalSteps: number | null = null
-  if (input.partLengthMm != null && input.partLengthMm > 0 && input.stepMm > 0) {
+  if (input.stepMm > 0) {
     try {
-      const preview = await window.corventa.bending.preview({
-        targetPositionMm: calc.pistonPosition,
-        partLengthMm: input.partLengthMm,
-        // Büküm akışıyla aynı (orchestrator: safetyMarginMm ?? 50, sensör sol)
-        safetyMarginMm: 50,
-        stepDistanceMm: input.stepMm,
-        activeSensorSide: 'Left',
+      const flat = await window.corventa.bending.calculate({
+        ballDiameter: geo.ballDiameterMm,
+        thickness: input.a,
+        centerDistance: geo.centerDistanceMm,
+        targetBendingDiameter: 1e8,
+        xA1,
+        yA1,
+        theta: geo.thetaDeg,
       })
-      if (preview.success && preview.totalPasos > 0) totalSteps = preview.totalPasos
+      if (flat.success && Number.isFinite(flat.pistonPosition)) {
+        const remaining = calc.pistonPosition - 0.5 - flat.pistonPosition
+        totalSteps = 1 + (remaining > 0 ? Math.ceil(remaining / input.stepMm) : 0)
+      }
     } catch {
       /* adım sayısı gösterilmez */
     }
   }
 
-  return { targetMm: calc.pistonPosition, totalSteps, stageNumber }
+  return { targetMm: stageOffsetMm + calc.pistonPosition, pushDepthMm: calc.pistonPosition, totalSteps, stageNumber }
 }

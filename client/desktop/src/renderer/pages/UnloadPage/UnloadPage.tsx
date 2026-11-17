@@ -91,7 +91,11 @@ export default function UnloadPage() {
   // SEKIL-20 (yeni otomatik büküm) yerine aynı makronun ekranına dönülür.
   const rawMacroId = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).macroId : undefined
   const macroId = typeof rawMacroId === 'number' && Number.isInteger(rawMacroId) && rawMacroId > 0 ? rawMacroId : null
-  const nextPath = macroId != null ? `/bending/macros/${macroId}/run` : '/bending/next'
+  // STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU → YENİ PARÇAYLA BÜK: parça alınınca doğrudan parça yükleme
+  // (state.next, sadece /bending/ altı kabul edilir). Verilmezse eski davranış.
+  const rawNext = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).next : undefined
+  const nextOverride = typeof rawNext === 'string' && rawNext.startsWith('/bending/') ? rawNext : null
+  const nextPath = macroId != null ? `/bending/macros/${macroId}/run` : (nextOverride ?? '/bending/next')
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined

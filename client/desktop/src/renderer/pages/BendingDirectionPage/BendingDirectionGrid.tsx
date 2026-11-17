@@ -15,7 +15,13 @@ interface Props<Id extends string> {
 export default function BendingDirectionGrid<Id extends string>({ options, selected, onSelect }: Props<Id>) {
   const t = useT()
   return (
-    <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${Math.max(options.length, 2)}, 1fr)` }}>
+    <div
+      className={styles.grid}
+      // 2026-11-17: tek seçenek (ör. Standart sürümde DİĞER yok) yarım genişlikte ortada — sağ taraf boş kalmasın
+      style={options.length === 1
+        ? { gridTemplateColumns: 'minmax(0, 50%)', justifyContent: 'center' }
+        : { gridTemplateColumns: `repeat(${Math.max(options.length, 2)}, 1fr)` }}
+    >
       {options.map((d) => (
         <button
           key={d.id}

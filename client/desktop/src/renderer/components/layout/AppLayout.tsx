@@ -13,6 +13,8 @@ import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanc
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useCloudConfigStore } from '@/stores/cloudConfigStore'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
+import { useBendingJobStore } from '@/store/bendingJobStore'
+import { FEATURES } from '@shared/edition'
 import { useT } from '@/i18n'
 import type { UnloadJobOutcome } from '@/pages/UnloadPage/UnloadPage'
 import styles from './AppLayout.module.css'
@@ -86,6 +88,20 @@ export default function AppLayout() {
           const failed = status === BendingJobStatus.Failed || status === 'Failed'
           const cancelled = status === BendingJobStatus.Cancelled || status === 'Cancelled'
           if (!completed && !failed && !cancelled) return // Created/Ready vb. — bitmiş iş değil
+          // STANDART SÜRÜM (2026-11-17): Completed iş tahliye yerine BÜKÜM SONUCU ekranına gider (parça sıkılı
+          // kalır; operatör ölçer → parçaya uygula / yeni parçayla bük / kaydet). Failed / Cancelled eskisi gibi.
+          // AI sürümünde FEATURES.manualResult=false → bu dal hiç çalışmaz.
+          if (completed && FEATURES.manualResult) {
+            const savedBendId = useBendingJobStore.getState().params.manualTarget?.savedBendId ?? null
+            navigate('/bending/result', {
+              state: {
+                jobId,
+                ...(savedBendId != null ? { savedBendId } : {}),
+                ...(job.errorMessage ? { jobMessage: job.errorMessage } : {}),
+              },
+            })
+            return
+          }
           const jobOutcome: UnloadJobOutcome = completed
             ? job.errorMessage
               ? 'warning'

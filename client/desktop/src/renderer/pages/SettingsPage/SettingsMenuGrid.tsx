@@ -7,6 +7,7 @@ import { PERMISSIONS, type Permission } from '@/constants/permissions'
 import { useCan } from '@/stores/sessionStore'
 import { useT } from '@/i18n'
 import styles from './SettingsMenuGrid.module.css'
+import { FEATURES } from '@shared/edition'
 
 export default function SettingsMenuGrid() {
   const navigate = useNavigate()
@@ -20,14 +21,15 @@ export default function SettingsMenuGrid() {
       {/* ── LEFT COLUMN ───────────────────────────── */}
       <div className={styles.col}>
         <SettingsBtn label="GARANTİ SÜRESİ" permission="warranty" onClick={() => navigate('/settings/warranty')} />
-        <SettingsBtn label="BULUT BAĞLANTISI" permission="big-data" onClick={() => navigate('/settings/big-data')} />
+        {/* STANDART SÜRÜM (2026-11-17): bulut / kalıp girişleri FEATURES kapalıysa gizli */}
+        {FEATURES.cloud && <SettingsBtn label="BULUT BAĞLANTISI" permission="big-data" onClick={() => navigate('/settings/big-data')} />}
         <SettingsBtn label="KULLANICI YÖNETİMİ" permission="user-management" onClick={() => navigate('/settings/users')} />
         <SettingsBtn label="OPERATÖR AYARLARI" permission="operator-settings" onClick={() => navigate('/settings/operator')} />
         <SettingsBtn label="KARŞILAMA MESAJI" permission="welcome-message" onClick={() => navigate('/settings/welcome-message')} />
         <SettingsBtn label="CHECK LIST" permission="checklist" onClick={() => navigate('/settings/checklist')} />
         <SettingsBtn label="PDF KULLANIM KİTABI" permission="pdf-guide" onClick={() => setShowGuide(true)} />
         <SettingsBtn label="BAKIM SÜRESİ" permission="maintenance" onClick={() => navigate('/settings/maintenance')} />
-        <SettingsBtn label="KALIP KODU SORGULA" permission="mold-query" onClick={() => navigate('/settings/mold-code')} />
+        {FEATURES.moldLicense && <SettingsBtn label="KALIP KODU SORGULA" permission="mold-query" onClick={() => navigate('/settings/mold-code')} />}
         {/* CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin) */}
       </div>
 
@@ -39,7 +41,7 @@ export default function SettingsMenuGrid() {
         <SettingsBtn label="KIVRIM ADETLERİ RAPORU" permission="bending-count" onClick={() => navigate('/settings/bending-count')} />
         <SettingsBtn label="DİL SEÇİMİ" permission="language" onClick={() => navigate('/settings/language')} />
         <SettingsBtn label="SERTİFİKA SORGULA" permission="certificate" onClick={() => navigate('/settings/certificate')} />
-        <SettingsBtn label="KALIP KÜTÜPHANESİ" permission="mold-library" onClick={() => navigate('/settings/mold-library')} />
+        {FEATURES.moldLicense && <SettingsBtn label="KALIP KÜTÜPHANESİ" permission="mold-library" onClick={() => navigate('/settings/mold-library')} />}
         {/* SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17) */}
         <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" permission="customer-change" onClick={() => navigate('/settings/customer-change')} />
         <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />

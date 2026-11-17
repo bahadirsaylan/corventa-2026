@@ -41,3 +41,8 @@
   border-right: 2px solid var(--color-border);
   height: 100%;
 }
+
+/* STANDART SÜRÜM (2026-11-17) — sürüm adı gerçek değer, üstü çizili değil */
+.edition {
+  text-decoration: none;
+}

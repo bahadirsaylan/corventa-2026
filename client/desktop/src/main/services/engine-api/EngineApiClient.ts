@@ -29,6 +29,10 @@ import type {
   UnloadPartResponse,
   ResumeStatusResponse,
   ResumeActionResponse,
+  ManualCorrectRequest,
+  ManualCorrectStartResult,
+  ManualCorrectStatus,
+  ManualCorrectStopResult,
   ValidateArcPlanRequest,
   ValidateArcPlanResponse,
 } from '@shared/types'
@@ -222,6 +226,43 @@ export class EngineApiClient {
   /** MANUEL TAHLİYE seçildi — iş Cancelled, devam kaydı silinir */
   abandonBendingJob(jobId: number): Promise<ResumeActionResponse> {
     return postAction(`${this.baseUrl}/api/bending-job/${jobId}/abandon`)
+  }
+
+  // STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU elle düzeltme pasosu (STANDART_SURUM.md §3.2).
+  // 202 { started: true } · 400/409 { error } → hata metni kaybolmasın diye sonuç zarfına çevrilir.
+  async manualCorrectStart(jobId: number, req: ManualCorrectRequest): Promise<ManualCorrectStartResult> {
+    try {
+      const res = await http.post<Partial<ManualCorrectStartResult>>(
+        `${this.baseUrl}/api/bending-job/${jobId}/manual-correct`,
+        req,
+      )
+      return { started: res?.started ?? true, error: res?.error ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object') {
+        const b = err.body as Record<string, unknown>
+        return { started: false, error: String(b.error ?? b.Error ?? err.message) }
+      }
+      throw err
+    }
+  }
+
+  manualCorrectStatus(jobId: number): Promise<ManualCorrectStatus> {
+    return http.get<ManualCorrectStatus>(`${this.baseUrl}/api/bending-job/${jobId}/manual-correct/status`)
+  }
+
+  async manualCorrectStop(jobId: number): Promise<ManualCorrectStopResult> {
+    try {
+      const res = await http.post<Partial<ManualCorrectStopResult>>(
+        `${this.baseUrl}/api/bending-job/${jobId}/manual-correct/stop`,
+      )
+      return { success: res?.success ?? true, error: res?.error ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object') {
+        const b = err.body as Record<string, unknown>
+        return { success: false, error: String(b.error ?? b.Error ?? err.message) }
+      }
+      throw err
+    }
   }
 
   // Serpantin — operatör yan dayama ayarını bitirince "DEVAM ET" onayı.

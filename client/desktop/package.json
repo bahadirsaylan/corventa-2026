@@ -1,6 +1,6 @@
 {
   "name": "corventa-desktop",
-  "version": "0.2.14",
+  "version": "0.3.0",
   "private": true,
   "description": "Corventa Desktop Client - Bending Machine Software",
   "author": "Corventa",
@@ -13,6 +13,10 @@
     "build:backend": "node scripts/build-backend.mjs",
     "package:win": "node scripts/build-backend.mjs && npm run build && electron-builder --win nsis",
     "package:demo": "set CORVENTA_MINIFY=1&& electron-vite build && electron-builder --win portable --config scripts/electron-builder.demo.cjs",
+    "dev:standard": "set CORVENTA_EDITION=standard&& electron-vite dev",
+    "demo:standard": "set CORVENTA_EDITION=standard&& set CORVENTA_DEMO=1&& set CORVENTA_NO_KIOSK=1&& electron-vite dev",
+    "package:win:standard": "node scripts/build-backend.mjs && set CORVENTA_EDITION=standard&& electron-vite build && electron-builder --win nsis -c.nsis.artifactName=\"Corventa Setup ${version} Standart.${ext}\"",
+    "package:demo:standard": "set CORVENTA_EDITION=standard&& set CORVENTA_MINIFY=1&& electron-vite build && electron-builder --win portable --config scripts/electron-builder.demo.cjs",
     "preview": "electron-vite preview",
     "type-check": "tsc --noEmit",
     "i18n:check": "node scripts/i18n-check.mjs",

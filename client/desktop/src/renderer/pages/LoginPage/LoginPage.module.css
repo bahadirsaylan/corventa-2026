@@ -195,3 +195,12 @@
   font-weight: 900;
   cursor: pointer;
 }
+
+/* STANDART SÜRÜM (2026-11-17) — logo altı sürüm adı */
+.edition {
+  margin: -8px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+}

@@ -38,6 +38,7 @@ import kosebent2Disa from '@/assets/images/directions/kosebent2_kanat_disa.svg'
 import kosebent2Ice from '@/assets/images/directions/kosebent2_kanat_ice.svg'
 import dikisliImage from '@/assets/images/pipe-dikisli.png'
 import etliImage from '@/assets/images/pipe-etli.png'
+import { FEATURES } from '@shared/edition'
 
 export interface DirectionOption<Id extends string = BendingDirectionId> {
   id: Id
@@ -107,9 +108,11 @@ export function hasDirectionPage(profileId: BendingProfileId | null): boolean {
 
 /** Profilin yön seçenekleri; null = yön seçimi yok (boş boru hariç sayfa atlanır — hasDirectionPage). */
 export function directionOptionsFor(profileId: BendingProfileId | null): DirectionOption[] | null {
-  if (!profileId) return DEFAULT_OPTIONS
-  const v = PROFILE_DIRECTIONS[profileId]
-  return v === undefined ? DEFAULT_OPTIONS : v
+  const v = !profileId ? DEFAULT_OPTIONS : PROFILE_DIRECTIONS[profileId]
+  const list = v === undefined ? DEFAULT_OPTIONS : v
+  // STANDART SÜRÜM (2026-11-17): "DİĞER KIVRIM YÖNLERİ" kalıp kodu ekranına gider — kalıp özelliği kapalıysa gizli
+  if (list && !FEATURES.moldLicense) return list.filter((o) => o.id !== 'other')
+  return list
 }
 
 /** Yön seçimi olmayan profillerde kaydedilecek yön */

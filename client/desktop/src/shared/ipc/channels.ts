@@ -32,6 +32,10 @@ export const IpcInvoke = {
   ConfirmSideSupport: 'bending-job:confirm-side-support',
   MeasurementRetryAction: 'bending-job:measurement-retry-action',
   CancelMeasurementRetry: 'bending-job:cancel-measurement-retry',
+  // STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU: parça sıkılıyken elle düzeltme pasosu (Bending API)
+  ManualCorrectStart: 'bending-job:manual-correct-start',
+  ManualCorrectStatus: 'bending-job:manual-correct-status',
+  ManualCorrectStop: 'bending-job:manual-correct-stop',
 
   // DataApi
   CreateBendingJob: 'data:create-bending-job',
@@ -136,6 +140,14 @@ export const IpcInvoke = {
   MacroCreate: 'macro:create',
   MacroUpdate: 'macro:update',
   MacroDelete: 'macro:delete',
+
+  // DataApi — STANDART SÜRÜM kayıtlı bükümler (2026-11-17). Yazma OPERATOR+, silme SUPERVISOR+ (DataApi [RequireRole]).
+  SavedBendList: 'saved-bend:list',
+  SavedBendGet: 'saved-bend:get',
+  SavedBendCreate: 'saved-bend:create',
+  SavedBendUpdate: 'saved-bend:update',
+  SavedBendRan: 'saved-bend:ran',
+  SavedBendDelete: 'saved-bend:delete',
 
   // DataApi — Bulut bağlantısı (BULUT_API.md §4) + güncelleme kurulumu (§5, main setup'ı başlatıp kapanır)
   CloudGetStatus: 'cloud:get-status',

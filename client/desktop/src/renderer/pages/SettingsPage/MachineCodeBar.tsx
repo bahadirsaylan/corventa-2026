@@ -1,5 +1,6 @@
 import { useT } from '@/i18n'
 import styles from './MachineCodeBar.module.css'
+import { EDITION_LABEL, IS_STANDARD } from '@shared/edition'
 
 interface Props {
   machineCode?: string
@@ -23,9 +24,19 @@ export default function MachineCodeBar({
       <div className={styles.centerGap} />
 
       {/* Right — AI module code */}
+      {/* STANDART SÜRÜM (2026-11-17): YZ modülü yok — yerine sürüm adı */}
       <div className={`${styles.side} ${styles.sideRight}`}>
-        <span className={styles.label}>{t('YZ MODÜL KODU :')}</span>
-        <span className={styles.value}>{aiModuleCode}</span>
+        {IS_STANDARD ? (
+          <>
+            <span className={styles.label}>{t('SÜRÜM :')}</span>
+            <span className={`${styles.value} ${styles.edition}`}>{t(EDITION_LABEL)}</span>
+          </>
+        ) : (
+          <>
+            <span className={styles.label}>{t('YZ MODÜL KODU :')}</span>
+            <span className={styles.value}>{aiModuleCode}</span>
+          </>
+        )}
       </div>
     </div>
   )

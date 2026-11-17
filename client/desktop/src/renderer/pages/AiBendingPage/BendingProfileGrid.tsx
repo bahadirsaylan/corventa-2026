@@ -56,14 +56,17 @@ export default function BendingProfileGrid({ selected, onSelect, specialSelected
         ))}
       </div>
 
-      {/* Special profiles vertical label tile → KALIP KODU ekranı (BULUT_API_V2.md §2.4) */}
-      <button
-        type="button"
-        className={`${styles.specialTile} ${specialSelected ? styles.specialTileSelected : ''}`}
-        onClick={onSpecial}
-      >
-        <span className={styles.specialText}>{t('ÖZEL KIVRIM PROFİLLERİ')}</span>
-      </button>
+      {/* Special profiles vertical label tile → KALIP KODU ekranı (BULUT_API_V2.md §2.4).
+          2026-11-17: onSpecial verilmezse (Standart sürüm — kalıp lisansı yok) kutu çizilmez */}
+      {onSpecial && (
+        <button
+          type="button"
+          className={`${styles.specialTile} ${specialSelected ? styles.specialTileSelected : ''}`}
+          onClick={onSpecial}
+        >
+          <span className={styles.specialText}>{t('ÖZEL KIVRIM PROFİLLERİ')}</span>
+        </button>
+      )}
     </div>
   )
 }

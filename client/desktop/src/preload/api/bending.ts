@@ -29,6 +29,13 @@ import {
   type UnloadPartResponse,
   type ResumeStatusResponse,
   type ResumeActionResponse,
+  type ManualCorrectRequest,
+  type ManualCorrectStartResult,
+  type ManualCorrectStatus,
+  type ManualCorrectStopResult,
+  type SavedBend,
+  type SavedBendSaveBody,
+  type SavedBendSummary,
   type ValidateArcPlanRequest,
   type ValidateArcPlanResponse,
 } from '@shared'
@@ -118,6 +125,24 @@ export const bendingApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.ResumeBendingJob, jobId),
   abandonJob: (jobId: number): Promise<ResumeActionResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.AbandonBendingJob, jobId),
+
+  // STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU: parça sıkılıyken elle düzeltme pasosu (Bending API)
+  manualCorrectStart: (jobId: number, req: ManualCorrectRequest): Promise<ManualCorrectStartResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ManualCorrectStart, { jobId, req }),
+  manualCorrectStatus: (jobId: number): Promise<ManualCorrectStatus> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ManualCorrectStatus, jobId),
+  manualCorrectStop: (jobId: number): Promise<ManualCorrectStopResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ManualCorrectStop, jobId),
+
+  // STANDART SÜRÜM (2026-11-17) — KAYITLI BÜKÜMLER (DataApi /api/saved-bends). Yazma OPERATOR+, silme SUPERVISOR+.
+  listSavedBends: (): Promise<SavedBendSummary[]> => ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendList),
+  getSavedBend: (id: number): Promise<SavedBend> => ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendGet, id),
+  createSavedBend: (body: SavedBendSaveBody): Promise<SavedBend> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendCreate, body),
+  updateSavedBend: (id: number, body: SavedBendSaveBody): Promise<SavedBend> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendUpdate, { id, body }),
+  markSavedBendRan: (id: number): Promise<SavedBend> => ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendRan, id),
+  deleteSavedBend: (id: number): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.SavedBendDelete, id),
 
   // Arc interactive — pipeline çalışırken sıradaki segment'i ekler.
   addArcSegment: (
