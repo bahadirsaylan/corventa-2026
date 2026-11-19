@@ -114,6 +114,8 @@ const en: Record<string, string> = {
   'GERİ ESNEME HATA KODU': 'SPRINGBACK ERROR CODE',
   ÖLÇÜYOR: 'MEASURING',
   'HATA VAR': 'HAS ERROR',
+  // 2026-11-19: kirlilik girişi aktif düşük — FALSE kirli VEYA sensör / kablo arızası
+  'KİRLİ / ARIZA': 'DIRTY / FAULT',
 }
 
 export default en

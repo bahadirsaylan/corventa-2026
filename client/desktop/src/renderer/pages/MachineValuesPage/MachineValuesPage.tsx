@@ -223,7 +223,7 @@ function show(v: unknown, kind: Kind, t: T, unit?: string): Shown {
     case 'presence':
       return { text: b ? t('PARÇA VAR') : t('PARÇA YOK'), tone: b ? 'ok' : 'idle', chip: true }
     case 'dirty':
-      return { text: b ? t('KİRLİ') : t('TEMİZ'), tone: b ? 'bad' : 'ok', chip: true }
+      return { text: b ? t('KİRLİ / ARIZA') : t('TEMİZ'), tone: b ? 'bad' : 'ok', chip: true }
     case 'yesNo':
       return { text: b ? t('EVET') : t('HAYIR'), tone: b ? 'ok' : 'idle', chip: true }
     case 'zeroed':

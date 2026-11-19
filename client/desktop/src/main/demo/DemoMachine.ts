@@ -663,7 +663,8 @@ export class DemoMachine extends EventEmitter {
     s.safetyBits =
       (sf.emergencyStopOK ? 0x0001 : 0) | (sf.motorThermalOK ? 0x0002 : 0) | (sf.fanThermalOK ? 0x0004 : 0) |
       (sf.phaseSequenceOK ? 0x0008 : 0) | (sf.leftPartSensor ? 0x0010 : 0) | (sf.rightPartSensor ? 0x0020 : 0) |
-      (sf.contaminationK1 ? 0x0040 : 0) | (sf.contaminationK2 ? 0x0080 : 0) | (sf.contaminationK3 ? 0x0100 : 0)
+      // 2026-11-19: kirlilik girişleri aktif düşük (PLC ham biti: 1 = temiz) — contaminationKx=true (kirli) → bit 0
+      (sf.contaminationK1 ? 0 : 0x0040) | (sf.contaminationK2 ? 0 : 0x0080) | (sf.contaminationK3 ? 0 : 0x0100)
     // Ölçüm sensörleri: kol (pnömatik) uzadıkça sensör parçaya değer gibi ham değer artar; aksi halde ~0
     const noise = () => Math.round(Math.random() * 3)
     s.slpisSensorRaw = Math.round(Math.min(4095, s.rightPneumatic.encoderPosition * 20)) + noise()
