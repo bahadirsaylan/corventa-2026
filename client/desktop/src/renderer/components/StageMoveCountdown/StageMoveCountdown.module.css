@@ -68,3 +68,37 @@
 .cancelBtn:active {
   filter: brightness(0.9);
 }
+
+.actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.skipBtn {
+  background: #f59e0b;
+  color: #1f2937;
+}
+
+/* Vals dizilimi ekranı: tam ekran değil — sayfanın ortasında, alt düğme çubuğu (geri / onay) açık kalır */
+.inlineWrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 120px;
+  display: flex;
+  justify-content: center;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.inlineCard {
+  pointer-events: auto;
+  padding: 18px 28px;
+  gap: 8px;
+}
+
+.inlineCard .count {
+  font-size: 64px;
+}

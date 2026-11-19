@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { isAtStage, resolveTargetStage } from '@/services/bendingOrchestrator'
-import { awaitStageReturn, stageMoveAllowed } from '@/services/stageReturn'
+import { awaitStageReturn, stageMoveAllowed, startStageMove } from '@/services/stageReturn'
 
 export type EarlyStagePhase = 'checking' | 'countdown' | 'moving' | 'ready' | 'deferred'
 
@@ -41,7 +41,8 @@ export function useEarlyStage() {
     if (targetStage == null) return
     setPhase('moving')
     try {
-      await window.corventa.bending.applyStage({ targetStage, speedPercent: 50 })
+      // Arka planda (ekran değişse de sürer) — büküm akışı başlamadan önce bitmesini bekler
+      await startStageMove(targetStage)
       setPhase('ready')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -50,6 +51,10 @@ export function useEarlyStage() {
   }, [targetStage])
 
   const cancel = useCallback(() => setPhase('deferred'), [])
+  /** 2026-11-20 (kullanıcı): ekran beklemeden geçilebilir — geri sayım sürüyorsa hareketi HEMEN başlat (arka planda) */
+  const startNowIfPending = useCallback(() => {
+    if (phase === 'countdown' && targetStage != null) void run()
+  }, [phase, targetStage, run])
   const busy = phase === 'checking' || phase === 'countdown' || phase === 'moving'
-  return { phase, targetStage, error, clearError: () => setError(null), run, cancel, busy }
+  return { phase, targetStage, error, clearError: () => setError(null), run, cancel, startNowIfPending, busy }
 }

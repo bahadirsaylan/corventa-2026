@@ -6,6 +6,7 @@ const en: Record<string, string> = {
   'STAGE {n} KONUMUNA GEÇİLİYOR…': 'MOVING TO STAGE {n}…',
   'STAGE KONTROL EDİLİYOR…': 'CHECKING STAGE…',
   'STAGE GEÇİŞİ YAPILAMADI': 'STAGE CHANGE FAILED',
+  'HEMEN BAŞLAT VE DEVAM ET': 'START NOW AND CONTINUE',
 }
 
 export default en

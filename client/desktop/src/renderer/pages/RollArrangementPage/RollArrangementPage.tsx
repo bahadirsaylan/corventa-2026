@@ -32,11 +32,12 @@ export default function RollArrangementPage() {
   }, [setParams])
 
   const backTo = `/bending/ai/measurements/${method ?? 'ring'}`
-  // 2026-11-20: değerler onaylanınca stage burada alınır (parça konmadan önce) — bitene kadar ONAY kapalı
+  // 2026-11-20: değerler onaylanınca stage burada alınır (parça konmadan önce). Ekran BEKLETMEZ (kullanıcı):
+  // onaya basılınca geri sayım sürüyorsa hareket hemen arka planda başlar; büküm başlarken akış bitmesini bekler.
   const stage = useEarlyStage()
 
   function confirm() {
-    if (stage.busy) return
+    stage.startNowIfPending()
     setParams({ rollArrangementConfirmed: true })
     navigate('/bending/ai/part-loading')
   }
@@ -70,7 +71,13 @@ export default function RollArrangementPage() {
       <StatusBar backTo={backTo} onConfirm={confirm} />
 
       {stage.phase === 'countdown' && stage.targetStage != null && (
-        <StageMoveCountdown stage={stage.targetStage} onDone={() => void stage.run()} onCancel={stage.cancel} />
+        <StageMoveCountdown
+          stage={stage.targetStage}
+          onDone={() => void stage.run()}
+          onCancel={stage.cancel}
+          onSkip={confirm}
+          inline
+        />
       )}
       {stage.error && (
         <ApiNoticeModal title="STAGE GEÇİŞİ YAPILAMADI" message={stage.error} onClose={stage.clearError} />

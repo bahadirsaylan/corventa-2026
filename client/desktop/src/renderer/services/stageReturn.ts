@@ -24,6 +24,19 @@ export function returnStageCandidate(): number | null {
   return stage
 }
 
+/** Stage hareketini arka planda başlatır (ekran değişse de sürer); hata fırlatır → çağıran gösterebilir.
+ *  Sonraki büküm akışı awaitStageReturn ile bitmesini bekler. */
+export function startStageMove(stage: number): Promise<void> {
+  if (pending) return pending
+  const p = window.corventa.bending
+    .applyStage({ targetStage: stage, speedPercent: 50 })
+    .then(() => undefined)
+  pending = p.catch(() => undefined).finally(() => {
+    pending = null
+  })
+  return p
+}
+
 /** Stage'e dönüşü arka planda başlatır (geri sayım çağıran tarafta — StageMoveCountdown). */
 export function startStageReturn(stage: number): void {
   if (pending) return

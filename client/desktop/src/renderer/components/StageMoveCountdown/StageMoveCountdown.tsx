@@ -12,9 +12,13 @@ interface Props {
   seconds?: number
   onDone: () => void
   onCancel: () => void
+  /** Verilirse "HEMEN BAŞLAT VE DEVAM ET" düğmesi (vals dizilimi ekranı — beklemeden geçilebilsin) */
+  onSkip?: () => void
+  /** true → tam ekran değil, sayfanın altında şerit (ekranın düğmeleri kullanılabilir kalır) */
+  inline?: boolean
 }
 
-export default function StageMoveCountdown({ stage, seconds = 5, onDone, onCancel }: Props) {
+export default function StageMoveCountdown({ stage, seconds = 5, onDone, onCancel, onSkip, inline = false }: Props) {
   const t = useT()
   const [left, setLeft] = useState(seconds)
 
@@ -28,17 +32,24 @@ export default function StageMoveCountdown({ stage, seconds = 5, onDone, onCance
   }, [left, onDone])
 
   return (
-    <div className={styles.overlay} role="alertdialog" aria-modal="true">
-      <div className={styles.card}>
+    <div className={inline ? styles.inlineWrap : styles.overlay} role="alertdialog" aria-modal={!inline}>
+      <div className={inline ? `${styles.card} ${styles.inlineCard}` : styles.card}>
         <span className={styles.icon}>
           <Icon name="warning" size={56} />
         </span>
         <h2 className={styles.title}>{t('TOPLAR STAGE {n} KONUMUNA GİDECEK', { n: stage })}</h2>
         <p className={styles.text}>{t('ELİNİZİ MAKİNEDEN UZAK TUTUN')}</p>
         <div className={styles.count}>{Math.max(left, 0)}</div>
-        <button type="button" className={styles.cancelBtn} onClick={onCancel}>
-          {t('VAZGEÇ — HAREKET ETME')}
-        </button>
+        <div className={styles.actions}>
+          <button type="button" className={styles.cancelBtn} onClick={onCancel}>
+            {t('VAZGEÇ — HAREKET ETME')}
+          </button>
+          {onSkip && (
+            <button type="button" className={`${styles.cancelBtn} ${styles.skipBtn}`} onClick={onSkip}>
+              {t('HEMEN BAŞLAT VE DEVAM ET')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
