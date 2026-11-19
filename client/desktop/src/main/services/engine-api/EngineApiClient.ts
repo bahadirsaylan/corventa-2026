@@ -25,6 +25,8 @@ import type {
   OilHeatingResult,
   OilHeatingStartRequest,
   OilHeatingStatus,
+  PressureDropTestLogDetail,
+  PressureDropTestLogSummary,
   PressureDropTestResult,
   PressureDropTestStartRequest,
   PressureDropTestStatus,
@@ -178,6 +180,15 @@ export class EngineApiClient {
   async pressureDropTestStatus(samples?: number): Promise<PressureDropTestStatus> {
     const q = typeof samples === 'number' && Number.isFinite(samples) ? `?samples=${Math.max(0, Math.min(600, Math.round(samples)))}` : ''
     return http.get<PressureDropTestStatus>(`${this.baseUrl}/api/pressure-drop-test/status${q}`)
+  }
+
+  /** Geçmiş testler (en yeni önce, en fazla 200) */
+  async pressureDropTestLogs(): Promise<PressureDropTestLogSummary[]> {
+    return http.get<PressureDropTestLogSummary[]>(`${this.baseUrl}/api/pressure-drop-test/logs`)
+  }
+
+  async pressureDropTestLog(fileName: string): Promise<PressureDropTestLogDetail> {
+    return http.get<PressureDropTestLogDetail>(`${this.baseUrl}/api/pressure-drop-test/logs/${encodeURIComponent(fileName)}`)
   }
 
   private async pressureDropTestCall(fn: () => Promise<PressureDropTestResult>): Promise<PressureDropTestResult> {

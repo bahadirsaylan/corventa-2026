@@ -264,6 +264,8 @@ export interface PressureDropTestStatus {
   endReason: string | null
   sampleCount: number
   csvPath: string | null
+  /** CSV dosya adı — KAYITLAR ekranında açılır (GET /api/pressure-drop-test/logs/{fileName}) */
+  csvFileName?: string | null
   startedAt: string | null
   finishedAt: string | null
   stopRequested: boolean
@@ -281,6 +283,47 @@ export interface PressureDropTestResult {
   success: boolean
   errorMessage: string | null
   status: PressureDropTestStatus | null
+}
+// GET /api/pressure-drop-test/logs (+ /{fileName}) — geçmiş test kayıtları (CSV'den okunur)
+/** Detected · NotDetected · Stopped · Failed · Running (şu an yazılıyor) · Incomplete (sonuç satırı yok) */
+export type PressureDropTestLogState = 'Detected' | 'NotDetected' | 'Stopped' | 'Failed' | 'Running' | 'Incomplete' | (string & {})
+export interface PressureDropTestLogSummary {
+  /** pdt-yyyyMMdd-HHmmss-Sol|Sag.csv */
+  fileName: string
+  /** makinenin yerel saati (ofsetli ISO) */
+  startedAt: string | null
+  side: PressureDropTestSide | null
+  speedPercent: number | null
+  targetPositionMm: number | null
+  startPositionMm: number | null
+  endPositionMm: number | null
+  dropBar: number | null
+  windowMs: number | null
+  minBaseBar: number | null
+  minSamples: number | null
+  /** test başlarken kayıtlı ayar (eski kayıtlarda null) */
+  settingsDropBar: number | null
+  settingsWindowMs: number | null
+  settingsMinBaseBar: number | null
+  state: PressureDropTestLogState
+  message: string | null
+  endReason: string | null
+  detectedAt: PressureDropDetection | null
+  maxDropS1: number
+  maxDropS2: number
+  maxS1: number
+  maxS2: number
+  sampleCount: number
+  durationMs: number
+}
+export interface PressureDropTestLogSample extends PressureDropTestSample {
+  /** pencere karar verebilecek kadar dolu */
+  ready: boolean
+  /** bu örnekte düşüş algılandı */
+  detected: boolean
+}
+export interface PressureDropTestLogDetail extends PressureDropTestLogSummary {
+  samples: PressureDropTestLogSample[]
 }
 
 // POST /api/bending-job/{id}/start  (no body)

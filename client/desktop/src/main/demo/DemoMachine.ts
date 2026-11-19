@@ -1920,6 +1920,12 @@ export class DemoMachine extends EventEmitter {
       const stopped = this.pressureTest.stop()
       return { success: stopped, errorMessage: stopped ? null : 'Basınç düşüş testi çalışmıyor', status: this.pressureTest.status() }
     }
+    if (path === '/api/pressure-drop-test/logs' && method === 'GET') return this.pressureTest.logs()
+    if (path.startsWith('/api/pressure-drop-test/logs/') && method === 'GET') {
+      return this.pressureTest.log(decodeURIComponent(path.slice('/api/pressure-drop-test/logs/'.length)), (st, msg, body) => {
+        throw new HttpError(st, rawUrl, msg, body)
+      })
+    }
     if (path === '/api/pressure-drop-test/start' && method === 'POST') {
       const status = this.pressureTest.start(b, (st, msg, body) => {
         throw new HttpError(st, rawUrl, msg, body)

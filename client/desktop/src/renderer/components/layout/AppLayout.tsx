@@ -148,7 +148,7 @@ export default function AppLayout() {
           Bakım modu açıkken (ve büküm monitörü yokken) BAKIM MODU AKTİF ekranı/şeridi — sadece görünür uyarı.
           Outlet bakım modundan bağımsız HEP aynı ağaç konumunda: bakım ekranı tam boyken sadece gizlenir
           (hidden), mod açılıp/kapanınca veya küçültülünce açık sayfa sıfırlanmaz. Büküm dalı eski davranışta. */}
-      <div className={styles.top}>
+      <div className={styles.top} data-top-zone="">
         {bendingActive ? (
           <BendingBallsPanel variant="monitor" />
         ) : macroRecording ? (

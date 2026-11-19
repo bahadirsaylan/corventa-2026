@@ -85,6 +85,12 @@ export function registerBendingHandlers(): void {
     return engineApi.pressureDropTestStop()
   })
   ipcMain.handle(Ipc.IpcInvoke.PressureDropTestStatus, async (_evt, samples?: number) => engineApi.pressureDropTestStatus(samples))
+  ipcMain.handle(Ipc.IpcInvoke.PressureDropTestLogs, async () => engineApi.pressureDropTestLogs())
+  ipcMain.handle(Ipc.IpcInvoke.PressureDropTestLog, async (_evt, fileName: unknown) => {
+    // backend de doğrular — sadece pdt-yyyyMMdd-HHmmss-Sol|Sag.csv
+    if (typeof fileName !== 'string' || !/^pdt-\d{8}-\d{6}-(Sol|Sag)(-\d{1,3})?\.csv$/.test(fileName)) throw new Error('Geçersiz kayıt adı')
+    return engineApi.pressureDropTestLog(fileName)
+  })
 
   ipcMain.handle(Ipc.IpcInvoke.RadiusSensorAction, async (_evt, side: unknown, action: unknown) => {
     if (side !== 'left' && side !== 'right') throw new Error('Geçersiz sensör tarafı')

@@ -25,6 +25,8 @@ import {
   type OilHeatingResult,
   type OilHeatingStartRequest,
   type OilHeatingStatus,
+  type PressureDropTestLogDetail,
+  type PressureDropTestLogSummary,
   type PressureDropTestResult,
   type PressureDropTestStartRequest,
   type PressureDropTestStatus,
@@ -83,6 +85,9 @@ export const bendingApi = {
   pressureDropTestStop: (): Promise<PressureDropTestResult> => ipcRenderer.invoke(Ipc.IpcInvoke.PressureDropTestStop),
   pressureDropTestStatus: (samples?: number): Promise<PressureDropTestStatus> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.PressureDropTestStatus, samples),
+  pressureDropTestLogs: (): Promise<PressureDropTestLogSummary[]> => ipcRenderer.invoke(Ipc.IpcInvoke.PressureDropTestLogs),
+  pressureDropTestLog: (fileName: string): Promise<PressureDropTestLogDetail> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.PressureDropTestLog, fileName),
   // Radyus (GT2) sensörü — Admin Ayarları > ÖLÇÜM & SENSÖR
   radiusSensorAction: (side: 'left' | 'right', action: 'zero' | 'clear' | 'reset-encoder'): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.RadiusSensorAction, side, action),

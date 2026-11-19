@@ -25,3 +25,12 @@
 .result[data-kind='info'] { background: #e5e7eb; color: #374151; }
 .resultNote { margin: 0; font-size: 11px; line-height: 1.35; color: var(--color-text-muted); }
 .path { margin: 0; font-size: 11px; font-family: var(--font-mono); color: var(--color-text); word-break: break-all; }
+
+/* KAYITLAR (2026-11-19) — sol sütun altı tek satır + CSV yolu yanında KAYDI AÇ */
+.logsCard { flex-direction: row; align-items: center; gap: 12px; }
+.logsText { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.logsTitle { font-size: 14px; font-weight: 800; letter-spacing: 0.1em; color: var(--color-primary); }
+.logsNote { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pathRow { display: flex; align-items: center; gap: 10px; }
+.pathRow .path { flex: 1; min-width: 0; }
+.openBtn { flex-shrink: 0; min-height: 40px; padding: 6px 16px; }

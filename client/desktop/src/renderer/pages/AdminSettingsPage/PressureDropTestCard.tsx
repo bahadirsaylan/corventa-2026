@@ -3,7 +3,8 @@
 // Bending API /api/pressure-drop-test: seçilen yan top güvenli ileri sınıra gider, büküm sırasındaki basınç düşüşü
 // kuralıyla (aynı kod) izlenir; düşüş / kurs sonu / DURDUR'da top durur ve GERİ ÇEKİLMEZ.
 // Eşikler Admin Ayarları'ndaki kayıtlı değerlerle dolar; burada değiştirmek ayarı KAYDETMEZ (sadece bu test).
-// Yerleşim (üst alan, kaydırmasız): sol sütun = parametreler, sağ sütun = başlat/durdur + canlı değerler + grafik + sonuç.
+// Yerleşim (üst alan, kaydırmasız): sol sütun = parametreler + TEST KAYITLARI, sağ sütun = başlat/durdur + canlı değerler +
+// grafik + sonuç (+ KAYDI AÇ). KAYITLAR / KAYDI AÇ üst alanı kaplayan PressureDropLogsPanel'i açar (geçmiş CSV kayıtları).
 
 import { useEffect, useRef, useState } from 'react'
 import type { PressureDropTestSample, PressureDropTestSide, PressureDropTestStatus } from '@shared/types'
@@ -16,6 +17,7 @@ import {
 } from '@/components/SettingsForm/SettingsForm'
 import { useT, tp } from '@/i18n'
 import css from './PressureDropTestCard.module.css'
+import PressureDropLogsPanel from './PressureDropLogsPanel'
 
 const CHART_SAMPLES = 150 // 100 ms örnek → son 15 sn
 const DEFAULT_SPEED = 20
@@ -67,6 +69,8 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
   const [st, setSt] = useState<PressureDropTestStatus | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  /** KAYITLAR paneli: null = kapalı, { file: null } = liste, { file } = o kayıt */
+  const [logs, setLogs] = useState<{ file: string | null } | null>(null)
   const active = st?.active === true
   const activeRef = useRef(active)
   activeRef.current = active
@@ -143,6 +147,9 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
   const sideLabel = st?.side === 'Right' ? t('SAĞ TOP') : t('SOL TOP')
   const pos = st?.currentPositionMm
   const pair = (a: number | undefined, b: number | undefined) => `${a ?? '—'} / ${b ?? '—'}`
+  // Biten testin kaydı (backend csvFileName; eski backend → yoldan)
+  const lastFile = st?.csvFileName ?? st?.csvPath?.split(/[\\/]/).pop()?.replace(/\s.*$/, '') ?? null
+  const canOpenLast = ran && !active && !!lastFile && /^pdt-.*\.csv$/.test(lastFile)
 
   return (
     <>
@@ -154,6 +161,17 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
         disabled={active || busy}
         onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
       />
+
+      {/* Geçmiş testler — sol sütunun altında tek satır (kaydırmasız) */}
+      <div className={`${styles.card} ${css.logsCard}`}>
+        <div className={css.logsText}>
+          <span className={css.logsTitle}>{t('TEST KAYITLARI')}</span>
+          <span className={css.logsNote}>{t('Geçmiş testler: grafik, eşikler, tüm örnekler')}</span>
+        </div>
+        <button type="button" className={styles.resetBtn} onClick={() => setLogs({ file: null })}>
+          {t('KAYITLAR')}
+        </button>
+      </div>
 
       {/* ── Sağ sütun: başlat/durdur + canlı değerler + grafik + sonuç (tek kart, kaydırmasız) ── */}
       <div className={styles.card} style={{ breakBefore: 'column' }}>
@@ -210,11 +228,19 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
           </p>
         )}
         {st?.csvPath && (
-          <p className={css.path}>
-            {t('Kayıt dosyası (CSV):')} {st.csvPath}
-          </p>
+          <div className={css.pathRow}>
+            <p className={css.path}>
+              {t('Kayıt dosyası (CSV):')} {st.csvPath}
+            </p>
+            {canOpenLast && (
+              <button type="button" className={`${styles.resetBtn} ${css.openBtn}`} onClick={() => setLogs({ file: lastFile })}>
+                {t('KAYDI AÇ')}
+              </button>
+            )}
+          </div>
         )}
       </div>
+      {logs && <PressureDropLogsPanel initialFile={logs.file} onClose={() => setLogs(null)} />}
     </>
   )
 }

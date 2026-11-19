@@ -1,0 +1,121 @@
+/* BASINÇ DÜŞÜŞ TESTİ — KAYITLAR (2026-11-19). Üst alanı (1080×750) tam kaplar; KAYDIRMA YOK (sabit satır sayıları + sayfalama). */
+
+.panel {
+  position: fixed; z-index: 180; overflow: hidden;
+  display: flex; flex-direction: column;
+  background: #e8e0d0;
+}
+
+.header {
+  display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+  height: 64px; padding: 0 16px; background: #2a2a2a; color: #fff;
+}
+.roundBtn {
+  width: 44px; height: 44px; flex-shrink: 0; border-radius: 50%; border: none;
+  background: #fff; color: #2a2a2a; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.title { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: 0.07em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fileName {
+  flex: 1; min-width: 0; text-align: right; font-family: var(--font-mono); font-size: 12px; color: #d1d5db;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.body {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 16px;
+}
+
+.card {
+  background: #fff; border: 1.5px solid #d07070; border-radius: 12px; padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0;
+}
+
+.btn {
+  flex-shrink: 0; min-height: 44px; padding: 8px 22px; border-radius: 8px; border: 2px solid #d07070; background: #f4ecdc;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text); cursor: pointer;
+}
+.btn:disabled { opacity: 0.45; cursor: default; }
+
+.infoRow { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.hint { flex: 1; margin: 0; font-size: 12px; line-height: 1.35; color: var(--color-text-muted); }
+.error { margin: 0; flex-shrink: 0; padding: 8px 12px; border-radius: 8px; background: #fee2e2; color: #991b1b; font-size: 13px; font-weight: 700; }
+
+/* ── tablo ortak ── */
+.table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.table thead th {
+  text-align: left; padding: 6px 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em;
+  color: var(--color-text-muted); border-bottom: 2px solid #e5e7eb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.table tbody td {
+  padding: 0 8px; font-size: 13px; border-bottom: 1px dotted #e5e7eb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.table .num { text-align: right; }
+.mono { font-family: var(--font-mono); font-size: 13px; }
+.empty { text-align: center; padding: 24px 8px !important; color: var(--color-text-muted); font-style: italic; }
+
+/* ── liste ── */
+.listCard { flex: 1; justify-content: space-between; }
+.listRow { cursor: pointer; }
+.listRow td { height: 50px; }
+.listRow:active td, .listRow:hover td { background: #f8f3ea; }
+.table tbody td.chev { padding: 0; text-align: right; font-size: 22px; font-weight: 800; color: var(--color-text-muted); }
+
+.chip {
+  display: inline-block; max-width: 100%; padding: 4px 10px; border-radius: 6px; vertical-align: middle;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: #e5e7eb; color: #374151;
+}
+.chip[data-kind='ok'] { background: #dcfce7; color: #166534; }   /* kart durum etiketiyle aynı renkler */
+.chip[data-kind='warn'] { background: #fef3c7; color: #92400e; }
+.chip[data-kind='err'] { background: #fee2e2; color: #991b1b; }
+.chip[data-kind='run'] { background: #dbeafe; color: #1e3a8a; }
+
+.pager { display: flex; align-items: center; justify-content: center; gap: 16px; flex-shrink: 0; }
+.pagerBtn {
+  width: 52px; height: 44px; border-radius: 8px; border: 2px solid #d07070; background: #fff;
+  font-size: 22px; font-weight: 800; color: var(--color-text); cursor: pointer;
+}
+.pagerBtn:disabled { opacity: 0.35; cursor: default; }
+.pagerInfo { min-width: 64px; text-align: center; font-family: var(--font-mono); font-size: 14px; font-weight: 800; }
+
+/* ── kayıt ── */
+.summary { flex-shrink: 0; gap: 8px; }
+.resultRow { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.resultText {
+  flex: 1; min-width: 0; font-size: 14px; font-weight: 800; line-height: 1.3; color: var(--color-text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.resultText[data-kind='ok'] { color: #991b1b; }
+.time { flex-shrink: 0; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--color-text-muted); }
+
+.kvGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px 8px; }
+.kv { display: flex; flex-direction: column; min-width: 0; padding: 3px 8px; border-radius: 6px; background: #f9fafb; }
+.kv[data-kind='warn'] { background: #fef3c7; }
+.kvLabel { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kvValue { font-size: 14px; font-weight: 800; font-family: var(--font-mono); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.detailRow { flex: 1; min-height: 0; display: grid; grid-template-columns: 616px minmax(0, 1fr); gap: 10px; }
+.chartCard { padding: 8px 8px 6px; gap: 6px; }
+.chartHead { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.seg { display: flex; flex-shrink: 0; border: 2px solid #d07070; border-radius: 8px; overflow: hidden; }
+.segBtn {
+  min-height: 40px; padding: 4px 12px; border: none; background: #fff; cursor: pointer;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.04em; color: var(--color-text);
+}
+.segBtn[data-on] { background: #2a2a2a; color: #fff; }
+.legend { flex: 1; min-width: 0; display: flex; justify-content: flex-end; gap: 10px; font-size: 11px; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; }
+.swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+.swatch[data-dashed] { background: repeating-linear-gradient(90deg, #9ca3af 0 4px, transparent 4px 7px); }
+.chartBox { flex: 1; min-height: 0; position: relative; overflow: hidden; background: #fcfcfd; border: 1px solid #e5e7eb; border-radius: 8px; }
+.chart { position: absolute; inset: 0; display: block; touch-action: none; }
+.chartNote { margin: 0; font-size: 11px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tableCard { justify-content: space-between; padding: 8px 10px; }
+.sampleTable tbody td { height: 25px; font-size: 13px; padding: 0 6px; }
+.sampleTable thead th { padding: 5px 6px; }
+.sampleTable tbody tr[data-wait] td { color: #9ca3af; }
+.sampleTable tbody tr[data-det] td { background: #fee2e2; font-weight: 800; }
+.hot { color: #991b1b; }
+.tableFoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.unitNote { font-size: 11px; color: var(--color-text-muted); white-space: nowrap; }

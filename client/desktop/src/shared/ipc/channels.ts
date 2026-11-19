@@ -25,6 +25,8 @@ export const IpcInvoke = {
   PressureDropTestStart: 'pressure-drop-test:start',
   PressureDropTestStop: 'pressure-drop-test:stop',
   PressureDropTestStatus: 'pressure-drop-test:status',
+  PressureDropTestLogs: 'pressure-drop-test:logs',
+  PressureDropTestLog: 'pressure-drop-test:log',
   // Radyus (GT2) sensörü sıfırla / temizle / PLC encoder reset (Admin Ayarları > ÖLÇÜM & SENSÖR)
   RadiusSensorAction: 'radius-sensor:action',
   StartBendingJob: 'bending-job:start',
