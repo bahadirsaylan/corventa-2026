@@ -172,6 +172,18 @@ function ControlPanel() {
           <span className={styles.headerLabel}>{t('BASINÇ')}</span>
           <span className={styles.headerValue}>{s2Pressure}</span>
           <span className={styles.headerUnit}>BAR</span>
+          {/* 2026-11-19 (kullanıcı): İPTAL sağda tolerans düğmesiyle birlikte orta mod göstergesini (YAPAY ZEKA MODU
+              logosu + yazısı) sıkıştırıyordu → sol tarafa, basıncın yanına taşındı */}
+          {bendingActive && (
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              onClick={() => setShowCancelModal(true)}
+              aria-label={t('Bukumu iptal et')}
+            >
+              <IconLabel icon="stop">{t('İPTAL')}</IconLabel>
+            </button>
+          )}
         </div>
 
         <div className={styles.headerCenter}>
@@ -203,16 +215,6 @@ function ControlPanel() {
         </div>
 
         <div className={styles.headerRight}>
-          {bendingActive && (
-            <button
-              type="button"
-              className={styles.cancelBtn}
-              onClick={() => setShowCancelModal(true)}
-              aria-label={t('Bukumu iptal et')}
-            >
-              <IconLabel icon="stop">{t('İPTAL')}</IconLabel>
-            </button>
-          )}
           {/* 2026-11-17: Standart sürümde geri esneme ölçümü yok → üretim toleransı seçimi gösterilmez */}
           {FEATURES.springbackMeasure && (
           <button

@@ -27,6 +27,7 @@
   gap: 12px;
   /* 2026-11-17 (QA): iki yan eşit pay alır → ortadaki mod göstergesi gerçekten ortada (eskiden sola kayıyordu) */
   flex: 1 1 0;
+  min-width: 0;
 }
 
 .headerRight {
@@ -39,12 +40,14 @@
   color: #fff;
   border: 2px solid var(--color-primary-dark, #b91c1c);
   border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 18px;
+  padding: 8px 14px;
+  font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  margin-right: 16px;
+  margin-left: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -292,6 +295,8 @@
 }
 
 .headerCenter {
+  /* 2026-11-19: mod göstergesi asla sıkışmaz / küçülmez */
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -309,6 +314,10 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--color-text-muted);
+  /* 2026-11-19: uzun çeviriler (ARTIFICIAL INTELLIGENCE MODE) iki satıra iner — yan alanları sıkıştırmaz */
+  max-width: 190px;
+  text-align: center;
+  line-height: 1.15;
 }
 
 /* ── Content grid: yan dayamalar + top grid + yan dayamalar ─────── */
@@ -525,4 +534,10 @@
 .posCurrent.axisWorking,
 .macroAxis.axisWorking {
   color: #16a34a;
+}
+
+/* 2026-11-19: büküm sırasında İPTAL sol tarafta — "BASINÇ / PRESSURE" kelimesi gizlenir (değer + BAR kalır),
+   böylece 3 haneli basınçta ve İngilizce'de de orta mod göstergesine taşmaz */
+.headerLeft:has(.cancelBtn) .headerLabel {
+  display: none;
 }
