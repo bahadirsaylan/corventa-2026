@@ -28,6 +28,8 @@ const ITEMS: MenuItem[] = [
   { label: 'CHECK LIST', permission: 'checklist', to: '/settings/checklist' },
   { label: 'PDF KULLANIM KİTABI', permission: 'pdf-guide', to: 'guide' },
   { label: 'BAKIM SÜRESİ', permission: 'maintenance', to: '/settings/maintenance' },
+  // 2026-11-19: gönye (cetvel sıfırlama) sayfası şimdilik herkese açık — Admin Ayarları dışından da giriş
+  { label: 'GÖNYE / CETVEL SIFIRLAMA', permission: 'encoder-reset', to: '/settings/encoder-reset' },
   { label: 'KALIP KODU SORGULA', permission: 'mold-query', to: '/settings/mold-code', show: FEATURES.moldLicense },
   { label: 'HATA RAPORLARI', permission: 'error-reports', to: '/settings/error-reports' },
   // 2026-11-19 — kapatılan uyarılar (kirlilik / bakım / güvenlik) — kim, ne zaman, kaçıncı kez

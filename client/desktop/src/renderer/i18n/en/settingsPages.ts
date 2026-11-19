@@ -404,6 +404,7 @@ const en: Record<string, string> = {
   "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop, büküm İPTAL (kaldığı yerden devam yok — manuel tahliye). Tahliye / manuel harekette sadece uyarı.":
     'STOP BENDING: if the rotation encoder does not advance during bending → emergency stop, bending CANCELLED (no resume — manual unload). Unload / manual moves only warn.',
   'BÜKÜMÜ DURDUR': 'STOP BENDING',
+  'GÖNYE / CETVEL SIFIRLAMA': 'SQUARING / RULER RESET',
 }
 
 export default en

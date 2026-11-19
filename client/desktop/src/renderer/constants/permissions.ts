@@ -24,6 +24,9 @@ export const PERMISSIONS = {
   'language': 'OPERATOR',
   'pdf-guide': 'OPERATOR',
   'side-menu': 'OPERATOR',          // Hızlı Menü düzeni
+  // 2026-11-19 (kullanıcı): GÖNYE / CETVEL SIFIRLAMA sayfası ŞİMDİLİK HERKESE AÇIK — sonra tekrar kısıtlanacak.
+  // Engel sonrası 'YAVAŞ GÖNYE' onayı yine SUPERVISOR+ (sayfada useHasRole + backend kontrol eder).
+  'encoder-reset': 'OPERATOR',
   'welcome-message': 'OPERATOR',    // 2026-11-19: her kullanıcı KENDİ karşılama mesajını düzenler
   'machine-hours': 'OPERATOR',      // Kullanma Süreleri
   'bending-count': 'OPERATOR',      // Kıvrım Adetleri raporu
@@ -41,7 +44,6 @@ export const PERMISSIONS = {
   'alert-acks': 'SUPERVISOR',       // UYARI KAYITLARI (2026-11-19): kapatılan uyarılar (DataApi GET /api/alert-acks [RequireRole(Supervisor)]) // STANDART SÜRÜM (2026-11-17) kayıtlı büküm silme (DataApi DELETE /api/saved-bends/{id})
   // ── SERVICEMAN (SERVİS TEKNİSYENİ) ──
   'admin-settings': 'SERVICEMAN',   // Admin Ayarları (cetvel sıfırlama dahil) + sıkıştırma kayıtları
-  'encoder-reset': 'SERVICEMAN',
   'macro-delete': 'SERVICEMAN',     // makro silme (DataApi DELETE /api/macros/{id} [RequireRole(Serviceman)])
   'big-data': 'SERVICEMAN',         // Bulut Bağlantısı sayfası: durum, aktivasyon, reçete paylaşımı, güncelleme (main de kontrol eder)
   // ── DEALER (BAYİ) ──
