@@ -111,7 +111,8 @@ const en: Record<string, string> = {
   'Reçete paylaşımı açık ama makine internete ulaşamıyor. Wi-Fi / ağ kablosunu kontrol edip bağlantıyı düzeltin.':
     'Recipe sharing is on but the machine cannot reach the internet. Check the Wi-Fi / network cable and fix the connection.',
   'TEKRAR KONTROL ET': 'CHECK AGAIN',
-  'DEMO — Kullanıcı: operator / sorumlu / servis / bayi / admin / super / kurulum · Şifre: 1234': 'DEMO — User: operator / sorumlu / servis / bayi / admin / super / kurulum · Password: 1234',
+  'DEMO — HAZIR KULLANICI İLE GİRİŞ': 'DEMO — SIGN IN AS A READY USER',
+  'KULLANICI SEÇİN…': 'SELECT USER…',
   // 2026-11-05 — demo ekran boyutu
   'EKRAN BOYUTU': 'SCREEN SIZE',
   Küçült: 'Smaller',

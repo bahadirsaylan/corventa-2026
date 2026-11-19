@@ -61,6 +61,10 @@ export const machineApi = {
   setHydraulicMotor: (on: boolean): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SetHydraulicMotor, on),
 
+  // Fan / alarm aç-kapat (MAKİNE DEĞERLERİ sayfası, SÜPERADMİN)
+  setFan: (on: boolean): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.SetFan, on),
+  setAlarm: (on: boolean): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.SetAlarm, on),
+
   sendCommand: (command: unknown): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SendMachineCommand, command),
 }

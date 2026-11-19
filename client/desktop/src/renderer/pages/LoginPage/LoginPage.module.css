@@ -204,3 +204,23 @@
   letter-spacing: 0.3em;
   color: var(--color-text-muted);
 }
+
+/* 2026-11-19 — demo hazır kullanıcı seçimi */
+.demoPick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.demoSelect {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border: 1.5px solid #d97706;
+  border-radius: 6px;
+  background: #fff;
+  color: #2a2a2a;
+  max-width: 100%;
+}

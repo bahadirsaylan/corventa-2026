@@ -390,6 +390,16 @@ export class EngineApiClient {
   setHydraulicMotor(on: boolean): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/machine/motor`, { value: on })
   }
+
+  // Fan aç/kapat — backend POST /api/machine/fan { value } (MAKİNE DEĞERLERİ sayfası)
+  setFan(on: boolean): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/machine/fan`, { value: on })
+  }
+
+  // Alarm (siren/ikaz) aç/kapat — backend POST /api/machine/alarm { value } (MAKİNE DEĞERLERİ sayfası)
+  setAlarm(on: boolean): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/machine/alarm`, { value: on })
+  }
 }
 
 // Tahliye HTTP timeout'u — backend'in en kötü toplamının (UnloadPartHandler: DataApi kontrolü 30sn +

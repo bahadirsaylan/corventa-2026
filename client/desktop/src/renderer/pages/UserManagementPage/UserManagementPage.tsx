@@ -20,7 +20,6 @@ import {
 } from '@shared/types'
 
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
 import { ROLE_COLORS, ROLE_LABELS, roleCan } from '@/constants/permissions'
 import { endSession, useRole, useSessionStore } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
@@ -237,14 +236,12 @@ export default function UserManagementPage() {
                         {isLocked(u) && <span className={`${styles.statusPill} ${styles.pillLocked}`}>{t('KİLİTLİ')}</span>}
                       </td>
                       <td className={styles.tdActions}>
-                        <button
-                          className={`${styles.actionBtn} ${editable ? '' : styles.actionLocked}`}
-                          onClick={() => openEdit(u)}
-                          aria-disabled={!editable || undefined}
-                        >
-                          {!editable && <LockIcon className={styles.actionLockIcon} />}
-                          {t('DÜZENLE')}
-                        </button>
+                        {/* 2026-11-19: yönetemediği kullanıcıda DÜZENLE hiç görünmez */}
+                        {editable && (
+                          <button className={styles.actionBtn} onClick={() => openEdit(u)}>
+                            {t('DÜZENLE')}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )

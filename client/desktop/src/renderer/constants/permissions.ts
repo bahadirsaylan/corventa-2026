@@ -3,7 +3,7 @@
 // < ADMIN (MAKİNE ÜRETİCİSİ) < SUPERADMIN (YAZILIM ÜRETİCİSİ); üst rol alttakinin her şeyini yapabilir.
 // Kullanıldığı yerler: Ayarlar ızgarası (SettingsMenuGrid), rota koruması (RequireRole / App.tsx),
 // sağ hızlı menü (SideMenu), kiosk çıkışı (KioskExitCorner), Kullanıcı Yönetimi rol seçimi.
-// Yetkisiz düğmeler gizlenmez: soluk + kilit + dokununca "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ".
+// Yetkisiz düğmeler / menü öğeleri HİÇ GÖRÜNMEZ (2026-11-19, kullanıcı); rotaya doğrudan gidilirse RequireRole uyarır.
 // Kullanıcı yönetimi: herkes SADECE kendi rolünden KESİN DÜŞÜK rolleri yönetir (canManageRole, @shared/types);
 // SUPERADMIN herkesi. Aynı kural DataApi UsersController'da da uygulanır.
 // DİKKAT: Backend'de şimdilik SADECE /api/users (SUPERVISOR+), /api/auth/*, PUT /api/maintenance/rules (ADMIN),
@@ -52,6 +52,7 @@ export const PERMISSIONS = {
   // ── SUPERADMIN (YAZILIM ÜRETİCİSİ) ──
   'cloud-deactivate': 'SUPERADMIN', // BULUT BAĞLANTISINI KALDIR (main de kontrol eder)
   'kiosk-exit': 'SUPERADMIN',       // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
+  'machine-values': 'SUPERADMIN',   // MAKİNE DEĞERLERİ (2026-11-19): tüm canlı makine değerleri + motor / fan / alarm aç-kapat (kilit SADECE UI'da)
 } as const satisfies Record<string, UserRole>
 
 export type Permission = keyof typeof PERMISSIONS
@@ -68,6 +69,7 @@ export const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, Permission]> = [
   ['/settings/encoder-reset', 'encoder-reset'],
   ['/settings/customer-change', 'customer-change'],
   ['/settings/machine-transfer', 'customer-change'],
+  ['/settings/machine-values', 'machine-values'],
 ]
 
 /** Rol bu yetkiye sahip mi (oturum yoksa hiçbir yetki yok) */

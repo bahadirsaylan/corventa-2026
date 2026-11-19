@@ -12,10 +12,7 @@ import { useLang, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
-import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import { formatCheckTime, internetStateText } from '@/components/InternetStatus/InternetStatusChip'
-import { PERMISSIONS } from '@/constants/permissions'
 import { useInternetStore } from '@/stores/internetStore'
 import { useCloudStatusPolling, useCloudStore } from '@/stores/cloudStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
@@ -293,16 +290,17 @@ export default function BigDataConnectionPage() {
             ) : (
               <>
                 <p className={styles.note}>{t('Makine buluta kayıtlı. Bağlantı kaldırılırsa veri gönderimi durur; yeniden bağlanmak için yeni aktivasyon kodu gerekir.')}</p>
-                <button
-                  type="button"
-                  className={`${styles.dangerBtn} ${canDeactivate ? '' : styles.locked}`}
-                  onClick={canDeactivate ? () => setConfirm('deactivate') : () => showRoleNotice(PERMISSIONS['cloud-deactivate'])}
-                  disabled={busy != null}
-                  aria-disabled={!canDeactivate || undefined}
-                >
-                  {busy === 'deactivate' ? t('KALDIRILIYOR…') : t('BULUT BAĞLANTISINI KALDIR')}
-                  {!canDeactivate && <LockIcon className={styles.lockIcon} />}
-                </button>
+                {/* 2026-11-19: yetkisi yoksa düğme hiç görünmez */}
+                {canDeactivate && (
+                  <button
+                    type="button"
+                    className={styles.dangerBtn}
+                    onClick={() => setConfirm('deactivate')}
+                    disabled={busy != null}
+                  >
+                    {busy === 'deactivate' ? t('KALDIRILIYOR…') : t('BULUT BAĞLANTISINI KALDIR')}
+                  </button>
+                )}
               </>
             )}
           </section>

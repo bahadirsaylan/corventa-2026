@@ -14,6 +14,18 @@ import { startSession } from '@/stores/sessionStore'
 import { t as tr, useT } from '@/i18n'
 import styles from './LoginPage.module.css'
 
+// DEMO hazır kullanıcıları (main/demo/demoAuth.ts ile aynı) — sadece demo modunda gösterilir
+const DEMO_PASSWORD = '1234'
+const DEMO_USERS: ReadonlyArray<readonly [string, string]> = [
+  ['operator', 'KULLANICI'],
+  ['sorumlu', 'ATÖLYE SORUMLUSU'],
+  ['servis', 'SERVİS TEKNİSYENİ'],
+  ['bayi', 'BAYİ'],
+  ['admin', 'ADMİN'],
+  ['super', 'SÜPERADMİN'],
+  ['kurulum', 'KURULUM KULLANICISI (TEK SEFERLİK)'],
+]
+
 type Mode = 'loading' | 'login' | 'setup'
 
 const MIN_PASSWORD = 6
@@ -118,6 +130,23 @@ export default function LoginPage() {
       const res = await window.corventa.auth.login(username.trim(), password)
       if (res.ok) return enter(res.data)
       setPassword('')
+      setError(failureMessage(res, false))
+    } catch {
+      setError(t('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // DEMO: hazır kullanıcı ile tek dokunuşta giriş (demo kullanıcılarının şifresi 1234 — main/demo/demoAuth.ts)
+  async function demoLogin(user: string) {
+    if (busy) return
+    setError(null)
+    setUsername(user)
+    setBusy(true)
+    try {
+      const res = await window.corventa.auth.login(user, DEMO_PASSWORD)
+      if (res.ok) return enter(res.data)
       setError(failureMessage(res, false))
     } catch {
       setError(t('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN'))
@@ -288,10 +317,29 @@ export default function LoginPage() {
           </form>
         )}
 
+        {/* 2026-11-19 (kullanıcı): demoda hazır kullanıcı seçilince doğrudan giriş yapılır */}
         {isDemo && mode === 'login' && (
-          <p className={styles.demoHint}>
-            {t('DEMO — Kullanıcı: operator / sorumlu / servis / bayi / admin / super / kurulum · Şifre: 1234')}
-          </p>
+          <div className={styles.demoHint}>
+            <label className={styles.demoPick}>
+              <span>{t('DEMO — HAZIR KULLANICI İLE GİRİŞ')}</span>
+              <select
+                className={styles.demoSelect}
+                value=""
+                disabled={busy}
+                onChange={(e) => {
+                  const u = e.target.value
+                  if (u) void demoLogin(u)
+                }}
+              >
+                <option value="">{t('KULLANICI SEÇİN…')}</option>
+                {DEMO_USERS.map(([u, label]) => (
+                  <option key={u} value={u}>
+                    {t(label)} ({u})
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         )}
 
         {isDemo && zoomPct != null && (

@@ -1,79 +1,76 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import UserGuideViewer from '@/components/UserGuideViewer/UserGuideViewer'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
-import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
-import { PERMISSIONS, type Permission } from '@/constants/permissions'
-import { useCan } from '@/stores/sessionStore'
+import { roleCan, type Permission } from '@/constants/permissions'
+import { useSessionStore } from '@/stores/sessionStore'
 import { useT } from '@/i18n'
 import styles from './SettingsMenuGrid.module.css'
 import { FEATURES } from '@shared/edition'
 
+interface MenuItem {
+  label: string
+  permission: Permission
+  /** Rota veya özel eylem ('guide' = PDF kılavuz) */
+  to: string
+  /** Sürüm bayrağı vb. — false ise hiç çizilmez */
+  show?: boolean
+}
+
+// Sıra: önce eski sol sütun, sonra eski sağ sütun. Görünür öğeler iki sütuna eşit bölünür.
+// 2026-11-19 (kullanıcı): YETKİSİ OLMAYAN ÖĞE HİÇ GÖRÜNMEZ (eskiden soluk + kilit). Rota koruması (RequireRole) aynen durur.
+const ITEMS: MenuItem[] = [
+  { label: 'GARANTİ SÜRESİ', permission: 'warranty', to: '/settings/warranty' },
+  // STANDART SÜRÜM (2026-11-17): bulut / kalıp girişleri FEATURES kapalıysa gizli
+  { label: 'BULUT BAĞLANTISI', permission: 'big-data', to: '/settings/big-data', show: FEATURES.cloud },
+  { label: 'KULLANICI YÖNETİMİ', permission: 'user-management', to: '/settings/users' },
+  { label: 'OPERATÖR AYARLARI', permission: 'operator-settings', to: '/settings/operator' },
+  { label: 'KARŞILAMA MESAJI', permission: 'welcome-message', to: '/settings/welcome-message' },
+  { label: 'CHECK LIST', permission: 'checklist', to: '/settings/checklist' },
+  { label: 'PDF KULLANIM KİTABI', permission: 'pdf-guide', to: 'guide' },
+  { label: 'BAKIM SÜRESİ', permission: 'maintenance', to: '/settings/maintenance' },
+  { label: 'KALIP KODU SORGULA', permission: 'mold-query', to: '/settings/mold-code', show: FEATURES.moldLicense },
+  { label: 'HATA RAPORLARI', permission: 'error-reports', to: '/settings/error-reports' },
+  { label: 'BÜKÜM GEÇMİŞİ', permission: 'bending-history', to: '/settings/bending-history' },
+  { label: 'KULLANMA SÜRELERİ', permission: 'machine-hours', to: '/settings/machine-hours' },
+  { label: 'KIVRIM ADETLERİ RAPORU', permission: 'bending-count', to: '/settings/bending-count' },
+  { label: 'DİL SEÇİMİ', permission: 'language', to: '/settings/language' },
+  { label: 'SERTİFİKA SORGULA', permission: 'certificate', to: '/settings/certificate' },
+  { label: 'KALIP KÜTÜPHANESİ', permission: 'mold-library', to: '/settings/mold-library', show: FEATURES.moldLicense },
+  // SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17)
+  { label: 'MÜŞTERİ DEĞİŞİKLİĞİ', permission: 'customer-change', to: '/settings/customer-change' },
+  { label: 'HIZLI MENÜ', permission: 'side-menu', to: '/settings/side-menu' },
+  { label: 'ADMİN AYARLARI', permission: 'admin-settings', to: '/settings/admin' },
+  // 2026-11-19 — tüm canlı makine değerleri + motor / fan / alarm (sadece SÜPERADMİN)
+  { label: 'MAKİNE DEĞERLERİ', permission: 'machine-values', to: '/settings/machine-values' },
+  // CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin)
+]
+
 export default function SettingsMenuGrid() {
   const navigate = useNavigate()
+  const tr = useT()
+  const role = useSessionStore((s) => s.role)
 
   // PDF kılavuz uygulama içinde (kiosk'tan çıkmadan) tam ekran açılır
   const [showGuide, setShowGuide] = useState(false)
 
+  const visible = ITEMS.filter((it) => it.show !== false && roleCan(role, it.permission))
+  const half = Math.ceil(visible.length / 2)
+  const columns = [visible.slice(0, half), visible.slice(half)]
+
+  const open = (it: MenuItem) => (it.to === 'guide' ? setShowGuide(true) : navigate(it.to))
+
   return (
     <div className={styles.grid}>
       {showGuide && <UserGuideViewer onClose={() => setShowGuide(false)} />}
-      {/* ── LEFT COLUMN ───────────────────────────── */}
-      <div className={styles.col}>
-        <SettingsBtn label="GARANTİ SÜRESİ" permission="warranty" onClick={() => navigate('/settings/warranty')} />
-        {/* STANDART SÜRÜM (2026-11-17): bulut / kalıp girişleri FEATURES kapalıysa gizli */}
-        {FEATURES.cloud && <SettingsBtn label="BULUT BAĞLANTISI" permission="big-data" onClick={() => navigate('/settings/big-data')} />}
-        <SettingsBtn label="KULLANICI YÖNETİMİ" permission="user-management" onClick={() => navigate('/settings/users')} />
-        <SettingsBtn label="OPERATÖR AYARLARI" permission="operator-settings" onClick={() => navigate('/settings/operator')} />
-        <SettingsBtn label="KARŞILAMA MESAJI" permission="welcome-message" onClick={() => navigate('/settings/welcome-message')} />
-        <SettingsBtn label="CHECK LIST" permission="checklist" onClick={() => navigate('/settings/checklist')} />
-        <SettingsBtn label="PDF KULLANIM KİTABI" permission="pdf-guide" onClick={() => setShowGuide(true)} />
-        <SettingsBtn label="BAKIM SÜRESİ" permission="maintenance" onClick={() => navigate('/settings/maintenance')} />
-        {FEATURES.moldLicense && <SettingsBtn label="KALIP KODU SORGULA" permission="mold-query" onClick={() => navigate('/settings/mold-code')} />}
-        {/* 2026-11-17: Standart sürümde bulut / kalıp girişleri yokken sütunlar 7 / 9 kalıyordu — HIZLI MENÜ sola geçer (8 / 8) */}
-        {!FEATURES.moldLicense && <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />}
-        {/* CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin) */}
-      </div>
-
-      {/* ── RIGHT COLUMN ──────────────────────────── */}
-      <div className={styles.col}>
-        <SettingsBtn label="HATA RAPORLARI" permission="error-reports" onClick={() => navigate('/settings/error-reports')} />
-        <SettingsBtn label="BÜKÜM GEÇMİŞİ" permission="bending-history" onClick={() => navigate('/settings/bending-history')} />
-        <SettingsBtn label="KULLANMA SÜRELERİ" permission="machine-hours" onClick={() => navigate('/settings/machine-hours')} />
-        <SettingsBtn label="KIVRIM ADETLERİ RAPORU" permission="bending-count" onClick={() => navigate('/settings/bending-count')} />
-        <SettingsBtn label="DİL SEÇİMİ" permission="language" onClick={() => navigate('/settings/language')} />
-        <SettingsBtn label="SERTİFİKA SORGULA" permission="certificate" onClick={() => navigate('/settings/certificate')} />
-        {FEATURES.moldLicense && <SettingsBtn label="KALIP KÜTÜPHANESİ" permission="mold-library" onClick={() => navigate('/settings/mold-library')} />}
-        {/* SATIŞ / TAKAS / HİBE → MÜŞTERİ DEĞİŞİKLİĞİ içinde "neden" adımı (madde 17) */}
-        <SettingsBtn label="MÜŞTERİ DEĞİŞİKLİĞİ" permission="customer-change" onClick={() => navigate('/settings/customer-change')} />
-        {FEATURES.moldLicense && <SettingsBtn label="HIZLI MENÜ" permission="side-menu" onClick={() => navigate('/settings/side-menu')} />}
-        <SettingsBtn label="ADMİN AYARLARI" permission="admin-settings" onClick={() => navigate('/settings/admin')} />
-      </div>
+      {columns.map((col, i) => (
+        <div key={i} className={styles.col}>
+          {col.map((it) => (
+            <button key={it.label} type="button" className={styles.settingsBtn} onClick={() => open(it)}>
+              <span className={styles.btnLabel}>{tr(it.label)}</span>
+            </button>
+          ))}
+        </div>
+      ))}
     </div>
-  )
-}
-
-/* ── Reusable plain button ───────────────────── */
-// Rol yetmiyorsa gizlenmez: soluk + kilit; dokununca "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ" (permissions.ts)
-function SettingsBtn({
-  label,
-  permission,
-  onClick,
-}: {
-  label: string
-  permission: Permission
-  onClick?: () => void
-}) {
-  const tr = useT()
-  const allowed = useCan(permission)
-  return (
-    <button
-      className={`${styles.settingsBtn} ${allowed ? '' : styles.locked}`}
-      onClick={allowed ? onClick : () => showRoleNotice(PERMISSIONS[permission])}
-      aria-disabled={!allowed || undefined}
-    >
-      <span className={styles.btnLabel}>{tr(label)}</span>
-      {!allowed && <LockIcon className={styles.lockIcon} />}
-    </button>
   )
 }

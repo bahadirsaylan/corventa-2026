@@ -7,9 +7,6 @@ import { useNavigate } from 'react-router-dom'
 
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { IconLabel } from '@/components/Icon'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
-import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
-import { PERMISSIONS } from '@/constants/permissions'
 import { useT } from '@/i18n'
 import { macroErrorMessage } from '@/services/macroAxes'
 import { useCan } from '@/stores/sessionStore'
@@ -146,16 +143,12 @@ export default function MacroListPage() {
           >
             <IconLabel icon="edit">{t('DÜZENLE')}</IconLabel>
           </button>
-          <button
-            className={`${styles.actionBtn} ${canDelete ? '' : styles.locked}`}
-            disabled={!selected}
-            aria-disabled={!canDelete || undefined}
-            onClick={() => (canDelete ? setDeleteOpen(true) : showRoleNotice(PERMISSIONS['macro-delete']))}
-          >
-            {/* 2026-11-17 (QA): kardeş butonlar gibi ikonlu */}
-            <IconLabel icon="trash">{t('SİL')}</IconLabel>
-            {!canDelete && <LockIcon className={styles.lockIcon} />}
-          </button>
+          {/* 2026-11-19: silme yetkisi yoksa düğme hiç görünmez */}
+          {canDelete && (
+            <button className={styles.actionBtn} disabled={!selected} onClick={() => setDeleteOpen(true)}>
+              <IconLabel icon="trash">{t('SİL')}</IconLabel>
+            </button>
+          )}
           <button
             className={styles.actionBtn}
             disabled={!selected || selected.stepCount === 0}

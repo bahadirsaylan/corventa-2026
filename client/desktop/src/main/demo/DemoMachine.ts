@@ -296,7 +296,10 @@ export class DemoMachine extends EventEmitter {
     anyS.physicalInfo = { isGonyeCompleted: true, currentStage: 1, currentStageName: 'Stage 1' }
     // Gönye yapılmış makine: tüm cetveller gönye konumunda 0 (gerçekteki gibi; üst top gönye ofseti 0)
     const home: Record<PistonKey, number> = { leftPiston: 0, rightPiston: 0, upperPiston: 0, lowerPiston: 0 }
+    // MAKİNE DEĞERLERİ (2026-11-19): gönye ofsetleri (fiziksel konum = gönye ofseti + cetvel) — sadece gösterim
+    const gonye: Record<PistonKey, number> = { leftPiston: 3.75, rightPiston: 3.75, upperPiston: 0, lowerPiston: 10.5 }
     for (const k of Object.keys(this.targets) as PistonKey[]) {
+      s[k].gonyeOffsetMm = gonye[k]
       s[k].positionMm = home[k]
       this.targets[k] = home[k]
       s[k].inPosition = true
@@ -538,7 +541,7 @@ export class DemoMachine extends EventEmitter {
         p.inPosition = false
       }
       p.encoderRaw = Math.round(p.positionMm * 50)
-      p.physicalPositionMm = p.positionMm
+      p.physicalPositionMm = Math.round((p.gonyeOffsetMm + p.stageOffsetMm + p.positionMm) * 100) / 100
     }
     // Rotasyon: rampa ile hızlanır, hedefe yaklaşırken v ≤ √(2·a·mesafe) ile yavaşlar
     const rdiff = this.rotationTarget - s.rotation.positionMm
@@ -601,10 +604,51 @@ export class DemoMachine extends EventEmitter {
     s.sensors.s2PressureBar = Math.round(s.sensors.s1PressureBar * 0.9)
     s.sensors.s1FlowCms = anyMoving ? 34 + Math.round(Math.random() * 4) : 12
     s.sensors.s2FlowCms = anyMoving ? 31 + Math.round(Math.random() * 4) : 11
+    this.tickDisplayValues()
     ;(s as unknown as { timestamp?: string }).timestamp = new Date().toISOString()
 
     this.emit('stateUpdated', structuredClone(s))
     if (this.progress) this.emit('bendingProgress', { ...this.progress })
+  }
+
+  /** MAKİNE DEĞERLERİ (2026-11-19) — sadece ekranda görünen canlı değerler (hesaba etkisi yok):
+   *  motor kapalıyken basınç/akış 0, yağ sıcaklığı yavaş değişir, emniyet bitleri, ölçüm sensörleri ham değerleri. */
+  private tickDisplayValues(): void {
+    const s = this.state
+    if (s.hydraulicMotorState !== 2) {
+      s.sensors.s1PressureBar = s.sensors.s2PressureBar = 0
+      s.sensors.s1FlowCms = s.sensors.s2FlowCms = 0
+    }
+    if (Math.random() < 0.02) s.sensors.oilTempC = Math.max(38, Math.min(46, s.sensors.oilTempC + (Math.random() < 0.5 ? -1 : 1)))
+    if (Math.random() < 0.01) s.sensors.oilHumidityPercent = Math.max(15, Math.min(22, s.sensors.oilHumidityPercent + (Math.random() < 0.5 ? -1 : 1)))
+    const sf = s.safety
+    s.systemReady = s.hydraulicMotorState === 2 && sf.emergencyStopOK && sf.phaseSequenceOK
+    s.safetyBits =
+      (sf.emergencyStopOK ? 0x0001 : 0) | (sf.motorThermalOK ? 0x0002 : 0) | (sf.fanThermalOK ? 0x0004 : 0) |
+      (sf.phaseSequenceOK ? 0x0008 : 0) | (sf.leftPartSensor ? 0x0010 : 0) | (sf.rightPartSensor ? 0x0020 : 0) |
+      (sf.contaminationK1 ? 0x0040 : 0) | (sf.contaminationK2 ? 0x0080 : 0) | (sf.contaminationK3 ? 0x0100 : 0)
+    // Ölçüm sensörleri: kol (pnömatik) uzadıkça sensör parçaya değer gibi ham değer artar; aksi halde ~0
+    const noise = () => Math.round(Math.random() * 3)
+    s.slpisSensorRaw = Math.round(Math.min(4095, s.rightPneumatic.encoderPosition * 20)) + noise()
+    s.slpisSensorMm = Math.round((s.slpisSensorRaw / 4095) * 25 * 1000) / 1000
+    s.slpisSensorEffectiveMm = s.slpisSensorMm
+    s.slpisSensorZeroed = true
+    for (const side of ['left', 'right'] as const) {
+      const pn = side === 'left' ? s.leftPneumatic : s.rightPneumatic
+      const raw = Math.round(Math.min(3016, pn.encoderPosition * 15)) + noise()
+      const mm = Math.round((raw / 3016) * 12 * 1000) / 1000
+      if (side === 'left') {
+        s.leftRadiusSensorRaw = raw
+        s.leftRadiusSensorMm = mm
+        s.leftRadiusSensorEffectiveMm = mm
+        s.leftRadiusSensorZeroed = true
+      } else {
+        s.rightRadiusSensorRaw = raw
+        s.rightRadiusSensorMm = mm
+        s.rightRadiusSensorEffectiveMm = mm
+        s.rightRadiusSensorZeroed = true
+      }
+    }
   }
 
   // ── hareket yardımcıları (pipeline) ──
@@ -1681,6 +1725,15 @@ export class DemoMachine extends EventEmitter {
     }
     if (path === '/api/machine/motor') {
       this.state.hydraulicMotorState = b.value ? 2 : 0
+      return ok
+    }
+    // MAKİNE DEĞERLERİ (2026-11-19) — fan / alarm aç-kapat
+    if (path === '/api/machine/fan') {
+      this.state.fanActive = !!b.value
+      return ok
+    }
+    if (path === '/api/machine/alarm') {
+      this.state.alarmActive = !!b.value
       return ok
     }
     if ((m = /^\/api\/pneumatic\/(left|right)\/(control|forward|backward|stop)$/.exec(path))) {

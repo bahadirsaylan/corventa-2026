@@ -13,6 +13,7 @@ import {
 } from '@/constants/sideMenuCatalog'
 import { SideMenuIcon } from '@/components/SideMenu/SideMenuIcons'
 import { useSessionStore, useUserKey } from '@/stores/sessionStore'
+import { hasRole, requiredRoleForPath } from '@/constants/permissions'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
@@ -36,7 +37,13 @@ export default function SideMenuSettingsPage() {
   useEffect(() => setDraft(saved), [saved])
 
   const enabled = draft.map(catalogItem).filter((i): i is SideMenuCatalogItem => !!i)
-  const available = SIDE_MENU_CATALOG.filter((i) => !draft.includes(i.id))
+  // 2026-11-19: yetkisi olmayan seçenek eklenecekler listesinde de görünmez
+  const role = useSessionStore((s) => s.role)
+  const permitted = (i: SideMenuCatalogItem) => {
+    const need = i.action.type === 'route' ? requiredRoleForPath(i.action.to) : null
+    return !need || hasRole(role, need)
+  }
+  const available = SIDE_MENU_CATALOG.filter((i) => !draft.includes(i.id) && permitted(i))
   const dirty = useMemo(() => draft.join('|') !== saved.join('|'), [draft, saved])
 
   function move(index: number, delta: -1 | 1) {

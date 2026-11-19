@@ -64,6 +64,8 @@ export const IpcInvoke = {
   EmergencyStop: 'machine:emergency-stop',
   SetMachineMode: 'machine:set-mode',
   SetHydraulicMotor: 'machine:set-hydraulic-motor',
+  SetFan: 'machine:set-fan', // MAKİNE DEĞERLERİ (2026-11-19) — POST /api/machine/fan
+  SetAlarm: 'machine:set-alarm', // MAKİNE DEĞERLERİ (2026-11-19) — POST /api/machine/alarm
   SendMachineCommand: 'machine:send-command',
 
   // DataApi — Service modülü (Soru/Öneri/Şikayet + Servis Talepleri/Raporları)

@@ -11,10 +11,7 @@ import { useNavigate } from 'react-router-dom'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { IconLabel } from '@/components/Icon'
 import PageHeader from '@/components/PageHeader/PageHeader'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
-import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import { PERMISSIONS } from '@/constants/permissions'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import {
@@ -212,17 +209,12 @@ export default function SavedBendsPage() {
           <button type="button" className={styles.btn} disabled={!selected || busy} onClick={() => void openDetail()}>
             <IconLabel icon="info">{t('DETAY')}</IconLabel>
           </button>
-          <button
-            type="button"
-            className={`${styles.btn} ${canDelete ? '' : styles.locked}`}
-            disabled={!selected || busy}
-            aria-disabled={!canDelete || undefined}
-            onClick={() => (canDelete ? setDeleteOpen(true) : showRoleNotice(PERMISSIONS['saved-bend-delete']))}
-          >
-            {/* 2026-11-17 (QA): kardeş butonlar gibi ikonlu */}
-            <IconLabel icon="trash">{t('SİL')}</IconLabel>
-            {!canDelete && <LockIcon className={styles.lockIcon} />}
-          </button>
+          {/* 2026-11-19: silme yetkisi yoksa düğme hiç görünmez */}
+          {canDelete && (
+            <button type="button" className={styles.btn} disabled={!selected || busy} onClick={() => setDeleteOpen(true)}>
+              <IconLabel icon="trash">{t('SİL')}</IconLabel>
+            </button>
+          )}
           <button
             type="button"
             className={`${styles.btn} ${styles.btnPrimary}`}

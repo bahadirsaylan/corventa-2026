@@ -12,7 +12,6 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { Icon } from '@/components/Icon'
-import { LockIcon } from '@/components/RoleNotice/LockIcon'
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import UserBadge from '@/components/UserBadge/UserBadge'
 import { hasRole, requiredRoleForPath } from '@/constants/permissions'
@@ -121,7 +120,11 @@ export default function SideMenu() {
     navigate(QUICK_EDIT_PATH)
   }
 
-  const items = itemIds.map(catalogItem).filter((i): i is SideMenuCatalogItem => !!i)
+  // 2026-11-19 (kullanıcı): yetkisi olmayan seçenek hiç görünmez (eskiden soluk + kilit)
+  const items = itemIds
+    .map(catalogItem)
+    .filter((i): i is SideMenuCatalogItem => !!i)
+    .filter((i) => !requiredRole(i))
 
   return (
     <>
@@ -172,14 +175,13 @@ export default function SideMenu() {
             <button
               key={it.id}
               type="button"
-              className={`${styles.item} ${requiredRole(it) ? styles.itemLocked : ''}`}
+              className={styles.item}
               onClick={() => select(it)}
               disabled={bendingActive && it.lockWhileBending}
               tabIndex={open ? 0 : -1}
             >
               <span className={styles.icon}><SideMenuIcon name={it.icon} /></span>
               <span className={styles.label}>{t(it.label)}</span>
-              {requiredRole(it) && <LockIcon className={styles.itemLock} />}
             </button>
           ))}
           {bendingActive && <span className={styles.lockNote}>{t('BÜKÜM SÜRÜYOR')}</span>}
