@@ -1,3 +1,4 @@
+import { registerAlertAckHandlers } from './alertAckHandlers'
 import { registerAuthHandlers } from './authHandlers'
 import { registerBendingHandlers } from './bendingHandlers'
 import { registerCloudHandlers } from './cloudHandlers'
@@ -20,6 +21,7 @@ export function registerIpcHandlers(): void {
   registerAuthHandlers()
   registerMacroHandlers()
   registerSavedBendHandlers()
+  registerAlertAckHandlers()
   registerCloudHandlers()
   registerMoldHandlers()
 }

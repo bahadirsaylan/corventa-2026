@@ -9,6 +9,9 @@
 // Usta öğrenme (makro) kaydı (2026-11-01): kayıt açıkken piston + rotasyon tuşları noteMotion ile
 // kayıt store'una bildirilir (ayrı kayıt ekranı kaldırıldı). Yan dayama tuşları kayda girmez.
 //
+// Hedef gönderme (2026-11-19): piston hapındaki değere (ÜST 0.0 …) dokununca PistonTargetModal açılır —
+// KONUMA GİT (mm) / BASINÇLA İT (bar). Tuş takımına yeni bölüm eklenmedi; tek iz değerin noktalı alt çizgisi.
+//
 // Yan dayama tuş eşleşmesi (TAHMİNİ — sahada doğrulanacak):
 //   dikey çift = REEL, yatay çift = JOINT, eğik çift = BODY.
 
@@ -23,6 +26,7 @@ import { useHoldAction } from './useHoldAction'
 import { readManualSpeed } from '@/services/operatorPrefs'
 import { pistonAxis } from '@/services/macroAxes'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
+import PistonTargetModal from './PistonTargetModal'
 import styles from './ManualControlPad.module.css'
 
 const SPEED_STEP = 5
@@ -40,6 +44,7 @@ function ManualControlPad() {
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const [speed, setSpeed] = useState(readManualSpeed)
   const [motorBusy, setMotorBusy] = useState(false)
+  const [targetPiston, setTargetPiston] = useState<PistonName | null>(null)
 
   // Sadece pozisyon (primitive) dinlenir — piston nesnesinin tamamı her SignalR tick'inde (10 Hz)
   // yeni referans olduğundan tüm tuş takımını boşuna yeniden çizdiriyordu.
@@ -132,22 +137,22 @@ function ManualControlPad() {
           2026-11-02 makine geri bildirimi: ÜST piston doğru (üst ok -1); ALT / SOL / SAĞ ters çalışıyordu
           ("geri tuşu ileri, ileri tuşu geri") → bu üçünde üst ok +1, alt ok -1. */}
       <PistonPill
-        piston="upper" title="ÜST" value={upperPos} speed={speed} locked={locked}
+        piston="upper" title="ÜST" value={upperPos} speed={speed} locked={locked} onOpenTarget={setTargetPiston}
         topDir={-1} topArrow={-90} bottomDir={1} bottomArrow={90}
         cls={styles.pUpper}
       />
       <PistonPill
-        piston="lower" title="ALT" value={lowerPos} speed={speed} locked={locked}
+        piston="lower" title="ALT" value={lowerPos} speed={speed} locked={locked} onOpenTarget={setTargetPiston}
         topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pLower}
       />
       <PistonPill
-        piston="left" title="SOL" value={leftPos} speed={speed} locked={locked}
+        piston="left" title="SOL" value={leftPos} speed={speed} locked={locked} onOpenTarget={setTargetPiston}
         topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pLeft}
       />
       <PistonPill
-        piston="right" title="SAĞ" value={rightPos} speed={speed} locked={locked}
+        piston="right" title="SAĞ" value={rightPos} speed={speed} locked={locked} onOpenTarget={setTargetPiston}
         topDir={1} topArrow={-90} bottomDir={-1} bottomArrow={90}
         cls={styles.pRight}
       />
@@ -176,6 +181,10 @@ function ManualControlPad() {
         <span className={styles.motorText}>{t('DURDUR')}</span>
         <span className={styles.motorSub}>{t('HİDROLİK MOTOR')}</span>
       </button>
+
+      {targetPiston && !locked && (
+        <PistonTargetModal piston={targetPiston} initialSpeed={speed} onClose={() => setTargetPiston(null)} />
+      )}
     </div>
   )
 }
@@ -268,6 +277,7 @@ interface PistonPillProps {
   bottomDir: 1 | -1
   bottomArrow: number
   cls: string
+  onOpenTarget: (piston: PistonName) => void
 }
 
 function PistonPill(p: PistonPillProps) {
@@ -275,10 +285,17 @@ function PistonPill(p: PistonPillProps) {
   return (
     <div className={`${styles.pill} ${p.cls}`}>
       <PistonHalf piston={p.piston} dir={p.topDir} arrow={p.topArrow} speed={p.speed} locked={p.locked} pos="top" />
-      <div className={styles.pillMid}>
+      {/* Değere dokun → hedef gönder (konum / basınç) */}
+      <button
+        type="button"
+        className={styles.pillMid}
+        disabled={p.locked}
+        onClick={() => p.onOpenTarget(p.piston)}
+        aria-label={t('{name} HEDEF GÖNDER', { name: t(p.title) })}
+      >
         <span className={styles.pillTitle}>{t(p.title)}</span>
         <span className={styles.pillValue}>{p.value.toFixed(1)}</span>
-      </div>
+      </button>
       <PistonHalf piston={p.piston} dir={p.bottomDir} arrow={p.bottomArrow} speed={p.speed} locked={p.locked} pos="bottom" />
     </div>
   )

@@ -265,7 +265,23 @@
   background: #fff;
   border-top: 2px solid var(--color-border);
   border-bottom: 2px solid var(--color-border);
-  pointer-events: none;
+  /* 2026-11-19: değer dokunulabilir (hedef gönder) — buton varsayılanları sıfırlanır, görünüm aynı */
+  width: 100%;
+  padding: 0;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.pillMid:active:not(:disabled) {
+  background: var(--color-surface-raised);
+}
+
+.pillMid:disabled {
+  cursor: default;
 }
 
 .pillTitle {
@@ -282,6 +298,14 @@
   color: var(--color-text);
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
+  /* Dokunulabilir iz: noktalı alt çizgi (yerleşim değişmez) */
+  text-decoration: underline dotted var(--color-text-muted);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.pillMid:disabled .pillValue {
+  text-decoration: none;
 }
 
 /* ── Hidrolik motor START / STOP ───────────── */

@@ -44,6 +44,8 @@ import type {
   SimilarBendingJobRequest,
   SimilarBendingJobResponse,
   UsageTimeSummary,
+  BendingCountReport,
+  BendingCountReportQuery,
   CreateUserBody,
   UpdateUserBody,
   UserListItem,
@@ -320,6 +322,19 @@ export class DataApiClient {
   // Kategori anahtarları BÜYÜK HARF, değerler saniye. days 1..366.
   getUsageTimeSummary(days = 30): Promise<UsageTimeSummary> {
     return http.get<UsageTimeSummary>(`${this.baseUrl}/api/usage-time/summary?days=${days}`)
+  }
+
+  // ---------- Kıvrım adetleri raporu ----------
+  // Başlatılmış işler; gün = startedAt ?? createdAt (yerel). from/to "yyyy-MM-dd", groupBy day|week|month.
+  getBendingCountReport(q: BendingCountReportQuery = {}): Promise<BendingCountReport> {
+    const p = new URLSearchParams()
+    if (q.from) p.set('from', q.from)
+    if (q.to) p.set('to', q.to)
+    if (q.groupBy) p.set('groupBy', q.groupBy)
+    if (q.method != null) p.set('method', String(q.method))
+    if (q.profileType != null) p.set('profileType', String(q.profileType))
+    const qs = p.toString()
+    return http.get<BendingCountReport>(`${this.baseUrl}/api/reports/bending-count${qs ? `?${qs}` : ''}`)
   }
 
   // ---------- Hata anı snapshot'ları (EXCEL 26) ----------

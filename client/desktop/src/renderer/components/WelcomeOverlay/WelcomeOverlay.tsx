@@ -1,9 +1,12 @@
 // Kullanıcı girişinden sonra bir kez gösterilen karşılama mesajı (Ayarlar > Karşılama Mesajı).
 // Dokununca veya AUTO_CLOSE_MS sonra kapanır. Kayıtlı mesaj yoksa varsayılan mesaj seçili dilde gösterilir;
 // operatörün yazdığı mesaj olduğu gibi gösterilir.
+// 2026-11-19: global uyarı kuyruğuna katılır (alertQueueStore, en düşük öncelikli pencerelerden) — başka uyarı
+// açıkken bekler; otomatik kapanma süresi pencere GÖRÜNÜNCE başlar.
 
 import { useEffect } from 'react'
 import { useSessionStore } from '@/stores/sessionStore'
+import { ALERT_PRIORITY, useAlertSlot } from '@/stores/alertQueueStore'
 import { useCloudConfigStore } from '@/stores/cloudConfigStore'
 import { readWelcomeMessage, WELCOME_DEFAULT_MESSAGE } from '@/services/welcomeMessage'
 import { useT } from '@/i18n'
@@ -19,13 +22,15 @@ export default function WelcomeOverlay() {
   // Bulut v2: karşılama mesajı bulutta yönetiliyorsa o gösterilir (yerel kayıt yok sayılır)
   const cloudMessage = useCloudConfigStore((s) => s.config?.welcomeMessage ?? null)
 
+  const visible = useAlertSlot('welcome', ALERT_PRIORITY.welcome, show)
+
   useEffect(() => {
-    if (!show) return
+    if (!visible) return
     const id = setTimeout(dismiss, AUTO_CLOSE_MS)
     return () => clearTimeout(id)
-  }, [show, dismiss])
+  }, [visible, dismiss])
 
-  if (!show) return null
+  if (!visible) return null
   // Kayıtlı mesaj yok ya da varsayılanla aynıysa seçili dile çevrilir; operatörün kendi metni aynen gösterilir
   const stored = readWelcomeMessage()
   const message = cloudMessage?.trim()

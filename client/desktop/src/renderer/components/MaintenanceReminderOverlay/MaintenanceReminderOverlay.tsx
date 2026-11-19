@@ -10,6 +10,8 @@
 // 2) "BAKIM MODU OTOMATİK KAPATILDI" bilgisi: lastAutoClosedAt yeni bir değere geçince bir kez
 //    gösterilir (TAMAM → aynı kapanma bir daha gösterilmez; maintenanceStore.autoClosedNotice).
 // Makineye hareket komutu göndermez.
+// 2026-11-19: iki pencere de global uyarı kuyruğuna katılır (alertQueueStore) — diğer uyarılarla üst üste açılmaz,
+// büküm sürerken görünmez. Cevap (DEVAM ET / BAKIMI BİTİR / TAMAM) UYARI KAYITLARI'na yazılır.
 
 import { useEffect, useRef, useState } from 'react'
 import { useNowTick } from '@/hooks/useMaintenance'
@@ -24,6 +26,8 @@ import {
   useMaintenanceStore,
 } from '@/stores/maintenanceStore'
 import { useLang, useT, type TVars } from '@/i18n'
+import { ALERT_PRIORITY, useAlertSlot } from '@/stores/alertQueueStore'
+import { logAlertAck } from '@/services/alertAcks'
 import styles from './MaintenanceReminderOverlay.module.css'
 
 type T = (source: string, vars?: TVars) => string
@@ -49,12 +53,17 @@ export default function MaintenanceReminderOverlay() {
   const state = useMaintenanceStore((s) => s.state)
   const notice = useMaintenanceStore((s) => s.autoClosedNotice)
   const now = useNowTick(state?.isInMaintenanceMode === true)
-  const reminder = isMaintenanceReminderActive(state, now)
+  const reminder = isMaintenanceReminderActive(state, now) && state != null
+  const showReminder = useAlertSlot(REMINDER_SLOT, ALERT_PRIORITY.maintenanceReminder, reminder)
+  const showNotice = useAlertSlot(AUTO_CLOSED_SLOT, ALERT_PRIORITY.maintenanceAutoClosed, !!notice && !reminder)
 
-  if (reminder && state) return <ReminderDialog now={now} />
-  if (notice) return <AutoClosedDialog at={notice} />
+  if (showReminder) return <ReminderDialog now={now} />
+  if (showNotice && notice) return <AutoClosedDialog at={notice} />
   return null
 }
+
+const REMINDER_SLOT = 'maintenance-reminder'
+const AUTO_CLOSED_SLOT = 'maintenance-auto-closed'
 
 function ReminderDialog({ now }: { now: number }) {
   const t = useT()
@@ -87,6 +96,15 @@ function ReminderDialog({ now }: { now: number }) {
     try {
       if (kind === 'continue') await continueMaintenanceMode()
       else await setMaintenanceModeOn(false)
+      const openMin = Math.max(0, Math.floor((sinceMs != null ? now - sinceMs : (state?.elapsedMinutes ?? 0) * 60_000) / 60_000))
+      logAlertAck({
+        slotId: REMINDER_SLOT,
+        alertKind: 'MaintenanceReminder',
+        alertKey: 'mode',
+        message: `BAKIM MODU ${openMin} DAKİKADIR AÇIK — DEVAM EDİYOR MUSUNUZ?`,
+        severity: 'warning',
+        action: kind === 'continue' ? 'CONTINUED' : 'FINISHED_MAINTENANCE',
+      })
     } catch (err) {
       setError(maintenanceErrorMessage(err) || t('bilinmeyen hata'))
       // 409 (mod zaten kapanmış) vb. — güncel durumu al
@@ -157,7 +175,21 @@ function AutoClosedDialog({ at }: { at: string }) {
           {t('Hatırlatmaya süresi içinde cevap verilmediği için bakım modu {time} itibarıyla kapatıldı. Bakım sürüyorsa bakım modunu yeniden açın.', { time: when })}
         </div>
         <div className={styles.actions}>
-          <button type="button" className={styles.continueBtn} onClick={dismissMaintenanceAutoClosedNotice}>
+          <button
+            type="button"
+            className={styles.continueBtn}
+            onClick={() => {
+              logAlertAck({
+                slotId: AUTO_CLOSED_SLOT,
+                alertKind: 'MaintenanceAutoClosed',
+                alertKey: 'mode',
+                message: `BAKIM MODU OTOMATİK KAPATILDI (${at}) — hatırlatmaya süresi içinde cevap verilmedi`,
+                severity: 'info',
+                action: 'ACKNOWLEDGED',
+              })
+              dismissMaintenanceAutoClosedNotice()
+            }}
+          >
             {t('TAMAM')}
           </button>
         </div>

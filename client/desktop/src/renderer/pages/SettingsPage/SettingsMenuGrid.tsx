@@ -30,6 +30,8 @@ const ITEMS: MenuItem[] = [
   { label: 'BAKIM SÜRESİ', permission: 'maintenance', to: '/settings/maintenance' },
   { label: 'KALIP KODU SORGULA', permission: 'mold-query', to: '/settings/mold-code', show: FEATURES.moldLicense },
   { label: 'HATA RAPORLARI', permission: 'error-reports', to: '/settings/error-reports' },
+  // 2026-11-19 — kapatılan uyarılar (kirlilik / bakım / güvenlik) — kim, ne zaman, kaçıncı kez
+  { label: 'UYARI KAYITLARI', permission: 'alert-acks', to: '/settings/alert-acks' },
   { label: 'BÜKÜM GEÇMİŞİ', permission: 'bending-history', to: '/settings/bending-history' },
   { label: 'KULLANMA SÜRELERİ', permission: 'machine-hours', to: '/settings/machine-hours' },
   { label: 'KIVRIM ADETLERİ RAPORU', permission: 'bending-count', to: '/settings/bending-count' },

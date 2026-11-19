@@ -92,6 +92,10 @@ export const IpcInvoke = {
   // DataApi — Hata anı snapshot'ları (EXCEL 26, Ayarlar > Hata Raporları)
   ErrorSnapshotList: 'error-snapshot:list',
   ErrorSnapshotGet: 'error-snapshot:get',
+  // DataApi — UYARI KAYITLARI (2026-11-19): POST OPERATOR+, liste / özet SUPERVISOR+ (DataApi [RequireRole])
+  AlertAckCreate: 'alert-ack:create',
+  AlertAckList: 'alert-ack:list',
+  AlertAckSummary: 'alert-ack:summary',
   // Sıkıştırma telemetrisi (2026-11-04)
   ClampTelemetryList: 'clamp-telemetry:list',
   ClampTelemetryGet: 'clamp-telemetry:get',
@@ -129,6 +133,8 @@ export const IpcInvoke = {
 
   // DataApi — Kullanım süreleri (usage-time)
   UsageGetSummary: 'usage:get-summary',
+  // DataApi — Kıvrım adetleri raporu (GET /api/reports/bending-count)
+  UsageGetBendingCountReport: 'usage:get-bending-count-report',
 
   // DataApi — Rol sistemi (giriş / ilk kurulum / kullanıcı yönetimi). Token main süreçte kalır.
   AuthGetSetupStatus: 'auth:get-setup-status',

@@ -9,6 +9,7 @@
 //   Stage → (Parça yerleştir: F8 veya ekrandaki TOUCH onayı) → Sıkıştır → Sıfırla → Pasolar → Bitti
 //
 // Kısayollar (sadece demo): F8 parça sensörü aç/kapa · F9 demo hızını değiştir (1x / 2x / 4x)
+// · F7 yağ kirlilik sensörü K2 kirli / temiz (CORVENTA_DEMO_DIRTY=K2 ile kirli başlar — demoAlertAcks.ts)
 // Hız: CORVENTA_DEMO_SPEED=2 gibi başlangıç çarpanı verilebilir.
 // Güvenlik kontrolleri (EXCEL 27): açılışta ve büküm başında gerçek SafetyCheckService kuralıyla SafetyCheck
 // event'i yayınlanır (Admin Ayarları > GÜVENLİK eşikleri demo yağ sıcaklığı 41°C ile denenebilir).
@@ -27,11 +28,13 @@ import { app, type BrowserWindow } from 'electron'
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
 import { demoSavedBends } from '@main/demo/demoSavedBends'
+import { applyDemoContamination, demoAlertAcks, demoResolveMaintenanceAlerts } from '@main/demo/demoAlertAcks'
 import { IS_STANDARD } from '@shared/edition'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
 import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
+import { demoBendingCountReport } from '@main/demo/demoBendingReport'
 import { DemoPressureTest } from '@main/demo/demoPressureTest'
 import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
@@ -235,6 +238,12 @@ export class DemoMachine extends EventEmitter {
   // Manuel pnömatik (yan dayama ölçüm kolu) basılı-tut yönü — EXCEL 28 makro kaydı/oynatması için hareket eder
   private manualPneuDir: Record<'left' | 'right', number> = { left: 0, right: 0 }
   private pressureHold: number | null = null // sıkıştırma basıncı (bar) — üst top basınçla tutuyorken
+  // Tuş takımı BASINÇLA İT (2026-11-19): basıncı tutan piston — aynı pistona jog / konum gelince basınç bırakılır
+  private manualPressKey: PistonKey | null = null
+  private releaseManualPress(): void {
+    this.manualPressKey = null
+    this.pressureHold = null
+  }
   private timer: NodeJS.Timeout | null = null
   private sensorTimer: NodeJS.Timeout | null = null
 
@@ -659,6 +668,7 @@ export class DemoMachine extends EventEmitter {
     if (Math.random() < 0.02) s.sensors.oilTempC = Math.max(38, Math.min(46, s.sensors.oilTempC + (Math.random() < 0.5 ? -1 : 1)))
     if (Math.random() < 0.01) s.sensors.oilHumidityPercent = Math.max(15, Math.min(22, s.sensors.oilHumidityPercent + (Math.random() < 0.5 ? -1 : 1)))
     const sf = s.safety
+    applyDemoContamination(sf, s.sensors) // 2026-11-19 — yağ kirlilik K1–K3 (CORVENTA_DEMO_DIRTY / F7), demoAlertAcks.ts
     s.systemReady = s.hydraulicMotorState === 2 && sf.emergencyStopOK && sf.phaseSequenceOK
     s.safetyBits =
       (sf.emergencyStopOK ? 0x0001 : 0) | (sf.motorThermalOK ? 0x0002 : 0) | (sf.fanThermalOK ? 0x0004 : 0) |
@@ -1735,11 +1745,42 @@ export class DemoMachine extends EventEmitter {
           // UI: -1 = ileri (encoder artar), +1 = geri
           this.targets[key] = dir === 0 ? p.positionMm : dir < 0 ? 400 : -30
           this.pistonSpeedPct[key] = Number(b.speedPercent) || 30
+          if (dir !== 0 && this.manualPressKey === key) this.releaseManualPress()
         } else if (m[2] === 'position') {
-          this.targets[key] = Number(b.positionMm) || 0
+          // 2026-11-19 (tuş takımı hedef gönder): backend gibi motor + güvenli sınır kontrolü
+          const mm = Number(b.positionMm) || 0
+          if (this.state.hydraulicMotorState !== 2) throw new HttpError(400, rawUrl, 'Hidrolik motor hazır değil (3 saniye beklenmeli)', { success: false, error: 'Hidrolik motor hazır değil (3 saniye beklenmeli)' })
+          const lim = p.safeForwardMm - p.safeBackwardMm > 0.1
+          const err = !lim ? null
+            : mm < p.safeBackwardMm - 0.01 ? `Pozisyon güvenli geri sınırın (${p.safeBackwardMm.toFixed(2)}mm) altında: ${mm.toFixed(2)}mm`
+            : mm > p.safeForwardMm + 0.01 ? `Pozisyon güvenli ileri sınırın (${p.safeForwardMm.toFixed(2)}mm) üstünde: ${mm.toFixed(2)}mm`
+            : null
+          if (err) throw new HttpError(400, rawUrl, err, { success: false, error: err })
+          this.targets[key] = mm
           this.pistonSpeedPct[key] = Number(b.speedPercent) || 50
+          if (this.manualPressKey === key) this.releaseManualPress()
         } else if (m[2] === 'pressure') {
-          this.targets[key] = p.positionMm + 15
+          // 2026-11-19: yön +1 ileri → sahte temasa kadar (≈15 mm, güvenli ileri sınırla kırpılır) gider ve
+          // hedef basıncı tutar (S1 göstergesi); -1 geri → güvenli geri sınıra (mekanik limit benzeri) çekilir.
+          const bar = Math.round(Number(b.pressureBar) || 0)
+          const dir = Number(b.direction ?? 1)
+          if (this.state.hydraulicMotorState !== 2) throw new HttpError(400, rawUrl, 'Hidrolik motor hazır değil (3 saniye beklenmeli)', { success: false, error: 'Hidrolik motor hazır değil (3 saniye beklenmeli)' })
+          if (dir !== 1 && dir !== -1) throw new HttpError(400, rawUrl, 'Yön -1 (Geri) veya 1 (İleri) olmalı', { success: false, error: 'Yön -1 (Geri) veya 1 (İleri) olmalı' })
+          if (bar < 0 || bar > 250) {
+            const e = `Basınç 0-250 bar arasında olmalı: ${bar}`
+            throw new HttpError(400, rawUrl, e, { success: false, error: e })
+          }
+          const lim = p.safeForwardMm - p.safeBackwardMm > 0.1
+          this.targets[key] = dir > 0
+            ? (lim ? Math.min(p.safeForwardMm, p.positionMm + 15) : p.positionMm + 15)
+            : (lim ? p.safeBackwardMm : p.positionMm - 15)
+          this.pistonSpeedPct[key] = Number(b.speedPercent) || 30
+          if (dir > 0) {
+            this.manualPressKey = key
+            this.pressureHold = bar
+          } else if (this.manualPressKey === key) {
+            this.releaseManualPress()
+          }
         } else {
           this.targets[key] = p.positionMm
         }
@@ -1867,6 +1908,11 @@ export class DemoMachine extends EventEmitter {
       if (!s) demoFail(404, rawUrl, `Snapshot #${m[1]} bulunamadı`)
       return s
     }
+    if (path === '/api/reports/bending-count' && method === 'GET') {
+      // KIVRIM ADETLERİ RAPORU — demo büküm geçmişinden (BÜKÜM GEÇMİŞİ ile aynı işler)
+      this.seedJobHistory()
+      return demoBendingCountReport(rawUrl, u.searchParams, [...this.jobs.values()])
+    }
     if (path === '/api/usage-time/summary' && method === 'GET') {
       // Kullanım süreleri — gerçek DataApi sözleşmesiyle birebir (BÜYÜK HARF kategori, saniye)
       const days = Number(u.searchParams.get('days') ?? 30)
@@ -1903,8 +1949,13 @@ export class DemoMachine extends EventEmitter {
     }
     if (path.startsWith('/api/maintenance')) {
       demoMaintenanceLockEnabled = this.machineSettings.maintenanceLockEnabled === true
-      return demoMaintenance(rawUrl, path, method, u, b)
+      const res = demoMaintenance(rawUrl, path, method, u, b)
+      // UYARI KAYITLARI (2026-11-19) — bakım tamamlandı → o periyodun uyarı bölümü kapanır (demoAlertAcks.ts)
+      if (path === '/api/maintenance/mark-completed' && method === 'POST') demoResolveMaintenanceAlerts(u.searchParams.get('period'))
+      return res
     }
+    // UYARI KAYITLARI (2026-11-19) — demoAlertAcks.ts
+    if (path === '/api/alert-acks' || path.startsWith('/api/alert-acks/')) return demoAlertAcks(rawUrl, path, method, u, b)
     // Rol sistemi — giriş / kullanıcı yönetimi (demoAuth.ts; operator|admin|super, şifre 1234)
     if (path.startsWith('/api/auth/') || path === '/api/users' || path.startsWith('/api/users/')) {
       return demoAuth(rawUrl, path, method, b)

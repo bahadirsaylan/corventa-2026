@@ -356,6 +356,8 @@ export interface PistonPressureRequest {
   piston: PistonName
   pressureBar: number
   speedPercent: number
+  /** Backend PressureRequest.Direction: 1 = ileri (parçaya doğru), -1 = geri. Verilmezse 1 (ileri). */
+  direction?: 1 | -1
 }
 
 export interface RotationJogRequest {

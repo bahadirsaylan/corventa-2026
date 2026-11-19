@@ -5,10 +5,8 @@ import BendingBallsPanel from '@/components/BendingBallsPanel/BendingBallsPanel'
 import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
 import SideMenu from '@/components/SideMenu/SideMenu'
-import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
-import MaintenanceAlertOverlay from '@/components/MaintenanceAlertOverlay/MaintenanceAlertOverlay'
+import AlertQueueHost from '@/components/AlertQueue/AlertQueueHost'
 import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/MaintenanceModeScreen'
-import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/MaintenanceReminderOverlay'
 import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
 import { useCloudConfigStore } from '@/stores/cloudConfigStore'
@@ -185,15 +183,10 @@ export default function AppLayout() {
       {/* Sağ kenar hızlı menü (SEKIL-19) — tüm ekranı boydan boya kaplar */}
       <SideMenu />
 
-      {/* Girişten sonra bir kez karşılama mesajı (Ayarlar > Karşılama Mesajı) */}
-      <WelcomeOverlay />
-
-      {/* Karşılama mesajı kapandıktan sonra bir kez: vadesi geçen bakım varsa kademe renkli uyarı */}
-      <MaintenanceAlertOverlay />
-
-      {/* Bakım modu uzun süre açık kalınca DEVAM EDİYOR MUSUNUZ? hatırlatması (otomatik kapanma geri sayımı)
-          + backend modu otomatik kapattıysa bir kez bilgi. Tüm ekranın üstünde. */}
-      <MaintenanceReminderOverlay />
+      {/* GLOBAL UYARI KUYRUĞU (2026-11-19) — açılış / oturum uyarı pencereleri TEK TEK açılır, üst üste binmez:
+          yağ kirlilik > bakım uyarısı / kilidi > bakım modu hatırlatması > otomatik kapatıldı bilgisi > karşılama.
+          Büküm sürerken / büküm modalı açıkken / alarm-tahliye ekranlarında beklerler (AlertQueueHost). */}
+      <AlertQueueHost />
     </div>
   )
 }

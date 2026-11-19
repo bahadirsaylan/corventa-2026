@@ -31,12 +31,13 @@
 .body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; overflow-y: auto; }
 
 /* Summary cards */
-.statsRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.statsRow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 
 .sumCard {
   background: #fff; border: 1.5px solid #d07070; border-radius: 10px;
-  padding: 10px 18px;
+  padding: 10px 10px;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 0; text-align: center;
 }
 
 .sumLabel { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: var(--color-text-muted); }
@@ -100,6 +101,26 @@
   background: #dc2626;
   min-height: 2px;
 }
+
+.barCancel {
+  background: #9ca3af;
+  min-height: 2px;
+}
+
+/* Yükleniyor / KAYIT YOK / hata — grafik alanının ortasında */
+.chartMsg {
+  flex: 1; align-self: center;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 800; letter-spacing: 0.08em;
+  color: var(--color-text-muted); text-align: center;
+}
+.errorMsg { color: #b91c1c; font-size: 13px; letter-spacing: 0.02em; }
+.retryBtn {
+  background: #2a2a2a; color: #fff; border: none; border-radius: 6px;
+  padding: 8px 18px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; cursor: pointer;
+}
+.warnMsg { font-size: 11px; font-weight: 700; color: #b45309; }
+.metaText { font-size: 11px; font-weight: 700; color: var(--color-text-muted); font-family: var(--font-mono); }
 
 .barValue {
   font-size: 10px; font-weight: 700; font-family: var(--font-mono);

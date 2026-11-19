@@ -1,5 +1,7 @@
 // Girişten sonra bir kez gösterilen bakım uyarı penceresi (UI madde 19).
-// Karşılama mesajı (WelcomeOverlay) kapandıktan SONRA açılır — ikisi aynı anda görünmez.
+// 2026-11-19: global uyarı kuyruğuna katılır (alertQueueStore) — karşılama / kirlilik / hatırlatma pencereleriyle
+// üst üste açılmaz; sırası gelince açılır. Basılan düğme (KAPAT / BAKIM SAYFASI) UYARI KAYITLARI'na yazılır
+// (periyot başına satır, kilit aktifse MaintenanceLock). Bakım tamamlanınca DataApi bölümü kapatır (RESOLVED).
 // Vadesi geçmiş periyot yoksa hiç açılmaz. Renk en yüksek kademeye göre:
 // 1. hafta yeşil hatırlatma, 2. hafta sarı uyarı, 3. hafta+ kırmızı kritik (services/maintenanceStatus.ts).
 // Sadece bilgi. BAKIM KİLİDİ (EXCEL 34) aktifse kilit notu gösterilir — engeli backend uygular.
@@ -7,17 +9,30 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/sessionStore'
+import { ALERT_PRIORITY, useAlertSlot } from '@/stores/alertQueueStore'
+import { logAlertAck } from '@/services/alertAcks'
+import type { AlertAckCreateBody } from '@shared/types/alert-ack'
+import type { MaintenancePeriodStatus } from '@/services/maintenanceStatus'
 import { useMaintenanceAlerts, useMaintenanceLock } from '@/hooks/useMaintenance'
 import { maintenanceTierTitle } from '@/services/maintenanceStatus'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import styles from './MaintenanceAlertOverlay.module.css'
 
+const SLOT_ID = 'maintenance-alert'
+
+/** Kayda yazılan sabit TÜRKÇE metin — "BAKIM UYARISI: HAFTALIK BAKIM 9 GÜN GECİKME; …" (+ kilit notu) */
+function maintenanceAckMessage(alerts: MaintenancePeriodStatus[], locked: boolean): string {
+  const rows = alerts
+    .map((a) => `${maintenanceTierTitle(a.tier!)}: ${a.info.label.toLocaleUpperCase('tr-TR')} BAKIM ${a.overdueDays ?? 0} GÜN GECİKME`)
+    .join('; ')
+  return locked ? `${rows} — BAKIM KİLİDİ AKTİF (otomatik / yarı otomatik büküm başlatılamaz)` : rows
+}
+
 export default function MaintenanceAlertOverlay() {
   const t = useT()
   const navigate = useNavigate()
   const pending = useSessionStore((s) => s.showMaintenanceAlert)
-  const welcomeOpen = useSessionStore((s) => s.showWelcome)
   const dismiss = useSessionStore((s) => s.dismissMaintenanceAlert)
   const { alerts, top, loaded } = useMaintenanceAlerts()
   const { active: locked } = useMaintenanceLock()
@@ -27,10 +42,24 @@ export default function MaintenanceAlertOverlay() {
     if (pending && loaded && !top) dismiss()
   }, [pending, loaded, top, dismiss])
 
-  if (!pending || welcomeOpen || !top) return null
+  const visible = useAlertSlot(SLOT_ID, ALERT_PRIORITY.maintenanceAlert, pending && !!top)
+
+  if (!visible || !top) return null
+
+  const answer = (action: AlertAckCreateBody['action']) => {
+    logAlertAck({
+      slotId: SLOT_ID,
+      alertKind: locked ? 'MaintenanceLock' : 'MaintenanceOverdue',
+      alertKey: alerts.map((a) => a.info.key).join(','),
+      message: maintenanceAckMessage(alerts, locked),
+      severity: top.tier === 'critical' ? 'error' : top.tier === 'warning' ? 'warning' : 'info',
+      action,
+    })
+    dismiss()
+  }
 
   const openPage = () => {
-    dismiss()
+    answer('OPENED_MAINTENANCE')
     navigate('/settings/maintenance')
   }
 
@@ -62,7 +91,7 @@ export default function MaintenanceAlertOverlay() {
         )}
 
         <div className={styles.actions}>
-          <button type="button" className={styles.closeBtn} onClick={dismiss}>
+          <button type="button" className={styles.closeBtn} onClick={() => answer('DISMISSED')}>
             {t('KAPAT')}
           </button>
           <button type="button" className={styles.pageBtn} onClick={openPage}>

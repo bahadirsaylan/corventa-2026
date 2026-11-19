@@ -27,6 +27,7 @@ import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
+import AlertAcksPage from '@/pages/AlertAcksPage/AlertAcksPage'
 import ClampLogsPage from '@/pages/ClampLogsPage/ClampLogsPage'
 import MachineValuesPage from '@/pages/MachineValuesPage/MachineValuesPage'
 import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
@@ -116,6 +117,7 @@ export default function App() {
             <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />
+            <Route path="settings/alert-acks" element={<RequireRole permission="alert-acks"><AlertAcksPage /></RequireRole>} />
             <Route path="settings/bending-history" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
             <Route path="settings/bending-history/:jobId" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
             <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />

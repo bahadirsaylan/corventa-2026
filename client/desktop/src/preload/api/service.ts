@@ -17,6 +17,13 @@ import {
   type ServiceTicketAction,
   type ServiceTicketCreateRequest,
 } from '@shared'
+import type {
+  AlertAckCreateBody,
+  AlertAckCreateResult,
+  AlertAckListQuery,
+  AlertAckPage,
+  AlertAckSummary,
+} from '@shared/types/alert-ack'
 
 export const serviceApi = {
   // ---------- Tickets ----------
@@ -82,6 +89,17 @@ export const serviceApi = {
   /** Tam detay: MachineState + iş özeti + son loglar */
   getErrorSnapshot: (id: number): Promise<ErrorSnapshotDetail> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ErrorSnapshotGet, id),
+
+  // ---------- Uyarı kayıtları (2026-11-19) ----------
+
+  /** Uyarıda basılan düğmeyi kaydet (OPERATOR+) — kullanıcı / rol DataApi'de oturumdan */
+  ackAlert: (body: AlertAckCreateBody): Promise<AlertAckCreateResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AlertAckCreate, body),
+  /** Sayfalı kayıt listesi — en yeni önce (SUPERVISOR+) */
+  listAlertAcks: (q: AlertAckListQuery = {}): Promise<AlertAckPage> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AlertAckList, q),
+  /** Uyarı / anahtar başına özet (SUPERVISOR+) */
+  getAlertAckSummary: (): Promise<AlertAckSummary> => ipcRenderer.invoke(Ipc.IpcInvoke.AlertAckSummary),
 
   // ---------- Sıkıştırma telemetrisi (2026-11-04) ----------
   listClampTelemetry: (q: ClampTelemetryListQuery = {}): Promise<ClampTelemetryPage> =>

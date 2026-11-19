@@ -36,7 +36,8 @@ export const PERMISSIONS = {
   // ── SUPERVISOR (ATÖLYE SORUMLUSU) ──
   'user-management': 'SUPERVISOR',  // Kullanıcı Yönetimi (sadece kendinden düşük roller — SUPERVISOR → KULLANICI)
   'welcome-message': 'SUPERVISOR',
-  'saved-bend-delete': 'SUPERVISOR', // STANDART SÜRÜM (2026-11-17) kayıtlı büküm silme (DataApi DELETE /api/saved-bends/{id})
+  'saved-bend-delete': 'SUPERVISOR',
+  'alert-acks': 'SUPERVISOR',       // UYARI KAYITLARI (2026-11-19): kapatılan uyarılar (DataApi GET /api/alert-acks [RequireRole(Supervisor)]) // STANDART SÜRÜM (2026-11-17) kayıtlı büküm silme (DataApi DELETE /api/saved-bends/{id})
   // ── SERVICEMAN (SERVİS TEKNİSYENİ) ──
   'admin-settings': 'SERVICEMAN',   // Admin Ayarları (cetvel sıfırlama dahil) + sıkıştırma kayıtları
   'encoder-reset': 'SERVICEMAN',
@@ -70,6 +71,7 @@ export const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, Permission]> = [
   ['/settings/customer-change', 'customer-change'],
   ['/settings/machine-transfer', 'customer-change'],
   ['/settings/machine-values', 'machine-values'],
+  ['/settings/alert-acks', 'alert-acks'],
 ]
 
 /** Rol bu yetkiye sahip mi (oturum yoksa hiçbir yetki yok) */

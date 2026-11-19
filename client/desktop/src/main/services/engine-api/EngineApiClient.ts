@@ -360,8 +360,11 @@ export class EngineApiClient {
   }
 
   pistonPressure(req: PistonPressureRequest): Promise<unknown> {
+    // Backend yönü ZORUNLU ister (-1 / 1, aksi halde "Yön -1 (Geri) veya 1 (İleri) olmalı"); PLC'de basınç
+    // modunda +1 = ileri (negatif voltaj) — sıkıştırma / boşluk alma akışlarıyla aynı. Basınç tamsayı bar.
     return http.post(`${this.baseUrl}/api/piston/${req.piston}/pressure`, {
-      pressureBar: req.pressureBar,
+      direction: req.direction ?? 1,
+      pressureBar: Math.round(req.pressureBar),
       speedPercent: req.speedPercent,
     })
   }

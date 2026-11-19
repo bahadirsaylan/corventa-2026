@@ -14,9 +14,11 @@
 // EXCEL 34: BAKIM KİLİDİ aktifken (backend lockActive) bakım şeridi / rozeti kilit simgesiyle "KİLİTLİ" yazar.
 // 2026-11-04: Big Data reçete PAYLAŞIMI açıkken internet koparsa sensör kartlarının üstüne "İNTERNET YOK" katmanı
 //   (operatör bağlantıyı düzeltsin; kartlar altta görünmeye devam eder). Kaynak: internetStore (30 sn) + cloudStore.shareRecipes.
+// 2026-11-19: YAĞ KİRLİLİK (K1–K3 kararlı kirli, stores/contaminationStore.ts) şeritte kalıcı uyarı — KAPAT yok, sensör
+//   temizlenince kalkar (pencere uyarı kuyruğundan bir kez açılır). Güvenlik uyarısında KAPAT → UYARI KAYITLARI'na yazılır.
 // EXCEL 37: HATA KAYITLARI butonunun solunda internet erişim ikonu (Google generate_204, 30 sn) — sadece bilgi.
 
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useNavigate } from 'react-router-dom'
 import OilStatsList from '@/pages/DashboardPage/OilStatsList'
@@ -24,7 +26,7 @@ import ErrorLogsModal from './ErrorLogsModal'
 import ArcBendingStrip from './ArcBendingStrip'
 import InternetStatusChip from '@/components/InternetStatus/InternetStatusChip'
 import CloudUpdateChip from '@/components/CloudUpdate/CloudUpdateChip'
-import { BendingMethod } from '@shared/types'
+import { BendingMethod, type SafetyAxis } from '@shared/types'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useCloudStore } from '@/stores/cloudStore'
 import { useInternetStore } from '@/stores/internetStore'
@@ -37,6 +39,12 @@ import {
   useSafetyAlertsStore,
 } from '@/stores/safetyAlertsStore'
 import { maintenanceTierTitle, type MaintenancePeriodStatus } from '@/services/maintenanceStatus'
+import { useContaminationStore } from '@/stores/contaminationStore'
+import { logAlertAck } from '@/services/alertAcks'
+import { translate } from '@/i18n'
+
+/** Kayıt metni her zaman Türkçe (ekran dilinden bağımsız) */
+const trText = (source: string, vars?: Record<string, string | number>) => translate(source, 'tr', vars)
 import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BottomStatsPanel.module.css'
@@ -81,6 +89,38 @@ export default function BottomStatsPanel() {
   const safetyStalls = useSafetyAlertsStore((s) => s.stalls)
   const dismissCheck = useSafetyAlertsStore((s) => s.dismissCheck)
   const dismissStall = useSafetyAlertsStore((s) => s.dismissStall)
+  const dirtySensors = useContaminationStore((s) => s.dirty)
+
+  // Güvenlik uyarısı KAPAT — önce UYARI KAYITLARI'na (Türkçe metin), sonra gizle
+  const ackCheck = useCallback(() => {
+    const c = useSafetyAlertsStore.getState().check
+    if (c) {
+      const codes = (c.payload.warnings ?? []).map((w) => w.code).filter(Boolean)
+      logAlertAck({
+        alertKind: 'SafetyCheck',
+        alertKey: (codes.length > 0 ? codes : ['SafetyCheck']).join(','),
+        message: checkAlertText(c, trText),
+        severity: c.level,
+        shownAt: new Date(c.at).toISOString(),
+        action: 'DISMISSED',
+      })
+    }
+    dismissCheck()
+  }, [dismissCheck])
+  const ackStall = useCallback((axis: SafetyAxis) => {
+    const a = useSafetyAlertsStore.getState().stalls[axis]
+    if (a) {
+      logAlertAck({
+        alertKind: 'EncoderStall',
+        alertKey: axis,
+        message: stallAlertText(a, trText),
+        severity: 'warning',
+        shownAt: new Date(a.at).toISOString(),
+        action: 'DISMISSED',
+      })
+    }
+    dismissStall(axis)
+  }, [dismissStall])
 
   //   Çok açılı (Arc) büküm sürerken sensör kartlarının yerine parça şeridi gösterilir.
   //   Uyarı şeridi ve Hata Kayıtları her durumda yerinde kalır (alarmlar görünür olmalı).
@@ -112,15 +152,22 @@ export default function BottomStatsPanel() {
     }
     // EXCEL 27 — backend güvenlik uyarıları (engel > encoder durması > sıcaklık/sensör uyarısı)
     if (safetyCheck?.level === 'error') {
-      return { level: 'error', text: checkAlertText(safetyCheck, t), onDismiss: dismissCheck }
+      return { level: 'error', text: checkAlertText(safetyCheck, t), onDismiss: ackCheck }
+    }
+    // 2026-11-19 — yağ kirlilik sensörü (K1–K3) kararlı kirli / arızalı: kalıcı, KAPAT yok
+    if (dirtySensors.length > 0) {
+      return {
+        level: 'error',
+        text: t('YAĞ KİRLİLİĞİ: {list} — FİLTRE KİRLİ / SENSÖR ARIZALI', { list: dirtySensors.join(', ') }),
+      }
     }
     const stall = selectLatestStall(safetyStalls)
     if (stall) {
-      return { level: 'warning', text: stallAlertText(stall, t), onDismiss: () => dismissStall(stall.payload.axis) }
+      return { level: 'warning', text: stallAlertText(stall, t), onDismiss: () => ackStall(stall.payload.axis) }
     }
     if (safetyCheck) {
       const text = checkAlertText(safetyCheck, t)
-      if (text) return { level: 'warning', text, onDismiss: dismissCheck }
+      if (text) return { level: 'warning', text, onDismiss: ackCheck }
     }
     // Motor çalışmıyorken (0=kapalı, 1=başlıyor) basınç zaten 0 — uyarı sadece motor hazırken
     if (motorState === 2 && sensors.s1PressureBar === 0) {
@@ -133,7 +180,7 @@ export default function BottomStatsPanel() {
       return { level: 'warning', text: t('YAĞ NEMİ YÜKSEK (%{v})', { v: sensors.oilHumidityPercent }) }
     }
     return { level: 'none', text: '' }
-  }, [safety, sensors, motorState, t, safetyCheck, safetyStalls, dismissCheck, dismissStall])
+  }, [safety, sensors, motorState, t, safetyCheck, safetyStalls, ackCheck, ackStall, dirtySensors])
 
   const stripeClass = [
     styles.stripe,

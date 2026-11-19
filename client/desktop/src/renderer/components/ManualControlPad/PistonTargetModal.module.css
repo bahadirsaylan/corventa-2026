@@ -1,0 +1,276 @@
+/* Piston hedef gönderme penceresi — ortak modal dili (krem kart, yeşil VAZGEÇ, kırmızı ana işlem).
+   Global overlay (portal → body): orta alanın ölçek / taşma kurallarından etkilenmez. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 240;
+}
+
+.modal {
+  width: 640px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: #fdf8e8;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+/* ── KONUMA GİT | BASINÇLA İT ── */
+.segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.segBtn {
+  min-height: 64px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.segBtn[data-active] {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}
+
+.segBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.segUnit {
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* ── Şu anki değer / aralık ── */
+.infoRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.infoCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.infoLabel {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.infoValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* ── Alanlar ── */
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+}
+
+.valueBtn {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.valueBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.valueIcon {
+  color: var(--color-text-muted);
+}
+
+.speedRow {
+  display: grid;
+  grid-template-columns: 72px 1fr 72px;
+  gap: 10px;
+  align-items: center;
+}
+
+.speedBtn {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.speedBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.speedValue {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+/* ── Bilgi satırları (sakin — siyah / kırmızı değil) ──
+   Sabit asgari yükseklik: mesaj çıkınca pencere kaymasın (GÖNDER → DURDUR parmağın altında kalsın) */
+.msgs {
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.note {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #374151;
+  text-align: center;
+}
+
+.notice {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #e0ecff;
+  color: #1e3a8a;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.notice > :first-child {
+  flex-shrink: 0;
+  color: var(--color-info);
+}
+
+.status {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ── VAZGEÇ / GÖNDER (DURDUR) ── */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.btn {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(0.93);
+}
+
+.btn:active:not(:disabled) {
+  filter: brightness(0.85);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cancel {
+  background: #b8e6c5;
+  color: #2a2a2a;
+}
+
+.send {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.stop {
+  background: #f59e0b;
+  color: #1f2937;
+}
