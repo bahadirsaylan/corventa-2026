@@ -30,6 +30,7 @@ import { app, type BrowserWindow } from 'electron'
 import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
 import { demoSavedBends } from '@main/demo/demoSavedBends'
+import { demoAiRecipeRules } from '@main/demo/demoAiRecipeRules'
 import { applyDemoContamination, demoAlertAcks, demoResolveMaintenanceAlerts } from '@main/demo/demoAlertAcks'
 import { IS_STANDARD } from '@shared/edition'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
@@ -1692,7 +1693,8 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/bending-jobs/active') {
       return this.activeJobId != null ? (this.jobs.get(this.activeJobId) ?? null) : null
     }
-    if (path === '/api/bending-jobs/similar') return { match: null, iterations: [] }
+    // AI ÖĞRENME KURALLARI (2026-11-19) — eşleşme + kurallar + ?explain=true (demoAiRecipeRules.ts)
+    if (path === '/api/bending-jobs/similar' || path === '/api/ai-recipe-rules') return demoAiRecipeRules(rawUrl, path, method, u, b)
     if ((m = /^\/api\/bending-jobs\/(\d+)\/segments$/.exec(path))) {
       const job = this.jobs.get(Number(m[1]))
       if (job) job.segments = [...(job.segments ?? []), b as never]

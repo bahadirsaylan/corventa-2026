@@ -20,6 +20,10 @@ import {
   type RecommendStageResponse,
   type SimilarBendingJobRequest,
   type SimilarBendingJobResponse,
+  type AiRecipeExplainRequest,
+  type AiRecipeExplainResponse,
+  type AiRecipeMatchSettings,
+  type AiRecipeRulesResponse,
   type StartJobResponse,
   type StopUnloadResponse,
   type OilHeatingResult,
@@ -98,6 +102,13 @@ export const bendingApi = {
   // AI RECIPE FAZ 4B UI (2026-09-04) — bukum baslamadan onceki eslesme kontrolu (read-only)
   findSimilar: (req: SimilarBendingJobRequest): Promise<SimilarBendingJobResponse> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.FindSimilarBendingJob, req),
+
+  // AI ÖĞRENME KURALLARI (2026-11-19) — eşleşme kriterleri (ADMIN+ kaydeder) + "neden eşleşmedi" denemesi
+  getAiRecipeRules: (): Promise<AiRecipeRulesResponse> => ipcRenderer.invoke(Ipc.IpcInvoke.AiRecipeRulesGet),
+  saveAiRecipeRules: (settings: AiRecipeMatchSettings): Promise<AiRecipeRulesResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AiRecipeRulesSave, settings),
+  explainSimilar: (req: AiRecipeExplainRequest): Promise<AiRecipeExplainResponse> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.AiRecipeExplain, req),
 
   getActiveJob: (): Promise<BendingJob | null> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.GetActiveBendingJob),

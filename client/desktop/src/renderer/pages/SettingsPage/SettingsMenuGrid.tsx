@@ -42,6 +42,8 @@ const ITEMS: MenuItem[] = [
   { label: 'MÜŞTERİ DEĞİŞİKLİĞİ', permission: 'customer-change', to: '/settings/customer-change' },
   { label: 'HIZLI MENÜ', permission: 'side-menu', to: '/settings/side-menu' },
   { label: 'ADMİN AYARLARI', permission: 'admin-settings', to: '/settings/admin' },
+  // 2026-11-19 — AI reçete eşleşmesi neye bakar / neyi yok sayar (sadece AI sürümü, ADMİN+)
+  { label: 'AI ÖĞRENME KURALLARI', permission: 'ai-recipe-rules', to: '/settings/ai-recipe-rules', show: FEATURES.aiRecipe },
   // 2026-11-19 — tüm canlı makine değerleri + motor / fan / alarm (sadece SÜPERADMİN)
   { label: 'MAKİNE DEĞERLERİ', permission: 'machine-values', to: '/settings/machine-values' },
   // CETVEL SIFIRLAMA → Admin Ayarları > GÖNYE & STAGE sekmesine taşındı (sadece admin)

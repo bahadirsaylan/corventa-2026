@@ -2,7 +2,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
-  padding: 16px;
+  /* 2026-11-19: SÜPERADMİN'de 12 satır (AI ÖĞRENME KURALLARI eklendi) üst alana kaydırmasız sığsın — üst/alt 10, satır arası 6 */
+  padding: 10px 16px;
   background-color: #e8e0d0;
   flex: 1;
   overflow-y: auto;
@@ -12,7 +13,7 @@
 .col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   padding: 0 8px;
 }
 

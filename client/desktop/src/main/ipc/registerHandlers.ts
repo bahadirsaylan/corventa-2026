@@ -1,3 +1,4 @@
+import { registerAiRecipeRulesHandlers } from './aiRecipeRulesHandlers'
 import { registerAlertAckHandlers } from './alertAckHandlers'
 import { registerAuthHandlers } from './authHandlers'
 import { registerBendingHandlers } from './bendingHandlers'
@@ -22,6 +23,7 @@ export function registerIpcHandlers(): void {
   registerMacroHandlers()
   registerSavedBendHandlers()
   registerAlertAckHandlers()
+  registerAiRecipeRulesHandlers()
   registerCloudHandlers()
   registerMoldHandlers()
 }

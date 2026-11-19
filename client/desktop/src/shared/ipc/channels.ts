@@ -50,6 +50,10 @@ export const IpcInvoke = {
   AddArcSegment: 'data:add-arc-segment',
   // AI RECIPE FAZ 4B UI (2026-09-04) — dairesel bukumun onceden eslesme kontrolu (read-only)
   FindSimilarBendingJob: 'data:find-similar-bending-job',
+  // AI ÖĞRENME KURALLARI (2026-11-19) — eşleşme kriterleri / toleranslar (DataApi /api/ai-recipe-rules) + deneme (similar?explain=true)
+  AiRecipeRulesGet: 'data:ai-recipe-rules-get',
+  AiRecipeRulesSave: 'data:ai-recipe-rules-save',
+  AiRecipeExplain: 'data:ai-recipe-explain',
   // BÜKÜM GEÇMİŞİ (Ayarlar > Büküm Geçmişi) — iş listesi + iş logları + log dışa aktarma (kayıt penceresi)
   ListBendingJobs: 'data:list-bending-jobs',
   GetBendingLogs: 'data:get-bending-logs',

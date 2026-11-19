@@ -51,6 +51,7 @@ export const PERMISSIONS = {
   'checklist': 'ADMIN',             // (main de kontrol eder: checklist sonucu gönderme)
   'maintenance-rules': 'ADMIN',     // bakım kuralları (min süre / hatırlatma / otomatik kapanma) düzenleme
   'one-time-setup-user': 'ADMIN',   // EXCEL 40: tek seferlik KURULUM KULLANICISI oluşturma (DataApi de kontrol eder)
+  'ai-recipe-rules': 'ADMIN',       // AI ÖĞRENME KURALLARI (2026-11-19): reçete eşleşme kriterleri / toleranslar (DataApi PUT /api/ai-recipe-rules [RequireRole(Admin)])
   // ── SUPERADMIN (YAZILIM ÜRETİCİSİ) ──
   'cloud-deactivate': 'SUPERADMIN', // BULUT BAĞLANTISINI KALDIR (main de kontrol eder)
   'kiosk-exit': 'SUPERADMIN',       // Excel madde 37: kiosk'tan sadece süperadmin çıkar (main de kontrol eder)
@@ -73,6 +74,7 @@ export const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, Permission]> = [
   ['/settings/machine-transfer', 'customer-change'],
   ['/settings/machine-values', 'machine-values'],
   ['/settings/alert-acks', 'alert-acks'],
+  ['/settings/ai-recipe-rules', 'ai-recipe-rules'],
 ]
 
 /** Rol bu yetkiye sahip mi (oturum yoksa hiçbir yetki yok) */

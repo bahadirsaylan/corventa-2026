@@ -28,6 +28,7 @@ import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
 import AlertAcksPage from '@/pages/AlertAcksPage/AlertAcksPage'
+import AiRecipeRulesPage from '@/pages/AiRecipeRulesPage/AiRecipeRulesPage'
 import ClampLogsPage from '@/pages/ClampLogsPage/ClampLogsPage'
 import MachineValuesPage from '@/pages/MachineValuesPage/MachineValuesPage'
 import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
@@ -118,6 +119,8 @@ export default function App() {
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />
             <Route path="settings/error-reports" element={<ErrorReportsPage />} />
             <Route path="settings/alert-acks" element={<RequireRole permission="alert-acks"><AlertAcksPage /></RequireRole>} />
+            {/* 2026-11-19 — AI ÖĞRENME KURALLARI (Standart sürümde yok) */}
+            <Route path="settings/ai-recipe-rules" element={FEATURES.aiRecipe ? <RequireRole permission="ai-recipe-rules"><AiRecipeRulesPage /></RequireRole> : <Navigate to="/settings" replace />} />
             <Route path="settings/bending-history" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
             <Route path="settings/bending-history/:jobId" element={<RequireRole permission="bending-history"><BendingHistoryPage /></RequireRole>} />
             <Route path="settings/machine-hours" element={<MachineUsageHoursPage />} />
