@@ -30,6 +30,7 @@ import { maintenanceErrorMessage, refreshMaintenance } from '@/stores/maintenanc
 import { useT, tp } from '@/i18n'
 import {
   GONYE_SECTION,
+  SAFE_GONYE_SECTION,
   MACHINE_FIELDS,
   MAINTENANCE_RULE_KEY_PREFIX,
   MAINTENANCE_RULES_FIELDS,
@@ -387,6 +388,7 @@ function AdminEditor() {
         <>
           <EncoderResetCard bendingActive={bendingActive} unsaved={changes.length > 0} />
           <SettingsSection section={GONYE_SECTION} values={gonye} original={gonye0} onChange={set(setGonye)} />
+          <SettingsSection section={SAFE_GONYE_SECTION} values={machine} original={machine0} onChange={set(setMachine)} />
           <p className={styles.sectionNote}>
             {t('Makinede en fazla {n} stage tanımlanır. Pasif stage gönye ekranında ve otomatik stage önerisinde kullanılmaz. Stage 1 (gönye konumu) her zaman aktiftir.', { n: STAGE_SLOTS })}
           </p>

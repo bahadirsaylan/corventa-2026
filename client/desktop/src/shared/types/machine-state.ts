@@ -1,3 +1,4 @@
+import type { RulerStatusInfo } from './safe-gonye'
 // Backend MachineState (Core/Models/MachineState.cs) yansıması.
 // SignalR /machineHub "StateUpdated" event'i bu şekli gönderir.
 // Backend C# pascalCase property'lerini default JSON serializer camelCase'e çevirir.
@@ -57,6 +58,9 @@ export interface MachineState {
 
   // Physical state info
   physicalInfo: PhysicalStateInfo
+
+  /** (2026-11-19) GÜVENLİ GÖNYE — cetvel geçerliliği + son bilinen konumlar + çalışan güvenli gönye (eski backend'de yok) */
+  rulerStatus?: RulerStatusInfo
 
   timestamp: string // ISO-8601 UTC
 }

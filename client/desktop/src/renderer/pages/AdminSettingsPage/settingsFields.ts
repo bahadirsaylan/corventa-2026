@@ -359,9 +359,35 @@ export const SIDE_RULER_FIELD_DEFS = (key: SideRulerKey): { rawMin: FieldDef; ra
 
 export const SIDE_RULER_FIELDS: FieldDef[] = SIDE_RULERS.flatMap((r) => Object.values(SIDE_RULER_FIELD_DEFS(r.key)))
 
+// ── GÜVENLİ GÖNYE (2026-11-19) — GÖNYE & STAGE sekmesinde. Alanlar MachineSettings (Api + DataApi PUT kopyası).
+// HER gönye güvenlidir (aç/kapa yok); aralıklar SettingsController ile birebir.
+export const SAFE_GONYE_SECTION: SectionDef = {
+  title: 'GÜVENLİ GÖNYE',
+  note: 'Her gönyede toplar son bilinen konumdan beklenen mesafeyle karşılaştırılır. Beklenenden erken duran top ENGEL sayılır: top hemen ileri alınır, cetvel sıfırlanmaz, gönye durur.',
+  fields: [
+    { key: 'safeGonyeToleranceMm', label: 'ENGEL TOLERANSI', unit: 'mm', min: 1, max: 100, desc: 'Gidilen mesafe beklenenden bu kadar kısaysa ENGEL.' },
+    { key: 'safeGonyeSpeedPercent', label: 'GÜVENLİ GÖNYE HIZI', unit: '%', min: 10, max: 100, integer: true, desc: 'Geri çekme hızı. Düşük hız basıncı erken yükseltebilir — gönye %100 ile denendi.' },
+    { key: 'safeGonyeReliefMm', label: 'RAHATLATMA MESAFESİ', unit: 'mm', min: 0, max: 50, desc: 'Engelde top bu kadar İLERİ alınır (sıkışan el / alet kurtulsun). 0 = ileri alma yok.' },
+    { key: 'safeGonyeReliefSpeedPercent', label: 'RAHATLATMA HIZI', unit: '%', min: 10, max: 100, integer: true },
+    { key: 'safeGonyeMaxAgeDays', label: 'SON KONUM GEÇERLİLİK SÜRESİ', unit: 'gün', min: 1, max: 365, integer: true, desc: 'Daha eski kayıtla beklenen bilinmiyor sayılır — operatör onayı istenir.' },
+    { key: 'rulerConnectionLossSec', label: 'BAĞLANTI KESİNTİSİ EŞİĞİ', unit: 'sn', min: 1, max: 600, integer: true, desc: 'PLC bağlantısı bu süreden uzun koparsa cetveller geçersiz sayılır.' },
+    {
+      type: 'select',
+      key: 'safeGonyeOvertravelAction',
+      label: 'FAZLA GİTME DAVRANIŞI',
+      desc: 'Top beklenen + toleranstan fazla giderse. UYAR: durduğu yer mekanik son kabul edilir, uyarı yazılır.',
+      options: [
+        { value: 'WARN', label: 'UYAR' },
+        { value: 'STOP', label: 'DURDUR' },
+      ],
+    },
+  ],
+}
+
 export const MACHINE_FIELDS: FieldDef[] = [
   ...MACHINE_SECTIONS.flatMap((g) => g.sections.flatMap((s) => s.fields)),
   ...SIDE_RULER_FIELDS,
+  ...SAFE_GONYE_SECTION.fields,
 ]
 
 export const GONYE_SECTION: SectionDef = {

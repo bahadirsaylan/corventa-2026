@@ -45,7 +45,7 @@ import { translate } from '@/i18n'
 
 /** Kayıt metni her zaman Türkçe (ekran dilinden bağımsız) */
 const trText = (source: string, vars?: Record<string, string | number>) => translate(source, 'tr', vars)
-import { useT } from '@/i18n'
+import { tp, useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './BottomStatsPanel.module.css'
 import { FEATURES } from '@shared/edition'
@@ -75,6 +75,13 @@ export default function BottomStatsPanel() {
     fanThermalOK: s.state.safety.fanThermalOK,
   })))
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
+  // 2026-11-19 GÜVENLİ GÖNYE — cetveller geçersiz (açılış / Remote I/O yeniden başladı / PLC bağlantısı koptu)
+  const rulers = useMachineStateStore(useShallow((s) => ({
+    invalid: s.state.rulerStatus?.valid === false,
+    reason: s.state.rulerStatus?.invalidReason ?? null,
+    message: s.state.rulerStatus?.invalidMessage ?? null,
+    running: s.state.rulerStatus?.safeGonyeRunning ?? false,
+  })))
   // STANDART SÜRÜM (2026-11-17): bulut reçete paylaşımı yok → internet uyarısı da yok
   const shareOn = useCloudStore((s) => FEATURES.cloudRecipes && s.status?.shareRecipes === true)
   const internetState = useInternetStore((s) => s.status.state)
@@ -147,6 +154,14 @@ export default function BottomStatsPanel() {
     if (!safety.fanThermalOK) {
       return { level: 'error', text: t('FAN TERMAL KORUMA AKTİF') }
     }
+    // Cetveller geçersiz: konum / büküm hareketi backend'de 409 — kalıcı şerit (KAPAT yok), güvenli gönye sürerken gizli.
+    // Açılışta (APP_START) her sabah beklenen durum → uyarı; Remote I/O / bağlantı kesintisi → hata.
+    if (rulers.invalid && !rulers.running) {
+      return {
+        level: rulers.reason === 'APP_START' ? 'warning' : 'error',
+        text: t('CETVELLER GEÇERSİZ — {why} — GÜVENLİ GÖNYE ALIN', { why: tp(rulers.message ?? '') }),
+      }
+    }
     if (sensors.oilTempC >= 75) {
       return { level: 'error', text: t('YAĞ SICAKLIĞI YÜKSEK ({v}°C)', { v: sensors.oilTempC }) }
     }
@@ -180,7 +195,7 @@ export default function BottomStatsPanel() {
       return { level: 'warning', text: t('YAĞ NEMİ YÜKSEK (%{v})', { v: sensors.oilHumidityPercent }) }
     }
     return { level: 'none', text: '' }
-  }, [safety, sensors, motorState, t, safetyCheck, safetyStalls, ackCheck, ackStall, dirtySensors])
+  }, [safety, sensors, motorState, t, safetyCheck, safetyStalls, ackCheck, ackStall, dirtySensors, rulers])
 
   const stripeClass = [
     styles.stripe,

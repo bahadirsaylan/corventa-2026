@@ -1,3 +1,4 @@
+import type { SafeGonyeReport } from './safe-gonye'
 // Engine API (port 5000) request/response şekilleri.
 
 // POST /api/bending/calculate
@@ -91,6 +92,10 @@ export interface ApplyStageRequest {
 export interface GonyeResult {
   success: boolean
   errorMessage: string | null
+  /** (2026-11-19) GÜVENLİ GÖNYE raporu (eski backend'de yok) */
+  safeGonye?: SafeGonyeReport | null
+  /** HTTP durum kodu (409 = onay gerekli, 403 = yetki) — ağ hatasında yok */
+  status?: number
 }
 
 // POST /api/bending/arc/validate-plan — 2026-09-08

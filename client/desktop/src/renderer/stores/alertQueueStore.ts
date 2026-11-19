@@ -23,6 +23,8 @@ import { useSessionStore } from './sessionStore'
 export const ALERT_PRIORITY = {
   /** Açılış güvenlik uyarısı (ileride pencere olursa — şu an alt şeritte) */
   safety: 100,
+  /** 2026-11-19 GÜVENLİ GÖNYE — cetveller geçersiz (Remote I/O yeniden başladı / PLC bağlantısı koptu) */
+  rulers: 95,
   /** Yağ kirlilik sensörü K1–K3 */
   contamination: 90,
   /** Vadesi geçmiş bakım / bakım kilidi */

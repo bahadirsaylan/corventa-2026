@@ -31,6 +31,8 @@ const TRIGGER_LABELS: Record<string, string> = {
   SafetyAlarm: 'GÜVENLİK ALARMI',
   SafetyWarning: 'GÜVENLİK UYARISI',
   EncoderStall: 'ENCODER DURMASI',
+  SafeGonye: 'GÜVENLİ GÖNYE',
+  RulersInvalid: 'CETVELLER GEÇERSİZ',
 }
 
 const JOB_STATUS_LABELS: Record<string, string> = {

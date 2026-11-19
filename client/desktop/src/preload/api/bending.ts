@@ -6,6 +6,7 @@ import {
   Ipc,
   type ApplyStageRequest,
   type GonyeResult,
+  type SafeGonyeOptions,
   type BendingCalculateRequest,
   type BendingCalculateResponse,
   type BendingJob,
@@ -66,8 +67,9 @@ export const bendingApi = {
   applyStage: (req: ApplyStageRequest): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.ApplyStage, req),
 
-  executeGonye: (): Promise<GonyeResult> =>
-    ipcRenderer.invoke(Ipc.IpcInvoke.ExecuteGonye),
+  // 2026-11-19 GÜVENLİ GÖNYE — opts: beklenen bilinmiyorken onay / engel uyarısını yok sayma (SUPERVISOR+)
+  executeGonye: (opts?: SafeGonyeOptions): Promise<GonyeResult> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.ExecuteGonye, opts),
 
   // Tahliye (SEKIL-18) — üst top geri + rotasyon (POST /api/preparation/unload).
   // Hata / durdurma da cevap gövdesiyle gelir (success=false, cancelled=true durdurulduysa).

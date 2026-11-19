@@ -3,12 +3,17 @@
 // Backend: POST /api/preparation/gonye (Web projesindeki "Gönye Al" ile aynı çağrı, boş body).
 // Akış (backend): pistonlar mekanik limite çekilir → tüm cetveller sıfırlanır → gönye ofsetlerine gidilir
 // → cetveller tekrar sıfırlanır → fiziksel pozisyon takibi "gönye yapıldı" olarak işaretlenir.
+// 2026-11-19 GÜVENLİ GÖNYE: HER gönye güvenlidir — her top son bilinen konumdan beklenen mesafeyle karşılaştırılır,
+// erken duran top ENGEL (ileri alınır, cetvel sıfırlanmaz). Beklenen bilinmiyorsa kontrol listesi onayı; engelden sonra
+// ATÖLYE SORUMLUSU+ "KONTROL ETTİM, ENGEL YOK — YAVAŞ GÖNYE AL". Canlı tablo: rulerStatus.safeGonye (SignalR).
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
-import type { StageInfo } from '@shared/types'
+import type { SafeGonyeOptions, SafeGonyeReport, StageInfo } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
+import { SafeGonyeConfirmModal, SafeGonyeTable } from '@/components/SafeGonye/SafeGonyePanel'
+import { useHasRole, useSessionStore } from '@/stores/sessionStore'
 import { Icon, IconLabel } from '@/components/Icon'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
@@ -23,7 +28,8 @@ const FALLBACK_STAGES: StageInfo[] = [1, 2, 3].map((n) => ({
 }))
 
 const STEPS = [
-  'TÜM PİSTONLAR MEKANİK LİMİTE GERİ ÇEKİLİR (S1 + S2 HEDEF BASINCA ULAŞANA KADAR)',
+  'TÜM PİSTONLAR MEKANİK LİMİTE GERİ ÇEKİLİR — HER TOP SON BİLİNEN KONUMDAN BEKLENEN MESAFEYLE KARŞILAŞTIRILIR',
+  'ERKEN DURAN TOP = ENGEL: TOP HEMEN İLERİ ALINIR, CETVEL SIFIRLANMAZ',
   'TÜM CETVELLER SIFIRLANIR — REFERANS NOKTASI',
   'PİSTONLAR GÖNYE OFSET POZİSYONLARINA GİDER',
   'CETVELLER GÖNYE POZİSYONUNDA TEKRAR SIFIRLANIR',
@@ -42,6 +48,25 @@ export default function EncoderResetPage() {
   const [confirming, setConfirming] = useState(false)
   const [running, setRunning] = useState(false)
   const [status, setStatus] = useState<Status>(null)
+
+  // GÜVENLİ GÖNYE — cetvel durumu + canlı / son rapor (SignalR) + son çağrının raporu
+  const rulers = useMachineStateStore(useShallow((s) => ({
+    valid: s.state.rulerStatus?.valid ?? null,
+    reason: s.state.rulerStatus?.invalidMessage ?? null,
+    lastKnown: s.state.rulerStatus?.lastKnown ?? null,
+    live: s.state.rulerStatus?.safeGonye ?? null,
+    liveRunning: s.state.rulerStatus?.safeGonyeRunning ?? false,
+  })))
+  const [lastReport, setLastReport] = useState<SafeGonyeReport | null>(null)
+  const [needConfirm, setNeedConfirm] = useState<string | null>(null) // sebep metni
+  const [overrideConfirm, setOverrideConfirm] = useState(false)
+  const canOverride = useHasRole('SUPERVISOR')
+  const displayName = useSessionStore((s) => s.displayName ?? s.username)
+  const pick = running || rulers.liveRunning ? rulers.live : (lastReport ?? rulers.live)
+  // Onay istenen (hareketsiz) raporda top satırı yok → adımlar gösterilir
+  const shownReport = pick && pick.pistons.length > 0 ? pick : null
+  // Beklenen bilinmiyor: cetveller geçersiz ve son konum kaydı kullanılamıyor → önce kontrol listesi
+  const expectationUnknown = rulers.valid === false && !(rulers.lastKnown?.usable ?? false)
 
   // Stage seçimi — DB'deki stage tanımları (okunamazsa 1-3 sabit liste)
   const [stages, setStages] = useState<StageInfo[]>(FALLBACK_STAGES)
@@ -93,15 +118,36 @@ export default function EncoderResetPage() {
     }
   }
 
-  async function runGonye() {
+  function startGonye() {
     setConfirming(false)
+    if (expectationUnknown) {
+      setNeedConfirm(rulers.lastKnown?.unusableReason ?? 'SON KONUM KAYDI YOK')
+      return
+    }
+    void runGonye()
+  }
+
+  async function runGonye(opts?: SafeGonyeOptions) {
+    setConfirming(false)
+    setNeedConfirm(null)
+    setOverrideConfirm(false)
     setRunning(true)
     setStatus(null)
+    setLastReport(null)
     try {
-      const res = await window.corventa.bending.executeGonye()
+      const res = await window.corventa.bending.executeGonye(opts)
+      const rep = res.safeGonye ?? null
+      setLastReport(rep)
+      if (!res.success && rep?.errorCode === 'CONFIRMATION_REQUIRED') {
+        // Backend beklenenin bilinmediğini söyledi → kontrol listesi
+        setNeedConfirm(rep.message ?? null)
+        return
+      }
       setStatus(
         res.success
-          ? { kind: 'ok', text: t('GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.') }
+          ? { kind: 'ok', text: rep && rep.warnings.length > 0
+              ? t('GÖNYE TAMAMLANDI — UYARILAR VAR (TABLOYA BAKIN).')
+              : t('GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.') }
           : { kind: 'error', text: t('GÖNYE BAŞARISIZ: {err}', { err: tp(res.errorMessage) || t('BİLİNMEYEN HATA') }) },
       )
     } catch (e) {
@@ -143,6 +189,23 @@ export default function EncoderResetPage() {
             <span className={styles.stateLabel}>{t('STAGE')}</span>
             <span className={styles.stateValue}>
               {physical.currentStageName ?? (physical.currentStage > 0 ? `STAGE ${physical.currentStage}` : '—')}
+            </span>
+          </div>
+          <div className={styles.stateRow}>
+            <span className={styles.stateLabel}>{t('CETVELLER')}</span>
+            <span className={rulers.valid ? styles.stateOk : styles.stateNo}>
+              {rulers.valid == null ? '—' : rulers.valid ? t('GEÇERLİ') : t('GEÇERSİZ')}
+            </span>
+          </div>
+          {rulers.valid === false && rulers.reason && <div className={styles.stateNote}>{tp(rulers.reason)}</div>}
+          <div className={styles.stateRow}>
+            <span className={styles.stateLabel}>{t('SON KONUM KAYDI')}</span>
+            <span className={rulers.lastKnown?.usable ? styles.stateValue : styles.stateNo}>
+              {rulers.lastKnown
+                ? rulers.lastKnown.usable
+                  ? t('{d} GÜN ÖNCE', { d: rulers.lastKnown.ageDays.toFixed(1) })
+                  : tp(rulers.lastKnown.unusableReason ?? '') || t('KULLANILAMAZ')
+                : t('YOK')}
             </span>
           </div>
           <div className={styles.stateRow}>
@@ -188,16 +251,21 @@ export default function EncoderResetPage() {
 
         <div className={`${styles.card} ${styles.stepsCard}`}>
           <div className={styles.sectionTitleRow}>
-            <span className={styles.sectionTitle}>{t('GÖNYE — İŞLEM ADIMLARI')}</span>
+            <span className={styles.sectionTitle}>{shownReport ? t('GÜVENLİ GÖNYE') : t('GÖNYE — İŞLEM ADIMLARI')}</span>
           </div>
-          <ol className={styles.stepList}>
-            {STEPS.map((s) => (
-              <li key={s} className={styles.step}>{t(s)}</li>
-            ))}
-          </ol>
+          {shownReport ? (
+            <SafeGonyeTable report={shownReport} running={running || rulers.liveRunning} />
+          ) : (
+            <ol className={styles.stepList}>
+              {STEPS.map((s) => (
+                <li key={s} className={styles.step}>{t(s)}</li>
+              ))}
+            </ol>
+          )}
         </div>
 
-        {status && (
+        {/* Güvenli gönye raporu kendi sonuç metnini gösteriyorsa aynı mesaj ikinci kez yazılmaz (750 px'e sığsın) */}
+        {status && !(shownReport?.message && !running) && (
           <div className={status.kind === 'ok' ? styles.statusOk : styles.statusError}>{status.text}</div>
         )}
 
@@ -205,6 +273,20 @@ export default function EncoderResetPage() {
           <span className={styles.actionHint}>
             {running ? t('GÖNYE ALINIYOR — İŞLEM BİTENE KADAR BEKLEYİN…') : t(blockedReason ?? 'MAKİNE HAZIR.')}
           </span>
+          {!running && lastReport?.overrideAvailable && (
+            canOverride ? (
+              <button
+                type="button"
+                className={styles.overrideBtn}
+                onClick={() => setOverrideConfirm(true)}
+                disabled={busy || blockedReason != null}
+              >
+                {t('KONTROL ETTİM, ENGEL YOK — YAVAŞ GÖNYE AL')}
+              </button>
+            ) : (
+              <span className={styles.overrideHint}>{t('ENGEL UYARISINI YOK SAYMAK İÇİN ATÖLYE SORUMLUSU GİRİŞİ GEREKİR')}</span>
+            )
+          )}
           <button
             type="button"
             className={styles.resetBtn}
@@ -223,7 +305,27 @@ export default function EncoderResetPage() {
           confirmLabel="GÖNYE AL"
           cancelLabel="VAZGEÇ"
           onCancel={() => setConfirming(false)}
-          onConfirm={runGonye}
+          onConfirm={startGonye}
+        />
+      )}
+
+      {needConfirm != null && (
+        <SafeGonyeConfirmModal
+          reason={needConfirm}
+          userName={displayName}
+          onCancel={() => setNeedConfirm(null)}
+          onConfirm={() => void runGonye({ confirmNoObstacle: true })}
+        />
+      )}
+
+      {overrideConfirm && (
+        <ConfirmModal
+          message="TOPLARIN ARKASINI KONTROL ETTİNİZ VE ENGEL YOK. ENGEL UYARISI YOK SAYILARAK TOPLAR GÜVENLİ HIZDA MEKANİK SONA ÇEKİLECEK VE CETVELLER ORADA SIFIRLANACAK. DEVAM EDİLSİN Mİ"
+          variant="danger"
+          confirmLabel="YAVAŞ GÖNYE AL"
+          cancelLabel="VAZGEÇ"
+          onCancel={() => setOverrideConfirm(false)}
+          onConfirm={() => void runGonye({ ignoreExpected: true })}
         />
       )}
 

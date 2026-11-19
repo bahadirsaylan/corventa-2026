@@ -17,6 +17,8 @@
 // (CORVENTA_DEMO_FAN_AUTO=1 → açık başlar; yağ motorla ısınır, fan açılınca soğur).
 // CORVENTA_DEMO_ENCODER_STALL=1 → her büküm başında bir "EncoderStall" uyarısı (ekran gösterimi için).
 // CORVENTA_DEMO_MEASURE_FAIL=1 → her iş "hatalı ölçüm" işaretiyle biter (EXCEL 33 tahliye ekranı işareti).
+// 2026-11-19 GÜVENLİ GÖNYE: F6 Remote I/O yeniden başladı · CORVENTA_DEMO_RIO_RESET / _ENC_REVERSE / _OBSTACLE=Left:35 /
+// _NO_LAST_POS — demoSafeGonye.ts
 //
 // Gerçek kodla bağlantısı: sadece http.ts'deki interceptor + ConnectionManager/index.ts'deki
 // IS_DEMO dalları. Demo kapalıyken hiçbir şey değişmez.
@@ -38,6 +40,7 @@ import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
 import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
 import { demoBendingCountReport } from '@main/demo/demoBendingReport'
+import { DemoSafeGonye } from '@main/demo/demoSafeGonye'
 import { DemoPressureTest } from '@main/demo/demoPressureTest'
 import { DemoSideRulers } from '@main/demo/demoSideRulers'
 import { DEMO_FAN_AUTO_START, DemoFanAuto } from '@main/demo/demoFanAuto'
@@ -104,6 +107,9 @@ const DEMO_MACHINE_SETTINGS = {
   circularSinglePassPreBend: false,
   safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1, encoderStallStopEnabled: false,
   oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
+  // 2026-11-19 GÜVENLİ GÖNYE (gerçek varsayılanlar) — demoSafeGonye.ts
+  safeGonyeToleranceMm: 10, safeGonyeSpeedPercent: 100, safeGonyeReliefMm: 20, safeGonyeReliefSpeedPercent: 100,
+  safeGonyeMaxAgeDays: 30, rulerConnectionLossSec: 5, safeGonyeOvertravelAction: 'WARN',
   // 2026-11-19 — OTOMATİK FAN (gerçek varsayılan KAPALI; CORVENTA_DEMO_FAN_AUTO=1 → açık başlar) — demoFanAuto.ts
   fanAutoEnabled: DEMO_FAN_AUTO_START, fanOnTempC: 45, fanOffTempC: 40, fanMinOnSeconds: DEMO_FAN_AUTO_START ? 20 : 120, // sunumda kısa
   // EXCEL 34 — bakım kilidi (gerçek varsayılan false). CORVENTA_DEMO_MAINT_LOCK=1 → açık + haftalık bakım 23 gün gecikmiş
@@ -262,6 +268,25 @@ export class DemoMachine extends EventEmitter {
   private nextJobId = 1001
   private activeJobId: number | null = null
   private runToken = 0
+  // 2026-11-19 GÜVENLİ GÖNYE — davranış demoSafeGonye.ts'de; burası sadece adaptör
+  private readonly safeGonye = new DemoSafeGonye({
+    state: () => this.state as unknown as Record<string, unknown>,
+    setEncoder: (k, mm) => {
+      this.state[k].positionMm = mm
+      this.targets[k] = mm
+    },
+    settings: () => this.machineSettings,
+    speed: () => this.speed,
+    sleep: (ms) => this.sleep(ms, this.runToken),
+    finishGonye: async () => {
+      // Gerçek handler adım 2-6: mekanik sonda sıfırla → gönye ofsetine git → orada sıfırla (demoda cetveller 0)
+      for (const k of Object.keys(this.targets) as PistonKey[]) {
+        this.state[k].positionMm = 0
+        this.targets[k] = 0
+      }
+      await this.applyStage(1, 60)
+    },
+  })
   private unloadRunning = false // tahliye hareketi sürüyor (POST /api/preparation/unload/stop bunu keser)
   private progress: BendingProgress | null = null
   private prefs = new Map<string, unknown>()
@@ -350,6 +375,7 @@ export class DemoMachine extends EventEmitter {
     }
     const anyS = s as unknown as { physicalInfo?: Record<string, unknown> }
     anyS.physicalInfo = { isGonyeCompleted: true, currentStage: 1, currentStageName: 'Stage 1' }
+    this.safeGonye.init() // CORVENTA_DEMO_RIO_RESET=1 → gönye bilgisi silinir
     // Gönye yapılmış makine: tüm cetveller gönye konumunda 0 (gerçekteki gibi; üst top gönye ofseti 0)
     const home: Record<PistonKey, number> = { leftPiston: 0, rightPiston: 0, upperPiston: 0, lowerPiston: 0 }
     // MAKİNE DEĞERLERİ (2026-11-19): gönye ofsetleri (fiziksel konum = gönye ofseti + cetvel) — sadece gösterim
@@ -695,6 +721,7 @@ export class DemoMachine extends EventEmitter {
     if (Math.random() < 0.01) s.sensors.oilHumidityPercent = Math.max(15, Math.min(22, s.sensors.oilHumidityPercent + (Math.random() < 0.5 ? -1 : 1)))
     const sf = s.safety
     applyDemoContamination(sf, s.sensors) // 2026-11-19 — yağ kirlilik K1–K3 (CORVENTA_DEMO_DIRTY / F7), demoAlertAcks.ts
+    this.safeGonye.applyTo(s as unknown as Record<string, unknown>) // 2026-11-19 — rulerStatus (güvenli gönye)
     s.systemReady = s.hydraulicMotorState === 2 && sf.emergencyStopOK && sf.phaseSequenceOK
     s.safetyBits =
       (sf.emergencyStopOK ? 0x0001 : 0) | (sf.motorThermalOK ? 0x0002 : 0) | (sf.fanThermalOK ? 0x0004 : 0) |
@@ -1570,6 +1597,8 @@ export class DemoMachine extends EventEmitter {
       return { stageNumber: s.stageNumber, stageId: s.stageId, name: s.name, maxProfileAMm: s.maxProfileAMm, leftOffsetMm: s.left, rightOffsetMm: s.right, lowerOffsetMm: s.lower, reason: 'Profil A uygun en küçük stage' }
     }
     if (path === '/api/preparation/stage') {
+      const rulerBlock = this.safeGonye.blockReason()
+      if (rulerBlock) throw new HttpError(409, rawUrl, rulerBlock, { success: false, errorMessage: rulerBlock, operationName: 'Stage' })
       await this.applyStage(Number(b.targetStage) || 1, Number(b.speedPercent) || 50)
       return { success: true }
     }
@@ -1635,15 +1664,8 @@ export class DemoMachine extends EventEmitter {
       }
     }
     if (path === '/api/preparation/gonye') {
-      const token = this.runToken
-      await this.movePistons({ leftPiston: -15, rightPiston: -15, upperPiston: -10, lowerPiston: -10 }, token, 60)
-      await this.sleep(600, token)
-      for (const k of Object.keys(this.targets) as PistonKey[]) {
-        this.state[k].positionMm = 0
-        this.targets[k] = 0
-      }
-      await this.applyStage(1, 60)
-      return { success: true, errorMessage: null }
+      // 2026-11-19 GÜVENLİ GÖNYE — her gönye güvenli (demoSafeGonye.ts; 409 onay / 403 yetki / 400 engel)
+      return this.safeGonye.run(rawUrl, b)
     }
 
     // ── job ──
@@ -1731,6 +1753,9 @@ export class DemoMachine extends EventEmitter {
         if (err) throw new HttpError(400, rawUrl, err, { success: false, error: err })
       }
       job.manualPlacement = manualPlacement
+      // 2026-11-19 GÜVENLİ GÖNYE — cetveller geçersizse 409 (gerçek StartJob gibi)
+      const rulerBlock = this.safeGonye.blockReason()
+      if (rulerBlock) throw new HttpError(409, rawUrl, rulerBlock, { success: false, error: rulerBlock })
       // EXCEL 34 — bakım kilidi (gerçek StartJob gibi 409; job Ready kalır)
       demoMaintenanceLockEnabled = this.machineSettings.maintenanceLockEnabled === true
       const maintLock = demoMaintenanceLock()

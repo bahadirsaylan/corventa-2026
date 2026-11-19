@@ -1,6 +1,6 @@
 // GLOBAL UYARI KUYRUĞU — tek bağlama noktası (AppLayout). Kuyruğa katılan pencereler burada çizilir;
 // hangisinin görüneceğine alertQueueStore karar verir (aynı anda TEK pencere, öncelik sırası):
-//   güvenlik (ileride) > YAĞ KİRLİLİK > BAKIM UYARISI / KİLİDİ > BAKIM MODU HATIRLATMASI > BAKIM MODU OTOMATİK
+//   güvenlik (ileride) > CETVELLER GEÇERSİZ (güvenli gönye) > YAĞ KİRLİLİK > BAKIM UYARISI / KİLİDİ > BAKIM MODU HATIRLATMASI > BAKIM MODU OTOMATİK
 //   KAPATILDI > KARŞILAMA MESAJI > bilgi
 // Önleme yok: görünen pencere kapanınca sıradaki (en yüksek öncelikli) açılır.
 // DURAKLATMA: otomatik büküm sürerken, büküme ait global modal (çok açılı segment girişi / ölçüm hatası) açıkken
@@ -13,6 +13,7 @@ import WelcomeOverlay from '@/components/WelcomeOverlay/WelcomeOverlay'
 import MaintenanceAlertOverlay from '@/components/MaintenanceAlertOverlay/MaintenanceAlertOverlay'
 import MaintenanceReminderOverlay from '@/components/MaintenanceReminderOverlay/MaintenanceReminderOverlay'
 import ContaminationAlertOverlay from '@/components/ContaminationAlertOverlay/ContaminationAlertOverlay'
+import RulersInvalidOverlay from '@/components/RulersInvalidOverlay/RulersInvalidOverlay'
 import { setAlertQueuePaused } from '@/stores/alertQueueStore'
 import { useContaminationWatcher } from '@/stores/contaminationStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
@@ -38,6 +39,7 @@ export default function AlertQueueHost() {
 
   return (
     <>
+      <RulersInvalidOverlay />
       <ContaminationAlertOverlay />
       <MaintenanceAlertOverlay />
       <MaintenanceReminderOverlay />

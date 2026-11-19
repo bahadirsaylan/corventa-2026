@@ -29,7 +29,7 @@ interface Shown {
 }
 
 type Kind = 'num' | 'num3' | 'int' | 'okFault' | 'onOff' | 'presence' | 'dirty' | 'yesNo' | 'zeroed' | 'text' | 'motionDir'
-  | 'rotDir' | 'pneuDir' | 'motor' | 'mode' | 'error' | 'bits' | 'time' | 'gonye' | 'alarm'
+  | 'rotDir' | 'pneuDir' | 'motor' | 'mode' | 'error' | 'bits' | 'time' | 'gonye' | 'alarm' | 'rulers' | 'date'
 
 interface Field {
   path: string
@@ -96,6 +96,15 @@ const SAFETY_FIELDS: Field[] = [
   { path: 'safety.contaminationK3', label: 'KİRLİLİK SENSÖRÜ K3', kind: 'dirty' },
 ]
 
+// 2026-11-19 GÜVENLİ GÖNYE — cetvel geçerliliği (SİSTEM sekmesi, tek satır — 750 px'e sığsın). Son bilinen fiziksel
+// konumlar PİSTONLAR tablosunda "SON BİLİNEN KONUM" satırı. Eski backend göndermez → "—".
+const RULER_FIELDS: Field[] = [
+  { path: 'rulerStatus.valid', label: 'CETVELLER', kind: 'rulers' },
+  { path: 'rulerStatus.invalidMessage', label: 'GEÇERSİZLİK SEBEBİ', kind: 'text' },
+  { path: 'rulerStatus.lastKnown.savedAt', label: 'SON KONUM KAYDI', kind: 'date' },
+  { path: 'rulerStatus.lastKnown.usable', label: 'GÜVENLİ GÖNYEDE KULLANILIR', kind: 'yesNo' },
+]
+
 const OIL_FIELDS: Field[] = [
   { path: 'sensors.s1PressureBar', label: 'S1 BASINÇ (ÜST / ALT)', unit: 'bar', kind: 'int' },
   { path: 'sensors.s2PressureBar', label: 'S2 BASINÇ (SAĞ / SOL)', unit: 'bar', kind: 'int' },
@@ -156,6 +165,21 @@ const PISTON_ROWS: Record<string, { label: string; kind: Kind; unit?: string }> 
   stageOffsetMm: { label: 'STAGE OFSETİ', kind: 'num', unit: 'mm' },
   safeBackwardMm: { label: 'GÜVENLİ GERİ LİMİT', kind: 'num', unit: 'mm' },
   safeForwardMm: { label: 'GÜVENLİ İLERİ LİMİT', kind: 'num', unit: 'mm' },
+  // 2026-11-19 GÜVENLİ GÖNYE — rulerStatus.lastKnown'dan türetilir (pistonsWithLastKnown); mekanik limitten mm
+  lastKnownMm: { label: 'SON BİLİNEN KONUM', kind: 'num', unit: 'mm' },
+}
+
+/** PİSTONLAR tablosu için: her pistona son bilinen fiziksel konumu (rulerStatus.lastKnown) ekler — sadece gösterim */
+function pistonsWithLastKnown(state: MachineState): MachineState {
+  const lk = state.rulerStatus?.lastKnown
+  if (!lk) return state
+  return {
+    ...state,
+    rightPiston: { ...state.rightPiston, lastKnownMm: lk.rightMm },
+    leftPiston: { ...state.leftPiston, lastKnownMm: lk.leftMm },
+    upperPiston: { ...state.upperPiston, lastKnownMm: lk.upperMm },
+    lowerPiston: { ...state.lowerPiston, lastKnownMm: lk.lowerMm },
+  } as MachineState
 }
 
 const PNEUMATICS = [
@@ -182,7 +206,9 @@ const SIDE_RULER_ROWS: Record<string, { label: string; kind: Kind; unit?: string
 }
 
 /** Tablo ile gösterilen nesneler — altındaki her alan "kapsanmış" sayılır */
-const TABLE_PREFIXES = [...PISTONS.map((p) => p.key), ...PNEUMATICS.map((p) => p.key), ...SIDE_RULER_OBJECTS.map((p) => p.key)]
+const TABLE_PREFIXES = [...PISTONS.map((p) => p.key), ...PNEUMATICS.map((p) => p.key), ...SIDE_RULER_OBJECTS.map((p) => p.key),
+  // güvenli gönye raporu (top satırları) DİĞER'de ham listelenmez — gönye ekranında tablo olarak
+  'rulerStatus']
 
 const COVERED = new Set<string>([
   ...SYSTEM_FIELDS, ...SAFETY_FIELDS, ...OIL_FIELDS, ...ROTATION_FIELDS, ...SPRINGBACK_FIELDS,
@@ -244,6 +270,14 @@ function show(v: unknown, kind: Kind, t: T, unit?: string): Shown {
       return { text: b ? t('EVET') : t('HAYIR'), tone: b ? 'ok' : 'warn', chip: true }
     case 'gonye':
       return { text: b ? t('YAPILDI') : t('YAPILMADI'), tone: b ? 'ok' : 'warn', chip: true }
+    case 'rulers':
+      return { text: b ? t('GEÇERLİ') : t('GEÇERSİZ'), tone: b ? 'ok' : 'bad', chip: true }
+    case 'date': {
+      const d = new Date(String(v))
+      if (Number.isNaN(d.getTime())) return { text: '—', tone: 'idle' }
+      const p2 = (x: number) => String(x).padStart(2, '0')
+      return { text: `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`, tone: 'plain' }
+    }
     case 'motionDir':
       return { text: b ? t('HAREKETLİ') : t('DURUYOR'), tone: b ? 'warn' : 'idle', chip: true }
     case 'rotDir':
@@ -261,7 +295,7 @@ function show(v: unknown, kind: Kind, t: T, unit?: string): Shown {
     case 'time':
       return { text: fmtTime(String(v)), tone: 'plain' }
     case 'text':
-      return { text: String(v) || '—', tone: 'plain' }
+      return { text: tp(String(v)) || '—', tone: 'plain' }
     case 'int':
       return { text: withUnit(Number.isFinite(n) ? String(Math.round(n)) : String(v)), tone: 'plain' }
     case 'num':
@@ -329,7 +363,7 @@ export default function MachineValuesPage() {
               <Section title={t('YAĞ VE HİDROLİK SENSÖRLERİ')} fields={OIL_FIELDS} state={state} />
             </>
           )}
-          {tab === 'PİSTONLAR' && <ObjectTable state={state} objects={PISTONS} rows={PISTON_ROWS} />}
+          {tab === 'PİSTONLAR' && <ObjectTable state={pistonsWithLastKnown(state)} objects={PISTONS} rows={PISTON_ROWS} />}
           {tab === 'ROTASYON & PNÖMATİK' && (
             <>
               <Section title={t('ROTASYON')} fields={ROTATION_FIELDS} state={state} />
@@ -511,6 +545,7 @@ function SystemTab({ state }: { state: MachineState }) {
   return (
     <>
       <Section title={t('SİSTEM DURUMU')} fields={SYSTEM_FIELDS} state={state} />
+      <Section title={t('CETVEL GEÇERLİLİĞİ (GÜVENLİ GÖNYE)')} fields={RULER_FIELDS} state={state} />
       <div className={styles.sectionTitle}>{t('BAĞLANTILAR')}</div>
       <div className={styles.cells}>
         <Cell label={t('BÜKÜM API (HTTP)')} shown={c(conn.engineHttp)} />

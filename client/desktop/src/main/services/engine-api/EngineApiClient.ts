@@ -2,9 +2,12 @@
 
 import { getConfig } from '@main/config/runtime-config'
 import { http, HttpError } from '@main/lib/http'
+import { getAuthToken, getAuthUser } from '@main/services/auth/authSession'
 import type {
   ApplyStageRequest,
   GonyeResult,
+  SafeGonyeOptions,
+  SafeGonyeReport,
   BendingCalculateRequest,
   GonyeSettingsDto,
   MachineSettingsDto,
@@ -112,14 +115,26 @@ export class EngineApiClient {
   // Ayarlar > Cetvel Sıfırlama — Web'deki "Gönye Al" ile aynı çağrı (boş body → backend varsayılanları).
   // Pistonlar mekanik limite çekilir, cetveller sıfırlanır, gönye ofsetlerine gidilir — uzun sürer.
   // Backend başarısızlıkta 400 + PreparationResult döner; mesajı kaybetmemek için body'yi döndürüyoruz.
-  async executeGonye(): Promise<GonyeResult> {
+  // 2026-11-19 GÜVENLİ GÖNYE: safe = { confirmNoObstacle | ignoreExpected } → oturum kullanıcısı + Bearer (backend
+  // DataApi /api/auth/me ile doğrular; yok sayma SUPERVISOR+). Cevapta safeGonye raporu; 409 = onay gerekli, 403 = yetki.
+  // Güvenli gönye yavaş hızda + sınır süresiyle 5 dk'ya kadar sürebilir → zaman aşımı 360 sn.
+  async executeGonye(safe?: SafeGonyeOptions): Promise<GonyeResult> {
+    const body: Record<string, unknown> = {}
+    const headers: Record<string, string> = {}
+    if (safe) {
+      const user = getAuthUser()
+      body.safe = { ...safe, confirmedBy: user ? `${user.displayName || user.username} (${user.role})` : null }
+      const token = getAuthToken()
+      if (token) headers.Authorization = `Bearer ${token}`
+    }
+    type Body = { success?: boolean; errorMessage?: string | null; safeGonye?: SafeGonyeReport | null }
     try {
-      const res = await http.post<GonyeResult>(`${this.baseUrl}/api/preparation/gonye`, {}, { timeoutMs: 180_000 })
-      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null }
+      const res = await http.post<Body>(`${this.baseUrl}/api/preparation/gonye`, body, { timeoutMs: 360_000, headers })
+      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null, safeGonye: res?.safeGonye ?? null, status: 200 }
     } catch (err) {
       if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
-        const body = err.body as { errorMessage?: string | null }
-        return { success: false, errorMessage: body.errorMessage ?? err.message }
+        const b = err.body as Body
+        return { success: false, errorMessage: b.errorMessage ?? err.message, safeGonye: b.safeGonye ?? null, status: err.status }
       }
       throw err
     }

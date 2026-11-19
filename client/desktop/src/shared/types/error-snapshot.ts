@@ -12,6 +12,8 @@ export type ErrorSnapshotTrigger =
   | 'SafetyAlarm'
   | 'SafetyWarning'
   | 'EncoderStall'
+  | 'SafeGonye'
+  | 'RulersInvalid'
 
 export const ERROR_SNAPSHOT_TRIGGERS: readonly ErrorSnapshotTrigger[] = [
   'JobFailed',
@@ -20,6 +22,8 @@ export const ERROR_SNAPSHOT_TRIGGERS: readonly ErrorSnapshotTrigger[] = [
   'SafetyAlarm',
   'SafetyWarning',
   'EncoderStall',
+  'SafeGonye',
+  'RulersInvalid',
 ] as const
 
 export type ErrorSnapshotSeverity = 'error' | 'warning'

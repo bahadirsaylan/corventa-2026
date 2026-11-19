@@ -21,6 +21,7 @@ import {
   type UnloadPartRequest,
   type OilHeatingStartRequest,
   type PressureDropTestStartRequest,
+  type SafeGonyeOptions,
 } from '@shared'
 
 const log = childLogger('ipc:bending')
@@ -99,9 +100,15 @@ export function registerBendingHandlers(): void {
     return engineApi.radiusSensorAction(side, action)
   })
 
-  ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async () => {
-    log.info('execute-gonye')
-    return engineApi.executeGonye()
+  // 2026-11-19 GÜVENLİ GÖNYE — opts: { confirmNoObstacle?, ignoreExpected? }. Onay / yok sayma oturum kullanıcısıyla
+  // gider (Bearer main'de eklenir, backend DataApi'den doğrular; yok sayma SUPERVISOR+).
+  ipcMain.handle(Ipc.IpcInvoke.ExecuteGonye, async (_evt, opts?: SafeGonyeOptions) => {
+    const safe: SafeGonyeOptions | undefined =
+      opts && (opts.confirmNoObstacle || opts.ignoreExpected)
+        ? { confirmNoObstacle: opts.confirmNoObstacle === true, ignoreExpected: opts.ignoreExpected === true }
+        : undefined
+    log.info('execute-gonye', { safe })
+    return engineApi.executeGonye(safe)
   })
 
   ipcMain.handle(Ipc.IpcInvoke.CreateBendingJob, async (_evt, req: BendingJobCreateRequest) => {
