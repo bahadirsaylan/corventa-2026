@@ -15,6 +15,8 @@ export const EventTypes = {
   EncoderStall: 'EncoderStall',
   /** EXCEL 27 — açılış / büküm başı yağ sıcaklığı + sensör kontrolü (info = sorun yok) */
   SafetyCheck: 'SafetyCheck',
+  /** 2026-11-19 — OTOMATİK FAN durumu (backend FanAutoController, info; durum değişince) */
+  FanAuto: 'FanAuto',
   // İleride: OilTemperature, EmergencyStop, JobStatusChanged, ...
 } as const
 
@@ -63,4 +65,24 @@ export interface SafetyCheckPayload {
   oilTempBlockC: number
   blockingEnabled: boolean
   warnings: { code: SafetyWarningCode | string; message: string }[]
+}
+
+/** Backend FanAutoController "FanAuto" olayı (2026-11-19) */
+export interface FanAutoPayload {
+  enabled: boolean
+  onTempC: number
+  offTempC: number
+  minOnSeconds: number
+  /** fan şu an OTOMATİĞİN açtığı fan */
+  autoOwned: boolean
+  autoOnSince: string | null
+  /** none = otomatik devrede · manualOn = operatör açtı (otomatik kapatmaz) · manualOffHold = operatör kapattı (holdUntil'e kadar açmaz) */
+  override: 'none' | 'manualOn' | 'manualOffHold'
+  holdUntil: string | null
+  condition: 'active' | 'disabled' | 'noPlc' | 'safetyStop' | 'sensorFault'
+  oilTempC: number | null
+  fanOn: boolean
+  lastAction: 'on' | 'off' | null
+  lastActionAt: string | null
+  lastActionReason: string | null
 }

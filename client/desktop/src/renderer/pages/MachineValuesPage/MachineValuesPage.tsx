@@ -12,8 +12,9 @@ import { Icon } from '@/components/Icon'
 import { useT, tp } from '@/i18n'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
+import { useEventsStore } from '@/stores/eventsStore'
 import { useConnectionStatus } from '@/hooks/useConnectionStatus'
-import type { ConnectionState, MachineState } from '@shared/types'
+import type { ConnectionState, FanAutoPayload, MachineState } from '@shared/types'
 import { SIDE_RULERS } from '@shared/sideRulers'
 import styles from './MachineValuesPage.module.css'
 
@@ -371,6 +372,10 @@ function Controls({ state }: { state: MachineState }) {
     }
   }
 
+  // 2026-11-19 — OTOMATİK FAN rozeti (backend FanAutoController "FanAuto" olayı)
+  const fanAuto = useEventsStore((s) => s.byType['FanAuto']?.payload as FanAutoPayload | undefined)
+  const fanBadge = fanAutoBadge(fanAuto, t)
+
   const m = window.corventa.machine
   const motor = state.hydraulicMotorState
   // Büküm sürerken sadece MOTOR DURDUR serbest (operatör motoru her an kesebilmeli)
@@ -389,6 +394,7 @@ function Controls({ state }: { state: MachineState }) {
         />
         <ControlCard
           label={t('FAN')}
+          badge={fanBadge}
           shown={show(state.fanActive, 'onOff', t)}
           onLabel={t('FANI AÇ')}
           offLabel={t('FANI KAPAT')}
@@ -417,8 +423,20 @@ function Controls({ state }: { state: MachineState }) {
   )
 }
 
+/** OTOMATİK FAN rozeti: devrede → OTOMATİK; operatör elle açtı → ELLE; elle kapattı → OTOMATİK BEKLİYOR (n dk) */
+function fanAutoBadge(p: FanAutoPayload | undefined, t: (s: string, v?: Record<string, string | number>) => string): Shown | undefined {
+  if (!p?.enabled) return undefined
+  if (p.override === 'manualOn') return { text: t('ELLE'), tone: 'warn', chip: true }
+  if (p.override === 'manualOffHold') {
+    const min = p.holdUntil ? Math.max(1, Math.ceil((Date.parse(p.holdUntil) - Date.now()) / 60_000)) : 10
+    return { text: t('OTOMATİK {n} DK SONRA', { n: min }), tone: 'warn', chip: true }
+  }
+  return { text: t('OTOMATİK'), tone: 'ok', chip: true }
+}
+
 function ControlCard(p: {
   label: string
+  badge?: Shown
   shown: Shown
   onLabel: string
   offLabel: string
@@ -430,7 +448,15 @@ function ControlCard(p: {
   return (
     <div className={styles.ctrlCard}>
       <div className={styles.ctrlHead}>
-        <span className={styles.ctrlLabel}>{p.label}</span>
+        <span className={styles.ctrlLabel}>
+          {p.label}
+          {p.badge && (
+            <>
+              {' '}
+              <Value shown={p.badge} />
+            </>
+          )}
+        </span>
         <Value shown={p.shown} />
       </div>
       <div className={styles.ctrlBtns}>

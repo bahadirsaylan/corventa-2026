@@ -64,6 +64,10 @@ export class CorventaHubConnection extends EventEmitter {
     this.connection.onclose((err) => {
       log.warn('connection closed', { error: err?.message })
       this.setState('disconnected')
+      // 2026-11-19 — otomatik yeniden bağlanma denemeleri (~48 sn) bitince SignalR bağlantıyı KALICI kapatıyordu:
+      // backend bir dakikadan uzun kapalı kalıp geri gelince olay kanalı uygulama yeniden açılana kadar ölü kalıyordu
+      // (ör. güvenlik / yağ sıcaklığı uyarıları ekrana hiç gelmiyordu). Bilerek durdurulmadıysa 5 sn'de bir denemeye devam.
+      if (!this.stopping) this.scheduleReconnect()
     })
 
     this.setState('connecting')
@@ -80,11 +84,17 @@ export class CorventaHubConnection extends EventEmitter {
 
   async stop(): Promise<void> {
     if (!this.connection) return
+    this.stopping = true
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
+    }
     try {
       await this.connection.stop()
     } catch (err) {
       log.warn('stop failed', { error: (err as Error).message })
     }
+    this.stopping = false
     this.connection = null
     this.setState('disconnected')
   }
@@ -96,11 +106,13 @@ export class CorventaHubConnection extends EventEmitter {
   }
 
   private reconnectTimer: NodeJS.Timeout | null = null
+  /** stop() sırasında onclose yeniden bağlanma kurmasın */
+  private stopping = false
   private scheduleReconnect(): void {
     if (this.reconnectTimer) return
     this.reconnectTimer = setTimeout(async () => {
       this.reconnectTimer = null
-      if (!this.connection || this.connectionState === 'connected') return
+      if (!this.connection || this.stopping || this.connectionState === 'connected') return
       try {
         log.info('manual reconnect attempt')
         await this.connection.start()

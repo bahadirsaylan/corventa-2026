@@ -13,6 +13,8 @@
 // Hız: CORVENTA_DEMO_SPEED=2 gibi başlangıç çarpanı verilebilir.
 // Güvenlik kontrolleri (EXCEL 27): açılışta ve büküm başında gerçek SafetyCheckService kuralıyla SafetyCheck
 // event'i yayınlanır (Admin Ayarları > GÜVENLİK eşikleri demo yağ sıcaklığı 41°C ile denenebilir).
+// 2026-11-19: ayrıca her 5 sn (değişince) ve ayar kaydında hemen; eşik ≥. OTOMATİK FAN: demoFanAuto.ts
+// (CORVENTA_DEMO_FAN_AUTO=1 → açık başlar; yağ motorla ısınır, fan açılınca soğur).
 // CORVENTA_DEMO_ENCODER_STALL=1 → her büküm başında bir "EncoderStall" uyarısı (ekran gösterimi için).
 // CORVENTA_DEMO_MEASURE_FAIL=1 → her iş "hatalı ölçüm" işaretiyle biter (EXCEL 33 tahliye ekranı işareti).
 //
@@ -37,6 +39,7 @@ import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
 import { demoBendingCountReport } from '@main/demo/demoBendingReport'
 import { DemoPressureTest } from '@main/demo/demoPressureTest'
 import { DemoSideRulers } from '@main/demo/demoSideRulers'
+import { DEMO_FAN_AUTO_START, DemoFanAuto } from '@main/demo/demoFanAuto'
 import { defaultSideRulerSettings } from '@shared/sideRulers'
 import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
@@ -100,6 +103,8 @@ const DEMO_MACHINE_SETTINGS = {
   circularSinglePassPreBend: false,
   safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1,
   oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
+  // 2026-11-19 — OTOMATİK FAN (gerçek varsayılan KAPALI; CORVENTA_DEMO_FAN_AUTO=1 → açık başlar) — demoFanAuto.ts
+  fanAutoEnabled: DEMO_FAN_AUTO_START, fanOnTempC: 45, fanOffTempC: 40, fanMinOnSeconds: DEMO_FAN_AUTO_START ? 20 : 120, // sunumda kısa
   // EXCEL 34 — bakım kilidi (gerçek varsayılan false). CORVENTA_DEMO_MAINT_LOCK=1 → açık + haftalık bakım 23 gün gecikmiş
   maintenanceLockEnabled: process.env.CORVENTA_DEMO_MAINT_LOCK === '1',
   slackSpeedPercent: 30, adaptiveJogSpeedPercent: 20, adaptiveSampleIntervalMm: 1, adaptiveWindowSampleCount: 10,
@@ -264,6 +269,7 @@ export class DemoMachine extends EventEmitter {
   private machineSettings: Record<string, unknown> = { ...DEMO_MACHINE_SETTINGS, ...defaultSideRulerSettings() }
   // Yan dayama cetvelleri (2026-11-19) — demoSideRulers.ts
   private sideRulers = new DemoSideRulers()
+  private fanAuto = new DemoFanAuto()
   private gonyeSettings: Record<string, unknown> = { id: 1, leftOffsetMm: 3.75, rightOffsetMm: 3.75, upperOffsetMm: 0, lowerOffsetMm: 10.5, referencePressureBar: 70 }
   private stageEdits = new Map<number, Record<string, unknown>>()
   private extraStages: (Record<string, unknown> & { id: number; isActive?: boolean })[] = []
@@ -324,13 +330,13 @@ export class DemoMachine extends EventEmitter {
     const s = this.state
     s.hydraulicMotorState = 2
     s.systemReady = true
-    s.fanActive = true
+    s.fanActive = !DEMO_FAN_AUTO_START
     s.sensors = {
       s1PressureBar: 6,
       s2PressureBar: 6,
       s1FlowCms: 12,
       s2FlowCms: 11,
-      oilTempC: 41,
+      oilTempC: DEMO_FAN_AUTO_START ? 40 : 41,
       oilHumidityPercent: 18,
       oilLevelPercent: 82,
     }
@@ -367,6 +373,8 @@ export class DemoMachine extends EventEmitter {
     this.sensorTimer = setInterval(() => this.emitPartSensor(), 1000)
     // EXCEL 27 — açılış güvenlik kontrolü (gerçekte PLC'den taze veri gelince)
     this.safetyStartupTimer = setTimeout(() => this.safetyCheck('Startup'), 3000)
+    // 2026-11-19 — gerçek SafetyMonitorService gibi her 5 sn değerlendir, değişince yayınla (ayar kaydında hemen)
+    this.safetyPeriodicTimer = setInterval(() => this.safetyCheck('Periodic'), 5000)
     log.info('DEMO makine başladı', { speed: this.speed })
   }
 
@@ -374,6 +382,8 @@ export class DemoMachine extends EventEmitter {
     if (this.timer) clearInterval(this.timer)
     if (this.sensorTimer) clearInterval(this.sensorTimer)
     if (this.safetyStartupTimer) clearTimeout(this.safetyStartupTimer)
+    if (this.safetyPeriodicTimer) clearInterval(this.safetyPeriodicTimer)
+    this.safetyPeriodicTimer = null
     this.timer = this.sensorTimer = null
     this.safetyStartupTimer = null
   }
@@ -414,9 +424,12 @@ export class DemoMachine extends EventEmitter {
   // ── güvenlik kontrolleri (EXCEL 27) — backend SafetyCheckService ile aynı kural ──
 
   private safetyStartupTimer: NodeJS.Timeout | null = null
+  private safetyPeriodicTimer: NodeJS.Timeout | null = null
+  /** Son yayınlanan uyarı kodları + eşikler — Periodic sadece değişince yayınlar (backend SafetyCheckService gibi) */
+  private safetyLastKey: string | null = null
 
   /** Yağ sıcaklığı + sensör aralığı kontrolü; SafetyCheck event'i yayınlar. Engel varsa nedenini döner. */
-  private safetyCheck(context: 'Startup' | 'StartJob', jobId: number | null = null): string | null {
+  private safetyCheck(context: 'Startup' | 'StartJob' | 'Periodic', jobId: number | null = null): string | null {
     const cfg = this.machineSettings
     if (cfg.safetyMonitorEnabled === false) return null
     const warnC = Number(cfg.oilTempWarnC ?? 55)
@@ -436,14 +449,20 @@ export class DemoMachine extends EventEmitter {
       warnings.push({ code: 'S2PressureSensorFault', message: `S2 basınç sensörü aralık dışı (${sn.s2PressureBar} bar)` })
     let blockReason: string | null = null
     if (!sensorFault) {
-      if (temp > blockC) {
+      // 2026-11-19: eşiğe ULAŞINCA (≥) — backend ile aynı
+      if (temp >= blockC) {
         warnings.push({ code: 'OilTempCritical', message: `Yağ sıcaklığı çok yüksek: ${temp}°C (engel eşiği ${blockC}°C)` })
         if (blockingEnabled && context === 'StartJob')
-          blockReason = `Yağ sıcaklığı çok yüksek (${temp}°C > ${blockC}°C) — büküm başlatılamaz`
-      } else if (temp > warnC) {
+          blockReason = `Yağ sıcaklığı çok yüksek (${temp}°C ≥ ${blockC}°C) — büküm başlatılamaz`
+      } else if (temp >= warnC) {
         warnings.push({ code: 'OilTempHigh', message: `Yağ sıcaklığı yüksek: ${temp}°C (uyarı eşiği ${warnC}°C)` })
       }
     }
+    const codes = (blockReason ? 'BLOCKED|' : '') + warnings.map((w) => w.code).sort().join(',')
+    const key = `${codes}#${warnC}/${blockC}/${blockingEnabled ? 1 : 0}`
+    const prevCodes = this.safetyLastKey?.split('#')[0] ?? ''
+    if (context === 'Periodic' && this.safetyLastKey != null && key === this.safetyLastKey) return blockReason
+    this.safetyLastKey = key
     this.emit('eventReceived', {
       messageType: blockReason ? 'error' : warnings.length > 0 ? 'warning' : 'info',
       eventType: 'SafetyCheck',
@@ -453,7 +472,7 @@ export class DemoMachine extends EventEmitter {
         oilTempC: temp, oilTempWarnC: warnC, oilTempBlockC: blockC, blockingEnabled, warnings,
       },
     } satisfies MachineEvent)
-    if (blockReason || warnings.length > 0)
+    if ((blockReason || warnings.length > 0) && codes !== prevCodes)
       this.captureErrorSnapshot('SafetyWarning', blockReason ?? warnings.map((w) => w.message).join(' | '),
         blockReason ? 'error' : 'warning', jobId)
     return blockReason
@@ -655,6 +674,7 @@ export class DemoMachine extends EventEmitter {
     s.sensors.s1FlowCms = anyMoving ? 34 + Math.round(Math.random() * 4) : 12
     s.sensors.s2FlowCms = anyMoving ? 31 + Math.round(Math.random() * 4) : 11
     this.tickDisplayValues()
+    this.fanAuto.tick(dt, s, this.machineSettings, (evt) => this.emit('eventReceived', evt)) // OTOMATİK FAN (demoFanAuto.ts)
     this.sideRulers.tick(dt, s, this.machineSettings)
     ;(s as unknown as { timestamp?: string }).timestamp = new Date().toISOString()
 
@@ -670,7 +690,7 @@ export class DemoMachine extends EventEmitter {
       s.sensors.s1PressureBar = s.sensors.s2PressureBar = 0
       s.sensors.s1FlowCms = s.sensors.s2FlowCms = 0
     }
-    if (Math.random() < 0.02) s.sensors.oilTempC = Math.max(38, Math.min(46, s.sensors.oilTempC + (Math.random() < 0.5 ? -1 : 1)))
+    if (!this.fanAuto.controlsTemperature && Math.random() < 0.02) s.sensors.oilTempC = Math.max(38, Math.min(46, s.sensors.oilTempC + (Math.random() < 0.5 ? -1 : 1)))
     if (Math.random() < 0.01) s.sensors.oilHumidityPercent = Math.max(15, Math.min(22, s.sensors.oilHumidityPercent + (Math.random() < 0.5 ? -1 : 1)))
     const sf = s.safety
     applyDemoContamination(sf, s.sensors) // 2026-11-19 — yağ kirlilik K1–K3 (CORVENTA_DEMO_DIRTY / F7), demoAlertAcks.ts
@@ -1819,6 +1839,7 @@ export class DemoMachine extends EventEmitter {
     // MAKİNE DEĞERLERİ (2026-11-19) — fan / alarm aç-kapat
     if (path === '/api/machine/fan') {
       this.state.fanActive = !!b.value
+      this.fanAuto.onManual(!!b.value) // OTOMATİK FAN: elle komut öncelikli
       return ok
     }
     if (path === '/api/machine/alarm') {
@@ -1874,7 +1895,11 @@ export class DemoMachine extends EventEmitter {
     }
     if (path === '/api/settings/reload') return ok
     if (path === '/api/settings/machine') {
-      if (method === 'PUT') this.machineSettings = { ...this.machineSettings, ...b, updatedAt: new Date().toISOString() }
+      if (method === 'PUT') {
+        this.machineSettings = { ...this.machineSettings, ...b, updatedAt: new Date().toISOString() }
+        // 2026-11-19 — gerçek Api gibi: kayıttan hemen sonra güvenlik kontrolü yeni eşiklerle (otomatik fan bir sonraki tick'te)
+        setTimeout(() => this.safetyCheck('Periodic'), 100)
+      }
       return this.machineSettings
     }
     if (path === '/api/settings/gonye') {
