@@ -31,8 +31,8 @@ export const ALERT_PRIORITY = {
   maintenanceReminder: 70,
   /** Bakım modu otomatik kapatıldı (bilgi) */
   maintenanceAutoClosed: 60,
-  /** Karşılama mesajı */
-  welcome: 50,
+  /** Karşılama mesajı — 2026-11-19 (kullanıcı): girişte İLK o çıkar, uyarılar ondan sonra */
+  welcome: 200,
   /** Diğer bilgi pencereleri (bulut güncellemesi vb.) */
   info: 10,
 } as const

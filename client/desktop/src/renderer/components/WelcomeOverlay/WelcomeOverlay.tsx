@@ -4,11 +4,10 @@
 // 2026-11-19: global uyarı kuyruğuna katılır (alertQueueStore, en düşük öncelikli pencerelerden) — başka uyarı
 // açıkken bekler; otomatik kapanma süresi pencere GÖRÜNÜNCE başlar.
 
-import { useEffect } from 'react'
-import { useSessionStore } from '@/stores/sessionStore'
+import { useEffect, useState } from 'react'
+import { useSessionStore, useUserKey } from '@/stores/sessionStore'
 import { ALERT_PRIORITY, useAlertSlot } from '@/stores/alertQueueStore'
-import { useCloudConfigStore } from '@/stores/cloudConfigStore'
-import { readWelcomeMessage, WELCOME_DEFAULT_MESSAGE } from '@/services/welcomeMessage'
+import { loadWelcomeMessage, WELCOME_DEFAULT_MESSAGE } from '@/services/welcomeMessage'
 import { useT } from '@/i18n'
 import styles from './WelcomeOverlay.module.css'
 
@@ -19,10 +18,19 @@ export default function WelcomeOverlay() {
   const show = useSessionStore((s) => s.showWelcome)
   const username = useSessionStore((s) => s.username)
   const dismiss = useSessionStore((s) => s.dismissWelcome)
-  // Bulut v2: karşılama mesajı bulutta yönetiliyorsa o gösterilir (yerel kayıt yok sayılır)
-  const cloudMessage = useCloudConfigStore((s) => s.config?.welcomeMessage ?? null)
+  // 2026-11-19: kullanıcının KENDİ mesajı (DataApi UserPreferences) — bulut mesajı kullanılmaz
+  const userKey = useUserKey()
+  const [stored, setStored] = useState<string | null | undefined>(undefined)
+  useEffect(() => {
+    if (!show) return
+    let alive = true
+    setStored(undefined)
+    loadWelcomeMessage(userKey).then((m) => { if (alive) setStored(m) })
+    return () => { alive = false }
+  }, [show, userKey])
 
-  const visible = useAlertSlot('welcome', ALERT_PRIORITY.welcome, show)
+  // Mesaj okunana kadar sıraya girmez (en fazla bir an) — girişte İLK pencere karşılama
+  const visible = useAlertSlot('welcome', ALERT_PRIORITY.welcome, show && stored !== undefined)
 
   useEffect(() => {
     if (!visible) return
@@ -32,10 +40,7 @@ export default function WelcomeOverlay() {
 
   if (!visible) return null
   // Kayıtlı mesaj yok ya da varsayılanla aynıysa seçili dile çevrilir; operatörün kendi metni aynen gösterilir
-  const stored = readWelcomeMessage()
-  const message = cloudMessage?.trim()
-    ? cloudMessage
-    : stored == null || stored.trim() === WELCOME_DEFAULT_MESSAGE ? t(WELCOME_DEFAULT_MESSAGE) : stored
+  const message = stored == null || stored.trim() === WELCOME_DEFAULT_MESSAGE ? t(WELCOME_DEFAULT_MESSAGE) : stored
 
   return (
     <div className={styles.overlay} onClick={dismiss} role="dialog" aria-modal="true">

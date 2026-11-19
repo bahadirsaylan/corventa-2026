@@ -395,6 +395,10 @@ const en: Record<string, string> = {
   '{len} / {max} karakter': '{len} / {max} characters',
   'Kaydedildi: {at}': 'Saved: {at}',
   'ÖNİZLEME': 'PREVIEW',
+  // 2026-11-19 — kullanıcıya özel karşılama mesajı
+  'KAYDEDİLEMEDİ — TEKRAR DENEYİN': 'COULD NOT BE SAVED — TRY AGAIN',
+  'Girişten sonra SİZE gösterilecek karşılama mesajını düzenleyin (her kullanıcının kendi mesajı). En fazla {n} karakter.':
+    'Edit the welcome message shown to YOU after sign-in (each user has their own message). Up to {n} characters.',
 }
 
 export default en

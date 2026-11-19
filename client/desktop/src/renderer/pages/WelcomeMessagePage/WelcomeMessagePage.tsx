@@ -5,9 +5,10 @@ import { useLang, useT } from '@/i18n'
 import {
   WELCOME_DEFAULT_MESSAGE as DEFAULT_MESSAGE,
   WELCOME_MAX_LENGTH as MAX_LENGTH,
-  WELCOME_STORAGE_KEY as STORAGE_KEY,
+  loadWelcomeMessage,
+  saveWelcomeMessage,
 } from '@/services/welcomeMessage'
-import { useCloudConfig } from '@/stores/cloudConfigStore'
+import { useUserKey } from '@/stores/sessionStore'
 import styles from './WelcomeMessagePage.module.css'
 
 export default function WelcomeMessagePage() {
@@ -16,26 +17,41 @@ export default function WelcomeMessagePage() {
   const locale = useLang() === 'en' ? 'en-GB' : 'tr-TR'
   const [message, setMessage] = useState('')
   const [savedAt, setSavedAt] = useState<string | null>(null)
-  // Bulut v2: mesaj bulutta yönetiliyorsa sadece gösterilir, burada düzenlenemez
-  const cloudRaw = useCloudConfig()?.welcomeMessage ?? null
-  const cloudMessage = cloudRaw?.trim() ? cloudRaw : null
-  const shown = cloudMessage ?? message
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  // 2026-11-19 (kullanıcı): her operatör KENDİ karşılama mesajını düzenler (DataApi UserPreferences) — bulut yok
+  const userKey = useUserKey()
+  const shown = message
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    setMessage(stored ?? t(DEFAULT_MESSAGE))
-  }, [])
+    let alive = true
+    loadWelcomeMessage(userKey).then((stored) => {
+      if (alive) setMessage(stored == null || stored.trim() === DEFAULT_MESSAGE ? t(DEFAULT_MESSAGE) : stored)
+    })
+    return () => { alive = false }
+  }, [userKey])
 
-  const handleSave = () => {
-    localStorage.setItem(STORAGE_KEY, message)
-    const now = new Date().toLocaleString(locale)
-    setSavedAt(now)
+  const handleSave = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await saveWelcomeMessage(userKey, message)
+      setSavedAt(new Date().toLocaleString(locale))
+    } catch {
+      setError(t('KAYDEDİLEMEDİ — TEKRAR DENEYİN'))
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setMessage(t(DEFAULT_MESSAGE))
-    localStorage.removeItem(STORAGE_KEY)
     setSavedAt(null)
+    try {
+      await saveWelcomeMessage(userKey, null)
+    } catch {
+      setError(t('KAYDEDİLEMEDİ — TEKRAR DENEYİN'))
+    }
   }
 
   return (
@@ -48,22 +64,13 @@ export default function WelcomeMessagePage() {
       </div>
 
       <div className={styles.body}>
-        {cloudMessage ? (
-          <p className={`${styles.helpText} ${styles.cloudNote}`}>
-            <strong>{t('BULUTTAN YÖNETİLİYOR')}</strong>
-            {' — '}
-            {t('Bu mesaj Corventa bulut panelinden değiştirilir; makinede düzenlenemez.')}
-          </p>
-        ) : (
-          <p className={styles.helpText}>
-            {t('Operatör login sonrası gösterilecek karşılama mesajını düzenleyin. En fazla {n} karakter.', { n: MAX_LENGTH })}
-          </p>
-        )}
+        <p className={styles.helpText}>
+          {t('Girişten sonra SİZE gösterilecek karşılama mesajını düzenleyin (her kullanıcının kendi mesajı). En fazla {n} karakter.', { n: MAX_LENGTH })}
+        </p>
 
         <textarea
           className={styles.textarea}
           value={shown}
-          readOnly={!!cloudMessage}
           onChange={(e) => setMessage(e.target.value.slice(0, MAX_LENGTH))}
           rows={10}
           placeholder={t('Karşılama mesajınızı buraya yazın...')}
@@ -74,6 +81,7 @@ export default function WelcomeMessagePage() {
             {t('{len} / {max} karakter', { len: shown.length, max: MAX_LENGTH })}
           </span>
           {savedAt && <span className={styles.savedAt}>{t('Kaydedildi: {at}', { at: savedAt })}</span>}
+          {error && <span className={styles.savedAt}>{error}</span>}
         </div>
 
         <div className={styles.preview}>
@@ -88,10 +96,10 @@ export default function WelcomeMessagePage() {
         </div>
 
         <div className={styles.actions}>
-          <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={handleReset} disabled={!!cloudMessage}>
+          <button className={`${styles.actionBtn} ${styles.resetBtn}`} onClick={() => void handleReset()} disabled={busy}>
             {t('VARSAYILANA DÖN')}
           </button>
-          <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={handleSave} disabled={!!cloudMessage}>
+          <button className={`${styles.actionBtn} ${styles.saveBtn}`} onClick={() => void handleSave()} disabled={busy}>
             {t('KAYDET')}
           </button>
         </div>

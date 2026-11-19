@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   'language': 'OPERATOR',
   'pdf-guide': 'OPERATOR',
   'side-menu': 'OPERATOR',          // Hızlı Menü düzeni
+  'welcome-message': 'OPERATOR',    // 2026-11-19: her kullanıcı KENDİ karşılama mesajını düzenler
   'machine-hours': 'OPERATOR',      // Kullanma Süreleri
   'bending-count': 'OPERATOR',      // Kıvrım Adetleri raporu
   'error-reports': 'OPERATOR',
@@ -35,7 +36,7 @@ export const PERMISSIONS = {
   'mold-library': 'OPERATOR',       // KALIP KÜTÜPHANESİ (önbellekteki kalıplar)
   // ── SUPERVISOR (ATÖLYE SORUMLUSU) ──
   'user-management': 'SUPERVISOR',  // Kullanıcı Yönetimi (sadece kendinden düşük roller — SUPERVISOR → KULLANICI)
-  'welcome-message': 'SUPERVISOR',
+
   'saved-bend-delete': 'SUPERVISOR',
   'alert-acks': 'SUPERVISOR',       // UYARI KAYITLARI (2026-11-19): kapatılan uyarılar (DataApi GET /api/alert-acks [RequireRole(Supervisor)]) // STANDART SÜRÜM (2026-11-17) kayıtlı büküm silme (DataApi DELETE /api/saved-bends/{id})
   // ── SERVICEMAN (SERVİS TEKNİSYENİ) ──
