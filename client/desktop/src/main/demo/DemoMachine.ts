@@ -844,7 +844,10 @@ export class DemoMachine extends EventEmitter {
   private async applyStage(n: number, speedPct: number): Promise<void> {
     const st = this.stageDef(n) ?? STAGES[0]
     const token = this.runToken
-    // Gerçek ChangeStageHandler: Sol + Alt + Sağ paralel (üst top oynamaz)
+    // Gerçek ChangeStageHandler (2026-11-20): üst top ilerideyse önce gönyeye (0) geri çekilir, sonra Sol + Alt + Sağ paralel
+    if (this.state.upperPiston.positionMm > 0.5) {
+      await this.movePistons({ upperPiston: 0 }, token, Math.max(30, speedPct))
+    }
     await this.movePistons({ leftPiston: st.left, rightPiston: st.right, lowerPiston: st.lower }, token, Math.max(30, speedPct))
     ;(this.state as unknown as { physicalInfo: Record<string, unknown> }).physicalInfo = {
       isGonyeCompleted: true,

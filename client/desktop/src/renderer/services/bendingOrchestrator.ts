@@ -2,6 +2,7 @@
 // Adımlar bağımsız, her biri kendi hatasını fırlatır; UI tek try/catch ile yakalar.
 
 import { manualTargetKey, useBendingJobStore } from '@/store/bendingJobStore'
+import { awaitStageReturn } from './stageReturn'
 import { refreshMaintenance, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { maintenanceLockActive } from '@/services/maintenanceStatus'
 import {
@@ -221,6 +222,8 @@ export async function executeBendingFlow(
 
   // ---------- Step 5: Apply stage ----------
   notify('apply-stage')
+  // 2026-11-20: parça alındıktan sonra başlatılan stage dönüşü sürüyorsa önce o biter (iki stage komutu çakışmasın)
+  await awaitStageReturn()
   try {
     await window.corventa.bending.applyStage({
       targetStage: recommendedStage,

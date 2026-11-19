@@ -32,6 +32,7 @@ import {
   type UnloadMotion,
 } from '@/services/operatorPrefs'
 import styles from './UnloadPage.module.css'
+import { startStageReturn } from '@/services/stageReturn'
 
 const MIN_S = UNLOAD_SECONDS.min
 const MAX_S = UNLOAD_SECONDS.max
@@ -96,6 +97,12 @@ export default function UnloadPage() {
   const rawNext = navState && typeof navState === 'object' ? (navState as Record<string, unknown>).next : undefined
   const nextOverride = typeof rawNext === 'string' && rawNext.startsWith('/bending/') ? rawNext : null
   const nextPath = macroId != null ? `/bending/macros/${macroId}/run` : (nextOverride ?? '/bending/next')
+  // 2026-11-20 (kullanıcı): parça alınınca toplar bükümün stage'ine geri döner (TEKRAR'da zaman kaybı olmasın).
+  // Makro akışında dönülmez (makro kendi konumlarını yönetir).
+  const partTaken = () => {
+    if (macroId == null) startStageReturn()
+    navigate(nextPath)
+  }
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
@@ -509,14 +516,14 @@ export default function UnloadPage() {
           <button type="button" className={styles.bigBtn} onClick={() => setPhase('select')}>
             <span>{t('TEKRAR DENE')}</span>
           </button>
-          <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate(nextPath)}>
+          <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={partTaken}>
             <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
           </button>
         </div>
       )}
 
       {phase === 'ready' && (
-        <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={() => navigate(nextPath)}>
+        <button type="button" className={`${styles.bigBtn} ${styles.ready}`} onClick={partTaken}>
           <IconLabel icon="check">{t('PARÇAYI ALDIM')}</IconLabel>
         </button>
       )}
