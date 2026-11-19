@@ -1114,6 +1114,7 @@ const en: Record<string, string> = {
   'BASINÇ DÜŞÜŞÜ ALGILANDI — {0} {1}→{2} bar, {3} mm\'de. Top durduruldu, geri çekilmedi.': 'PRESSURE DROP DETECTED — {0} {1}→{2} bar at {3} mm. Roll stopped, not retracted.',
   'KURS SONUNA KADAR ALGILANMADI ({0} mm) — {1}. Top durduruldu, geri çekilmedi.': 'NOT DETECTED UNTIL END OF STROKE ({0} mm) — {1}. Roll stopped, not retracted.',
   'en büyük düşüş S1 {0} bar · S2 {1} bar': 'largest drop S1 {0} bar · S2 {1} bar',
+  'en büyük düşüş S2 {0} bar': 'largest drop S2 {0} bar',
   'ÖRNEK — 40x40 Ø1500': 'SAMPLE — 40x40 Ø1500',
   'İsim zorunlu': 'Name is required',
   'İsim en fazla 100 karakter': 'Name max 100 characters',

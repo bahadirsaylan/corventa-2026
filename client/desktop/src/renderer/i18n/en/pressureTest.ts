@@ -64,6 +64,13 @@ const en: Record<string, string> = {
   'Sonuç satırı yok — test tamamlanmadan kapanmış olabilir.': 'No result line — the test may have ended before it finished.',
   'Geçersiz kayıt adı': 'Invalid log name',
   'Kayıt bulunamadı': 'Log not found',
+  'BASINÇ S2': 'PRESSURE S2',
+  'TEPE S2': 'PEAK S2',
+  'DÜŞÜŞ S2': 'DROP S2',
+  'en büyük düşüş S2 {s2} bar': 'largest drop S2 {s2} bar',
+  'en büyük: S2 {s2} bar': 'largest: S2 {s2} bar',
+  'EN BÜYÜK DÜŞÜŞ S2': 'LARGEST DROP S2',
+  'EN YÜKSEK S2': 'HIGHEST S2',
 }
 
 export default en

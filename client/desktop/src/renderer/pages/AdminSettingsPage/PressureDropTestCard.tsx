@@ -146,7 +146,6 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
   const ran = st != null && st.state !== 'Idle'
   const sideLabel = st?.side === 'Right' ? t('SAĞ TOP') : t('SOL TOP')
   const pos = st?.currentPositionMm
-  const pair = (a: number | undefined, b: number | undefined) => `${a ?? '—'} / ${b ?? '—'}`
   // Biten testin kaydı (backend csvFileName; eski backend → yoldan)
   const lastFile = st?.csvFileName ?? st?.csvPath?.split(/[\\/]/).pop()?.replace(/\s.*$/, '') ?? null
   const canOpenLast = ran && !active && !!lastFile && /^pdt-.*\.csv$/.test(lastFile)
@@ -192,17 +191,15 @@ export default function PressureDropTestCard({ bendingActive, settings }: { bend
         </div>
         <div className={css.live}>
           <Cell label={t('KONUM')} value={ran && pos != null ? `${pos.toFixed(1)} mm` : '—'} />
-          <Cell label={t('BASINÇ S1 / S2')} value={`${pair(st?.s1, st?.s2)} bar`} />
+          {/* 2026-11-19 (kullanıcı): yan toplar S2 devresinde — sadece S2 izlenir / gösterilir */}
+          <Cell label={t('BASINÇ S2')} value={st?.s2 != null ? `${st.s2} bar` : '—'} />
           <Cell label={t('SÜRE')} value={ran ? `${((st?.elapsedMs ?? 0) / 1000).toFixed(1)} ${t('sn')}` : '—'} />
-          <Cell label={t('TEPE S1 / S2')} value={ran ? `${pair(st?.peakS1, st?.peakS2)} bar` : '—'} />
-          <Cell label={t('DÜŞÜŞ S1 / S2')} value={ran ? `${pair(st?.dropS1, st?.dropS2)} bar` : '—'} />
-          <Cell label={t('EN BÜYÜK DÜŞÜŞ')} value={ran ? `${pair(st?.maxDropS1, st?.maxDropS2)} bar` : '—'} />
+          <Cell label={t('TEPE S2')} value={ran ? `${st?.peakS2 ?? 0} bar` : '—'} />
+          <Cell label={t('DÜŞÜŞ S2')} value={ran ? `${st?.dropS2 ?? 0} bar` : '—'} />
+          <Cell label={t('EN BÜYÜK DÜŞÜŞ')} value={ran ? `${st?.maxDropS2 ?? 0} bar` : '—'} />
         </div>
         <Chart samples={st?.recentSamples ?? []} status={st} />
         <div className={css.legend}>
-          <span>
-            <i className={css.swatch} style={{ background: '#2563eb' }} />S1
-          </span>
           <span>
             <i className={css.swatch} style={{ background: '#dc2626' }} />S2
           </span>
@@ -260,7 +257,7 @@ function Result({ st }: { st: PressureDropTestStatus | null }) {
     return <p className={css.result} data-kind="info">{t('Henüz test yapılmadı.')}</p>
   if (st.state === 'Running')
     return <p className={css.result} data-kind="info">{t('Test sürüyor — top ileri gidiyor, basınç izleniyor.')}</p>
-  const maxDrop = t('en büyük düşüş S1 {s1} bar · S2 {s2} bar', { s1: st.maxDropS1, s2: st.maxDropS2 })
+  const maxDrop = t('en büyük düşüş S2 {s2} bar', { s2: st.maxDropS2 })
   const left = <p className={css.resultNote}>{t('Top durduruldu ve geri çekilmedi — gerekirse elle geri alın.')}</p>
   if (st.state === 'Detected' && st.detectedAt) {
     const d = st.detectedAt
@@ -317,7 +314,7 @@ function Chart({ samples, status }: { samples: PressureDropTestSample[]; status:
   }
   const t0 = samples[0].elapsedMs
   const t1 = Math.max(t0 + 1000, samples[samples.length - 1].elapsedMs)
-  const yMax = Math.max(50, Math.ceil((Math.max(...samples.map((s) => Math.max(s.s1, s.s2)), status?.minBaseBar ?? 0) * 1.1) / 25) * 25)
+  const yMax = Math.max(50, Math.ceil((Math.max(...samples.map((s) => s.s2), status?.minBaseBar ?? 0) * 1.1) / 25) * 25)
   const x = (ms: number) => PAD_L + ((ms - t0) / (t1 - t0)) * (W - PAD_L - PAD_R)
   const y = (bar: number) => H - PAD_B - (Math.max(0, bar) / yMax) * (H - PAD_B - PAD_T)
   const line = (sel: (s: PressureDropTestSample) => number) =>
@@ -345,7 +342,6 @@ function Chart({ samples, status }: { samples: PressureDropTestSample[]; status:
       <text x={W - PAD_R} y={H - 3} fontSize="9" textAnchor="end" fill="#6b7280">
         {(t1 / 1000).toFixed(1)} s
       </text>
-      <path d={line((s) => s.s1)} fill="none" stroke="#2563eb" strokeWidth="1.8" />
       <path d={line((s) => s.s2)} fill="none" stroke="#dc2626" strokeWidth="1.8" />
       {detX != null && <line x1={detX} y1={PAD_T} x2={detX} y2={H - PAD_B} stroke="#111827" strokeDasharray="3 2" />}
     </svg>

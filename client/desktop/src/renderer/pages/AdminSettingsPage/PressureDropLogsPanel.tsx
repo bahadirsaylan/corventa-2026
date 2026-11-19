@@ -14,7 +14,6 @@ import css from './PressureDropLogsPanel.module.css'
 
 const LIST_ROWS = 9
 const TABLE_ROWS = 16
-const S1_COLOR = '#2563eb'
 const S2_COLOR = '#dc2626'
 
 const STATE_LABEL: Record<string, string> = {
@@ -190,7 +189,7 @@ function LogList({ page, setPage, onOpen }: { page: number; setPage: (p: number)
 function detectText(r: PressureDropTestLogSummary, t: ReturnType<typeof useT>): string {
   const d = r.detectedAt
   if (d) return t('{sensor} {from}→{to} bar · {pos} mm', { sensor: d.sensor, from: d.fromBar, to: d.toBar, pos: mm(d.positionMm) })
-  return t('en büyük: S1 {s1} · S2 {s2} bar', { s1: r.maxDropS1, s2: r.maxDropS2 })
+  return t('en büyük: S2 {s2} bar', { s2: r.maxDropS2 })
 }
 
 function StateChip({ state }: { state: string }) {
@@ -292,8 +291,9 @@ function LogDetail({ fileName }: { fileName: string }) {
           <Kv label={t('KONUM BAŞ → BİTİŞ')} value={`${mm(d.startPositionMm)} → ${mm(d.endPositionMm)} mm`} />
           <Kv label={t('KURS SONU (HEDEF)')} value={`${mm(d.targetPositionMm)} mm`} />
           <Kv label={t('SÜRE · ÖRNEK')} value={`${sec(d.durationMs)} ${t('sn')} · ${d.sampleCount}`} />
-          <Kv label={t('EN BÜYÜK DÜŞÜŞ S1 / S2')} value={`${d.maxDropS1} / ${d.maxDropS2} bar`} />
-          <Kv label={t('EN YÜKSEK S1 / S2')} value={`${d.maxS1} / ${d.maxS2} bar`} />
+          {/* 2026-11-19: sadece S2 (yan toplar S2 devresinde) */}
+          <Kv label={t('EN BÜYÜK DÜŞÜŞ S2')} value={`${d.maxDropS2} bar`} />
+          <Kv label={t('EN YÜKSEK S2')} value={`${d.maxS2} bar`} />
         </div>
       </div>
 
@@ -309,9 +309,6 @@ function LogDetail({ fileName }: { fileName: string }) {
               </button>
             </div>
             <div className={css.legend}>
-              <span>
-                <i className={css.swatch} style={{ background: S1_COLOR }} />S1
-              </span>
               <span>
                 <i className={css.swatch} style={{ background: S2_COLOR }} />S2
               </span>
@@ -337,7 +334,7 @@ function LogDetail({ fileName }: { fileName: string }) {
               <tr>
                 <th className={css.num}>{t('ZAMAN')}</th>
                 <th className={css.num}>{t('KONUM')}</th>
-                <th className={css.num}>S1 / S2</th>
+                <th className={css.num}>S2</th>
                 <th className={css.num}>{t('TEPE')}</th>
                 <th className={css.num}>{t('DÜŞÜŞ')}</th>
               </tr>
@@ -394,13 +391,13 @@ function SampleRow({ s }: { s: PressureDropTestLogSample }) {
       <td className={`${css.mono} ${css.num}`}>{sec(s.elapsedMs)}</td>
       <td className={`${css.mono} ${css.num}`}>{s.positionMm.toFixed(2)}</td>
       <td className={`${css.mono} ${css.num}`}>
-        <span style={{ color: S1_COLOR }}>{s.s1}</span> / <span style={{ color: S2_COLOR }}>{s.s2}</span>
+        <span style={{ color: S2_COLOR }}>{s.s2}</span>
       </td>
       <td className={`${css.mono} ${css.num}`}>
-        {s.peakS1} / {s.peakS2}
+        {s.peakS2}
       </td>
       <td className={`${css.mono} ${css.num}`}>
-        {hi(s.dropS1, s.detected && s.dropS1 >= s.dropS2)} / {hi(s.dropS2, s.detected && s.dropS2 > s.dropS1)}
+        {hi(s.dropS2, s.detected)}
       </td>
     </tr>
   )
@@ -452,7 +449,7 @@ function LogChart({
     const v = xv(s)
     if (v < x0) x0 = v
     if (v > x1) x1 = v
-    top = Math.max(top, s.s1, s.s2)
+    top = Math.max(top, s.s2)
   }
   if (x1 - x0 < 1) x1 = x0 + 1
   // yuvarlak ölçek: adım 25 / 50 / 100 bar, en fazla ~6 çizgi
@@ -517,12 +514,11 @@ function LogChart({
         <line x1={PAD_L} y1={Y(minBaseBar)} x2={W - PAD_R} y2={Y(minBaseBar)} stroke="#9ca3af" strokeDasharray="5 4" />
       )}
       <line x1={PAD_L} y1={H - PAD_B} x2={W - PAD_R} y2={H - PAD_B} stroke="#d1d5db" />
-      <path d={path((s) => s.s1)} fill="none" stroke={S1_COLOR} strokeWidth="2" />
       <path d={path((s) => s.s2)} fill="none" stroke={S2_COLOR} strokeWidth="2" />
       {det && (
         <g>
           <line x1={X(xv(det))} y1={PAD_T} x2={X(xv(det))} y2={H - PAD_B} stroke="#111827" strokeDasharray="4 3" />
-          <circle cx={X(xv(det))} cy={Y(det.dropS1 >= det.dropS2 ? det.s1 : det.s2)} r="5" fill="#111827" />
+          <circle cx={X(xv(det))} cy={Y(det.s2)} r="5" fill="#111827" />
         </g>
       )}
     </svg>

@@ -1,7 +1,7 @@
 // DEMO — BASINÇ DÜŞÜŞ TESTİ (Admin Ayarları > TEST, 2026-11-19). Bending API /api/pressure-drop-test/{start,stop,status}
 // sözleşmesiyle birebir. Seçilen yan top güvenli ileri sınıra (demo kursu − 1 mm) sürülür; S2 temasa kadar düşük, temastan
 // sonra yükselir, rastgele bir noktada aniden düşer (parça "kaydı"). Algılama kuralı backend PressureDropWindow ile aynı:
-// pencere (windowMs) içindeki tepe ≥ minBaseBar VE tepe − şimdiki ≥ dropBar (S1 veya S2), en az 3 örnek.
+// pencere (windowMs) içindeki tepe ≥ minBaseBar VE tepe − şimdiki ≥ dropBar (2026-11-19: sadece S2), en az 3 örnek.
 // Eşikler yüksek girilirse (ör. düşüş eşiği 120 bar) kurs sonuna kadar ALGILANMADI sonucu görülür.
 // Sadece bellek — dosya yazılmaz (csvPath demo yolu gösterir). KAYITLAR (/api/pressure-drop-test/logs): biten koşular
 // bellekte tutulur (en fazla 200) + açılışta 2 örnek koşu (biri ALGILANDI, biri ALGILANMADI).
@@ -94,7 +94,7 @@ function synthRun(o: {
     const pk1 = Math.max(...win.map((w) => w.s1))
     const pk2 = Math.max(...win.map((w) => w.s2))
     const ready = win.length >= MIN_SAMPLES
-    const d1 = ready && pk1 >= o.minBaseBar && pk1 - s1 >= o.dropBar
+    const d1 = false // 2026-11-19: karar sadece S2 (backend PressureDropWindow ile aynı)
     const d2 = ready && pk2 >= o.minBaseBar && pk2 - s2 >= o.dropBar
     const pos = Math.round(x * 100) / 100
     samples.push({ elapsedMs: t, positionMm: pos, s1, s2, peakS1: pk1, peakS2: pk2, dropS1: pk1 - s1, dropS2: pk2 - s2, ready, detected: d1 || d2 })
@@ -163,7 +163,7 @@ export class DemoPressureTest {
       )
       sum.message = r.det
         ? `BASINÇ DÜŞÜŞÜ ALGILANDI — ${r.det.sensor} ${r.det.fromBar}→${r.det.toBar} bar, ${r.det.positionMm.toFixed(1)} mm'de. Top durduruldu, geri çekilmedi.`
-        : `KURS SONUNA KADAR ALGILANMADI (${(sum.endPositionMm ?? 0).toFixed(1)} mm) — en büyük düşüş S1 ${sum.maxDropS1} bar · S2 ${sum.maxDropS2} bar. Top durduruldu, geri çekilmedi.`
+        : `KURS SONUNA KADAR ALGILANMADI (${(sum.endPositionMm ?? 0).toFixed(1)} mm) — en büyük düşüş S2 ${sum.maxDropS2} bar. Top durduruldu, geri çekilmedi.`
       return { ...sum, samples: r.samples }
     }
     this.runs = [
@@ -319,7 +319,7 @@ export class DemoPressureTest {
     const peak1 = Math.max(...this.window.map((w) => w.s1))
     const peak2 = Math.max(...this.window.map((w) => w.s2))
     const ready = this.window.length >= MIN_SAMPLES
-    const drop1 = ready && peak1 >= st.minBaseBar && peak1 - s1 >= st.dropBar
+    const drop1 = false // 2026-11-19: karar sadece S2
     const drop2 = ready && peak2 >= st.minBaseBar && peak2 - s2 >= st.dropBar
 
     const sample: PressureDropTestSample = {
@@ -376,7 +376,7 @@ export class DemoPressureTest {
   }
 
   private maxDropText(): string {
-    return `en büyük düşüş S1 ${this.st.maxDropS1} bar · S2 ${this.st.maxDropS2} bar`
+    return `en büyük düşüş S2 ${this.st.maxDropS2} bar`
   }
 
   private finish(state: PressureDropTestState, endReason: string, message: string): void {
