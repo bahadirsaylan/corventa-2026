@@ -3,6 +3,7 @@
 // Cloud uyumu: bileşenler bu hook'lara bakar; HTTP/cloud geçişi tek noktada (preload).
 
 import { useCallback, useEffect, useState } from 'react'
+import { tp } from '@/i18n'
 
 import type {
   ServiceRequest,
@@ -37,7 +38,7 @@ export function useTickets(type: TicketTypeStr, limit = 100) {
       const list = await window.corventa.service.listTickets(type, limit)
       setTickets(list)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(tp(err instanceof Error ? err.message : String(err)))
     } finally {
       setLoading(false)
     }
@@ -67,7 +68,7 @@ export function useCreateTicket(type: TicketTypeStr) {
         })
         return created
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err))
+        setError(tp(err instanceof Error ? err.message : String(err)))
         return null
       } finally {
         setSubmitting(false)
@@ -119,7 +120,7 @@ export function useServiceRequests(limit = 100) {
       setRequests(r)
       setReports(rep)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(tp(err instanceof Error ? err.message : String(err)))
     } finally {
       setLoading(false)
     }
@@ -145,7 +146,7 @@ export function useServiceRequest(id: number | null) {
       const r = await window.corventa.service.getRequest(id)
       setRequest(r)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(tp(err instanceof Error ? err.message : String(err)))
     } finally {
       setLoading(false)
     }
@@ -169,7 +170,7 @@ export function useCreateServiceRequest() {
       try {
         return await window.corventa.service.createRequest(req)
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err))
+        setError(tp(err instanceof Error ? err.message : String(err)))
         return null
       } finally {
         setSubmitting(false)

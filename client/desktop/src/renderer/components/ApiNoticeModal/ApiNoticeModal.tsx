@@ -63,7 +63,7 @@ export default function ApiNoticeModal({ title, message, onClose }: Props) {
         {f.noFault && <p className={styles.reassure}>{t('MAKİNEDE ARIZA YOK — GÜVENLE TEKRAR DENEYEBİLİRSİNİZ.')}</p>}
         {showDetail && (
           <p className={styles.detail}>
-            {t('TEKNİK DETAY')}: {message}
+            {t('TEKNİK DETAY')}: {translateProgress(message, lang)}
           </p>
         )}
         <button type="button" className={styles.okBtn} onClick={onClose}>

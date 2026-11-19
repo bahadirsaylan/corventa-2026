@@ -27,7 +27,7 @@ import {
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useCloudConfig } from '@/stores/cloudConfigStore'
 import { maintenanceErrorMessage, refreshMaintenance } from '@/stores/maintenanceStore'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import {
   GONYE_SECTION,
   MACHINE_FIELDS,
@@ -40,12 +40,17 @@ import {
   STAGE_SLOTS,
 } from './settingsFields'
 import RadiusSensorCard from './RadiusSensorCard'
+import PressureDropTestCard from './PressureDropTestCard'
 
 const TAB_GONYE = 'GÖNYE & STAGE'
 const TAB_MAINT = 'BAKIM KURALLARI'
 const TAB_TEST = 'TEST'
 const TAB_SENSOR = 'ÖLÇÜM & SENSÖR'
 const TAB_CLAMP = 'SIKIŞTIRMA'
+// TEST sekmesinin alt sekmeleri (üst alana kaydırmasız sığsın diye araçlar ayrı sayfalarda)
+const TEST_SUB_TOOLS = 'BULUT & YAĞ ISITMA'
+const TEST_SUB_PRESSURE = 'BASINÇ DÜŞÜŞ TESTİ'
+const TEST_SUBS = [TEST_SUB_TOOLS, TEST_SUB_PRESSURE]
 /** Bakım kuralı değişikliklerinin Change.key öneki (makine ayarlarından ayırmak için) */
 const MAINT_CHANGE_PREFIX = 'maint.'
 const ALL_STAGE_FIELDS = [STAGE_ACTIVE_FIELD, ...STAGE_FIELDS]
@@ -61,7 +66,7 @@ function stageToValues(rec: StageInfo | undefined): Values {
   return { ...(rec as unknown as Values), active: rec.isActive === false ? 'off' : 'on' }
 }
 
-const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
+const errMsg = (e: unknown) => tp(e instanceof Error ? e.message : String(e))
 
 /** GET /api/maintenance/rules → form değerleri (rule.<periodKey> + zamanlama alanları) */
 function rulesToValues(cfg: MaintenanceRulesConfig): Values {
@@ -115,6 +120,8 @@ function AdminEditor() {
   const location = useLocation()
   const initialTab = (location.state as { tab?: string } | null)?.tab === 'gonye' ? TAB_GONYE : tabs[0]
   const [tab, setTab] = useState(initialTab)
+  const [testSub, setTestSub] = useState(TEST_SUB_TOOLS)
+  const pressureSub = tab === TAB_TEST && testSub === TEST_SUB_PRESSURE
 
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -288,6 +295,16 @@ function AdminEditor() {
         ))}
       </div>
 
+      {tab === TAB_TEST && (
+        <div className={styles.tabs}>
+          {TEST_SUBS.map((x) => (
+            <button key={x} type="button" className={styles.tab} data-on={x === testSub || undefined} onClick={() => setTestSub(x)}>
+              {t(x)}
+            </button>
+          ))}
+        </div>
+      )}
+
       {bendingActive && (
         <p className={styles.message} data-kind="err">
           {t('Büküm devam ediyor — bitene kadar ayar kaydedilemez.')}
@@ -299,8 +316,9 @@ function AdminEditor() {
         </p>
       )}
 
-      <PagedColumns resetKey={tab}>
-      {tab === TAB_TEST && <TestToolsCard bendingActive={bendingActive} unsaved={machineChangeCount > 0} />}
+      <PagedColumns resetKey={tab === TAB_TEST ? `${tab}/${testSub}` : tab}>
+      {tab === TAB_TEST && !pressureSub && <TestToolsCard bendingActive={bendingActive} unsaved={machineChangeCount > 0} />}
+      {pressureSub && <PressureDropTestCard bendingActive={bendingActive} settings={machine0} />}
       {tab === TAB_SENSOR && (
         <RadiusSensorCard
           bendingActive={bendingActive}
@@ -322,7 +340,7 @@ function AdminEditor() {
           </button>
         </div>
       )}
-      {group?.sections.map((s) => (
+      {!pressureSub && group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}
 
@@ -563,7 +581,7 @@ function TestToolsCard({ bendingActive, unsaved }: { bendingActive: boolean; uns
         </p>
         {syncMsg && (
           <p className={styles.message} data-kind={syncMsg.ok ? 'ok' : 'err'}>
-            {syncMsg.text}
+            {tp(syncMsg.text)}
           </p>
         )}
         <div>
@@ -581,7 +599,7 @@ function TestToolsCard({ bendingActive, unsaved }: { bendingActive: boolean; uns
         {oil && (
           <p className={styles.message} data-kind={oil.state === 'Failed' ? 'err' : 'ok'}>
             {t(OIL_STATE_LABEL[oil.state] ?? oil.state)}
-            {oil.message ? ` — ${oil.message}` : ''}
+            {oil.message ? ` — ${tp(oil.message)}` : ''}
             {` · ${t('Yağ')}: ${oil.currentTempC ?? '—'} °C`}
             {oil.startedAt ? ` / ${t('hedef')} ${oil.targetTempC} °C · ${fmtTime(oil.elapsedSec)}` : ''}
           </p>

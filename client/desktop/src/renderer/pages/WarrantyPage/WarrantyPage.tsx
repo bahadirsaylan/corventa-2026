@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import type { CloudWarranty, MachineIdentity } from '@shared/types'
 import { useCloudConfig } from '@/stores/cloudConfigStore'
 import { Icon } from '@/components/Icon'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import styles from './WarrantyPage.module.css'
 
 interface WarrantyCategory {
@@ -65,7 +65,7 @@ export default function WarrantyPage() {
       .getIdentity()
       .then((data) => { if (!cancelled) setIdentity(data) })
       .catch((err) => {
-        if (!cancelled) setError(err?.message ?? t('Garanti bilgisi alınamadı'))
+        if (!cancelled) setError(err?.message ? tp(err.message) : t('Garanti bilgisi alınamadı'))
       })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }

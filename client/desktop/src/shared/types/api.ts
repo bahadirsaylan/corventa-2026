@@ -212,6 +212,77 @@ export interface OilHeatingResult {
   status: OilHeatingStatus | null
 }
 
+// BASINÇ DÜŞÜŞ TESTİ — Bending API /api/pressure-drop-test/{start,stop,status} (Admin Ayarları > TEST)
+export type PressureDropTestState = 'Idle' | 'Running' | 'Detected' | 'NotDetected' | 'Stopped' | 'Failed'
+export type PressureDropTestSide = 'Left' | 'Right'
+export interface PressureDropTestSample {
+  elapsedMs: number
+  positionMm: number
+  s1: number
+  s2: number
+  peakS1: number
+  peakS2: number
+  /** pencere tepesi − şimdiki (bar) */
+  dropS1: number
+  dropS2: number
+}
+export interface PressureDropDetection {
+  elapsedMs: number
+  positionMm: number
+  sensor: 'S1' | 'S2'
+  fromBar: number
+  toBar: number
+  alsoOtherSensor: boolean
+}
+export interface PressureDropTestStatus {
+  state: PressureDropTestState
+  message: string | null
+  side: PressureDropTestSide | null
+  speedPercent: number
+  dropBar: number
+  windowMs: number
+  minBaseBar: number
+  settingsDropBar: number
+  settingsWindowMs: number
+  settingsMinBaseBar: number
+  startPositionMm: number
+  targetPositionMm: number
+  elapsedMs: number
+  currentPositionMm: number | null
+  s1: number
+  s2: number
+  peakS1: number
+  peakS2: number
+  dropS1: number
+  dropS2: number
+  maxDropS1: number
+  maxDropS2: number
+  maxS1: number
+  maxS2: number
+  detectedAt: PressureDropDetection | null
+  /** Drop · EndOfStroke · Stall · Stopped · Cancelled · Safety · PlcDisconnected · CommandRejected · Timeout · Error */
+  endReason: string | null
+  sampleCount: number
+  csvPath: string | null
+  startedAt: string | null
+  finishedAt: string | null
+  stopRequested: boolean
+  active: boolean
+  recentSamples: PressureDropTestSample[]
+}
+export interface PressureDropTestStartRequest {
+  side: PressureDropTestSide
+  speedPercent: number
+  dropBar?: number
+  windowMs?: number
+  minBaseBar?: number
+}
+export interface PressureDropTestResult {
+  success: boolean
+  errorMessage: string | null
+  status: PressureDropTestStatus | null
+}
+
 // POST /api/bending-job/{id}/start  (no body)
 export interface StartJobResponse {
   success: boolean

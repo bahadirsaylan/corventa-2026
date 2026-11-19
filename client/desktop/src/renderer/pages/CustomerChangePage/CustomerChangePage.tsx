@@ -14,7 +14,7 @@ import type {
 import { Icon, IconLabel, type IconName } from '@/components/Icon'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import styles from './CustomerChangePage.module.css'
 
 type Step = 'reason' | 'form' | 'otp' | 'done'
@@ -163,7 +163,7 @@ export default function CustomerChangePage() {
     try {
       const res = await window.corventa.settings.requestCustomerChange(body)
       if (!res.ok) {
-        setError(requestErrorText(res.status, res.error))
+        setError(requestErrorText(res.status, tp(res.error)))
         return
       }
       const sentAt = Date.now()
@@ -177,7 +177,7 @@ export default function CustomerChangePage() {
       if (step === 'otp') setInfo(t('Yeni onay kodu gönderildi. Önceki kod artık geçersiz.'))
       setStep('otp')
     } catch (err) {
-      setError({ message: t('Talep gönderilemedi.'), detail: err instanceof Error ? err.message : String(err) })
+      setError({ message: t('Talep gönderilemedi.'), detail: tp(err instanceof Error ? err.message : String(err)) })
     } finally {
       setBusy(false)
     }
@@ -200,11 +200,11 @@ export default function CustomerChangePage() {
         case 400:
           setError(res.remainingAttempts != null
             ? { message: t('Onay kodu hatalı. Kalan deneme hakkı: {n}', { n: res.remainingAttempts }) }
-            : { message: t('6 haneli onay kodunu girin.'), detail: res.error })
+            : { message: t('6 haneli onay kodunu girin.'), detail: tp(res.error) })
           break
         case 410:
           setCodeDead(true)
-          setError({ message: t('Onay kodunun süresi doldu veya kod geçersiz. "YENİ KOD GÖNDER" ile yeni kod isteyin.'), detail: res.error })
+          setError({ message: t('Onay kodunun süresi doldu veya kod geçersiz. "YENİ KOD GÖNDER" ile yeni kod isteyin.'), detail: tp(res.error) })
           break
         case 429:
           setCodeDead(true)
@@ -219,13 +219,13 @@ export default function CustomerChangePage() {
           setError({ message: t('Bu talep zaten onaylanmış. Müşteri bilgisi güncellenmiş olabilir — sayfayı yeniden açın.') })
           break
         case 0:
-          setError({ message: t('Veri servisine (DataApi) ulaşılamadı. Bağlantıyı kontrol edip tekrar deneyin.'), detail: res.error })
+          setError({ message: t('Veri servisine (DataApi) ulaşılamadı. Bağlantıyı kontrol edip tekrar deneyin.'), detail: tp(res.error) })
           break
         default:
-          setError({ message: t('Onay başarısız.'), detail: res.error })
+          setError({ message: t('Onay başarısız.'), detail: tp(res.error) })
       }
     } catch (err) {
-      setError({ message: t('Onay başarısız.'), detail: err instanceof Error ? err.message : String(err) })
+      setError({ message: t('Onay başarısız.'), detail: tp(err instanceof Error ? err.message : String(err)) })
     } finally {
       setBusy(false)
     }

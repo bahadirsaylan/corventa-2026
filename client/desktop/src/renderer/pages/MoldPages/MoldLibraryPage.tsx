@@ -8,7 +8,7 @@ import type { MoldDto, MoldProfileType } from '@shared/types'
 import { Icon } from '@/components/Icon'
 import { MOLD_PROFILE_LABELS, MOLD_PROFILE_TYPES, moldDimensionText } from '@/constants/moldProfiles'
 import { ProfileShape } from '@/pages/AiBendingPage/BendingProfileGrid'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import styles from './MoldPages.module.css'
 
 const PAGE_SIZE = 8
@@ -50,7 +50,7 @@ export default function MoldLibraryPage() {
       setLoading(true)
       const r = await window.corventa.molds
         .list({ q: q.trim() || undefined, profileType, licensed: license === 'all' ? null : license === 'usable' })
-        .catch((e: unknown) => ({ ok: false as const, status: 0, error: e instanceof Error ? e.message : String(e) }))
+        .catch((e: unknown) => ({ ok: false as const, status: 0, error: tp(e instanceof Error ? e.message : String(e)) }))
       if (my !== seq.current) return
       if (r.ok) {
         setItems(r.data.items ?? [])
@@ -144,7 +144,7 @@ export default function MoldLibraryPage() {
                 </span>
                 <span className={styles.codeCell}>{m.code}</span>
                 <span className={styles.nameCell}>
-                  <span className={styles.nameMain}>{m.name || t(MOLD_PROFILE_LABELS[m.profileType])}</span>
+                  <span className={styles.nameMain}>{m.name ? t(m.name) : t(MOLD_PROFILE_LABELS[m.profileType])}</span>
                   <span className={styles.nameSub}>
                     {t(MOLD_PROFILE_LABELS[m.profileType] ?? m.profileType)}
                     {m.kind === 'CUSTOM' ? ` · ${t('ÖZEL')}` : ''}

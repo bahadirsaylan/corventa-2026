@@ -11,7 +11,7 @@ import type { AuthResult, AuthUser } from '@shared/types'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { EDITION_LABEL, IS_STANDARD } from '@shared/edition'
 import { startSession } from '@/stores/sessionStore'
-import { t as tr, useT } from '@/i18n'
+import { t as tr, useT, tp } from '@/i18n'
 import styles from './LoginPage.module.css'
 
 // DEMO hazır kullanıcıları (main/demo/demoAuth.ts ile aynı) — sadece demo modunda gösterilir
@@ -57,14 +57,14 @@ function failureMessage(res: Extract<AuthResult<unknown>, { ok: false }>, setup:
     }
     case 409:
       if (setup) return tr('İLK KURULUM ZATEN YAPILMIŞ — GİRİŞ YAPIN')
-      return res.error
+      return tp(res.error)
     case 400:
-      return setup ? res.error : tr('KULLANICI ADI VE ŞİFRE ZORUNLU')
+      return setup ? tp(res.error) : tr('KULLANICI ADI VE ŞİFRE ZORUNLU')
     case 404:
       // /api/auth uçları olmayan eski DataApi çalışıyor — giriş artık DataApi'ye bağlı
       return tr('VERİ SERVİSİ SÜRÜMÜ ESKİ (GİRİŞ DESTEKLENMİYOR) — DATAAPI GÜNCELLENMELİ')
     default:
-      return res.error || tr('GİRİŞ BAŞARISIZ')
+      return tp(res.error) || tr('GİRİŞ BAŞARISIZ')
   }
 }
 

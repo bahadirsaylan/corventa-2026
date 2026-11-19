@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { ROLE_COLORS, ROLE_SHORT_LABELS } from '@/constants/permissions'
 import { completeSetupSession, useSessionStore } from '@/stores/sessionStore'
-import { t as tr, useT } from '@/i18n'
+import { t as tr, useT, tp } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import styles from './UserBadge.module.css'
 
@@ -57,7 +57,7 @@ function CompleteSetupButton() {
         navigate('/login', { replace: true })
         return
       }
-      setError(res.status === 0 ? tr('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN') : res.error)
+      setError(res.status === 0 ? tr('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN') : tp(res.error))
     } catch {
       setError(tr('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN'))
     } finally {

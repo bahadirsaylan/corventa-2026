@@ -6,7 +6,7 @@ import { useState } from 'react'
 import type { ServiceRequest } from '@shared/types'
 
 import { Icon } from '@/components/Icon'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 
 import styles from './ServiceRequestRating.module.css'
 
@@ -35,7 +35,7 @@ export default function ServiceRequestRating({ request, onSaved }: Props) {
       await window.corventa.service.rateRequest(request.id, rating, note || undefined)
       await onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(tp(err instanceof Error ? err.message : String(err)))
     } finally {
       setSaving(false)
     }

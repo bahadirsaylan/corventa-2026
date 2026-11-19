@@ -19,6 +19,7 @@
 import { create } from 'zustand'
 
 import type { MaintenancePeriodKey, MaintenanceState } from '@shared/types'
+import { tp } from '@/i18n'
 
 const POLL_MS = 30_000
 /** Hatırlatma penceresi açıkken yenileme aralığı */
@@ -171,7 +172,7 @@ export function isMaintenanceReminderActive(state: MaintenanceState | null, nowM
 /** Electron IPC hatayı "Error invoking remote method '...': Error: ..." diye sarar → ön eki at. */
 export function maintenanceErrorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err ?? '')
-  return raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, '')
+  return tp(raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, ''))
 }
 
 /** Şimdi yenile (hata olursa son state korunur). */

@@ -7,7 +7,7 @@ import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-3-buyuk.png'
 import { useMethodTileImage } from '@/hooks/useMethodTileImage'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import FormActionRow from '@/components/FormActionRow/FormActionRow'
 import { planArc, type PlanResult } from '@shared/arcPlanner'
@@ -692,7 +692,7 @@ export default function ArcMeasurementForm({
             {livePlanBlocked && livePlan && (
               <div className={styles.livePlanError}>
                 <IconLabel icon="warning">{t("Bu kıvrım düzeni ONAYLA'da kabul edilmeyecek")}</IconLabel>
-                {livePlan.errorMessage && <div className={styles.warnDetail}>{livePlan.errorMessage}</div>}
+                {livePlan.errorMessage && <div className={styles.warnDetail}>{tp(livePlan.errorMessage)}</div>}
               </div>
             )}
           </>

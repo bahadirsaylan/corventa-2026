@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
@@ -135,7 +135,7 @@ export default function BigDataConnectionPage() {
     try {
       const r = await fn()
       if (!r.ok) {
-        setMessage({ kind: 'error', text: r.error || t('İşlem başarısız') })
+        setMessage({ kind: 'error', text: tp(r.error) || t('İşlem başarısız') })
         return null
       }
       if (okText) setMessage({ kind: 'ok', text: okText })
@@ -176,7 +176,7 @@ export default function BigDataConnectionPage() {
     try {
       const r = await window.corventa.cloud.installUpdate(update.downloadPath)
       if (r.ok) setInstalling(true)
-      else setMessage({ kind: 'error', text: r.error ?? t('İşlem başarısız') })
+      else setMessage({ kind: 'error', text: tp(r.error) || t('İşlem başarısız') })
     } catch (err) {
       setMessage({ kind: 'error', text: (err as Error).message })
     } finally {

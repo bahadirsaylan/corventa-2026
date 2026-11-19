@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { translateProgress, useLang, useT, tp } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import type { ClampTelemetryPage, ClampTelemetryPasoSummary, ClampTelemetryPhase, ClampTelemetrySample, ClampTelemetrySession } from '@shared'
 import styles from '@/pages/ErrorReportsPage/ErrorReportsPage.module.css'
@@ -37,7 +37,7 @@ function fmtDateTime(iso: string | null | undefined): string {
 
 const n2 = (v: number | null | undefined, d = 2) => (typeof v === 'number' && Number.isFinite(v) ? v.toFixed(d) : '—')
 const ni = (v: number | null | undefined) => (typeof v === 'number' && Number.isFinite(v) ? String(Math.round(v)) : '—')
-const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
+const errMsg = (e: unknown) => (tp(e instanceof Error ? e.message : String(e)))
 
 /** Kayma büyüklüğüne göre renk: < 0.05 normal, < 0.3 sarı, üstü kırmızı */
 function driftKind(v: number | null | undefined): 'ok' | 'warn' | 'bad' | undefined {
@@ -117,7 +117,7 @@ function SessionList({ onOpen }: { onOpen: (id: number) => void }) {
       const r = await window.corventa.service.importClampTelemetryCsv()
       if (r.cancelled) return
       setImportMsg(
-        t('{n} kayıt içe aktarıldı', { n: r.imported }) + (r.errors.length ? ` — ${t('hatalı')}: ${r.errors.join(' · ')}` : ''),
+        t('{n} kayıt içe aktarıldı', { n: r.imported }) + (r.errors.length ? ` — ${t('hatalı')}: ${r.errors.map((e) => tp(e)).join(' · ')}` : ''),
       )
       setPage(1)
       void load()
@@ -278,7 +278,7 @@ function SessionDetail({ id }: { id: number }) {
       txt: csv,
     })
     if (r.ok) setExportMsg(t('Kaydedildi: {path}', { path: r.path ?? '' }))
-    else if (!r.cancelled) setExportMsg(t('Kaydedilemedi: {err}', { err: r.error ?? '' }))
+    else if (!r.cancelled) setExportMsg(t('Kaydedilemedi: {err}', { err: tp(r.error) }))
   }
 
   if (error)

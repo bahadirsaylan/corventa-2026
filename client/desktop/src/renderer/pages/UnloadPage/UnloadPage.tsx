@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { CLAMP_ESTOP_RE, CLAMP_ESTOP_TEMPLATE } from '@/i18n/progress'
 import { Icon, IconLabel } from '@/components/Icon'
 import {
@@ -204,7 +204,7 @@ export default function UnloadPage() {
         setPhase('stopped')
         return
       }
-      setError(e instanceof Error ? e.message : String(e))
+      setError(tp(e instanceof Error ? e.message : String(e)))
       setPhase('error')
     } finally {
       setStopping(false)
@@ -227,7 +227,7 @@ export default function UnloadPage() {
     } catch (e) {
       stopRequested.current = false
       setStopping(false)
-      setError(e instanceof Error ? e.message : String(e))
+      setError(tp(e instanceof Error ? e.message : String(e)))
     }
   }
 

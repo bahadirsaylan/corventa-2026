@@ -11,7 +11,7 @@ import {
   type UsageTimeCategory,
   type UsageTimeSummary,
 } from '@shared/types'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import styles from './MachineUsageHoursPage.module.css'
 
@@ -89,7 +89,7 @@ export default function MachineUsageHoursPage() {
     } catch (err) {
       if (!mounted.current) return
       // Eski veri varsa ekranda kalır, sadece uyarı gösterilir
-      setError((err as Error)?.message ?? String(err))
+      setError(tp((err as Error)?.message ?? String(err)))
     } finally {
       if (mounted.current) setLoading(false)
     }

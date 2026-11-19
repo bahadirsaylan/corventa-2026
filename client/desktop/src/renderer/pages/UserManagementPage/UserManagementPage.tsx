@@ -22,7 +22,7 @@ import {
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import { ROLE_COLORS, ROLE_LABELS, roleCan } from '@/constants/permissions'
 import { endSession, useRole, useSessionStore } from '@/stores/sessionStore'
-import { t as tr, useT } from '@/i18n'
+import { t as tr, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './UserManagementPage.module.css'
 
@@ -63,7 +63,7 @@ function isLocked(u: UserListItem): boolean {
 function errorText(res: Extract<AuthResult<unknown>, { ok: false }>): string {
   if (res.status === 0) return tr('VERİ SERVİSİNE ULAŞILAMADI — BAĞLANTIYI KONTROL EDİN')
   if (res.status === 401) return tr('OTURUM SÜRESİ DOLDU — TEKRAR GİRİŞ YAPIN')
-  return res.error
+  return tp(res.error)
 }
 
 type Editor = { mode: 'create' } | { mode: 'edit'; user: UserListItem }

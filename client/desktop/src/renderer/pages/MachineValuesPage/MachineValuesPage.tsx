@@ -9,7 +9,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@/components/Icon'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useConnectionStatus } from '@/hooks/useConnectionStatus'
@@ -346,7 +346,7 @@ function Controls({ state }: { state: MachineState }) {
     try {
       await fn()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(tp(e instanceof Error ? e.message : String(e)))
     } finally {
       setBusy(null)
     }

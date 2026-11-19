@@ -21,6 +21,10 @@ export const IpcInvoke = {
   OilHeatingStart: 'oil-heating:start',
   OilHeatingStop: 'oil-heating:stop',
   OilHeatingStatus: 'oil-heating:status',
+  // Basınç düşüş testi (Admin Ayarları > TEST) — seçilen yan top ileri, basınç düşüşü kuralı izlenir
+  PressureDropTestStart: 'pressure-drop-test:start',
+  PressureDropTestStop: 'pressure-drop-test:stop',
+  PressureDropTestStatus: 'pressure-drop-test:status',
   // Radyus (GT2) sensörü sıfırla / temizle / PLC encoder reset (Admin Ayarları > ÖLÇÜM & SENSÖR)
   RadiusSensorAction: 'radius-sensor:action',
   StartBendingJob: 'bending-job:start',

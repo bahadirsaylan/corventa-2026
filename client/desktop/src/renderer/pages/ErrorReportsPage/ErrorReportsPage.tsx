@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { translateProgress, useLang, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import {
   ERROR_SNAPSHOT_TRIGGERS,
@@ -79,7 +79,7 @@ function fmtInt(v: number | null | undefined): string {
 }
 
 function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e)
+  return tp(e instanceof Error ? e.message : String(e))
 }
 
 export default function ErrorReportsPage() {

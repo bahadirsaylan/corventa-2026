@@ -23,7 +23,7 @@ export default function WelcomeMessagePage() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
-    setMessage(stored ?? DEFAULT_MESSAGE)
+    setMessage(stored ?? t(DEFAULT_MESSAGE))
   }, [])
 
   const handleSave = () => {
@@ -33,7 +33,7 @@ export default function WelcomeMessagePage() {
   }
 
   const handleReset = () => {
-    setMessage(DEFAULT_MESSAGE)
+    setMessage(t(DEFAULT_MESSAGE))
     localStorage.removeItem(STORAGE_KEY)
     setSavedAt(null)
   }

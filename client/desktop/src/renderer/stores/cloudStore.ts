@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 import { create } from 'zustand'
 
 import type { CloudStatus } from '@shared/types'
+import { tp } from '@/i18n'
 
 interface CloudStore {
   status: CloudStatus | null
@@ -25,7 +26,7 @@ export const useCloudStore = create<CloudStore>((set) => ({
     try {
       const r = await window.corventa.cloud.getStatus()
       if (r.ok) set({ status: r.data, error: null, loaded: true })
-      else set({ error: r.error, loaded: true })
+      else set({ error: tp(r.error), loaded: true })
     } catch (err) {
       set({ error: (err as Error).message, loaded: true })
     }

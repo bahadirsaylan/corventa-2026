@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import type { BendingJob } from '@shared/types'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { IconLabel } from '@/components/Icon'
 import styles from './ArcNextSegmentModal.module.css'
 
@@ -200,7 +200,7 @@ export default function ArcNextSegmentModal() {
       // Backend BendingProgressService.awaitingArcSegmentInput = false yapacak,
       // bir sonraki SignalR push ile modal kapanır.
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = tp(err instanceof Error ? err.message : String(err))
       setErrorMsg(t('Segment reddedildi: {msg}', { msg }))
       setSubmitting(false)
     }

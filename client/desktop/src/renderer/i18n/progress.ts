@@ -6,7 +6,7 @@
 // sözlüklerindedir (./<dil>/progress.ts). Yeni dil eklerken kod değişmez, sadece sözlük yazılır.
 
 import type { LangCode, TVars } from './index'
-import { translate } from './index'
+import { dictFor, translateRaw as translate } from './index'
 
 type Rule = [RegExp, (m: RegExpExecArray) => [string, TVars?]]
 
@@ -68,9 +68,64 @@ const RULES: Rule[] = [
   [/^Hata: (.*)$/i, (m) => ['Hata: {msg}', { msg: m[1] }]],
 ]
 
-export function translateProgress(message: string | null | undefined, lang: LangCode): string {
-  const msg = message ?? ''
-  if (lang === 'tr' || !msg) return msg
+// ── Genel backend mesaj çevirisi (2026-11-19) ──────────────────────────────────────────────────────
+// Elle yazılmış kurallar (RULES) tutmazsa sırayla:
+//  1) birebir sözlük eşleşmesi (ör. 'Ticket bulunamadı')
+//  2) Electron IPC öneki ("Error invoking remote method '…': HttpError: ") atılıp tekrar
+//  3) ŞABLON eşleşmesi — sözlükte {0}, {1} … yer tutuculu anahtarlar (./en/backendMessages.ts) desene
+//     çevrilir: 'Job #{0} bulunamadı' ↔ "Job #12 bulunamadı". Yakalanan değerler de çevrilir (iç hata
+//     mesajı, SAĞ/SOL …) — en uzun sabit metinli şablon önce denenir.
+//  4) bileşik mesaj: " | ", " — ", ": ", ". " ayraçlarıyla bölünüp parçalar ayrı ayrı çevrilir.
+
+const IPC_PREFIX = /^Error invoking remote method '[^']*':\s*(?:(?:Http|Timeout|Type)?Error:\s*)?/
+
+interface Template {
+  re: RegExp
+  key: string
+  holes: string[]
+  litLen: number
+}
+
+const templateCache = new Map<LangCode, { dict: Record<string, string>; list: Template[] }>()
+
+function templatesFor(lang: LangCode): Template[] {
+  const dict = dictFor(lang) as Record<string, string>
+  const cached = templateCache.get(lang)
+  if (cached && cached.dict === dict) return cached.list
+  const list: Template[] = []
+  for (const key of Object.keys(dict)) {
+    if (!/\{\d+\}/.test(key)) continue
+    const parts = key.split(/\{(\d+)\}/)
+    const literal = parts.filter((_, i) => i % 2 === 0).join('')
+    // Sadece yer tutucu + noktalama olan şablonlar her şeyi yakalar → atlanır
+    if (literal.replace(/[^\p{L}]/gu, '').length < 3) continue
+    let src = '^'
+    const holes: string[] = []
+    parts.forEach((p, i) => {
+      if (i % 2 === 0) src += p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      else {
+        holes.push(p)
+        src += '([\\s\\S]*?)'
+      }
+    })
+    list.push({ re: new RegExp(src + '$'), key, holes, litLen: literal.length })
+  }
+  list.sort((a, b) => b.litLen - a.litLen)
+  templateCache.set(lang, { dict, list })
+  return list
+}
+
+const resultCache = new Map<string, string>()
+
+function translateExact(msg: string, lang: LangCode): string | null {
+  const dict = dictFor(lang)
+  if (Object.prototype.hasOwnProperty.call(dict, msg)) return dict[msg]
+  const trimmed = msg.trim()
+  if (trimmed !== msg && Object.prototype.hasOwnProperty.call(dict, trimmed)) return dict[trimmed]
+  return null
+}
+
+function translateRules(msg: string, lang: LangCode): string | null {
   for (const [re, fn] of RULES) {
     const m = re.exec(msg)
     if (!m) continue
@@ -80,7 +135,56 @@ export function translateProgress(message: string | null | undefined, lang: Lang
     // Bakım periyodu listesi ("Haftalık, Aylık") — her ad sözlükten çevrilir
     if (v && 'periods' in v)
       v = { ...v, periods: String(v.periods).split(', ').map((p) => translate(p, lang)).join(', ') }
+    // Genel "Hata: …" kuralı — iç mesaj da çevrilir
+    if (v && 'msg' in v) v = { ...v, msg: translateDeep(String(v.msg), lang, 1) }
     return translate(key, lang, v)
   }
+  return null
+}
+
+const HAS_LETTER = /\p{L}/u
+const SEPARATORS = [' | ', ' — ', ': ', '. ']
+
+function translateDeep(msg: string, lang: LangCode, depth: number): string {
+  if (!msg || depth > 4) return msg
+  const exact = translateExact(msg, lang)
+  if (exact != null) return exact
+  const ipc = IPC_PREFIX.exec(msg)
+  if (ipc) return translateDeep(msg.slice(ipc[0].length), lang, depth)
+  const ruled = translateRules(msg, lang)
+  if (ruled != null) return ruled
+  const dict = dictFor(lang)
+  for (const tpl of templatesFor(lang)) {
+    const m = tpl.re.exec(msg)
+    if (!m) continue
+    const vars: TVars = {}
+    tpl.holes.forEach((h, i) => {
+      const val = m[i + 1] ?? ''
+      vars[h] = HAS_LETTER.test(val) ? translateDeep(val, lang, depth + 1) : val
+    })
+    return translate(dict[tpl.key], lang, vars)
+  }
+  // Bileşik mesaj — parçalar ayrı ayrı (en az biri çevrilirse)
+  for (const sep of SEPARATORS) {
+    const idx = msg.indexOf(sep)
+    if (idx <= 0) continue
+    const head = msg.slice(0, idx)
+    const tail = msg.slice(idx + sep.length)
+    const h = translateDeep(head, lang, depth + 1)
+    const tl = translateDeep(tail, lang, depth + 1)
+    if (h !== head || tl !== tail) return h + sep + tl
+  }
   return msg
+}
+
+export function translateProgress(message: string | null | undefined, lang: LangCode): string {
+  const msg = message ?? ''
+  if (lang === 'tr' || !msg) return msg
+  const ck = lang + '\u0000' + msg
+  const hit = resultCache.get(ck)
+  if (hit !== undefined) return hit
+  const out = translateDeep(msg, lang, 0)
+  if (resultCache.size > 5000) resultCache.clear()
+  resultCache.set(ck, out)
+  return out
 }

@@ -14,7 +14,7 @@ import {
 } from '@shared/types'
 
 import { useServiceRequest } from '@/hooks/useService'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { useCloudConfig } from '@/stores/cloudConfigStore'
 
 import ServicePageShell from './ServicePageShell'
@@ -50,7 +50,7 @@ export default function ServiceRequestDetailPage() {
         await refresh()
       }
     } catch (err) {
-      setConfirmError(err instanceof Error ? err.message : String(err))
+      setConfirmError(tp(err instanceof Error ? err.message : String(err)))
     } finally {
       setWorking(false)
     }

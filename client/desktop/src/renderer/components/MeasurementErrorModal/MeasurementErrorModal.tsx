@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react'
 
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import styles from './MeasurementErrorModal.module.css'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 
 export default function MeasurementErrorModal() {
@@ -56,7 +56,7 @@ export default function MeasurementErrorModal() {
       await window.corventa.bending.measurementRetryAction(jobId, action)
       // Backend BendingProgress'i günceller → bir sonraki SignalR push ile modal state değişir
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = tp(err instanceof Error ? err.message : String(err))
       setErrorMsg(t('İşlem başarısız: {msg}', { msg }))
     } finally {
       //   BUG FIX 2026-08-19: HTTP başarılı olduğunda da submitting reset edilmeli.

@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react'
 import type { ChecklistResultRecord, CloudChecklistTemplate } from '@shared/types'
 import { Icon, IconLabel } from '@/components/Icon'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { formatStamp, LOCAL_TEMPLATE_ID } from './checklistShared'
 import cs from './ChecklistForm.module.css'
 
@@ -23,19 +23,19 @@ export default function ChecklistHistory({ templates }: { templates: CloudCheckl
       .then((r) => {
         if (!alive) return
         if (r.ok) setRows(Array.isArray(r.data) ? r.data : [])
-        else setError(r.status === 0 ? t('DataApi yanıt vermiyor — bağlantıyı kontrol edin') : r.error)
+        else setError(r.status === 0 ? t('DataApi yanıt vermiyor — bağlantıyı kontrol edin') : tp(r.error))
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : String(e)))
+      .catch((e: unknown) => alive && setError(tp(e instanceof Error ? e.message : String(e))))
     return () => {
       alive = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sadece açılışta bir kez
   }, [])
 
-  const templateOf = (r: ChecklistResultRecord) => templates.find((tp) => tp.id === r.templateId) ?? null
+  const templateOf = (r: ChecklistResultRecord) => templates.find((tpl) => tpl.id === r.templateId) ?? null
   const templateName = (r: ChecklistResultRecord) => {
-    const tp = templateOf(r)
-    if (tp) return t(tp.name)
+    const tpl = templateOf(r)
+    if (tpl) return t(tpl.name)
     return r.templateId === LOCAL_TEMPLATE_ID ? t('GÜNLÜK CHECK LIST') : t('KALİTE KONTROL')
   }
   const nonSerialOf = (r: ChecklistResultRecord) => (r.items ?? []).filter((i) => i?.nonSerial).length
@@ -44,9 +44,9 @@ export default function ChecklistHistory({ templates }: { templates: CloudCheckl
   if (!rows) return <div className={cs.historyEmpty}>{t('Yükleniyor…')}</div>
 
   if (selected) {
-    const tp = templateOf(selected)
+    const tpl = templateOf(selected)
     const textOf = (id: string) => {
-      const it = tp?.items.find((i) => i.id === id)
+      const it = tpl?.items.find((i) => i.id === id)
       return it ? t(it.text) : id
     }
     return (

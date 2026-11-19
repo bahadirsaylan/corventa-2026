@@ -7,6 +7,7 @@
 import { useEffect } from 'react'
 import { create } from 'zustand'
 import type { CloudConfig } from '@shared/types'
+import { tp } from '@/i18n'
 
 const STALE_MS = 30_000
 
@@ -37,10 +38,10 @@ export const useCloudConfigStore = create<CloudConfigState>((set, get) => ({
           return r.data
         }
         // Hata → son bilinen config korunur (yoksa null = yerel davranış)
-        set({ loaded: true, error: r.error, loadedAt: Date.now() })
+        set({ loaded: true, error: tp(r.error), loadedAt: Date.now() })
         return get().config
       } catch (e) {
-        set({ loaded: true, error: e instanceof Error ? e.message : String(e), loadedAt: Date.now() })
+        set({ loaded: true, error: tp(e instanceof Error ? e.message : String(e)), loadedAt: Date.now() })
         return get().config
       } finally {
         inflight = null

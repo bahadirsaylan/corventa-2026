@@ -20,6 +20,7 @@ import {
   type SimilarBendingJobRequest,
   type UnloadPartRequest,
   type OilHeatingStartRequest,
+  type PressureDropTestStartRequest,
 } from '@shared'
 
 const log = childLogger('ipc:bending')
@@ -72,6 +73,18 @@ export function registerBendingHandlers(): void {
     return engineApi.oilHeatingStop()
   })
   ipcMain.handle(Ipc.IpcInvoke.OilHeatingStatus, async () => engineApi.oilHeatingStatus())
+
+  // Basınç düşüş testi (Admin Ayarları > TEST)
+  ipcMain.handle(Ipc.IpcInvoke.PressureDropTestStart, async (_evt, req: PressureDropTestStartRequest) => {
+    if (!req || (req.side !== 'Left' && req.side !== 'Right')) throw new Error('Geçersiz top tarafı')
+    log.info('pressure-drop-test-start', { req })
+    return engineApi.pressureDropTestStart(req)
+  })
+  ipcMain.handle(Ipc.IpcInvoke.PressureDropTestStop, async () => {
+    log.warn('pressure-drop-test-stop')
+    return engineApi.pressureDropTestStop()
+  })
+  ipcMain.handle(Ipc.IpcInvoke.PressureDropTestStatus, async (_evt, samples?: number) => engineApi.pressureDropTestStatus(samples))
 
   ipcMain.handle(Ipc.IpcInvoke.RadiusSensorAction, async (_evt, side: unknown, action: unknown) => {
     if (side !== 'left' && side !== 'right') throw new Error('Geçersiz sensör tarafı')

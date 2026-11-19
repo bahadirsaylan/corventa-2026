@@ -15,7 +15,7 @@ import { SideMenuIcon } from '@/components/SideMenu/SideMenuIcons'
 import { useSessionStore, useUserKey } from '@/stores/sessionStore'
 import { hasRole, requiredRoleForPath } from '@/constants/permissions'
 import { useSideMenuStore } from '@/stores/sideMenuStore'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import styles from './SideMenuSettingsPage.module.css'
 
@@ -70,7 +70,7 @@ export default function SideMenuSettingsPage() {
       await save(userKey, draft)
       setStatus({ kind: 'ok', text: t('KAYDEDİLDİ — MENÜ GÜNCELLENDİ.') })
     } catch (e) {
-      setStatus({ kind: 'error', text: t('KAYDEDİLEMEDİ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
+      setStatus({ kind: 'error', text: t('KAYDEDİLEMEDİ: {err}', { err: tp(e instanceof Error ? e.message : String(e)) }) })
     } finally {
       setSaving(false)
     }

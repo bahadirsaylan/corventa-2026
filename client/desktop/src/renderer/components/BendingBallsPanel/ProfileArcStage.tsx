@@ -93,18 +93,20 @@ interface Props {
   mode?: 'bending' | 'manual'
   /** manual modda: tuşla oynatılan (kayıtta açık) eksen — hareket bitse de yeşil */
   highlight?: Partial<Record<'top' | 'bottom' | 'left' | 'right', boolean>>
+  /** 2026-11-19 (kullanıcı): rotasyon dönerken parça dört topun arasından geçer → TÜM toplar yeşil */
+  rotating?: boolean
 }
 
-export default function ProfileArcStage({ top, bottom, left, right, radiusLabel, mode = 'bending', highlight }: Props) {
+export default function ProfileArcStage({ top, bottom, left, right, radiusLabel, mode = 'bending', highlight, rotating = false }: Props) {
   const [labelX, labelY] = polar((ARC.rIn + ARC.rOut) / 2, 0)
   // Çalışan top (yeşil): hareket eden + yan toplardan parçaya DAHA DERİN basan (büken) top.
   // Pasif top geri çekildiği için ≥1mm fark büken tarafı gösterir; rotasyon sırasında da yeşil kalır.
   const sideDiff = left.positionMm - right.positionMm
   const manual = mode === 'manual'
-  const leftWorking = left.moving || (manual ? highlight?.left === true : sideDiff > 1)
-  const rightWorking = right.moving || (manual ? highlight?.right === true : sideDiff < -1)
-  const topWorking = top.moving || (manual && highlight?.top === true)
-  const bottomWorking = bottom.moving || (manual && highlight?.bottom === true)
+  const leftWorking = rotating || left.moving || (manual ? highlight?.left === true : sideDiff > 1)
+  const rightWorking = rotating || right.moving || (manual ? highlight?.right === true : sideDiff < -1)
+  const topWorking = rotating || top.moving || (manual && highlight?.top === true)
+  const bottomWorking = rotating || bottom.moving || (manual && highlight?.bottom === true)
 
   return (
     <div className={styles.stage} style={{ width: REGION.w * S, height: REGION.h * S }}>

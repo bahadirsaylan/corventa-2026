@@ -23,7 +23,7 @@ import {
   useMaintenanceStore,
 } from '@/stores/maintenanceStore'
 import type { MaintenancePeriodStatus } from '@/services/maintenanceStatus'
-import { useLang, useT, type TVars } from '@/i18n'
+import { useLang, useT, type TVars, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './MaintenanceModeScreen.module.css'
 
@@ -88,7 +88,7 @@ export default function MaintenanceModeScreen() {
     try {
       await setMaintenanceModeOn(false)
     } catch (err) {
-      alert(t('Bakım modu değiştirilemedi: {err}', { err: (err as Error)?.message ?? t('bilinmeyen hata') }))
+      alert(t('Bakım modu değiştirilemedi: {err}', { err: (err as Error)?.message ? tp((err as Error).message) : t('bilinmeyen hata') }))
     } finally {
       setPendingKey(null)
     }

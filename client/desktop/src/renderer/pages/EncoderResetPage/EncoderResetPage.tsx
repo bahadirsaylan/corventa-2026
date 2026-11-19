@@ -12,7 +12,7 @@ import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { Icon, IconLabel } from '@/components/Icon'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import styles from './EncoderResetPage.module.css'
 
 // Backend POST /api/preparation/stage 1-5 kabul eder (4-5 Admin Ayarları'nda aktif edilirse).
@@ -87,7 +87,7 @@ export default function EncoderResetPage() {
       await window.corventa.bending.applyStage({ targetStage: st.stageNumber, speedPercent: 50 })
       setStatus({ kind: 'ok', text: t('{name} KONUMUNA GEÇİLDİ.', { name: st.name.toUpperCase() }) })
     } catch (e) {
-      setStatus({ kind: 'error', text: t('STAGE DEĞİŞTİRİLEMEDİ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
+      setStatus({ kind: 'error', text: t('STAGE DEĞİŞTİRİLEMEDİ: {err}', { err: tp(e instanceof Error ? e.message : String(e)) }) })
     } finally {
       setStageRunning(null)
     }
@@ -102,10 +102,10 @@ export default function EncoderResetPage() {
       setStatus(
         res.success
           ? { kind: 'ok', text: t('GÖNYE BAŞARIYLA TAMAMLANDI — CETVELLER SIFIRLANDI.') }
-          : { kind: 'error', text: t('GÖNYE BAŞARISIZ: {err}', { err: res.errorMessage ?? t('BİLİNMEYEN HATA') }) },
+          : { kind: 'error', text: t('GÖNYE BAŞARISIZ: {err}', { err: tp(res.errorMessage) || t('BİLİNMEYEN HATA') }) },
       )
     } catch (e) {
-      setStatus({ kind: 'error', text: t('GÖNYE ÇAĞRISI BAŞARISIZ: {err}', { err: e instanceof Error ? e.message : String(e) }) })
+      setStatus({ kind: 'error', text: t('GÖNYE ÇAĞRISI BAŞARISIZ: {err}', { err: tp(e instanceof Error ? e.message : String(e)) }) })
     } finally {
       setRunning(false)
     }

@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
 import { PERMISSIONS, roleCan } from '@/constants/permissions'
 import { useSessionStore } from '@/stores/sessionStore'
-import { t } from '@/i18n'
+import { t, tp } from '@/i18n'
 import styles from './KioskExitCorner.module.css'
 
 const TAP_COUNT_TARGET = 5
@@ -47,7 +47,7 @@ export default function KioskExitCorner() {
         })
         .catch((err) => {
           console.error('kiosk exit fail', err)
-          setToast(t('Cikis basarisiz: {err}', { err: String(err) }))
+          setToast(t('Cikis basarisiz: {err}', { err: tp(String(err)) }))
           exitedRef.current = false // tekrar denenebilsin
         })
     }, 300)

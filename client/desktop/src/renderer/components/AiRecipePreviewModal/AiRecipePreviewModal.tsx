@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import styles from './AiRecipePreviewModal.module.css'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import type { SimilarBendingJobRequest, SimilarBendingJobResponse } from '@shared/types'
 
@@ -43,7 +43,7 @@ export default function AiRecipePreviewModal({ request, onProceed, onClose }: Pr
         }
       } catch (err) {
         if (cancelled) return
-        const msg = err instanceof Error ? err.message : String(err)
+        const msg = tp(err instanceof Error ? err.message : String(err))
         setPhase({ kind: 'error', message: msg })
       }
     })()

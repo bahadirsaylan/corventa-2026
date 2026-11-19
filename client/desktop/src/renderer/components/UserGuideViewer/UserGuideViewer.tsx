@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { GlobalWorkerOptions, getDocument, type PDFDocumentProxy, type RenderTask } from 'pdfjs-dist'
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { IconLabel } from '@/components/Icon'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
 import styles from './UserGuideViewer.module.css'
@@ -68,7 +68,7 @@ export default function UserGuideViewer({ onClose }: { onClose: () => void }) {
         setDoc(pdf)
       })
       .catch((e) => {
-        if (alive) setError(e instanceof Error ? e.message : String(e))
+        if (alive) setError(tp(e instanceof Error ? e.message : String(e)))
       })
     return () => {
       alive = false
@@ -105,7 +105,7 @@ export default function UserGuideViewer({ onClose }: { onClose: () => void }) {
       } catch (e) {
         // Sayfa değişince önceki çizim iptal edilir (RenderingCancelledException) — hata değil
         if (!cancelled && !(e instanceof Error && e.name === 'RenderingCancelledException')) {
-          setError(e instanceof Error ? e.message : String(e))
+          setError(tp(e instanceof Error ? e.message : String(e)))
         }
       } finally {
         if (!cancelled) setRendering(false)

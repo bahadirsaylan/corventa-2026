@@ -8,7 +8,7 @@ import { useState } from 'react'
 
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { settingsFormStyles as styles } from '@/components/SettingsForm/SettingsForm'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import own from './RadiusSensorCard.module.css'
 
@@ -20,7 +20,7 @@ const OFFSET_KEY: Record<Side, string> = {
   right: 'rightRadiusSensorZeroOffsetMm',
 }
 
-const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
+const errMsg = (e: unknown) => (tp(e instanceof Error ? e.message : String(e)))
 
 interface Props {
   bendingActive: boolean

@@ -11,7 +11,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { translateProgress, useLang, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import { BendingJobStatus, type BendingJob, type BendingLogEntry } from '@shared'
 import styles from './BendingHistoryPage.module.css'
@@ -143,7 +143,7 @@ function isWarn(l: BendingLogEntry): boolean {
 }
 
 function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e)
+  return tp(e instanceof Error ? e.message : String(e))
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -415,7 +415,7 @@ function JobDetailView({ id }: { id: number }) {
         csv: buildCsv(rows, lang, t),
       })
       if (res.ok) setExportMsg({ ok: true, text: t('KAYDEDİLDİ: {path}', { path: res.path ?? '' }) })
-      else if (!res.cancelled) setExportMsg({ ok: false, text: t('KAYDEDİLEMEDİ: {error}', { error: res.error ?? '' }) })
+      else if (!res.cancelled) setExportMsg({ ok: false, text: t('KAYDEDİLEMEDİ: {error}', { error: tp(res.error) }) })
     } catch (e) {
       setExportMsg({ ok: false, text: t('KAYDEDİLEMEDİ: {error}', { error: errMsg(e) }) })
     } finally {

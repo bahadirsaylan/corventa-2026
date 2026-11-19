@@ -8,7 +8,7 @@ import { Icon, IconLabel } from '@/components/Icon'
 import { cloudSourceLabel } from '@/stores/cloudConfigStore'
 import { MOLD_PROFILE_LABELS, moldDimensionText, moldProfileToBendingProfile } from '@/constants/moldProfiles'
 import { ProfileShape } from '@/pages/AiBendingPage/BendingProfileGrid'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { moldUsability, type MoldLookupState } from './useMoldLookup'
 import styles from './MoldResultCard.module.css'
 
@@ -156,7 +156,7 @@ export default function MoldResultCard({ state, mode }: Props) {
         <div className={`${styles.note} ${styles.noteOk}`}>{t('Lisans etkinleştirildi — kalıp bu makinede kullanılabilir.')}</div>
       )}
       {(state.activationError || keyError) && (
-        <div className={`${styles.note} ${styles.noteBad}`}>{t(keyError ?? '') || state.activationError}</div>
+        <div className={`${styles.note} ${styles.noteBad}`}>{t(keyError ?? '') || tp(state.activationError)}</div>
       )}
 
       {canEnterKey && (

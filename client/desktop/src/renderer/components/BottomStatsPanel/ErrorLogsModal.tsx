@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { translateProgress, useLang, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import type { ErrorSnapshotSummary } from '@shared'
 import styles from './ErrorLogsModal.module.css'
@@ -61,7 +61,7 @@ export default function ErrorLogsModal({ onClose }: Props) {
         setTotal(res.total)
       })
       .catch((e: unknown) => {
-        if (alive) setError(e instanceof Error ? e.message : String(e))
+        if (alive) setError(tp(e instanceof Error ? e.message : String(e)))
       })
     return () => { alive = false }
   }, [])

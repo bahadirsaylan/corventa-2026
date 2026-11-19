@@ -15,7 +15,7 @@ import type { ChecklistResultItem, CloudChecklistTemplate } from '@shared/types'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { Icon, IconLabel } from '@/components/Icon'
 import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { useSessionStore } from '@/stores/sessionStore'
 import ChecklistHistory from './ChecklistHistory'
 import { formatStamp, LOCAL_TEMPLATE } from './checklistShared'
@@ -163,10 +163,10 @@ export default function ChecklistForm({ template }: { template: CloudChecklistTe
           /* yok */
         }
       } else {
-        setMessage({ kind: 'error', text: r.status === 0 ? t('DataApi yanıt vermiyor — bağlantıyı kontrol edin') : r.error })
+        setMessage({ kind: 'error', text: r.status === 0 ? t('DataApi yanıt vermiyor — bağlantıyı kontrol edin') : tp(r.error) })
       }
     } catch (e) {
-      setMessage({ kind: 'error', text: e instanceof Error ? e.message : String(e) })
+      setMessage({ kind: 'error', text: tp(e instanceof Error ? e.message : String(e)) })
     } finally {
       setBusy(false)
     }

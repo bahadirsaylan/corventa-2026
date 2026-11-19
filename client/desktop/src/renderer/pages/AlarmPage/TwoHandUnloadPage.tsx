@@ -5,7 +5,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import styles from './AlarmPage.module.css'
 
 const HOLD_MS = 1000
@@ -68,7 +68,7 @@ export default function TwoHandUnloadPage() {
         state: { jobOutcome: 'cancelled', jobId, ...(jobMessage ? { jobMessage } : {}) },
       })
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(tp(e instanceof Error ? e.message : String(e)))
       setBusy(false)
     }
   }

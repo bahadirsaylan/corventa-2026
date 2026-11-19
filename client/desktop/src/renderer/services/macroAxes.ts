@@ -1,3 +1,4 @@
+import { tp } from '@/i18n'
 // EXCEL 28 — makro eksenleri: ekran etiketi, birim, MachineState'ten anlık değer ve "hareket ediyor mu".
 // Eksen adları backend MacroAxes ile birebir; piston IPC adları (left/right/upper/lower) EngineApiClient'la aynı.
 
@@ -94,5 +95,5 @@ export function formatStepValue(step: Pick<MacroStep, 'axis' | 'stepType' | 'val
 /** Electron IPC hatayı "Error invoking remote method '...': HttpError: ..." diye sarar → ön eki at */
 export function macroErrorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err ?? '')
-  return raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, '')
+  return tp(raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, ''))
 }

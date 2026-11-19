@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal'
 import { Icon, IconLabel } from '@/components/Icon'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { translateProgress, useLang, useT, tp } from '@/i18n'
 import { useMachineStateStore } from '@/stores/machineStateStore'
 import type { BendingJob, ResumeStatusResponse } from '@shared/types'
 import styles from './AlarmPage.module.css'
@@ -96,7 +96,7 @@ export default function AlarmPage() {
       }
       setError(r?.error ? t(r.error) : t('DEVAM EDİLEMEDİ'))
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(tp(e instanceof Error ? e.message : String(e)))
     } finally {
       setBusy(false)
       setConfirm(false)

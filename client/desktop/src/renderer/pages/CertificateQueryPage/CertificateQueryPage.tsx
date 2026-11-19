@@ -5,7 +5,7 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { normalizeCertificateCode, type Certificate } from '@shared/types'
-import { useLang, useT } from '@/i18n'
+import { useLang, useT, tp } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import { cloudSourceLabel } from '@/stores/cloudConfigStore'
 import styles from './CertificateQueryPage.module.css'
@@ -47,7 +47,7 @@ export default function CertificateQueryPage() {
     } catch (err) {
       if (seq !== requestSeq.current) return
       // Electron IPC hatayı "Error invoking remote method '...': HttpError: ..." diye sarar → ön eki at
-      const raw = err instanceof Error ? err.message : String(err)
+      const raw = tp(err instanceof Error ? err.message : String(err))
       setErrorDetail(raw.replace(/^Error invoking remote method '[^']*':\s*/, ''))
       setStatus('error')
     }

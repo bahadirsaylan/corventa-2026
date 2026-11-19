@@ -4,6 +4,7 @@ import type { BendingJobParams, BendingMethodId, ManualTargetOverride } from '@/
 import { manualTargetKey, methodParamsKey, useBendingJobStore } from '@/store/bendingJobStore'
 import { AUTO_BENDING_MODE } from '@shared/edition'
 import type { SavedBend, SavedBendCorrection } from '@shared/types'
+import { tp } from '@/i18n'
 
 /** Kayıtlı büküm metodu (ÇEMBER) — DataApi BendingMethod adı */
 export const SAVED_BEND_METHOD = 'FullCircle'
@@ -156,5 +157,5 @@ export function fmtNum(v: number | null | undefined, maxDecimals = 2): string {
 /** IPC hata metninden "Error invoking remote method…" / "HttpError:" öneklerini temizler */
 export function cleanIpcError(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err ?? '')
-  return raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, '')
+  return tp(raw.replace(/^Error invoking remote method '[^']*':\s*/, '').replace(/^(Http)?Error:\s*/, ''))
 }

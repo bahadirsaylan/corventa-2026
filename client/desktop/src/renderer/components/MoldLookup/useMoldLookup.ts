@@ -4,6 +4,7 @@
 import { useCallback, useRef, useState } from 'react'
 import type { CloudResult, MoldLookupResult } from '@shared/types'
 import { moldCodeFormatError, normalizeMoldCode } from '@/services/moldCode'
+import { tp } from '@/i18n'
 
 export type MoldLookupStatus = 'idle' | 'searching' | 'found' | 'notfound' | 'error'
 
@@ -59,7 +60,7 @@ export function useMoldLookup(initialCode = '') {
     try {
       r = await window.corventa.molds.get(c)
     } catch (e) {
-      r = { ok: false, status: 0, error: e instanceof Error ? e.message : String(e) }
+      r = { ok: false, status: 0, error: tp(e instanceof Error ? e.message : String(e)) }
     }
     if (my !== seq.current) return
     if (r.ok) {
@@ -86,7 +87,7 @@ export function useMoldLookup(initialCode = '') {
         setActivationError(r.status === 0 ? 'DataApi yanıt vermiyor — bağlantıyı kontrol edin' : cleanCloudError(r.error))
       }
     } catch (e) {
-      setActivationError(e instanceof Error ? e.message : String(e))
+      setActivationError(tp(e instanceof Error ? e.message : String(e)))
     } finally {
       setActivating(false)
     }

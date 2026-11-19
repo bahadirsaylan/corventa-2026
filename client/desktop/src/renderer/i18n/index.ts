@@ -11,6 +11,7 @@
 
 import { create } from 'zustand'
 import { useCallback } from 'react'
+import { translateProgress } from './progress'
 
 export type LangCode = 'tr' | 'en' | 'de' | 'ru' | 'ar' | 'fr'
 
@@ -58,9 +59,24 @@ function format(s: string, vars?: TVars): string {
   return s.replace(/\{(\w+)\}/g, (m, k: string) => (k in vars ? String(vars[k]) : m))
 }
 
-export function translate(source: string, lang: LangCode, vars?: TVars): string {
+/** Seçilen dilin birleşik sözlüğü (translateProgress şablon eşlemesi için). */
+export function dictFor(lang: LangCode): Readonly<Record<string, string>> {
+  return DICTS[lang] ?? {}
+}
+
+/** Sadece sözlük (yedek yok) — translateProgress içinden kullanılır. */
+export function translateRaw(source: string, lang: LangCode, vars?: TVars): string {
   if (lang === 'tr') return format(source, vars)
   return format(DICTS[lang]?.[source] ?? source, vars)
+}
+
+export function translate(source: string, lang: LangCode, vars?: TVars): string {
+  if (lang === 'tr') return format(source, vars)
+  const dict = DICTS[lang]
+  if (dict && Object.prototype.hasOwnProperty.call(dict, source)) return format(dict[source], vars)
+  // Sözlükte yoksa (çoğunlukla backend / ham mesaj: t(res.error)) desen kurallarına bakılır
+  if (!vars && source) return translateProgress(source, lang)
+  return format(source, vars)
 }
 
 /** Bileşen dışı (yardımcı fonksiyon, sabit) kullanım — o anki dili okur, re-render tetiklemez. */
@@ -80,4 +96,18 @@ export function useLang(): LangCode {
   return useLangStore((s) => s.lang)
 }
 
-export { translateProgress } from './progress'
+/**
+ * Bileşenlerde backend / ham mesaj gösterimi: const tp = useTP(); tp(res.error)
+ * (translateProgress + o anki dil; Türkçe seçiliyse metin aynen döner).
+ */
+export function useTP(): (message: string | null | undefined) => string {
+  const lang = useLangStore((s) => s.lang)
+  return useCallback((message: string | null | undefined) => translateProgress(message, lang), [lang])
+}
+
+/** Bileşen dışı backend / ham mesaj çevirisi — o anki dili okur. */
+export function tp(message: string | null | undefined): string {
+  return translateProgress(message, useLangStore.getState().lang)
+}
+
+export { translateProgress }

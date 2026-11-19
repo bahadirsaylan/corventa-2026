@@ -25,6 +25,9 @@ import type {
   OilHeatingResult,
   OilHeatingStartRequest,
   OilHeatingStatus,
+  PressureDropTestResult,
+  PressureDropTestStartRequest,
+  PressureDropTestStatus,
   UnloadPartRequest,
   UnloadPartResponse,
   ResumeStatusResponse,
@@ -161,6 +164,33 @@ export class EngineApiClient {
 
   async oilHeatingStatus(): Promise<OilHeatingStatus> {
     return http.get<OilHeatingStatus>(`${this.baseUrl}/api/oil-heating/status`)
+  }
+
+  // Basınç düşüş testi — 400/409 gövdesi de { success, errorMessage, status } (mesaj kaybolmasın)
+  async pressureDropTestStart(req: PressureDropTestStartRequest): Promise<PressureDropTestResult> {
+    return this.pressureDropTestCall(() => http.post<PressureDropTestResult>(`${this.baseUrl}/api/pressure-drop-test/start`, req))
+  }
+
+  async pressureDropTestStop(): Promise<PressureDropTestResult> {
+    return this.pressureDropTestCall(() => http.post<PressureDropTestResult>(`${this.baseUrl}/api/pressure-drop-test/stop`))
+  }
+
+  async pressureDropTestStatus(samples?: number): Promise<PressureDropTestStatus> {
+    const q = typeof samples === 'number' && Number.isFinite(samples) ? `?samples=${Math.max(0, Math.min(600, Math.round(samples)))}` : ''
+    return http.get<PressureDropTestStatus>(`${this.baseUrl}/api/pressure-drop-test/status${q}`)
+  }
+
+  private async pressureDropTestCall(fn: () => Promise<PressureDropTestResult>): Promise<PressureDropTestResult> {
+    try {
+      const res = await fn()
+      return { success: res?.success ?? true, errorMessage: res?.errorMessage ?? null, status: res?.status ?? null }
+    } catch (err) {
+      if (err instanceof HttpError && err.body && typeof err.body === 'object' && 'errorMessage' in err.body) {
+        const body = err.body as Partial<PressureDropTestResult>
+        return { success: false, errorMessage: body.errorMessage ?? err.message, status: body.status ?? null }
+      }
+      throw err
+    }
   }
 
   private async oilHeatingCall(fn: () => Promise<OilHeatingResult>): Promise<OilHeatingResult> {

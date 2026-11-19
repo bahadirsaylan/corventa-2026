@@ -355,6 +355,8 @@ function MonitorPanel() {
   const left = usePiston('leftPiston')
   const right = usePiston('rightPiston')
   const rotationMm = useMachineStateStore((s) => s.state.rotation.positionMm)
+  // 2026-11-19: rotasyon dönerken tüm toplar yeşil (ProfileArcStage rotating)
+  const rotating = useMachineStateStore((s) => s.state.rotation.activeDirection !== 0)
   const t = useT()
   const lang = useLang()
   const runningJobId = useBendingActivityStore((s) => s.runningJobId)
@@ -372,7 +374,7 @@ function MonitorPanel() {
     <div className={`${styles.panel} ${styles.monitor}`}>
       {/* ── 4 vals topu (salt-okunur) ──────────────── */}
       <div className={styles.monitorGrid}>
-        <ProfileArcStage top={top} bottom={bottom} left={left} right={right} radiusLabel={radiusLabel} />
+        <ProfileArcStage top={top} bottom={bottom} left={left} right={right} radiusLabel={radiusLabel} rotating={rotating} />
       </div>
 
       {/* ── İlerleme footer ────────────────────────── */}
@@ -465,6 +467,7 @@ function MacroMonitorPanel() {
           radiusLabel={t('USTA KAYDI')}
           mode="manual"
           highlight={highlight}
+          rotating={rotationMoving}
         />
       </div>
 

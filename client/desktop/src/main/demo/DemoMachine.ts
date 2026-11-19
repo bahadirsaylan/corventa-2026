@@ -32,6 +32,7 @@ import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
 import { installDemoWindowFit } from '@main/demo/demoWindow'
 import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
+import { DemoPressureTest } from '@main/demo/demoPressureTest'
 import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
@@ -268,6 +269,41 @@ export class DemoMachine extends EventEmitter {
   // STANDART SÜRÜM (2026-11-17) — elle düzeltme pasosu durumu (iş başına; GET /manual-correct/status)
   private manualCorrect = new Map<number, Record<string, unknown>>()
   private manualCorrectRunning: number | null = null
+  // BASINÇ DÜŞÜŞ TESTİ (2026-11-19, Admin Ayarları > TEST) — demoPressureTest.ts
+  private pressureTest = new DemoPressureTest({
+    position: (k) => this.state[k].positionMm,
+    inPosition: (k) => this.state[k].inPosition && !this.state[k].moving,
+    move: (k, mm, speed) => {
+      this.pistonSpeedPct[k] = speed
+      this.targets[k] = mm
+    },
+    stop: (k) => {
+      this.targets[k] = this.state[k].positionMm
+    },
+    blocker: () => {
+      const s = this.state
+      if (this.activeJobId != null) return `Çalışan büküm var (Job #${this.activeJobId}) — test başlatılamaz`
+      if (this.unloadRunning) return 'Tahliye devam ediyor — test başlatılamaz'
+      if (this.manualCorrectRunning != null) return `Elle düzeltme pasosu sürüyor (iş #${this.manualCorrectRunning}) — test başlatılamaz`
+      if (!s.safety.emergencyStopOK) return 'Acil stop basılı'
+      if (s.hydraulicMotorState !== 2) return 'Hidrolik motor çalışmıyor — önce motoru çalıştırın'
+      const moving = (Object.keys(this.targets) as PistonKey[]).some((k) => s[k].moving) || !s.rotation.inPosition
+      if (moving) return 'Makine hareket halinde — test başlatılamaz'
+      return null
+    },
+    forwardLimit: () => MAX_PISTON_MM - 1,
+    settings: () => ({
+      dropBar: Number(this.machineSettings.pressureDropBar ?? 20),
+      windowMs: Number(this.machineSettings.pressureDropWindowMs ?? 300),
+      minBaseBar: Number(this.machineSettings.pressureDropMinBaseBar ?? 30),
+    }),
+    pressures: () => ({ s1: this.state.sensors.s1PressureBar, s2: this.state.sensors.s2PressureBar }),
+    safetyProblem: () => {
+      if (!this.state.safety.emergencyStopOK) return 'Acil stop basıldı'
+      if (this.state.hydraulicMotorState !== 2) return 'Hidrolik motor durdu'
+      return null
+    },
+  })
 
   // ── yaşam döngüsü ──
 
@@ -602,6 +638,7 @@ export class DemoMachine extends EventEmitter {
       s.sensors.s1PressureBar = Math.round(s.sensors.s1PressureBar + (wantS1 - s.sensors.s1PressureBar) * 0.3)
     }
     s.sensors.s2PressureBar = Math.round(s.sensors.s1PressureBar * 0.9)
+    this.pressureTest.onTick(s.sensors) // basınç düşüş testi sürüyorsa S1/S2 senaryodan
     s.sensors.s1FlowCms = anyMoving ? 34 + Math.round(Math.random() * 4) : 12
     s.sensors.s2FlowCms = anyMoving ? 31 + Math.round(Math.random() * 4) : 11
     this.tickDisplayValues()
@@ -1517,6 +1554,7 @@ export class DemoMachine extends EventEmitter {
           success: false, errorMessage, appliedUpperRetractMm: 0, appliedRotationMm: 0, cancelled: false,
         })
       }
+      if (this.pressureTest.active) fail(409, 'Basınç düşüş testi çalışıyor — önce durdurun')
       const retract = Number(b.upperRetractMm)
       const rot = Number(b.rotationMm)
       if (!Number.isFinite(retract) || retract < 0 || retract > UNLOAD_MAX_UPPER_MM)
@@ -1637,6 +1675,10 @@ export class DemoMachine extends EventEmitter {
     if ((m = /^\/api\/bending-job\/(\d+)\/start$/.exec(path))) {
       const job = this.jobs.get(Number(m[1]))
       if (!job) return { success: false, error: 'Job bulunamadı' }
+      if (this.pressureTest.active) {
+        const error = 'Basınç düşüş testi çalışıyor — önce durdurun'
+        throw new HttpError(409, rawUrl, error, { success: false, error })
+      }
       // STANDART SÜRÜM (2026-11-17): backend gibi geri esneme düzeltmesi her zaman atlanır
       job.skipAutoCorrect = IS_STANDARD || u.searchParams.get('skipAutoCorrect') === 'true'
       // ELLE KONUMLANDIRMA (sensörsüz) — gerçek BendingJobController.StartJob ile aynı doğrulama
@@ -1872,6 +1914,18 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/saved-bends' || path.startsWith('/api/saved-bends/')) return demoSavedBends(rawUrl, path, method, b)
     // Bulut bağlantısı (BULUT_API.md §4) — demoCloud.ts
     if (path.startsWith('/api/cloud/')) return demoCloud(rawUrl, path, method, b)
+    // BASINÇ DÜŞÜŞ TESTİ (Admin Ayarları > TEST) — demoPressureTest.ts
+    if (path === '/api/pressure-drop-test/status') return this.pressureTest.status(Number(u.searchParams.get('samples') ?? 60))
+    if (path === '/api/pressure-drop-test/stop' && method === 'POST') {
+      const stopped = this.pressureTest.stop()
+      return { success: stopped, errorMessage: stopped ? null : 'Basınç düşüş testi çalışmıyor', status: this.pressureTest.status() }
+    }
+    if (path === '/api/pressure-drop-test/start' && method === 'POST') {
+      const status = this.pressureTest.start(b, (st, msg, body) => {
+        throw new HttpError(st, rawUrl, msg, body)
+      })
+      return { success: true, errorMessage: null, status }
+    }
 
     log.warn('DEMO: karşılanmayan istek', { method, path })
     throw new HttpError(404, rawUrl, 'Demo modunda desteklenmiyor')

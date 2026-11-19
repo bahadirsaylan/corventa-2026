@@ -43,7 +43,7 @@ import {
   unloadConfigFromSettings,
 } from '@/services/operatorPrefs'
 import { useBendingActive } from '@/stores/bendingActivityStore'
-import { useT } from '@/i18n'
+import { useT, tp } from '@/i18n'
 import { IconLabel } from '@/components/Icon'
 
 const LOCAL_SECTIONS: SectionDef[] = [
@@ -231,7 +231,7 @@ export default function OperatorSettingsPage() {
       setUnload(u)
       setMachineError(null)
     } catch (e) {
-      setMachineError(e instanceof Error ? e.message : String(e))
+      setMachineError(tp(e instanceof Error ? e.message : String(e)))
     }
   }
 
@@ -296,7 +296,7 @@ export default function OperatorSettingsPage() {
       setConfirm(false)
       setMessage(t('{n} ayar kaydedildi', { n: changes.length }))
     } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e))
+      setSaveError(tp(e instanceof Error ? e.message : String(e)))
     } finally {
       setSaving(false)
     }
