@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import { IconLabel } from '@/components/Icon'
 import ArcMeasurementForm, {
   ArcFormStage,
   ArcInputMode,
@@ -15,6 +14,7 @@ import ArcMeasurementForm, {
 } from './ArcMeasurementForm'
 import ArcPlanConfirmModal from './ArcPlanConfirmModal'
 import ArcPlanSummary from './ArcPlanSummary'
+import ApiNoticeModal from '@/components/ApiNoticeModal/ApiNoticeModal'
 import styles from './ArcBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { ValidateArcPlanResponse, ValidateArcPlanSegment } from '@shared/types'
@@ -301,18 +301,9 @@ export default function ArcBendingMeasurementsPage() {
       )}
 
       {/* Hata modalı */}
+      {/* 2026-11-19: sakin bilgi penceresi (ApiNoticeModal) — kırmızı "HESAPLAMA HATASI" yerine */}
       {validationError && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.loadingBox}>
-            <div className={styles.errorHead}>
-              <IconLabel icon="error">{t('HESAPLAMA HATASI')}</IconLabel>
-            </div>
-            <div className={styles.errorBody}>{validationError}</div>
-            <button className={styles.errorBtn} onClick={() => setValidationError(null)}>
-              {t('TAMAM')}
-            </button>
-          </div>
-        </div>
+        <ApiNoticeModal title="HESAP YAPILAMADI" message={validationError} onClose={() => setValidationError(null)} />
       )}
 
       {/* Plan sonuç modalı — sadece extension veya reversal varsa */}

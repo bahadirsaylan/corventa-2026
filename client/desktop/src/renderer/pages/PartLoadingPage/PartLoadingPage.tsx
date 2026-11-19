@@ -13,9 +13,10 @@ import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useMaintenanceLock } from '@/hooks/useMaintenance'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMaintenanceStore } from '@/stores/maintenanceStore'
-import { translateProgress, useLang, useT } from '@/i18n'
+import { useT } from '@/i18n'
 import { Icon, IconLabel } from '@/components/Icon'
 import styles from './PartLoadingPage.module.css'
+import ApiNoticeModal from '@/components/ApiNoticeModal/ApiNoticeModal'
 import ManualPlacementModal, { type PlacementSide } from './ManualPlacementModal'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import readyBanner from '@/assets/images/itsready.png'
@@ -47,7 +48,6 @@ function PartLoadingContent() {
   const t = useT()
   // 2026-11-17 (QA): başlık akışın modu (YAPAY ZEKA / YARI OTOMATİK / Standart OTOMATİK) — eski 'ALARM MODU' yanıltıcıydı
   const modeLabel = useBendingModeLabel()
-  const lang = useLang()
   const params = useBendingJobStore((s) => s.params)
   const partSensor = usePartSensor()
   // EXCEL 34 — BAKIM KİLİDİ (backend lockActive): büküm başlatma butonları kilitli. Asıl engel backend'de
@@ -170,13 +170,17 @@ function PartLoadingContent() {
         </div>
       )}
 
+      {/* 2026-11-19 (kullanıcı): API hatası siyah kutuda kırmızı yazı yerine sakin bilgi penceresinde —
+          operatör kritik arıza sanmasın. Teknik adım kodu ([MAPPING] vb.) gösterilmez; ham metin TEKNİK DETAY'da. */}
       {phase === 'error' && errorMessage && (
-        <div className={styles.loadedBar} style={{ color: '#ff6b6b' }}>
-          {/* 2026-11-12: teknik adım kodu ([MAPPING] vb.) operatöre gösterilmez */}
-          {t('BÜKÜM BAŞLATILAMADI')}:{' '}
-          {/* Backend mesajı (ör. güvenlik engeli) önce translateProgress kuralıyla, yoksa sözlükten */}
-          {t(translateProgress(errorMessage, lang))}
-        </div>
+        <ApiNoticeModal
+          title="BÜKÜM BAŞLATILAMADI"
+          message={errorMessage}
+          onClose={() => {
+            setErrorMessage(null)
+            setPhase('idle')
+          }}
+        />
       )}
 
       {phase !== 'starting' && phase !== 'started' && isSemiAuto && (
