@@ -9,6 +9,8 @@ const minifyDemo = process.env.CORVENTA_MINIFY === '1'
 // Tek okuma noktası src/shared/edition.ts (docs/STANDART_SURUM.md). main, preload ve renderer aynı değeri görür.
 const editionDefine = {
   __CORVENTA_EDITION__: JSON.stringify(process.env.CORVENTA_EDITION === 'standard' ? 'standard' : 'ai'),
+  // 2026-11-19: DEMO PAKETİ derleme anında işaretlenir (npm run package:demo*) — exe adı değişse de demo açılır
+  __CORVENTA_DEMO_BUILD__: JSON.stringify(process.env.CORVENTA_DEMO_BUILD === '1'),
 }
 
 const sharedAliases = [

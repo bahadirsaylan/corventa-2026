@@ -5,12 +5,14 @@
 // STANDART SÜRÜM (2026-11-17): `npm run package:demo:standard` (CORVENTA_EDITION=standard) → "Corventa Demo <sürüm> Standart.exe"
 // (exe adında "Demo" kalır → demoBoot.ts demo modunu yine açar).
 const pkg = require('../package.json')
-const editionSuffix = process.env.CORVENTA_EDITION === 'standard' ? ' Standart' : ''
+// 2026-11-19 (kullanıcı): ad "Corventa AI V<sürüm>" / "Corventa Otonom V<sürüm>" (Otonom = Standart sürüm).
+// Demo modu artık addan değil derleme bayrağından (CORVENTA_DEMO_BUILD) açılır — ad serbest.
+const editionName = process.env.CORVENTA_EDITION === 'standard' ? 'Corventa Otonom' : 'Corventa AI'
 
 module.exports = {
   ...pkg.build,
   directories: { output: 'release-demo' },
   extraResources: pkg.build.extraResources.filter((r) => r.to !== 'backend'),
-  win: { target: ['portable'] },
-  portable: { artifactName: 'Corventa Demo ${version}' + editionSuffix + '.exe' },
+  win: { target: ['portable'], icon: 'build/icon.ico' },
+  portable: { artifactName: editionName + ' V${version}.exe' },
 }
