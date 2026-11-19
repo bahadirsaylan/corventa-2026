@@ -54,8 +54,8 @@ const en: Record<string, string> = {
   'BASINÇ DÜŞÜŞÜ EN DÜŞÜK TABAN': 'PRESSURE DROP MINIMUM BASE',
   'Pencere tepe basıncı bunun altındaysa izlenmez (parçaya baskı yok).': 'Not monitored if the window peak is below this (no load on the part).',
   // 2026-11-19 — encoder durması kesintisi (112)
-  'PARÇANIN KAYIP KAYMADIĞINI VE SIKIŞMA OLMADIĞINI KONTROL EDİN, SONRA UYGUN BİR DEVAM YOLU SEÇİNİZ.':
-    'CHECK THAT THE PART HAS NOT SLIPPED AND IS NOT JAMMED, THEN CHOOSE A SUITABLE WAY TO CONTINUE.',
+  'PARÇA KAYMIŞ OLABİLİR — KALDIĞI YERDEN DEVAM EDİLEMEZ. MANUEL TAHLİYE YAPIP PARÇAYI KONTROL EDİN.':
+    'THE PART MAY HAVE SLIPPED — IT CANNOT RESUME FROM WHERE IT STOPPED. UNLOAD MANUALLY AND CHECK THE PART.',
 }
 
 export default en

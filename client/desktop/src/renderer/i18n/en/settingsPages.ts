@@ -401,8 +401,8 @@ const en: Record<string, string> = {
     'Edit the welcome message shown to YOU after sign-in (each user has their own message). Up to {n} characters.',
   // 2026-11-19 — encoder durmasında büküm durdurma
   'ENCODER DURMASINDA': 'ON ENCODER STALL',
-  "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop + alarm ekranı. Tahliye / manuel harekette sadece uyarı.":
-    'STOP BENDING: if the rotation encoder does not advance during bending → emergency stop + alarm screen. Unload / manual moves only warn.',
+  "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop, büküm İPTAL (kaldığı yerden devam yok — manuel tahliye). Tahliye / manuel harekette sadece uyarı.":
+    'STOP BENDING: if the rotation encoder does not advance during bending → emergency stop, bending CANCELLED (no resume — manual unload). Unload / manual moves only warn.',
   'BÜKÜMÜ DURDUR': 'STOP BENDING',
 }
 

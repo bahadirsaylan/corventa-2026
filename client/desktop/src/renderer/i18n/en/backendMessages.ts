@@ -1124,6 +1124,8 @@ const en: Record<string, string> = {
   // 2026-11-19 — büküm sırasında encoder durması (SafetyMonitorService → kesinti 112)
   "ROTASYON ENCODER'I İLERLEMİYOR ({0} ms içinde {1} mm) — PARÇA KAYMASI / SIKIŞMA OLABİLİR":
     'ROTATION ENCODER IS NOT ADVANCING ({0} ms: {1} mm) — PART MAY HAVE SLIPPED / JAMMED',
+  'Encoder durması — parçanın ne kadar kaydığı bilinmiyor, kaldığı yerden devam edilemez':
+    'Encoder stall — it is not known how far the part slipped, it cannot resume from where it stopped',
 }
 
 export default en

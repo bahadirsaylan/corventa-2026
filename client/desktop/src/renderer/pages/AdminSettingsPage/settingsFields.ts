@@ -70,7 +70,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             type: 'select',
             key: 'encoderStallStopEnabled',
             label: 'ENCODER DURMASINDA',
-            desc: "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop + alarm ekranı. Tahliye / manuel harekette sadece uyarı.",
+            desc: "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop, büküm İPTAL (kaldığı yerden devam yok — manuel tahliye). Tahliye / manuel harekette sadece uyarı.",
             options: [
               { value: false, label: 'SADECE UYARI' },
               { value: true, label: 'BÜKÜMÜ DURDUR' },
