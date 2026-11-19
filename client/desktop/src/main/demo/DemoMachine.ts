@@ -36,6 +36,8 @@ import { installDemoWindowFit } from '@main/demo/demoWindow'
 import { getClampLog, listClampLogs } from '@main/demo/demoClampTelemetry'
 import { demoBendingCountReport } from '@main/demo/demoBendingReport'
 import { DemoPressureTest } from '@main/demo/demoPressureTest'
+import { DemoSideRulers } from '@main/demo/demoSideRulers'
+import { defaultSideRulerSettings } from '@shared/sideRulers'
 import { buildReversedSegments, planArc, type PlannerSegment } from '@main/demo/demoArcPlanner'
 import { HttpError } from '@main/lib/http'
 import { childLogger } from '@main/lib/logger'
@@ -259,7 +261,9 @@ export class DemoMachine extends EventEmitter {
   private prefs = new Map<string, unknown>()
   // Ayar ekranları (Operatör / Admin) için bellek içi kayıtlar — sadece ekranda görünür,
   // demo simülasyonunun hesabına etki etmez.
-  private machineSettings: Record<string, unknown> = { ...DEMO_MACHINE_SETTINGS }
+  private machineSettings: Record<string, unknown> = { ...DEMO_MACHINE_SETTINGS, ...defaultSideRulerSettings() }
+  // Yan dayama cetvelleri (2026-11-19) — demoSideRulers.ts
+  private sideRulers = new DemoSideRulers()
   private gonyeSettings: Record<string, unknown> = { id: 1, leftOffsetMm: 3.75, rightOffsetMm: 3.75, upperOffsetMm: 0, lowerOffsetMm: 10.5, referencePressureBar: 70 }
   private stageEdits = new Map<number, Record<string, unknown>>()
   private extraStages: (Record<string, unknown> & { id: number; isActive?: boolean })[] = []
@@ -651,6 +655,7 @@ export class DemoMachine extends EventEmitter {
     s.sensors.s1FlowCms = anyMoving ? 34 + Math.round(Math.random() * 4) : 12
     s.sensors.s2FlowCms = anyMoving ? 31 + Math.round(Math.random() * 4) : 11
     this.tickDisplayValues()
+    this.sideRulers.tick(dt, s, this.machineSettings)
     ;(s as unknown as { timestamp?: string }).timestamp = new Date().toISOString()
 
     this.emit('stateUpdated', structuredClone(s))
@@ -1827,6 +1832,11 @@ export class DemoMachine extends EventEmitter {
       this.manualPneuDir[side] = dir
       const pn = side === 'left' ? this.state.leftPneumatic : this.state.rightPneumatic
       pn.activeDirection = dir
+      return ok
+    }
+    if ((m = /^\/api\/side-support\/(left|right)\/(joint|body|reel)\/(forward|backward|stop)$/.exec(path))) {
+      // 2026-11-19 — yan dayama cetveli komut aktifken hareket eder (demoSideRulers.ts)
+      this.sideRulers.command(m[1] as 'left' | 'right', m[2] as 'joint' | 'body' | 'reel', m[3])
       return ok
     }
     if (/^\/api\/(machine|pneumatic|side-support)\//.test(path)) return ok

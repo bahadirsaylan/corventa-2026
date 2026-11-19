@@ -4,6 +4,7 @@
 // Sadece makinede GERÇEKTEN kullanılan ayarlar listelenir (kayıt amaçlı / eski alanlar gösterilmez).
 
 import type { FieldDef, SectionDef } from '@/components/SettingsForm/SettingsForm'
+import { SIDE_RULERS, sideRulerSettingKeys, type SideRulerKey } from '@shared/sideRulers'
 
 // Proses parametreleri DB'ye kaydedilir; makine yazılımı şimdilik aynı değerleri sabit kullanıyor.
 const PENDING = 'Kaydedilir; makine yazılımına bağlanması sonraki güncellemede.'
@@ -303,7 +304,34 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
   },
 ]
 
-export const MACHINE_FIELDS: FieldDef[] = MACHINE_SECTIONS.flatMap((g) => g.sections.flatMap((s) => s.fields))
+// ── Yan dayama cetvelleri (2026-11-19) — ÖLÇÜM & SENSÖR sekmesinde SideRulerCards ile çizilir (canlı değer +
+// EN GERİ / EN İLERİ / SIFIR düğmeleri). Alan adları backend MachineSettings <key>RulerRawMin/RawMax/StrokeMm/OffsetMm/
+// Calibrated (Api PUT kopyası SettingsController). Aralıklar SideSupportRulerCalibration.Validate ile aynı.
+export const SIDE_RULER_FIELD_DEFS = (key: SideRulerKey): { rawMin: FieldDef; rawMax: FieldDef; strokeMm: FieldDef; offsetMm: FieldDef; calibrated: FieldDef } => {
+  const k = sideRulerSettingKeys(key)
+  return {
+    rawMin: { key: k.rawMin, label: 'EN GERİ HAM DEĞER', min: 0, max: 4095, integer: true },
+    rawMax: { key: k.rawMax, label: 'EN İLERİ HAM DEĞER', min: 0, max: 4095, integer: true },
+    strokeMm: { key: k.strokeMm, label: 'STROK', unit: 'mm', min: 1, max: 2000 },
+    offsetMm: { key: k.offsetMm, label: 'SIFIR OFSETİ', unit: 'mm', min: -2000, max: 2000, negative: true },
+    calibrated: {
+      type: 'select',
+      key: k.calibrated,
+      label: 'KALİBRASYON',
+      options: [
+        { value: true, label: 'KALİBRE EDİLDİ' },
+        { value: false, label: 'KALİBRE EDİLMEDİ' },
+      ],
+    },
+  }
+}
+
+export const SIDE_RULER_FIELDS: FieldDef[] = SIDE_RULERS.flatMap((r) => Object.values(SIDE_RULER_FIELD_DEFS(r.key)))
+
+export const MACHINE_FIELDS: FieldDef[] = [
+  ...MACHINE_SECTIONS.flatMap((g) => g.sections.flatMap((s) => s.fields)),
+  ...SIDE_RULER_FIELDS,
+]
 
 export const GONYE_SECTION: SectionDef = {
   title: 'GÖNYE OFSETLERİ',

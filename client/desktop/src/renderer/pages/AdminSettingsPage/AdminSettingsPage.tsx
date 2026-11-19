@@ -40,6 +40,8 @@ import {
   STAGE_SLOTS,
 } from './settingsFields'
 import RadiusSensorCard from './RadiusSensorCard'
+import SideRulerCards from './SideRulerCards'
+import { SIDE_RULERS } from '@shared/sideRulers'
 import PressureDropTestCard from './PressureDropTestCard'
 
 const TAB_GONYE = 'GÖNYE & STAGE'
@@ -189,7 +191,11 @@ function AdminEditor() {
   }, [load])
 
   const changes: Change[] = useMemo(() => {
-    const out: Change[] = [...diffValues(MACHINE_FIELDS, machine0, machine, t)]
+    // Yan dayama cetveli alanları ortak etiketli ("EN GERİ HAM DEĞER") → onay listesinde cetvel adıyla
+    const out: Change[] = diffValues(MACHINE_FIELDS, machine0, machine, t).map((c) => {
+      const r = SIDE_RULERS.find((x) => c.key.startsWith(`${x.key}Ruler`))
+      return r ? { ...c, label: `${t(r.label)} · ${c.label}` } : c
+    })
     for (const c of diffValues(GONYE_SECTION.fields, gonye0, gonye, t))
       out.push({ ...c, key: `gonye.${c.key}`, label: `${t('GÖNYE')} · ${c.label}` })
     for (const n of SLOT_NUMBERS) {
@@ -343,6 +349,10 @@ function AdminEditor() {
       {!pressureSub && group?.sections.map((s) => (
         <SettingsSection key={s.title} section={s} values={machine} original={machine0} onChange={set(setMachine)} />
       ))}
+      {tab === TAB_SENSOR && (
+        // 2026-11-19 — YAN DAYAMA CETVELLERİ (canlı değer + kalibrasyon + sıfır ofseti; KAYDET ile)
+        <SideRulerCards values={machine} original={machine0} onChange={set(setMachine)} />
+      )}
 
       {tab === TAB_MAINT && (
         <>

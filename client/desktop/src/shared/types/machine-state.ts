@@ -52,6 +52,9 @@ export interface MachineState {
   rightRadiusSensorEffectiveMm?: number
   rightRadiusSensorZeroed?: boolean
 
+  // Yan dayama cetvelleri (2026-11-19, Core/Models/SideSupportRulers.cs) — eski backend göndermez
+  sideSupportRulers?: SideSupportRulersState
+
   // Physical state info
   physicalInfo: PhysicalStateInfo
 
@@ -117,6 +120,30 @@ export interface SpringbackState {
   isMeasuring: boolean
   isComplete: boolean
   hasError: boolean
+}
+
+/** Tek yan dayama cetveli. available=false → PLC programı eski / okunamıyor (değer gösterilmez). */
+export interface SideSupportRulerState {
+  raw: number
+  /** Kalibrasyonla mm (0..strok), ofsetsiz */
+  calibratedMm?: number
+  /** Gösterilen mm = calibratedMm − offsetMm (negatif olabilir) */
+  mm: number
+  /** Yazılımsal sıfır ofseti (ayarlar) */
+  offsetMm?: number
+  available: boolean
+  /** false = ayarlarda varsayılan değerler (kalibre edilmedi) */
+  calibrated: boolean
+  strokeMm: number
+}
+
+export interface SideSupportRulersState {
+  rightBody: SideSupportRulerState
+  leftBody: SideSupportRulerState
+  rightReel: SideSupportRulerState
+  leftReel: SideSupportRulerState
+  rightJoint: SideSupportRulerState
+  leftJoint: SideSupportRulerState
 }
 
 export interface PhysicalStateInfo {

@@ -14,6 +14,7 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useConnectionStatus } from '@/hooks/useConnectionStatus'
 import type { ConnectionState, MachineState } from '@shared/types'
+import { SIDE_RULERS } from '@shared/sideRulers'
 import styles from './MachineValuesPage.module.css'
 
 type Tone = 'ok' | 'bad' | 'warn' | 'idle' | 'plain'
@@ -167,8 +168,20 @@ const PNEUMATIC_ROWS: Record<string, { label: string; kind: Kind; unit?: string 
   retracted: { label: 'GERİDE (KAPANDI)', kind: 'yesNo' },
 }
 
+// Yan dayama cetvelleri (2026-11-19) — MachineState.sideSupportRulers (eski backend göndermez → "—")
+const SIDE_RULER_OBJECTS = SIDE_RULERS.map((r) => ({ key: `sideSupportRulers.${r.key}`, label: r.label }))
+const SIDE_RULER_ROWS: Record<string, { label: string; kind: Kind; unit?: string }> = {
+  raw: { label: 'HAM DEĞER (ADC)', kind: 'int' },
+  calibratedMm: { label: 'KALİBRE KONUM', kind: 'num', unit: 'mm' },
+  offsetMm: { label: 'SIFIR OFSETİ', kind: 'num', unit: 'mm' },
+  mm: { label: 'GÖSTERİLEN (OFSETLİ)', kind: 'num', unit: 'mm' },
+  available: { label: 'OKUNUYOR', kind: 'yesNo' },
+  calibrated: { label: 'KALİBRE EDİLDİ', kind: 'yesNo' },
+  strokeMm: { label: 'STROK', kind: 'num', unit: 'mm' },
+}
+
 /** Tablo ile gösterilen nesneler — altındaki her alan "kapsanmış" sayılır */
-const TABLE_PREFIXES = [...PISTONS.map((p) => p.key), ...PNEUMATICS.map((p) => p.key)]
+const TABLE_PREFIXES = [...PISTONS.map((p) => p.key), ...PNEUMATICS.map((p) => p.key), ...SIDE_RULER_OBJECTS.map((p) => p.key)]
 
 const COVERED = new Set<string>([
   ...SYSTEM_FIELDS, ...SAFETY_FIELDS, ...OIL_FIELDS, ...ROTATION_FIELDS, ...SPRINGBACK_FIELDS,
@@ -267,7 +280,7 @@ function showGeneric(v: unknown, t: T): Shown {
 
 // ── sayfa ───────────────────────────────────────────────────
 
-const TABS = ['SİSTEM', 'EMNİYET & YAĞ', 'PİSTONLAR', 'ROTASYON & PNÖMATİK', 'ÖLÇÜM SENSÖRLERİ', 'DİĞER'] as const
+const TABS = ['SİSTEM', 'EMNİYET & YAĞ', 'PİSTONLAR', 'ROTASYON & PNÖMATİK', 'ÖLÇÜM SENSÖRLERİ', 'YAN DAYAMA', 'DİĞER'] as const
 type Tab = (typeof TABS)[number]
 
 export default function MachineValuesPage() {
@@ -324,6 +337,12 @@ export default function MachineValuesPage() {
             </>
           )}
           {tab === 'ÖLÇÜM SENSÖRLERİ' && <MeasureTab state={state} />}
+          {tab === 'YAN DAYAMA' && (
+            <>
+              <div className={styles.sectionTitle}>{t('YAN DAYAMA CETVELLERİ')}</div>
+              <ObjectTable state={state} objects={SIDE_RULER_OBJECTS} rows={SIDE_RULER_ROWS} />
+            </>
+          )}
           {tab === 'DİĞER' && <OtherTab items={leftovers} />}
         </div>
       </div>

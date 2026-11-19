@@ -251,7 +251,8 @@ export function SettingsSection({
   )
 }
 
-function FieldRow({
+/** Tek ayar satırı — özel kartlar (ör. Admin > yan dayama cetvelleri) için de dışa açık */
+export function FieldRow({
   field,
   value,
   changed,

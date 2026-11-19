@@ -63,6 +63,16 @@
   pointer-events: none;
 }
 
+/* Yan dayama cetvel değeri — etiketin yanında küçük (2026-11-19) */
+.sideValue {
+  margin-left: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Çiftleri bağlayan çubuk */
 .link {
   position: absolute;

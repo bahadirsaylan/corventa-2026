@@ -27,6 +27,7 @@ import { readManualSpeed } from '@/services/operatorPrefs'
 import { pistonAxis } from '@/services/macroAxes'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import PistonTargetModal from './PistonTargetModal'
+import { sideRulerKey } from '@shared/sideRulers'
 import styles from './ManualControlPad.module.css'
 
 const SPEED_STEP = 5
@@ -226,9 +227,25 @@ function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
       >
         <Arrow deg={arrow} />
       </button>
-      {label && <span className={styles.sideLabel}>{label}</span>}
+      {label && (
+        <span className={styles.sideLabel}>
+          {label}
+          {/* 2026-11-19 — yan dayama cetveli (ofsetli mm), etiket alanının içinde; yerleşim değişmez */}
+          <SideRulerValue side={side} type={type} />
+        </span>
+      )}
     </div>
   )
+}
+
+/** Yan dayama cetvel değeri (mm, ofset uygulanmış). Cetvel yok / okunamıyor → "—". */
+function SideRulerValue({ side, type }: { side: SideSupportSide; type: SideSupportType }) {
+  const key = sideRulerKey(side, type)
+  const mm = useMachineStateStore((s) => {
+    const r = s.state.sideSupportRulers?.[key]
+    return r?.available ? r.mm : null
+  })
+  return <span className={styles.sideValue}>{mm == null ? '—' : mm.toFixed(1)}</span>
 }
 
 interface RotationBtnProps {
