@@ -399,6 +399,11 @@ const en: Record<string, string> = {
   'KAYDEDİLEMEDİ — TEKRAR DENEYİN': 'COULD NOT BE SAVED — TRY AGAIN',
   'Girişten sonra SİZE gösterilecek karşılama mesajını düzenleyin (her kullanıcının kendi mesajı). En fazla {n} karakter.':
     'Edit the welcome message shown to YOU after sign-in (each user has their own message). Up to {n} characters.',
+  // 2026-11-19 — encoder durmasında büküm durdurma
+  'ENCODER DURMASINDA': 'ON ENCODER STALL',
+  "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop + alarm ekranı. Tahliye / manuel harekette sadece uyarı.":
+    'STOP BENDING: if the rotation encoder does not advance during bending → emergency stop + alarm screen. Unload / manual moves only warn.',
+  'BÜKÜMÜ DURDUR': 'STOP BENDING',
 }
 
 export default en

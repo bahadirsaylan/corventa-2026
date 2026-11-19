@@ -53,6 +53,9 @@ const en: Record<string, string> = {
   'BASINÇ DÜŞÜŞÜ PENCERESİ': 'PRESSURE DROP WINDOW',
   'BASINÇ DÜŞÜŞÜ EN DÜŞÜK TABAN': 'PRESSURE DROP MINIMUM BASE',
   'Pencere tepe basıncı bunun altındaysa izlenmez (parçaya baskı yok).': 'Not monitored if the window peak is below this (no load on the part).',
+  // 2026-11-19 — encoder durması kesintisi (112)
+  'PARÇANIN KAYIP KAYMADIĞINI VE SIKIŞMA OLMADIĞINI KONTROL EDİN, SONRA UYGUN BİR DEVAM YOLU SEÇİNİZ.':
+    'CHECK THAT THE PART HAS NOT SLIPPED AND IS NOT JAMMED, THEN CHOOSE A SUITABLE WAY TO CONTINUE.',
 }
 
 export default en

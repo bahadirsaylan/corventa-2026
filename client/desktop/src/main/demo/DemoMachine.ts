@@ -101,7 +101,7 @@ const DEMO_MACHINE_SETTINGS = {
   unloadDefaultUpperRetractMm: null, unloadDefaultRotationSeconds: null, unloadDefaultRotationDir: null, unloadHoldPresetsSec: null, unloadSelectedPresetIndex: null,
   emergencyResumeEnabled: true, pressureDropStopEnabled: false, pressureDropBar: 20, pressureDropWindowMs: 300, pressureDropMinBaseBar: 30,
   circularSinglePassPreBend: false,
-  safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1,
+  safetyMonitorEnabled: true, encoderStallWindowMs: 2000, encoderStallMinMm: 0.1, encoderStallStopEnabled: false,
   oilTempWarnC: 55, oilTempBlockC: 65, safetyBlockingEnabled: false,
   // 2026-11-19 — OTOMATİK FAN (gerçek varsayılan KAPALI; CORVENTA_DEMO_FAN_AUTO=1 → açık başlar) — demoFanAuto.ts
   fanAutoEnabled: DEMO_FAN_AUTO_START, fanOnTempC: 45, fanOffTempC: 40, fanMinOnSeconds: DEMO_FAN_AUTO_START ? 20 : 120, // sunumda kısa

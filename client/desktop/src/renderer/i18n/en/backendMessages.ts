@@ -1121,6 +1121,9 @@ const en: Record<string, string> = {
   '{0} 0\'dan büyük olmalı': '{0} must be greater than 0',
   'Aktivasyon kodu biçimi geçersiz': 'Activation code format invalid',
   'Aktivasyon kodu geçersiz, süresi dolmuş veya kullanılmış': 'Activation code invalid, expired or already used',
+  // 2026-11-19 — büküm sırasında encoder durması (SafetyMonitorService → kesinti 112)
+  "ROTASYON ENCODER'I İLERLEMİYOR ({0} ms içinde {1} mm) — PARÇA KAYMASI / SIKIŞMA OLABİLİR":
+    'ROTATION ENCODER IS NOT ADVANCING ({0} ms: {1} mm) — PART MAY HAVE SLIPPED / JAMMED',
 }
 
 export default en

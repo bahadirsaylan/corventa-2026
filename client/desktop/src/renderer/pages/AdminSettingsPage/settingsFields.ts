@@ -65,6 +65,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           },
           { key: 'encoderStallWindowMs', label: 'ENCODER DURMA SÜRESİ', unit: 'ms', min: 500, max: 30000, integer: true, desc: 'Hareket komutu varken bu süre boyunca ilerleme yoksa uyarı.' },
           { key: 'encoderStallMinMm', label: 'ENCODER EN AZ İLERLEME', unit: 'mm', min: 0.01, max: 10, desc: 'Süre içinde bundan az ilerleme durma sayılır.' },
+          // 2026-11-19 — rotasyon encoder durması büküm sırasında bükümü durdurabilir (kesinti, kod 112)
+          {
+            type: 'select',
+            key: 'encoderStallStopEnabled',
+            label: 'ENCODER DURMASINDA',
+            desc: "BÜKÜMÜ DURDUR: büküm sürerken rotasyon encoder'ı ilerlemezse acil stop + alarm ekranı. Tahliye / manuel harekette sadece uyarı.",
+            options: [
+              { value: false, label: 'SADECE UYARI' },
+              { value: true, label: 'BÜKÜMÜ DURDUR' },
+            ],
+          },
           // 2026-11-19: eşiğe ULAŞINCA (≥) uyarı; alt sınır 0 — soğuk yağda da denenebilsin
           { key: 'oilTempWarnC', label: 'YAĞ SICAKLIĞI UYARI EŞİĞİ', unit: '°C', min: 0, max: 100, integer: true, desc: 'Yağ sıcaklığı bu değere ulaşınca alt şeritte uyarı çıkar.' },
           { key: 'oilTempBlockC', label: 'YAĞ SICAKLIĞI ENGEL EŞİĞİ', unit: '°C', min: 20, max: 110, integer: true, desc: 'Uyarı eşiğinden küçük olamaz. Büküm engeli sadece aşağıda ENGELLE seçiliyse uygulanır.' },
