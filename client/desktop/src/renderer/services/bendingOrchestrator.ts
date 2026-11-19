@@ -3,6 +3,7 @@
 
 import { manualTargetKey, useBendingJobStore } from '@/store/bendingJobStore'
 import { awaitStageReturn } from './stageReturn'
+import { useMachineStateStore } from '@/stores/machineStateStore'
 import { refreshMaintenance, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { maintenanceLockActive } from '@/services/maintenanceStatus'
 import {
@@ -71,6 +72,50 @@ export interface OrchestrationOptions extends MapOptions {
  * Bu yüzden orchestrator burada start endpoint'ini çağırır — caller önce
  * sensör onayını almış olmalı.
  */
+/**
+ * 2026-11-20 — Makine bu stage'de VE sol / sağ / alt top stage konumunda mı (±0,5 mm)? Operatör stage'den sonra topları
+ * elle oynattıysa false → akış stage komutunu yeniden verir (eski davranış). Stage tanımı okunamazsa false (güvenli taraf).
+ */
+export async function isAtStage(stage: number): Promise<boolean> {
+  const s = useMachineStateStore.getState().state
+  if ((s.physicalInfo?.currentStage ?? 0) !== stage || s.physicalInfo?.isGonyeCompleted !== true) return false
+  try {
+    const stages = (await window.corventa.settings.getStages()) as Array<{
+      stageNumber: number; leftOffsetMm?: number; rightOffsetMm?: number; lowerOffsetMm?: number
+    }>
+    const st = stages.find((x) => x.stageNumber === stage)
+    if (!st) return false
+    const near = (pos: number | undefined, target: number | undefined) =>
+      Number.isFinite(pos) && Number.isFinite(target) && Math.abs((pos as number) - (target as number)) <= 0.5
+    return near(s.leftPiston?.positionMm, st.leftOffsetMm) && near(s.rightPiston?.positionMm, st.rightOffsetMm)
+      && near(s.lowerPiston?.positionMm, st.lowerOffsetMm)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * 2026-11-20 — Büküm akışının kullanacağı stage (akışla AYNI kural): elle hedefte (Standart, çember) kayıttaki stage,
+ * yoksa profil A'ya göre önerilen stage. Parça yükleme sayfası parçayı koymadan ÖNCE bu stage'e geçmek için kullanır.
+ */
+export async function resolveTargetStage(opts: OrchestrationOptions = {}): Promise<number> {
+  const params = useBendingJobStore.getState().params
+  const manualTarget =
+    params.bendingMethod === 'ring' &&
+    params.manualTarget &&
+    Number.isFinite(params.manualTarget.pushDepthMm) &&
+    params.manualTarget.pushDepthMm > 0 &&
+    (params.manualTarget.paramsKey == null || params.manualTarget.paramsKey === manualTargetKey(params))
+      ? params.manualTarget
+      : null
+  const forceStage =
+    opts.forceStage ?? (manualTarget?.stageNumber != null && manualTarget.stageNumber > 0 ? manualTarget.stageNumber : undefined)
+  if (forceStage) return forceStage
+  const createReq = mapToCreateRequest(params, opts)
+  const rec = await window.corventa.bending.recommendStage(createReq.profileA)
+  return rec.stageNumber
+}
+
 export async function executeBendingFlow(
   opts: OrchestrationOptions = {},
 ): Promise<OrchestrationResult> {
@@ -224,13 +269,18 @@ export async function executeBendingFlow(
   notify('apply-stage')
   // 2026-11-20: parça alındıktan sonra başlatılan stage dönüşü sürüyorsa önce o biter (iki stage komutu çakışmasın)
   await awaitStageReturn()
-  try {
-    await window.corventa.bending.applyStage({
-      targetStage: recommendedStage,
-      speedPercent: 50,
-    })
-  } catch (err) {
-    throw new BendingOrchestratorError('apply-stage', toMessage(err), err)
+  // 2026-11-20 (kullanıcı): stage artık parça yükleme sayfası AÇILINCA (parça konmadan önce) yapılıyor — parça
+  // topların üzerindeyken stage geçişi parçayı düşürebiliyordu. Makine zaten o stage'deyse burada TEKRAR hareket
+  // ettirilmez; değilse (geri sayımdan vazgeçildi / önceden yapılamadı) eskisi gibi burada yapılır.
+  if (!(await isAtStage(recommendedStage))) {
+    try {
+      await window.corventa.bending.applyStage({
+        targetStage: recommendedStage,
+        speedPercent: 50,
+      })
+    } catch (err) {
+      throw new BendingOrchestratorError('apply-stage', toMessage(err), err)
+    }
   }
 
   // ---------- Step 6: Start ----------

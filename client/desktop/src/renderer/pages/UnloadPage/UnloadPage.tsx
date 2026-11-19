@@ -14,7 +14,7 @@
 // (cevap cancelled=true → "TAHLİYE DURDURULDU": tekrar dene veya PARÇAYI ALDIM).
 // Tahliye sürerken sayfadan çıkılırsa (yan menü) tahliye otomatik durdurulur — DURDUR'a erişim kalmaz.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLang, useT, tp } from '@/i18n'
 import { CLAMP_ESTOP_RE, CLAMP_ESTOP_TEMPLATE } from '@/i18n/progress'
@@ -32,7 +32,8 @@ import {
   type UnloadMotion,
 } from '@/services/operatorPrefs'
 import styles from './UnloadPage.module.css'
-import { startStageReturn } from '@/services/stageReturn'
+import { returnStageCandidate, startStageReturn } from '@/services/stageReturn'
+import StageMoveCountdown from '@/components/StageMoveCountdown/StageMoveCountdown'
 
 const MIN_S = UNLOAD_SECONDS.min
 const MAX_S = UNLOAD_SECONDS.max
@@ -99,10 +100,21 @@ export default function UnloadPage() {
   const nextPath = macroId != null ? `/bending/macros/${macroId}/run` : (nextOverride ?? '/bending/next')
   // 2026-11-20 (kullanıcı): parça alınınca toplar bükümün stage'ine geri döner (TEKRAR'da zaman kaybı olmasın).
   // Makro akışında dönülmez (makro kendi konumlarını yönetir).
+  // 2026-11-20: hareketten önce 5 sn geri sayım + uyarı (StageMoveCountdown); VAZGEÇ → hareket yok, sadece sayfa geçişi
+  const [returnStage, setReturnStage] = useState<number | null>(null)
   const partTaken = () => {
-    if (macroId == null) startStageReturn()
-    navigate(nextPath)
+    const stage = macroId == null ? returnStageCandidate() : null
+    if (stage == null) {
+      navigate(nextPath)
+      return
+    }
+    setReturnStage(stage)
   }
+  const onReturnDone = useCallback(() => {
+    if (returnStage != null) startStageReturn(returnStage)
+    setReturnStage(null)
+    navigate(nextPath)
+  }, [returnStage, navigate, nextPath])
   const isBad = outcome === 'failed' || outcome === 'cancelled'
   // Sıkıştırma v2: hedefe varmadan basınç arttı → backend ACİL STOP yaptı. Genel hata yerine açık uyarı.
   const clampEstopRise = outcome === 'failed' && jobMessage ? CLAMP_ESTOP_RE.exec(jobMessage)?.[1] : undefined
@@ -532,6 +544,16 @@ export default function UnloadPage() {
         <button type="button" className={styles.bigBtn} onClick={() => setPhase('select')}>
           <span>{t('TEKRAR DENE')}</span>
         </button>
+      )}
+      {returnStage != null && (
+        <StageMoveCountdown
+          stage={returnStage}
+          onDone={onReturnDone}
+          onCancel={() => {
+            setReturnStage(null)
+            navigate(nextPath)
+          }}
+        />
       )}
     </div>
   )

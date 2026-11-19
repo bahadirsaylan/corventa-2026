@@ -11,6 +11,9 @@ import { useBendingJobStore } from '@/store/bendingJobStore'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import styles from './RollArrangementPage.module.css'
+import { useEarlyStage } from '@/hooks/useEarlyStage'
+import StageMoveCountdown from '@/components/StageMoveCountdown/StageMoveCountdown'
+import ApiNoticeModal from '@/components/ApiNoticeModal/ApiNoticeModal'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import rollProfile from '@/assets/images/vals-topu-1.png'
 import rollShaft from '@/assets/images/vals-topu-2.png'
@@ -29,8 +32,11 @@ export default function RollArrangementPage() {
   }, [setParams])
 
   const backTo = `/bending/ai/measurements/${method ?? 'ring'}`
+  // 2026-11-20: değerler onaylanınca stage burada alınır (parça konmadan önce) — bitene kadar ONAY kapalı
+  const stage = useEarlyStage()
 
   function confirm() {
+    if (stage.busy) return
     setParams({ rollArrangementConfirmed: true })
     navigate('/bending/ai/part-loading')
   }
@@ -40,6 +46,13 @@ export default function RollArrangementPage() {
       <PageHeader icon={artificialIntelligenceIcon} iconAlt="Artificial Intelligence" label={modeLabel} />
 
       <h2 className={styles.title}>{t('VALS TOPU DİZİLİMİ')}</h2>
+      {stage.busy && stage.phase !== 'countdown' && (
+        <p className={styles.stageNote} role="status">
+          {stage.targetStage != null && stage.phase === 'moving'
+            ? t('STAGE {n} KONUMUNA GEÇİLİYOR…', { n: stage.targetStage })
+            : t('STAGE KONTROL EDİLİYOR…')}
+        </p>
+      )}
       <p className={styles.hint}>{t('VALS TOPLARINI GÖRSELDEKİ GİBİ DİZİP ONAYLAYIN')}</p>
 
       <div className={styles.row}>
@@ -55,6 +68,13 @@ export default function RollArrangementPage() {
       </div>
 
       <StatusBar backTo={backTo} onConfirm={confirm} />
+
+      {stage.phase === 'countdown' && stage.targetStage != null && (
+        <StageMoveCountdown stage={stage.targetStage} onDone={() => void stage.run()} onCancel={stage.cancel} />
+      )}
+      {stage.error && (
+        <ApiNoticeModal title="STAGE GEÇİŞİ YAPILAMADI" message={stage.error} onClose={stage.clearError} />
+      )}
     </div>
   )
 }

@@ -8,14 +8,25 @@ import { useMachineStateStore } from '@/stores/machineStateStore'
 
 let pending: Promise<void> | null = null
 
-/** Koşullar uygunsa (gönye alınmış, cetveller geçerli, motor hazır, stage biliniyor) stage'e dönüşü başlatır. */
-export function startStageReturn(): number | null {
+/** Stage hareketi için koşullar (gönye alınmış, cetveller geçerli, motor hazır). */
+export function stageMoveAllowed(): boolean {
   const s = useMachineStateStore.getState().state
-  const stage = s.physicalInfo?.currentStage ?? 0
   const gonye = s.physicalInfo?.isGonyeCompleted === true
   const rulersOk = s.rulerStatus == null || s.rulerStatus.valid !== false
   const motorReady = s.hydraulicMotorState === 2
-  if (!(stage > 0) || !gonye || !rulersOk || !motorReady || pending) return null
+  return gonye && rulersOk && motorReady
+}
+
+/** Tahliye sonrası dönülecek stage (bükümün yapıldığı stage) — koşullar uygun değilse null. */
+export function returnStageCandidate(): number | null {
+  const stage = useMachineStateStore.getState().state.physicalInfo?.currentStage ?? 0
+  if (!(stage > 0) || !stageMoveAllowed() || pending) return null
+  return stage
+}
+
+/** Stage'e dönüşü arka planda başlatır (geri sayım çağıran tarafta — StageMoveCountdown). */
+export function startStageReturn(stage: number): void {
+  if (pending) return
   pending = window.corventa.bending
     .applyStage({ targetStage: stage, speedPercent: 50 })
     .then(() => undefined)
@@ -25,7 +36,6 @@ export function startStageReturn(): number | null {
     .finally(() => {
       pending = null
     })
-  return stage
 }
 
 /** Devam eden stage dönüşü varsa bitmesini bekler (hata yutulur — sonraki adım kendi stage komutunu verir). */

@@ -425,6 +425,7 @@ export class DemoMachine extends EventEmitter {
     this.sensorTimeout = null
     if (url.includes('/part-loading')) {
       // Kullanıcı isteği (2026-10-16): parça yükleme ekranında sensör parçayı HEMEN görür
+      // (2026-11-20: stage artık vals dizilimi ekranında, parça yüklemeden ÖNCE alınıyor)
       if (!this.partSensor) this.togglePartSensor()
     } else if (this.activeJobId == null && this.partSensor && !url.includes('/dashboard')) {
       this.togglePartSensor() // büküm başlamadan ekrandan çıkıldı → parça yok
