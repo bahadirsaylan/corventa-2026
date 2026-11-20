@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 720px;
+  bottom: 0; /* 2026-11-17 (QA): sabit 720px yerine sayfanın tamamı — alt şeritte (30 px) karartılmamış bant kalıyordu */
   background-color: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;

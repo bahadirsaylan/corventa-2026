@@ -1,0 +1,373 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.purposeBox {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.purposeLabel {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+}
+
+.purposeRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.purposeBtn {
+  background: transparent;
+  border: 2px solid #d9d4c4;
+  border-radius: 10px;
+  padding: 12px 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  text-transform: uppercase;
+  min-height: 72px;
+  touch-action: manipulation;
+  transition: filter 0.1s, transform 0.08s;
+}
+
+.purposeBtn:active {
+  filter: brightness(0.95);
+  transform: scale(0.97);
+}
+
+.purposeBtnActive {
+  background: #f4a0a0;
+  border-color: #c93235;
+  color: var(--color-text);
+}
+
+.formBox {
+  background: #ffffff;
+  border: 1.5px solid #c5c1b6;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: #f7f3e7;
+  border-bottom: 1.5px solid #c5c1b6;
+}
+
+.titleLabel {
+  flex: 0 0 auto;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+
+/* Dokunmatik: büyük kutu + büyük yazı; açılan seçenek listesi de büyük */
+.titleSelect {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 60px;
+  padding: 0 14px;
+  border: 2px solid #c5c1b6;
+  border-radius: 10px;
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.titleSelect option {
+  font-size: 20px;
+  padding: 10px;
+}
+
+.descInput {
+  width: 100%;
+  min-height: 180px;
+  border: none;
+  outline: none;
+  padding: 18px 22px;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--color-text);
+  resize: none;
+}
+
+.descInput::placeholder {
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.errorBox {
+  padding: 10px 16px;
+  background: #fae0e0;
+  border: 1.5px solid #c93235;
+  border-radius: 8px;
+  color: #c93235;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* 2026-11-16 (EXCEL 41) — internet yok: talep gönderilemez */
+.offlineBox {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 18px;
+}
+
+.offlineBox > span {
+  flex: 1;
+}
+
+.offlineCheckBtn {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #c93235;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.offlineCheckBtn:disabled {
+  opacity: 0.6;
+}
+
+.actionRow {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 12px;
+}
+
+.cancelBtn,
+.submitBtn {
+  background: #f4a0a0;
+  border: 2px solid #d07070;
+  border-radius: 12px;
+  padding: 18px 20px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  text-transform: uppercase;
+  min-height: 70px;
+  touch-action: manipulation;
+  transition: filter 0.12s, transform 0.08s;
+}
+
+.cancelBtn:active,
+.submitBtn:active {
+  filter: brightness(0.92);
+  transform: scale(0.98);
+}
+
+.cancelBtn:disabled,
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 2026-11-11 — UI kontrol raporu: seçim rengi her ekranda yeşil (globals.css --color-selected) */
+.purposeBtnActive {
+  background: var(--color-selected);
+  color: var(--color-selected-text);
+  border-color: var(--color-selected-border);
+}
+
+/* ── 2026-11-16: başlığa göre hazır maddeler (dokunmatik işaret kutuları) ── */
+.itemsBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1.5px solid #c5c1b6;
+}
+
+.itemsLabel {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.itemBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 2px solid #d9d4c4;
+  border-radius: 10px;
+  background: #ffffff;
+  text-align: left;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.itemBtnOn {
+  background: var(--color-selected);
+  border-color: var(--color-selected-border);
+  color: var(--color-selected-text);
+}
+
+.itemCheck {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 2px solid #b9b3a3;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.itemBtnOn .itemCheck {
+  background: var(--color-selected-border);
+  border-color: var(--color-selected-border);
+}
+
+.itemText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+/* Hazır madde varken serbest metin "ek açıklama" — daha kısa */
+.descInputExtra {
+  min-height: 90px;
+}
+
+/* ── 2026-11-16: ÜST ALANA SIĞDIR (kullanıcı: servis formunda kaydırma çubuğu istenmiyor) ──
+   Form gövdenin tam yüksekliğini alır; boyu sabit olmayan tek parça EK AÇIKLAMA kutusudur — kalan alanı
+   o doldurur, yer azalınca o küçülür. Diğer bloklar sıkılaştırıldı (dokunmatik için ≥ 46 px korunur). */
+.root {
+  height: 100%;
+  gap: 10px;
+}
+
+.purposeBox {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  gap: 6px;
+}
+
+.purposeLabel {
+  font-size: 15px;
+}
+
+.purposeBtn {
+  min-height: 52px;
+  padding: 8px 4px;
+  font-size: 15px;
+}
+
+.formBox {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.titleRow {
+  flex-shrink: 0;
+  padding: 6px 14px;
+}
+
+.titleSelect {
+  min-height: 48px;
+}
+
+.itemsBox {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  gap: 6px;
+}
+
+.itemsLabel {
+  font-size: 12px;
+}
+
+.itemsGrid {
+  gap: 6px;
+}
+
+.itemBtn {
+  min-height: 46px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.itemCheck {
+  width: 24px;
+  height: 24px;
+}
+
+.descInput,
+.descInputExtra {
+  flex: 1 1 auto;
+  min-height: 44px;
+  height: auto;
+  padding: 10px 14px;
+  font-size: 16px;
+}
+
+.errorBox {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 15px;
+}
+
+.offlineCheckBtn {
+  padding: 8px 16px;
+}
+
+.actionRow {
+  flex-shrink: 0;
+}
+
+.cancelBtn,
+.submitBtn {
+  min-height: 56px;
+  padding: 10px 16px;
+  font-size: 18px;
+}

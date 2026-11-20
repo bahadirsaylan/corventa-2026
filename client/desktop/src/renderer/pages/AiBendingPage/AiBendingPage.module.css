@@ -1,6 +1,6 @@
 .page {
   width: 100%;
-  height: 750px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: var(--color-bg);
@@ -28,3 +28,34 @@
   min-height: 0;
 }
 
+
+/* Boş boru alt tipi (dikişli / etli) — başlığın altında */
+.subtitle {
+  margin: -6px 0 4px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #16a34a;
+}
+
+/* STANDART SÜRÜM (2026-11-17) — durum çubuğundaki KAYITLI BÜKÜMLER girişi */
+.savedBtn {
+  height: 56px;
+  padding: 0 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8d4d4;
+  border: 2px solid #f0a0a0;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.savedBtn:active {
+  filter: brightness(0.9);
+}

@@ -1,4 +1,5 @@
 import styles from './CorventaLogo.module.css'
+import { IS_STANDARD } from '@shared/edition'
 
 interface CorventaLogoProps {
   size?: 'full' | 'compact' | 'dashboard'
@@ -29,7 +30,12 @@ export default function CorventaLogo({ size = 'full' }: CorventaLogoProps) {
           <span className={styles.letter}>E</span>
         </div>
         <div className={styles.banner}>
-          ARTIFICIAL&nbsp;&nbsp;INTELLIGENCE&nbsp;&nbsp;BENDING&nbsp;&nbsp;MACHINE
+          {/* STANDART SÜRÜM (2026-11-17): yapay zeka ibaresi yok */}
+          {IS_STANDARD ? (
+            <>CNC&nbsp;&nbsp;PROFILE&nbsp;&nbsp;BENDING&nbsp;&nbsp;MACHINE</>
+          ) : (
+            <>ARTIFICIAL&nbsp;&nbsp;INTELLIGENCE&nbsp;&nbsp;BENDING&nbsp;&nbsp;MACHINE</>
+          )}
         </div>
       </div>
     </div>

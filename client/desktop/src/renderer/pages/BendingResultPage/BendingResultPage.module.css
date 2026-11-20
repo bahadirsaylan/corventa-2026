@@ -1,0 +1,406 @@
+/* STANDART SÜRÜM (2026-11-17) — BÜKÜM SONUCU. Üst alan 750 px: kaydırma çubuğu YOK, iki sütun. */
+
+.page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 24px;
+  background-color: var(--color-bg);
+  overflow: hidden;
+}
+
+.titleBand {
+  flex-shrink: 0;
+  height: 56px;
+  margin: 0 -24px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #e5e5e5;
+  border-top: 2px solid #bdbdbd;
+  border-bottom: 2px solid #bdbdbd;
+}
+
+.title {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #e3121b;
+}
+
+.titleSub {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.hint {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  text-align: center;
+  background: #fdf3c4;
+  border: 2px solid #8a8a8a;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #3a3a3a;
+}
+
+/* ── durum şeritleri ── */
+.banner {
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bannerInfo { background: #e3eef9; color: #1d4f7a; }
+.bannerOk { background: #dcf2e3; color: #1f6b3d; }
+.bannerWarn { background: #fff1c2; color: #7a5a00; }
+.bannerError { background: #fbd9d9; color: #8e1c1c; }
+
+/* ── iki sütun ── */
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.col {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.summary {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryRow {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  background: #f1f1f1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.summaryRow[data-strong] {
+  background: #e3eef9;
+  border-color: #9cc0e4;
+}
+
+.summaryLabel {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.summaryValue {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.valueUnit {
+  margin-left: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* ── düzeltme geçmişi ── */
+.history {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.historyHead {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+  background: #fdf8e8;
+}
+
+.historyMore {
+  color: var(--color-text-muted);
+}
+
+.historyEmpty {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.historyRow {
+  flex-shrink: 0;
+  height: 36px;
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid #f0e9d2;
+  font-size: 15px;
+}
+
+.historyMode {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #1f6b3d;
+}
+
+.historyMode[data-mode='newPart'] {
+  color: #1d4f7a;
+}
+
+.historyMeas {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ── ölçüm / yeni hedef kutuları ── */
+.valueBox {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 112px;
+  padding: 10px;
+  background: #fff;
+  border: 3px solid #8a8a8a;
+  border-radius: 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.valueBox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.valueBoxTarget {
+  min-height: 140px;
+  border-color: var(--color-primary);
+}
+
+.valueLabel {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.valueBig {
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.delta {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.delta[data-sign='pos'] { color: #1f6b3d; }
+.delta[data-sign='neg'] { color: #c62828; }
+
+.nudgeRow {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.nudge {
+  height: 64px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #f5f5f5;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.nudge:active:not(:disabled) { filter: brightness(0.9); }
+.nudge:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── düzeltme ilerleme paneli ── */
+.progress {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  background: #e3eef9;
+  border: 3px solid #9cc0e4;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.progressTitle {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #1d4f7a;
+}
+
+.progressTarget {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--color-text);
+}
+
+.progressMsg {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  max-height: 64px;
+  overflow: hidden;
+}
+
+/* ── aksiyon butonları ── */
+.actions {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.btn {
+  height: 72px;
+  padding: 0 8px;
+  background-color: #f8d4d4;
+  border: 2px solid #f0a0a0;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btn:active:not(:disabled) { filter: brightness(0.9); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btnPrimary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary-dark);
+  color: #fff;
+}
+
+/* 2026-11-17 (QA): pasif buton nötr gri — soluk kırmızı birincil buton, aktif ikincil (pembe) butonla
+   karışıyordu (PARÇAYA UYGULA pasifken aktif gibi görünüyordu) */
+.btn:disabled,
+.btnPrimary:disabled {
+  opacity: 1;
+  background-color: #ececec;
+  border-color: #d6d6d6;
+  color: #a8a8a8;
+}
+
+.btnStop {
+  width: 70%;
+  background-color: #c62828;
+  border-color: #8e1c1c;
+  color: #fff;
+  font-size: 20px;
+}
+
+/* ── GÜNCELLE / YENİ KAYIT seçimi ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 220px;
+}
+
+.dialog {
+  width: 820px;
+  padding: 28px;
+  background: #fdf8e8;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.dialogText {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.dialogActions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}

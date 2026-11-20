@@ -1,4 +1,6 @@
+import { useT } from '@/i18n'
 import styles from './MachineCodeBar.module.css'
+import { EDITION_LABEL, IS_STANDARD } from '@shared/edition'
 
 interface Props {
   machineCode?: string
@@ -9,11 +11,12 @@ export default function MachineCodeBar({
   machineCode = '2AN-400-001',
   aiModuleCode = 'K-400-001',
 }: Props) {
+  const t = useT()
   return (
     <div className={styles.bar}>
       {/* Left — machine code */}
       <div className={styles.side}>
-        <span className={styles.label}>MACHINE CODE :</span>
+        <span className={styles.label}>{t('MAKİNE KODU :')}</span>
         <span className={styles.value}>{machineCode}</span>
       </div>
 
@@ -21,9 +24,19 @@ export default function MachineCodeBar({
       <div className={styles.centerGap} />
 
       {/* Right — AI module code */}
+      {/* STANDART SÜRÜM (2026-11-17): YZ modülü yok — yerine sürüm adı */}
       <div className={`${styles.side} ${styles.sideRight}`}>
-        <span className={styles.label}>AI MODULE CODE :</span>
-        <span className={styles.value}>{aiModuleCode}</span>
+        {IS_STANDARD ? (
+          <>
+            <span className={styles.label}>{t('SÜRÜM :')}</span>
+            <span className={`${styles.value} ${styles.edition}`}>{t(EDITION_LABEL)}</span>
+          </>
+        ) : (
+          <>
+            <span className={styles.label}>{t('YZ MODÜL KODU :')}</span>
+            <span className={styles.value}>{aiModuleCode}</span>
+          </>
+        )}
       </div>
     </div>
   )

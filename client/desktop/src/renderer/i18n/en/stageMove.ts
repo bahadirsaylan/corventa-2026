@@ -1,0 +1,12 @@
+// 2026-11-20 — stage geçişi geri sayımı / parça yükleme öncesi stage
+const en: Record<string, string> = {
+  'TOPLAR STAGE {n} KONUMUNA GİDECEK': 'THE ROLLS WILL MOVE TO STAGE {n}',
+  'ELİNİZİ MAKİNEDEN UZAK TUTUN': 'KEEP YOUR HANDS AWAY FROM THE MACHINE',
+  'VAZGEÇ — HAREKET ETME': 'CANCEL — DO NOT MOVE',
+  'STAGE {n} KONUMUNA GEÇİLİYOR…': 'MOVING TO STAGE {n}…',
+  'STAGE KONTROL EDİLİYOR…': 'CHECKING STAGE…',
+  'STAGE GEÇİŞİ YAPILAMADI': 'STAGE CHANGE FAILED',
+  'HEMEN BAŞLAT VE DEVAM ET': 'START NOW AND CONTINUE',
+}
+
+export default en

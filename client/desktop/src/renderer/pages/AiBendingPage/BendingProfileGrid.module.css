@@ -37,8 +37,8 @@
 }
 
 .tileSelected {
-  background-color: #c97070;
-  outline: 3px solid #2a2a2a;
+  background-color: var(--color-selected);
+  outline: 3px solid var(--color-selected-border);
   outline-offset: -3px;
 }
 
@@ -70,6 +70,23 @@
 
 .specialTile:hover {
   filter: brightness(0.93);
+}
+
+.specialTile {
+  border: none;
+  padding: 0;
+  color: #2a2a2a;
+}
+
+.specialTile:active {
+  filter: brightness(0.85);
+}
+
+/* Kalıp kodu seçili */
+.specialTileSelected {
+  background-color: var(--color-selected);
+  outline: 3px solid var(--color-selected-border);
+  outline-offset: -3px;
 }
 
 .specialText {

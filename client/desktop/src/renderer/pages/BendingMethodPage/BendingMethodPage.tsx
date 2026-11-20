@@ -1,15 +1,29 @@
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore } from '@/store/bendingJobStore'
+import { hasDirectionPage } from '@/constants/profileDirections'
 import PageHeader from '@/components/PageHeader/PageHeader'
 import StatusBar from '@/components/StatusBar/StatusBar'
-import BendingMethodGrid from './BendingMethodGrid'
+import BendingMethodGrid, { isMethodEnabled } from './BendingMethodGrid'
 import styles from './BendingMethodPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
+import { useT } from '@/i18n'
+import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 
 export default function BendingMethodPage() {
   const navigate = useNavigate()
-  const bendingMethod = useBendingJobStore((s) => s.params.bendingMethod)
+  const t = useT()
+  const modeLabel = useBendingModeLabel()
+  // STANDART SÜRÜM (2026-11-17): bu sürümde kapalı bir metot önceden seçiliyse seçilmemiş sayılır
+  const storedMethod = useBendingJobStore((s) => s.params.bendingMethod)
+  const bendingMethod = isMethodEnabled(storedMethod) ? storedMethod : null
   const setParams = useBendingJobStore((s) => s.setParams)
+  const profileId = useBendingJobStore((s) => s.params.profileId)
+  const moldCode = useBendingJobStore((s) => s.params.moldCode)
+  // Kalıp kodu akışında geri → KALIP KODU ekranı; yön seçimi olmayan profilde (dolu boru) → profil seçimi;
+  // diğerleri (boş boru dahil — boru tipi yön sayfasında) → yön sayfası
+  const backTo = moldCode
+    ? '/bending/ai/mold-code'
+    : hasDirectionPage(profileId) ? '/bending/ai/direction' : '/bending/ai'
 
   return (
     <div className={styles.page}>
@@ -18,11 +32,11 @@ export default function BendingMethodPage() {
       <PageHeader
         icon={artificialIntelligenceIcon}
         iconAlt="Artificial Intelligence"
-        label="ARTIFICIAL INTELLIGENCE MODE"
+        label={modeLabel}
       />
 
       {/* ── Title ───────────────────────────────── */}
-      <h2 className={styles.title}>KIVIRIM METODUNU SEÇİNİZ</h2>
+      <h2 className={styles.title}>{t('KIVRIM METODUNU SEÇİNİZ')}</h2>
 
       {/* ── Content ─────────────────────────────── */}
       <div className={styles.content}>
@@ -34,7 +48,7 @@ export default function BendingMethodPage() {
 
       {/* ── Bottom status bar ───────────────────── */}
       <StatusBar
-        backTo="/bending/ai/direction"
+        backTo={backTo}
         confirmDisabled={!bendingMethod}
         onConfirm={() => {
           if (bendingMethod === 'ring') navigate('/bending/ai/measurements/ring')

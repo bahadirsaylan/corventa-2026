@@ -1,11 +1,25 @@
 import { useState } from 'react'
+import FormActionRow from '@/components/FormActionRow/FormActionRow'
+import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './MeasurementForm.module.css'
 import InfoModal from './InfoModal'
+import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
+import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
-import profileImage from '@/assets/images/blend4-1-buyuk.png'
-import methodImage from '@/assets/images/blend4-2-buyuk.png'
+import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
+import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
+import { useMethodTileImage } from '@/hooks/useMethodTileImage'
+import type { CapacityIssue } from '@/constants/capacityCatalog'
 
-export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G'
+export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
+
+/** Çap girilince hesaplanan hedef konum + adım sayısı (sadece gösterim, 2026-11-16) */
+export interface PlanPreview {
+  state: 'idle' | 'loading' | 'ok' | 'error'
+  targetMm?: number
+  totalSteps?: number | null
+}
 
 export interface MeasurementValues {
   A: string
@@ -14,6 +28,7 @@ export interface MeasurementValues {
   R: string
   H: string
   G: string
+  L: string
 }
 
 interface FieldInfo {
@@ -35,43 +50,64 @@ const FIELD_INFO: Record<FieldKey, FieldInfo> = {
   S: {
     title: 'S :',
     description:
-      'PROFİLE AİT KALINLIK ÖLÇÜSÜDÜR. VALS TOPLARININ DOĞRULUĞUNU VE KIVIRIM KAPASİTESİNİ DEĞERLENDİREREK, YAPAY ZEKANIN DOĞRU ÇALIŞMASINI SAĞLAR.',
+      'PROFİLE AİT KALINLIK ÖLÇÜSÜDÜR. VALS TOPLARININ DOĞRULUĞUNU VE KIVRIM KAPASİTESİNİ DEĞERLENDİREREK, YAPAY ZEKANIN DOĞRU ÇALIŞMASINI SAĞLAR.',
   },
   R: {
     title: 'R :',
     description:
-      'KIVIRIM ÇAP ÖLÇÜSÜDÜR. GERÇEKLEŞMESİNİ İSTEDİĞİNİZ (Ø) ÇAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA GEOMETRİSEL OLARAK GİRDİĞİNİZ (Ø) ÇAP DEĞERİNİ DİKKATE ALARAK KIVIRIM YAPAR VE BİTİRİŞ İÇİN DE BU DEĞERİ DİKKATE ALIR.',
+      'KIVRIM ÇAP ÖLÇÜSÜDÜR. GERÇEKLEŞMESİNİ İSTEDİĞİNİZ (Ø) ÇAP DEĞERİNİ GİRMELİSİNİZ. MAKİNA GEOMETRİSEL OLARAK GİRDİĞİNİZ (Ø) ÇAP DEĞERİNİ DİKKATE ALARAK KIVRIM YAPAR VE BİTİRİŞ İÇİN DE BU DEĞERİ DİKKATE ALIR.',
   },
   H: {
     title: 'H:',
     description:
-      'MAKİNE HIZINI METRE/DAKİKA PARAMETRESİNDE BELİRLENEN SINIRLAR İÇERİSİNDE AYARLAMANIZA OLANAK SAĞLAMAKTADIR.',
+      'KIVRIM HIZI (%). DEĞER AYARLARDAKİ KIVRIM HIZI AYARINDAN OTOMATİK GELİR.',
   },
   G: {
     title: 'G:',
     description:
-      'MAKİNE KIVIRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMNI EN KISA SÜREDE YAPAR.',
+      'MAKİNE KIVRIM GEOMETRİSİNE ULAŞANA KADAR GİRDİĞİNİZ ADIM DEĞERLERİNİ İFADE EDER VE MAKİNE KIVRIMINI BU DEĞERLER DOĞRULTUSUNDA YÖNETİR VE EN İYİ KIVRIMNI EN KISA SÜREDE YAPAR.',
+  },
+  L: {
+    title: 'L:',
+    description: 'PROFİLE AİT UZUNLUK ÖLÇÜSÜDÜR.',
   },
 }
 
-const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S']
+// Alan düzeni tüm ölçü formlarında aynı: sol A, B, S + uzunluk (L); sağ yönteme özel (R) → H (hız) → G (adım)
+const LEFT_FIELDS:  FieldKey[] = ['A', 'B', 'S', 'L']
 const RIGHT_FIELDS: FieldKey[] = ['R', 'H', 'G']
 
 interface Props {
   values: MeasurementValues
   onChange: (values: MeasurementValues) => void
   onReset: () => void
+  /** Formdaki ONAYLA — sayfanın StatusBar (touch) onayıyla aynı fonksiyon */
+  onConfirm?: () => void
+  confirmDisabled?: boolean
+  /** Canlı kapasite kontrolü sonucu (A/B/R/G girilince) — sadece bilgi, ONAYLA'yı engellemez */
+  capacityIssues?: CapacityIssue[]
+  /** Hedef konum + adım sayısı önizlemesi — verilirse giriş ızgarasının altında tam genişlik şerit olarak gösterilir */
+  plan?: PlanPreview
 }
 
-export default function MeasurementForm({ values, onChange, onReset }: Props) {
+export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled, capacityIssues, plan }: Props) {
+  const t = useT()
+  const profileImage = useProfileDimensionImage()
+  const visibleFields = useVisibleProfileFields()
+  // Kalıp kodu seçiliyse A/B/S kalıptan gelir ve değiştirilemez (BULUT_API_V2.md §2.4)
+  const moldLock = useMoldLock()
+  const methodImage = useMethodTileImage('ring', defaultMethodImage)
   const [openInfo, setOpenInfo]     = useState<FieldKey | null>(null)
   const [numpadField, setNumpadField] = useState<FieldKey | null>(null)
 
   function handleNumpadConfirm(value: string) {
-    if (numpadField) onChange({ ...values, [numpadField]: value })
+    if (!numpadField) return
+    // H = kıvrım hızı YÜZDE: tam sayı %1..%100 (dışı sınıra çekilir)
+    onChange({ ...values, [numpadField]: numpadField === 'H' ? normalizeMeasureHInput(value) : value })
   }
 
   function renderField(field: FieldKey) {
+    const locked = isMoldLockedField(field, moldLock)
     return (
       <div key={field} className={styles.inputRow}>
         <span className={styles.fieldLabel}>{field}:</span>
@@ -79,13 +115,18 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
         {/* Tapping this div opens the numpad */}
         <div
           className={`${styles.fieldInput} ${values[field] ? styles.fieldInputFilled : ''}`}
-          onClick={() => setNumpadField(field)}
+          style={locked ? MOLD_LOCKED_FIELD_STYLE : undefined}
+          aria-disabled={locked || undefined}
+          onClick={() => { if (!locked) setNumpadField(field) }}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && setNumpadField(field)}
+          onKeyDown={(e) => { if (!locked && e.key === 'Enter') setNumpadField(field) }}
           aria-label={`Enter value for ${field}`}
         >
-          {values[field] || <span className={styles.placeholder}>0</span>}
+          {field === 'H'
+            ? (values.H ? `%${values.H}` : <span className={styles.placeholder}>%</span>)
+            : (values[field] || <span className={styles.placeholder}>0</span>)}
+          {locked && <span style={{ marginLeft: 6, display: 'inline-flex' }}><Icon name="lock" size={16} /></span>}
         </div>
 
         <button
@@ -93,7 +134,7 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
           onClick={() => setOpenInfo(field)}
           aria-label={`Info for ${field}`}
         >
-          ?
+          <Icon name="help" size={28} />
         </button>
       </div>
     )
@@ -116,23 +157,33 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
       <div className={styles.inputSection}>
         <div className={styles.inputGrid}>
           <div className={styles.inputCol}>
-            {LEFT_FIELDS.map(renderField)}
+            {filterProfileFieldList(LEFT_FIELDS, visibleFields).map(renderField)}
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
           </div>
         </div>
 
-        <button className={styles.resetBtn} onClick={onReset}>
-          ↺ SIFIRLA
-        </button>
+        {/* 2026-11-17: HEDEF KONUM + ADIM SAYISI artık sağ sütunda değil — ızgara ile eylem satırı arasında
+            tek, tam genişlik bilgi şeridi (sütun yüksekliklerini bozmaz, SIFIRLA / ONAYLA'yı itmez/sıkıştırmaz) */}
+        {plan && <PlanStrip plan={plan} />}
+
+        {capacityIssues && capacityIssues.length > 0 && (
+          <ul className={styles.capacityNotice}>
+            {capacityIssues.map((issue, i) => (
+              <li key={i} data-severity={issue.severity}>{issue.message}</li>
+            ))}
+          </ul>
+        )}
+
+        <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />
       </div>
 
       {/* ── Info modal ──────────────────────────── */}
       {openInfo && (
         <InfoModal
           title={FIELD_INFO[openInfo].title}
-          description={FIELD_INFO[openInfo].description}
+          description={t(FIELD_INFO[openInfo].description)}
           onClose={() => setOpenInfo(null)}
         />
       )}
@@ -140,12 +191,49 @@ export default function MeasurementForm({ values, onChange, onReset }: Props) {
       {/* ── Numpad modal ────────────────────────── */}
       {numpadField && (
         <NumpadModal
-          fieldLabel={numpadField}
+          fieldLabel={numpadField === 'H' ? 'H (%)' : numpadField}
           initialValue={values[numpadField]}
+          digitsOnly={numpadField === 'H'}
+          maxLength={numpadField === 'H' ? 3 : undefined}
           onConfirm={handleNumpadConfirm}
           onClose={() => setNumpadField(null)}
         />
       )}
+    </div>
+  )
+}
+
+/**
+ * Giriş ızgarasının altındaki bilgi şeridi (2026-11-17): HEDEF KONUM (aktif top, mm) + ADIM SAYISI (G ile).
+ * A ve çap (R) girilmeden "—" + kısa ipucu; hesap / adım sayısı alınamazsa ipucu. Sadece gösterim.
+ */
+function PlanStrip({ plan }: { plan: PlanPreview }) {
+  const t = useT()
+  const loading = plan.state === 'loading'
+  const ok = plan.state === 'ok'
+  const target = ok && plan.targetMm != null ? plan.targetMm.toFixed(1) : null
+  const steps = ok && plan.totalSteps != null ? String(plan.totalSteps) : null
+  const hint =
+    plan.state === 'idle'
+      ? t('A VE R GİRİLİNCE HESAPLANIR')
+      : plan.state === 'error'
+        ? t('HESAPLANAMADI — ÖLÇÜLERİ KONTROL EDİN')
+        : ok && steps == null
+          ? t('ADIM SAYISI HESAPLANAMADI')
+          : null
+  return (
+    <div className={styles.planStrip} data-state={plan.state} aria-live="polite">
+      <div className={styles.planCell}>
+        <span className={styles.planLabel}>{t('HEDEF KONUM')}</span>
+        <span className={styles.planValue}>
+          {loading ? '…' : target != null ? <>{target}<small> mm</small></> : '—'}
+        </span>
+      </div>
+      <div className={styles.planCell}>
+        <span className={styles.planLabel}>{t('ADIM SAYISI')}</span>
+        <span className={styles.planValue}>{loading ? '…' : steps ?? '—'}</span>
+      </div>
+      {hint && <span className={styles.planHint}>{hint}</span>}
     </div>
   )
 }

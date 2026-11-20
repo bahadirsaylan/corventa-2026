@@ -32,6 +32,18 @@
   align-items: center;
 }
 
+/* Opsiyonel bilgi notu — sol alanın kalanını doldurur, touch ikonuna yaslanır */
+.hint {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+
 .backBtn:hover {
   background-color: rgba(0, 0, 0, 0.06);
 }

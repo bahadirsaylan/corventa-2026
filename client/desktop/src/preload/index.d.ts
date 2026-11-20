@@ -1,14 +1,28 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
+import type { ElectronAPI } from '@electron-toolkit/preload'
+
+import type { AuthApi } from './api/auth'
+import type { BendingApi } from './api/bending'
+import type { CloudApi } from './api/cloud'
+import type { EventsApi } from './api/events'
+import type { MachineApi } from './api/machine'
+import type { MacroApi } from './api/macro'
+import type { MoldApi } from './api/molds'
+import type { ServiceApi } from './api/service'
+import type { SystemApi } from './api/system'
+import type { UsageApi } from './api/usage'
 
 export interface CorventaAPI {
   getAppVersion: () => Promise<string>
-  machine: {
-    connect: () => Promise<void>
-    disconnect: () => Promise<void>
-    getStatus: () => Promise<unknown>
-  }
-  on: (channel: string, callback: (...args: unknown[]) => void) => void
-  off: (channel: string, callback: (...args: unknown[]) => void) => void
+  machine: MachineApi
+  bending: BendingApi
+  events: EventsApi
+  service: ServiceApi
+  system: SystemApi
+  usage: UsageApi
+  auth: AuthApi
+  macro: MacroApi
+  cloud: CloudApi
+  molds: MoldApi
 }
 
 declare global {
