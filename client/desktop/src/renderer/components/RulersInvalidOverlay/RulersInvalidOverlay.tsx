@@ -43,7 +43,7 @@ export default function RulersInvalidOverlay() {
           </li>
         </ul>
         <div className={styles.subtitle}>
-          {t('Topların konumu bilinmiyor — konum hareketleri, stage, sıkıştırma ve büküm kilitli. GÜVENLİ GÖNYE ALIN. Elle (jog) hareket serbesttir; dikkatli kullanın.')}
+          {t('Topların konumu bilinmiyor — konum hareketleri, stage, sıkıştırma ve büküm kilitli. Parça sıkılıysa önce TAHLİYE yapın (üst top geri çekilir), sonra GÜVENLİ GÖNYE ALIN. Elle (jog) hareket serbesttir; dikkatli kullanın.')}
         </div>
         <div className={styles.actions}>
           <button type="button" className={styles.closeBtn} onClick={() => setSeenKey(key)}>

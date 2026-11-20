@@ -8,6 +8,8 @@ const en: Record<string, string> = {
   'ERKEN DURAN TOP = ENGEL: TOP HEMEN İLERİ ALINIR, CETVEL SIFIRLANMAZ':
     'A ROLL THAT STOPS EARLY = OBSTACLE: THE ROLL IS MOVED FORWARD AT ONCE, RULERS ARE NOT RESET',
   'GÜVENLİ GÖNYE': 'SAFE HOMING',
+  'Topların konumu bilinmiyor — konum hareketleri, stage, sıkıştırma ve büküm kilitli. Parça sıkılıysa önce TAHLİYE yapın (üst top geri çekilir), sonra GÜVENLİ GÖNYE ALIN. Elle (jog) hareket serbesttir; dikkatli kullanın.':
+    'Roll positions are unknown — position moves, stage, clamping and bending are locked. If a part is clamped, UNLOAD first (the upper roll retracts), then do SAFE HOMING. Manual (jog) movement is allowed; use it with care.',
   'CETVELLER': 'RULERS',
   'GEÇERLİ': 'VALID',
   'GEÇERSİZ': 'INVALID',
