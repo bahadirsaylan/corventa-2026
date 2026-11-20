@@ -1,6 +1,6 @@
 // Yan dayama cetvelleri (2026-11-19) — 6 lineer potansiyometre (GT-3118 4-20 mA, 12-bit 0..4095).
 // Backend: Core/Models/SideSupportRulers.cs (MachineState.sideSupportRulers) + MachineSettings <key>RulerRawMin/RawMax/StrokeMm/Calibrated.
-// Adlar = PLC / IO listesi adları (2026-11-20 öğleden sonra kullanıcı doğruladı; sabahki ters eşleme geri alındı — backend SideSupportPlcMap).
+// Adlar FİZİKSEL (2026-11-20 akşam makinede: yatay tuş gövde, eğik mafsal — PLC adları ters; eşleme backend SideSupportPlcMap).
 // Konuma gönderme: POST /api/side-support/{side}/{type}/position (PLC FB_SideSupportPosition).
 
 import type { SideSupportSide, SideSupportType } from './types/api'
@@ -21,12 +21,12 @@ export interface SideRulerDef {
 }
 
 export const SIDE_RULERS: SideRulerDef[] = [
-  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
-  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
+  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
+  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
   { key: 'rightReel', side: 'right', type: 'reel', label: 'SAĞ MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: true },
   { key: 'leftReel', side: 'left', type: 'reel', label: 'SOL MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: false },
-  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
-  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
+  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
+  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
 ]
 
 export const SIDE_RULER_RAW_LIMIT = 4095

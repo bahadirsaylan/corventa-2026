@@ -12,8 +12,8 @@
 // Hedef gönderme (2026-11-19): piston hapındaki değere (ÜST 0.0 …) dokununca PistonTargetModal açılır —
 // KONUMA GİT (mm) / BASINÇLA İT (bar). Tuş takımına yeni bölüm eklenmedi; tek iz değerin noktalı alt çizgisi.
 //
-// Yan dayama tuş eşleşmesi (2026-11-20 öğleden sonra, kullanıcı makinede doğruladı): dikey çift = MAKARA, yatay çift = MAFSAL,
-//   eğik çift = GÖVDE — PLC adlarıyla aynı (sabahki ters eşleme geri alındı; tuşların sürdüğü silindir hiç değişmedi).
+// Yan dayama tuş eşleşmesi (2026-11-20 akşam, 0.3.8 makinede kullanıcı): dikey çift = MAKARA, YATAY çift = GÖVDE, EĞİK çift = MAFSAL
+//   (type FİZİKSEL; PLC adları mafsal↔gövde ters — backend Core/Models/SideSupportPlcMap). Tuşların sürdüğü silindir aynı.
 // Hız (2026-11-20): üstteki kutu ROTASYON HIZI, tuş takımının altındaki kutu PİSTON (hareket) HIZI — ayrı ayrı.
 // Yan dayama konumu (2026-11-20): etiketteki cetvel değerine dokununca SideSupportTargetModal (KONUMA GÖNDER).
 
@@ -87,12 +87,12 @@ function ManualControlPad() {
       <SideBtn side="left" type="reel" dir={-1} arrow={90} cls={styles.lReelBwd} />
       <div className={`${styles.link} ${styles.lReelLink}`} />
 
-      <SideBtn side="left" type="joint" dir={-1} arrow={180} label={t('MAFSAL')} cls={styles.lJointBwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="left" type="joint" dir={1} arrow={0} cls={styles.lJointFwd} />
+      <SideBtn side="left" type="body" dir={-1} arrow={180} label={t('GÖVDE')} cls={styles.lJointBwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="body" dir={1} arrow={0} cls={styles.lJointFwd} />
       <div className={`${styles.link} ${styles.lJointLink}`} />
 
-      <SideBtn side="left" type="body" dir={1} arrow={-70} label={t('GÖVDE')} cls={styles.lBodyFwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="left" type="body" dir={-1} arrow={110} cls={styles.lBodyBwd} />
+      <SideBtn side="left" type="joint" dir={1} arrow={-70} label={t('MAFSAL')} cls={styles.lBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="joint" dir={-1} arrow={110} cls={styles.lBodyBwd} />
       <div className={`${styles.link} ${styles.lBodyLink}`} />
 
       {/* ── Sağ yan dayamalar (ayna) ──────────────── */}
@@ -100,12 +100,12 @@ function ManualControlPad() {
       <SideBtn side="right" type="reel" dir={-1} arrow={90} cls={styles.rReelBwd} />
       <div className={`${styles.link} ${styles.rReelLink}`} />
 
-      <SideBtn side="right" type="joint" dir={1} arrow={180} cls={styles.rJointFwd} />
-      <SideBtn side="right" type="joint" dir={-1} arrow={0} label={t('MAFSAL')} cls={styles.rJointBwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="right" type="body" dir={1} arrow={180} cls={styles.rJointFwd} />
+      <SideBtn side="right" type="body" dir={-1} arrow={0} label={t('GÖVDE')} cls={styles.rJointBwd} onOpenTarget={setSideTarget} />
       <div className={`${styles.link} ${styles.rJointLink}`} />
 
-      <SideBtn side="right" type="body" dir={1} arrow={-110} label={t('GÖVDE')} cls={styles.rBodyFwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="right" type="body" dir={-1} arrow={70} cls={styles.rBodyBwd} />
+      <SideBtn side="right" type="joint" dir={1} arrow={-110} label={t('MAFSAL')} cls={styles.rBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="right" type="joint" dir={-1} arrow={70} cls={styles.rBodyBwd} />
       <div className={`${styles.link} ${styles.rBodyLink}`} />
 
       {/* ── Hız − / + : üstte ROTASYON, altta PİSTON (2026-11-20) ── */}

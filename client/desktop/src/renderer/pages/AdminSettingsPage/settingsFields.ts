@@ -223,7 +223,6 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         fields: [
           { key: 'sideSupportPosTolMm', label: 'HEDEF PENCERESİ', unit: 'mm', min: 0.1, max: 10, desc: 'Kalan bu kadarsa hedefte sayılır.' },
           { key: 'sideSupportPosLeadMm', label: 'ERKEN DURMA PAYI', unit: 'mm', min: 0, max: 30, desc: 'Valf kapanırken yan dayamanın kayma mesafesi — makinede hedefi aşma miktarına göre ayarlayın.' },
-          { key: 'sideSupportPosHoldMm', label: 'TUTMA DÜZELTME EŞİĞİ', unit: 'mm', min: 0.5, max: 30, desc: 'Hedefteyken bu kadar kayarsa PLC düzeltir. Pencere ve erken durma payından büyük olmalı.' },
           { key: 'sideSupportPosTimeoutS', label: 'HAREKET SÜRE SINIRI', unit: 'sn', min: 2, max: 120, integer: true },
           {
             type: 'select',
@@ -249,6 +248,27 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           },
           { key: 'sideSupportBackLimitMm', label: 'GERİ SINIR (EN GERİDEN)', unit: 'mm', min: 0, max: 50, desc: 'Kalibre cetvelde mekanik en geriden mesafe. Varsayılan 5 mm.' },
           { key: 'sideSupportBackLimitMarginMm', label: 'GERİ SINIR DURMA PAYI', unit: 'mm', min: 0, max: 30, desc: 'Elle geri sürerken sınırın bu kadar önünde durdurulur (okuma gecikmesi + kayma). Sınırın gerisine geçiyorsa büyütün.' },
+        ],
+      },
+      {
+        // 2026-11-20 — bükümde yan dayama konumları (büküm başlarken, sıkıştırmadan önce; iş boyunca orada kalır)
+        title: 'BÜKÜMDE YAN DAYAMA KONUMLARI',
+        note: 'Açıkken büküm başlarken (parça sıkılmadan önce) yan dayamalar bu konumlara gider, varınca durur ve iş boyunca orada kalır. Değerler tuş takımında görünen mm (ofsetli sıfırdan). Geri sınırın gerisindeki değer sınıra çekilir. Gidemezse büküm başlamaz.',
+        fields: [
+          {
+            type: 'select',
+            key: 'sideSupportBendEnabled',
+            label: 'BÜKÜMDE YAN DAYAMALARI KONUMA GÖNDER',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { key: 'topJawThicknessMm', label: 'TOP ÇENE KALINLIĞI (SAĞ + SOL GÖVDE)', unit: 'mm', min: -50, max: 400, desc: 'Gövde bükümde sıfırdan bu kadar ileri çıkar.' },
+          { key: 'rightJointBendMm', label: 'SAĞ MAFSAL', unit: 'mm', min: -50, max: 400 },
+          { key: 'leftJointBendMm', label: 'SOL MAFSAL', unit: 'mm', min: -50, max: 400 },
+          { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
+          { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
         ],
       },
       {

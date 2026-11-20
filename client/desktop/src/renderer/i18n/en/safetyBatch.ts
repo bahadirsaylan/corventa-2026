@@ -55,6 +55,19 @@ const en: Record<string, string> = {
   '{0} CETVELİ OKUNMUYOR — GERİ ÇEKİLMEDİ (GERİ SINIRI KORUNAMAZ)': '{0} RULER NOT READ — NOT RETRACTED (BACK LIMIT CANNOT BE KEPT)',
   '{0} GERİ SINIRA GİDEMEDİ: {1}': '{0} COULD NOT REACH THE BACK LIMIT: {1}',
   '{0} {1} SN İÇİNDE GERİ SINIRA / EN GERİYE GELMEDİ': '{0} DID NOT REACH THE BACK LIMIT / FULL RETRACTION WITHIN {1} S',
+
+  // ── Bükümde yan dayama konumları ──
+  'BÜKÜMDE YAN DAYAMA KONUMLARI': 'SIDE SUPPORT POSITIONS DURING BENDING',
+  'Açıkken büküm başlarken (parça sıkılmadan önce) yan dayamalar bu konumlara gider, varınca durur ve iş boyunca orada kalır. Değerler tuş takımında görünen mm (ofsetli sıfırdan). Geri sınırın gerisindeki değer sınıra çekilir. Gidemezse büküm başlamaz.':
+    'When ON, the side supports move to these positions when bending starts (before clamping), stop there and stay for the whole job. Values are the mm shown on the keypad (from the offset zero). Values behind the back limit are raised to the limit. If they cannot get there, bending does not start.',
+  'BÜKÜMDE YAN DAYAMALARI KONUMA GÖNDER': 'SEND SIDE SUPPORTS TO POSITION DURING BENDING',
+  'TOP ÇENE KALINLIĞI (SAĞ + SOL GÖVDE)': 'ROLL JAW THICKNESS (RIGHT + LEFT BODY)',
+  'Gövde bükümde sıfırdan bu kadar ileri çıkar.': 'During bending the body moves this far forward from zero.',
+  'Yan dayamalar büküm konumuna gidiyor...': 'Side supports moving to bending position...',
+  'Bükümde yan dayama konumları -50 … 400 mm arası olmalı': 'Side support bending positions must be between -50 and 400 mm',
+  'Bükümde yan dayama konumu: {0}': 'Side support bending position: {0}',
+  'Bükümde yan dayama konuma gidemedi: {0}': 'Side support could not reach bending position: {0}',
+  '{0} zaten {1} mm konumunda': '{0} already at {1} mm',
 }
 
 export default en

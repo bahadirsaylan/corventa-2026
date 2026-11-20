@@ -127,7 +127,7 @@ export default function SideSupportTargetModal({ side, type, onClose }: Props) {
           )}
           {!motorRunning && <p className={styles.note}>{t('HİDROLİK MOTOR ÇALIŞMIYOR — ÖNCE ÇALIŞTIR')}</p>}
           {motorRunning && available && supported && invalid && <p className={styles.note}>{invalid}</p>}
-          {posState === 2 && <p className={styles.status}>{t('HEDEFTE — PLC KONUMU TUTUYOR')}</p>}
+          {posState === 2 && <p className={styles.status}>{t('HEDEFTE')}</p>}
           {(posState === 3 || posState === 4 || posState === 5) && (
             <p className={styles.notice}>
               <Icon name="info" size="lg" /> <span>{t('YAN DAYAMA DURDU: {s}', { s: t(sideSupportPosStateText(posState)) })}</span>
