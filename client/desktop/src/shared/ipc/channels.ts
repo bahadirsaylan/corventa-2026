@@ -71,6 +71,7 @@ export const IpcInvoke = {
   PneumaticControl: 'pneumatic:control',
   PneumaticStop: 'pneumatic:stop',
   SideSupportControl: 'side-support:control',
+  SideSupportPosition: 'side-support:position',
   EmergencyStop: 'machine:emergency-stop',
   SetMachineMode: 'machine:set-mode',
   SetHydraulicMotor: 'machine:set-hydraulic-motor',

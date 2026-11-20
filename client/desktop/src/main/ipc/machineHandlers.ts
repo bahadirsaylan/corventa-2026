@@ -15,6 +15,7 @@ import type {
   RotationJogRequest,
   RotationPositionRequest,
   SideSupportRequest,
+  SideSupportPositionRequest,
 } from '@shared/types'
 
 const log = childLogger('ipc:machine')
@@ -77,6 +78,11 @@ export function registerMachineHandlers(): void {
       log.info('side support control', req)
     }
     return engineApi.sideSupportControl(req)
+  })
+
+  ipcMain.handle(Ipc.IpcInvoke.SideSupportPosition, async (_evt, req: SideSupportPositionRequest) => {
+    log.info('side support position', req)
+    return engineApi.sideSupportPosition(req)
   })
 
   ipcMain.handle(Ipc.IpcInvoke.EmergencyStop, async (_evt, jobId?: number | null) => {

@@ -139,6 +139,10 @@ export interface SideSupportRulerState {
   /** false = ayarlarda varsayılan değerler (kalibre edilmedi) */
   calibrated: boolean
   strokeMm: number
+  /** (2026-11-20) PLC konum durumu: -1 PLC'de yok, 0 elle, 1 hareket, 2 hedefte, 3 süre aşımı, 4 takıldı / cetvel, 5 güvenlik */
+  positionState?: number
+  /** Son konum hedefi (gösterilen mm) — konum modu kapalıyken null */
+  targetMm?: number | null
 }
 
 export interface SideSupportRulersState {

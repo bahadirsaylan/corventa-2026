@@ -23,6 +23,7 @@ import type {
   RotationJogRequest,
   RotationPositionRequest,
   SideSupportRequest,
+  SideSupportPositionRequest,
   StartJobResponse,
   StopUnloadResponse,
   OilHeatingResult,
@@ -431,6 +432,11 @@ export class EngineApiClient {
   sideSupportControl(req: SideSupportRequest): Promise<unknown> {
     const path = req.direction === 1 ? 'forward' : req.direction === -1 ? 'backward' : 'stop'
     return http.post(`${this.baseUrl}/api/side-support/${req.side}/${req.type}/${path}`)
+  }
+
+  // (2026-11-20) Yan dayamayı konuma gönder (PLC FB_SideSupportPosition — hedefte durur ve tutar)
+  sideSupportPosition(req: SideSupportPositionRequest): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/side-support/${req.side}/${req.type}/position`, { mm: req.mm })
   }
 
   // jobId (EXCEL 24): büküm İPTAL'inden geliyorsa backend iptali durdurmadan ÖNCE işaretler →

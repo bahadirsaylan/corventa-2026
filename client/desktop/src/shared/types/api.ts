@@ -396,6 +396,13 @@ export interface SideSupportRequest {
   direction: JogDirection
 }
 
+/** (2026-11-20) Yan dayamayı konuma gönder — mm = ekranda gösterilen cetvel değeri (ofset dahil) */
+export interface SideSupportPositionRequest {
+  side: SideSupportSide
+  type: SideSupportType
+  mm: number
+}
+
 // Bağlantı durumu — connection manager'dan UI'a gelir.
 export type ConnectionState =
   | 'disconnected'

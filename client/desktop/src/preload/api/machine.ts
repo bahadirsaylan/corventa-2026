@@ -14,6 +14,7 @@ import {
   type RotationJogRequest,
   type RotationPositionRequest,
   type SideSupportRequest,
+  type SideSupportPositionRequest,
 } from '@shared'
 
 export const machineApi = {
@@ -49,6 +50,9 @@ export const machineApi = {
   // Manuel yan dayama (basılı-tut pattern)
   sideSupportControl: (req: SideSupportRequest): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SideSupportControl, req),
+  // (2026-11-20) konuma gönder — PLC hedefte durur ve tutar
+  sideSupportPosition: (req: SideSupportPositionRequest): Promise<unknown> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SideSupportPosition, req),
 
   // jobId: büküm iptalinden geliyorsa çalışan iş (backend iptali durdurmadan önce işaretler)
   emergencyStop: (jobId?: number | null): Promise<unknown> =>

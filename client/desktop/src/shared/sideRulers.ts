@@ -1,6 +1,7 @@
 // Yan dayama cetvelleri (2026-11-19) — 6 lineer potansiyometre (GT-3118 4-20 mA, 12-bit 0..4095).
 // Backend: Core/Models/SideSupportRulers.cs (MachineState.sideSupportRulers) + MachineSettings <key>RulerRawMin/RawMax/StrokeMm/Calibrated.
-// SADECE GÖSTERİM — yan dayama hareketine etkisi yok. Sıra = PLC Modbus input register sırası (56..61).
+// Adlar FİZİKSEL (2026-11-20 kullanıcı: IO listesinde / PLC'de mafsal ↔ gövde TERS — eşleme backend Core/Models/SideSupportPlcMap).
+// Konuma gönderme: POST /api/side-support/{side}/{type}/position (PLC FB_SideSupportPosition).
 
 import type { SideSupportSide, SideSupportType } from './types/api'
 
@@ -20,12 +21,12 @@ export interface SideRulerDef {
 }
 
 export const SIDE_RULERS: SideRulerDef[] = [
-  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
-  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
+  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
+  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
   { key: 'rightReel', side: 'right', type: 'reel', label: 'SAĞ MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: true },
   { key: 'leftReel', side: 'left', type: 'reel', label: 'SOL MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: false },
-  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
-  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
+  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
+  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
 ]
 
 export const SIDE_RULER_RAW_LIMIT = 4095
@@ -49,6 +50,28 @@ export function sideRulerToMm(raw: number, rawMin: number, rawMax: number, strok
   const mm = ((raw - rawMin) / (rawMax - rawMin)) * strokeMm
   if (!Number.isFinite(mm)) return 0
   return Math.round(Math.min(strokeMm, Math.max(0, mm)) * 100) / 100
+}
+
+/** PLC konum durumu (MachineState.sideSupportRulers.*.positionState) — Türkçe kaynak, t() ile çevrilir */
+export function sideSupportPosStateText(s: number | undefined): string {
+  switch (s) {
+    case 0: return 'ELLE'
+    case 1: return 'HAREKET'
+    case 2: return 'HEDEFTE'
+    case 3: return 'SÜRE AŞIMI'
+    case 4: return 'TAKILDI / CETVEL HATASI'
+    case 5: return 'GÜVENLİK — DURDU'
+    default: return "PLC'DE YOK"
+  }
+}
+
+/** Gösterilen mm (ofset dahil) → ham (backend DisplayMmToRaw ile aynı). Strok dışı → null. */
+export function sideRulerDisplayMmToRaw(mm: number, rawMin: number, rawMax: number, strokeMm: number, offsetMm: number): number | null {
+  if (rawMax === rawMin || !(strokeMm > 0) || !Number.isFinite(mm)) return null
+  const cal = mm + offsetMm
+  if (cal < -0.01 || cal > strokeMm + 0.01) return null
+  const raw = rawMin + (Math.min(strokeMm, Math.max(0, cal)) / strokeMm) * (rawMax - rawMin)
+  return Math.round(Math.min(4095, Math.max(0, raw)))
 }
 
 /** Demo: varsayılan ayar alanları (DataApi migration varsayılanlarıyla aynı) */

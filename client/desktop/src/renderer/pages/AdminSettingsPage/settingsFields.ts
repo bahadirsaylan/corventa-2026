@@ -182,6 +182,28 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         ],
       },
       {
+        // 2026-11-20 — yan dayama konum kontrolü (PLC FB_SideSupportPosition) + gönyede en geri
+        title: 'YAN DAYAMA KONUM KONTROLÜ',
+        note: 'Tuş takımında yan dayama cetvel değerine dokunarak konuma gönderilir; PLC hedefte durur ve konumu tutar. PLC programı eskiyse sadece elle (jog) çalışır.',
+        fields: [
+          { key: 'sideSupportPosTolMm', label: 'HEDEF PENCERESİ', unit: 'mm', min: 0.1, max: 10, desc: 'Kalan bu kadarsa hedefte sayılır.' },
+          { key: 'sideSupportPosLeadMm', label: 'ERKEN DURMA PAYI', unit: 'mm', min: 0, max: 30, desc: 'Valf kapanırken yan dayamanın kayma mesafesi — makinede hedefi aşma miktarına göre ayarlayın.' },
+          { key: 'sideSupportPosHoldMm', label: 'TUTMA DÜZELTME EŞİĞİ', unit: 'mm', min: 0.5, max: 30, desc: 'Hedefteyken bu kadar kayarsa PLC düzeltir. Pencere ve erken durma payından büyük olmalı.' },
+          { key: 'sideSupportPosTimeoutS', label: 'HAREKET SÜRE SINIRI', unit: 'sn', min: 2, max: 120, integer: true },
+          {
+            type: 'select',
+            key: 'sideSupportGonyeRetractEnabled',
+            label: 'GÖNYEDE YAN DAYAMALARI EN GERİYE ÇEK',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { key: 'sideSupportGonyeRetractTimeoutS', label: 'GÖNYE GERİ ÇEKME SÜRE SINIRI', unit: 'sn', min: 3, max: 120, integer: true },
+          { key: 'sideSupportGonyeRetractNoRulerSec', label: 'CETVELSİZ GERİ ÇEKME SÜRESİ', unit: 'sn', min: 1, max: 60, integer: true, desc: 'Cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.' },
+        ],
+      },
+      {
         // 2026-11-20 — üst-alt top kenarları (dış çap) birbirine değer (Core/Models/RollOverlap)
         title: 'ÜST-ALT TOP BİNDİRME KONTROLÜ',
         note: 'Açıkken profil A, top dış ve iç çap farkından küçükse büküm başlamaz (220 / 280 toplarda A en az 60 mm); üst / alt top kenarları çarpışacak konum hareketi yapılmaz, ileri jog ve basınç hareketi kenarlar yaklaşınca durdurulur.',

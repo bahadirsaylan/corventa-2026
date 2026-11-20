@@ -93,6 +93,8 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallDiameterMm: 220, lowerBallDiameterMm: 220, leftBallDiameterMm: 220, rightBallDiameterMm: 220,
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
+  sideSupportPosTolMm: 0.5, sideSupportPosLeadMm: 1, sideSupportPosHoldMm: 2, sideSupportPosTimeoutS: 20,
+  sideSupportGonyeRetractEnabled: true, sideSupportGonyeRetractTimeoutS: 20, sideSupportGonyeRetractNoRulerSec: 8,
   centerDistanceMiddleRadiusMm: 300, upperLowerCenterDistanceMm: 488, clampOverpressMm: 0.1,
   defaultThetaDeg: 63, defaultXA1: -465, defaultYA1: 0,
   slpisZeroOffsetMm: 0, slpisLMm: 70, slpisRulmanCapMm: 35,
@@ -1671,6 +1673,8 @@ export class DemoMachine extends EventEmitter {
     }
     if (path === '/api/preparation/gonye') {
       // 2026-11-19 GÜVENLİ GÖNYE — her gönye güvenli (demoSafeGonye.ts; 409 onay / 403 yetki / 400 engel)
+      // 2026-11-20: yan dayamalar önce en geriye (ayar SideSupportGonyeRetractEnabled)
+      if (this.machineSettings.sideSupportGonyeRetractEnabled !== false) this.sideRulers.retractAll()
       return this.safeGonye.run(rawUrl, b)
     }
 
@@ -1886,6 +1890,12 @@ export class DemoMachine extends EventEmitter {
       this.manualPneuDir[side] = dir
       const pn = side === 'left' ? this.state.leftPneumatic : this.state.rightPneumatic
       pn.activeDirection = dir
+      return ok
+    }
+    if ((m = /^\/api\/side-support\/(left|right)\/(joint|body|reel)\/position$/.exec(path))) {
+      // 2026-11-20 — konuma gönder (PLC FB_SideSupportPosition benzetimi)
+      const err = this.sideRulers.moveTo(m[1] as 'left' | 'right', m[2] as 'joint' | 'body' | 'reel', Number(b.mm), this.machineSettings)
+      if (err) throw new HttpError(400, rawUrl, err, { success: false, error: err })
       return ok
     }
     if ((m = /^\/api\/side-support\/(left|right)\/(joint|body|reel)\/(forward|backward|stop)$/.exec(path))) {

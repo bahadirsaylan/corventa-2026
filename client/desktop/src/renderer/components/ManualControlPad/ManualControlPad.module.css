@@ -410,3 +410,16 @@
   white-space: nowrap;
   z-index: 2;
 }
+
+/* 2026-11-20 — yan dayama cetvel değeri dokunulabilir (KONUMA GÖNDER); piston değeri gibi noktalı alt çizgi */
+.sideValueBtn {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  pointer-events: auto;
+}
+.sideValueBtn[data-pos='1'] { color: #b45309; }
+.sideValueBtn[data-pos='2'] { color: #15803d; }
+.sideValueBtn[data-pos='3'],
+.sideValueBtn[data-pos='4'],
+.sideValueBtn[data-pos='5'] { color: #c93235; }

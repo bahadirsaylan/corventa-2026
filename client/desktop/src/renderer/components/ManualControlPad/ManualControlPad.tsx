@@ -12,8 +12,10 @@
 // Hedef gönderme (2026-11-19): piston hapındaki değere (ÜST 0.0 …) dokununca PistonTargetModal açılır —
 // KONUMA GİT (mm) / BASINÇLA İT (bar). Tuş takımına yeni bölüm eklenmedi; tek iz değerin noktalı alt çizgisi.
 //
-// Yan dayama tuş eşleşmesi (TAHMİNİ — sahada doğrulanacak):
-//   dikey çift = REEL, yatay çift = JOINT, eğik çift = BODY.
+// Yan dayama tuş eşleşmesi (2026-11-20 kullanıcı düzeltmesi): dikey çift = MAKARA, yatay çift = GÖVDE, eğik çift = MAFSAL.
+//   (Önceden yatay = MAFSAL, eğik = GÖVDE yazıyordu ama yatay tuş fiziksel GÖVDE'yi sürüyordu — IO listesinde ikisi ters;
+//   PLC eşlemesi backend Core/Models/SideSupportPlcMap.) Tuşun sürdüğü silindir değişmedi, sadece adı + cetveli doğru.
+// Yan dayama konumu (2026-11-20): etiketteki cetvel değerine dokununca SideSupportTargetModal (KONUMA GÖNDER).
 
 import { memo, useCallback, useState } from 'react'
 
@@ -27,6 +29,7 @@ import { readManualSpeed } from '@/services/operatorPrefs'
 import { pistonAxis } from '@/services/macroAxes'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import PistonTargetModal from './PistonTargetModal'
+import SideSupportTargetModal from './SideSupportTargetModal'
 import { sideRulerKey } from '@shared/sideRulers'
 import styles from './ManualControlPad.module.css'
 
@@ -46,6 +49,7 @@ function ManualControlPad() {
   const [speed, setSpeed] = useState(readManualSpeed)
   const [motorBusy, setMotorBusy] = useState(false)
   const [targetPiston, setTargetPiston] = useState<PistonName | null>(null)
+  const [sideTarget, setSideTarget] = useState<{ side: SideSupportSide; type: SideSupportType } | null>(null)
 
   // Sadece pozisyon (primitive) dinlenir — piston nesnesinin tamamı her SignalR tick'inde (10 Hz)
   // yeni referans olduğundan tüm tuş takımını boşuna yeniden çizdiriyordu.
@@ -78,29 +82,29 @@ function ManualControlPad() {
       )}
 
       {/* ── Sol yan dayamalar ─────────────────────── */}
-      <SideBtn side="left" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.lReelFwd} />
+      <SideBtn side="left" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.lReelFwd} onOpenTarget={setSideTarget} />
       <SideBtn side="left" type="reel" dir={-1} arrow={90} cls={styles.lReelBwd} />
       <div className={`${styles.link} ${styles.lReelLink}`} />
 
-      <SideBtn side="left" type="joint" dir={-1} arrow={180} label={t('MAFSAL')} cls={styles.lJointBwd} />
-      <SideBtn side="left" type="joint" dir={1} arrow={0} cls={styles.lJointFwd} />
+      <SideBtn side="left" type="body" dir={-1} arrow={180} label={t('GÖVDE')} cls={styles.lJointBwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="body" dir={1} arrow={0} cls={styles.lJointFwd} />
       <div className={`${styles.link} ${styles.lJointLink}`} />
 
-      <SideBtn side="left" type="body" dir={1} arrow={-70} label={t('GÖVDE')} cls={styles.lBodyFwd} />
-      <SideBtn side="left" type="body" dir={-1} arrow={110} cls={styles.lBodyBwd} />
+      <SideBtn side="left" type="joint" dir={1} arrow={-70} label={t('MAFSAL')} cls={styles.lBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="joint" dir={-1} arrow={110} cls={styles.lBodyBwd} />
       <div className={`${styles.link} ${styles.lBodyLink}`} />
 
       {/* ── Sağ yan dayamalar (ayna) ──────────────── */}
-      <SideBtn side="right" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.rReelFwd} />
+      <SideBtn side="right" type="reel" dir={1} arrow={-90} label={t('MAKARA')} cls={styles.rReelFwd} onOpenTarget={setSideTarget} />
       <SideBtn side="right" type="reel" dir={-1} arrow={90} cls={styles.rReelBwd} />
       <div className={`${styles.link} ${styles.rReelLink}`} />
 
-      <SideBtn side="right" type="joint" dir={1} arrow={180} cls={styles.rJointFwd} />
-      <SideBtn side="right" type="joint" dir={-1} arrow={0} label={t('MAFSAL')} cls={styles.rJointBwd} />
+      <SideBtn side="right" type="body" dir={1} arrow={180} cls={styles.rJointFwd} />
+      <SideBtn side="right" type="body" dir={-1} arrow={0} label={t('GÖVDE')} cls={styles.rJointBwd} onOpenTarget={setSideTarget} />
       <div className={`${styles.link} ${styles.rJointLink}`} />
 
-      <SideBtn side="right" type="body" dir={1} arrow={-110} label={t('GÖVDE')} cls={styles.rBodyFwd} />
-      <SideBtn side="right" type="body" dir={-1} arrow={70} cls={styles.rBodyBwd} />
+      <SideBtn side="right" type="joint" dir={1} arrow={-110} label={t('MAFSAL')} cls={styles.rBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="right" type="joint" dir={-1} arrow={70} cls={styles.rBodyBwd} />
       <div className={`${styles.link} ${styles.rBodyLink}`} />
 
       {/* ── Hız − / + ─────────────────────────────── */}
@@ -186,6 +190,9 @@ function ManualControlPad() {
       {targetPiston && !locked && (
         <PistonTargetModal piston={targetPiston} initialSpeed={speed} onClose={() => setTargetPiston(null)} />
       )}
+      {sideTarget && (
+        <SideSupportTargetModal side={sideTarget.side} type={sideTarget.type} onClose={() => setSideTarget(null)} />
+      )}
     </div>
   )
 }
@@ -204,9 +211,11 @@ interface SideBtnProps {
   arrow: number
   label?: string
   cls: string
+  /** Etiketteki cetvel değerine dokununca KONUMA GÖNDER penceresi (sadece etiketli tuşta) */
+  onOpenTarget?: (t: { side: SideSupportSide; type: SideSupportType }) => void
 }
 
-function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
+function SideBtn({ side, type, dir, arrow, label, cls, onOpenTarget }: SideBtnProps) {
   const t = useT()
   const onStart = useCallback(() => {
     void window.corventa.machine.sideSupportControl({ side, type, direction: dir }).catch(() => {})
@@ -231,7 +240,7 @@ function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
         <span className={styles.sideLabel}>
           {label}
           {/* 2026-11-19 — yan dayama cetveli (ofsetli mm), etiket alanının içinde; yerleşim değişmez */}
-          <SideRulerValue side={side} type={type} />
+          <SideRulerValue side={side} type={type} onOpen={onOpenTarget} />
         </span>
       )}
     </div>
@@ -239,13 +248,35 @@ function SideBtn({ side, type, dir, arrow, label, cls }: SideBtnProps) {
 }
 
 /** Yan dayama cetvel değeri (mm, ofset uygulanmış). Cetvel yok / okunamıyor → "—". */
-function SideRulerValue({ side, type }: { side: SideSupportSide; type: SideSupportType }) {
+function SideRulerValue({ side, type, onOpen }: {
+  side: SideSupportSide
+  type: SideSupportType
+  onOpen?: (t: { side: SideSupportSide; type: SideSupportType }) => void
+}) {
   const key = sideRulerKey(side, type)
   const mm = useMachineStateStore((s) => {
     const r = s.state.sideSupportRulers?.[key]
     return r?.available ? r.mm : null
   })
-  return <span className={styles.sideValue}>{mm == null ? '—' : mm.toFixed(1)}</span>
+  // 2026-11-20: konum modundaysa (hareket / hedefte / hata) değer rengiyle gösterilir
+  const posState = useMachineStateStore((s) => s.state.sideSupportRulers?.[key]?.positionState ?? -1)
+  const text = mm == null ? '—' : mm.toFixed(1)
+  if (!onOpen) return <span className={styles.sideValue}>{text}</span>
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      className={`${styles.sideValue} ${styles.sideValueBtn}`}
+      data-pos={posState > 0 ? posState : undefined}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation()
+        onOpen({ side, type })
+      }}
+    >
+      {text}
+    </span>
+  )
 }
 
 interface RotationBtnProps {
