@@ -229,3 +229,28 @@
   height: 16px;
   flex-shrink: 0;
 }
+
+/* ── PC KAPAT / YENİDEN BAŞLAT onayı (2026-11-20) ── */
+.powerOverlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex; align-items: center; justify-content: center;
+}
+.powerModal {
+  width: 460px; max-width: calc(100vw - 32px);
+  background: var(--color-surface, #fff); border-radius: 14px; padding: 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.powerIcon { width: 64px; height: 64px; color: var(--color-primary); }
+.powerIcon svg { width: 100%; height: 100%; }
+.powerTitle { margin: 0; font-size: 20px; font-weight: 900; text-align: center; letter-spacing: 0.04em; }
+.powerText { margin: 0; font-size: 14px; color: var(--color-text-muted); text-align: center; }
+.powerMsg { margin: 0; font-size: 13px; font-weight: 700; color: #991b1b; text-align: center; }
+.powerBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-top: 6px; }
+.powerCancel, .powerOk {
+  min-height: 56px; border-radius: 10px; font-size: 16px; font-weight: 900; letter-spacing: 0.05em; cursor: pointer;
+}
+.powerCancel { background: #fff; border: 2px solid var(--color-border); color: var(--color-text); }
+.powerOk { background: var(--color-primary); border: 2px solid var(--color-primary-dark); color: #fff; }
+.powerCancel:disabled, .powerOk:disabled { opacity: 0.5; cursor: wait; }

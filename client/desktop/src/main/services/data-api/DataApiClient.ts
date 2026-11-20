@@ -297,6 +297,11 @@ export class DataApiClient {
     )
   }
 
+  /** 2026-11-20 — GÜVENLİ MOD kapat (SERVICEMAN+; 401/403 yetkisiz) */
+  clearMaintenanceErrorLock(): Promise<MaintenanceState> {
+    return http.post<MaintenanceState>(`${this.baseUrl}/api/maintenance/error-lock/clear`, {})
+  }
+
   setMaintenanceMode(on: boolean): Promise<MaintenanceState> {
     return http.post<MaintenanceState>(
       `${this.baseUrl}/api/maintenance/mode?on=${on}`,

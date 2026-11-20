@@ -39,7 +39,7 @@ export default function BendingBall({
         onStart={onJogPlusStart}
         onStop={onJogStop}
       />
-      <span className={styles.value}>{value.toFixed(1)}</span>
+      <span className={styles.value}>{value.toFixed(2)}</span>
       <HoldButton
         label="−"
         disabled={disabled}

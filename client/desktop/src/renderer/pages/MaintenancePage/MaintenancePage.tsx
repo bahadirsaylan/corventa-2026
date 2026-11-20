@@ -22,8 +22,11 @@ import {
   refreshMaintenance,
   setMaintenanceModeOn,
   useMaintenanceStore,
+  clearMaintenanceErrorLock,
 } from '@/stores/maintenanceStore'
-import { useLang, useT, type TVars } from '@/i18n'
+import { showRoleNotice } from '@/components/RoleNotice/RoleNotice'
+import { hasRole } from '@/stores/sessionStore'
+import { tp, useLang, useT, type TVars } from '@/i18n'
 import styles from './MaintenancePage.module.css'
 
 // Durum hesabı (sonraki tarih, kalan gün, gecikme hafta kademesi) ortak yardımcıda:
@@ -100,6 +103,25 @@ export default function MaintenancePage() {
     }
   }
 
+  // 2026-11-20 — GÜVENLİ MOD kapat (servis yetkilisi; yetkisizse uyarı)
+  const handleClearErrorLock = async () => {
+    if (!state || pendingKey) return
+    if (!hasRole('SERVICEMAN')) {
+      showRoleNotice('SERVICEMAN')
+      return
+    }
+    setPendingKey('error-lock')
+    setNotice(null)
+    try {
+      await clearMaintenanceErrorLock()
+      setNotice({ kind: 'ok', text: t('GÜVENLİ MOD KAPATILDI') })
+    } catch (err) {
+      setNotice({ kind: 'err', text: t('Kilit kapatılamadı: {err}', { err: maintenanceErrorMessage(err) || t('bilinmeyen hata') }) })
+    } finally {
+      setPendingKey(null)
+    }
+  }
+
   const handleToggleMode = async () => {
     if (!state || pendingKey) return
     setPendingKey('mode')
@@ -133,6 +155,24 @@ export default function MaintenancePage() {
 
         {state && !loading && (
           <>
+            {/* ── GÜVENLİ MOD (2026-11-20): aynı hata tekrarladı → bakım kilidi; servis yetkilisi kapatır ── */}
+            {state.errorLockActive && (
+              <div className={`${styles.card} ${styles.modeCard} ${styles.modeOn}`}>
+                <div className={styles.modeInfo}>
+                  <span className={styles.modeLabel}>{t('GÜVENLİ MOD — BAKIM KİLİDİ')}</span>
+                  <span className={styles.modeHint}>{tp(state.errorLockReason ?? '')}</span>
+                  <span className={styles.modeHint}>{t('Yetkili kişi kilidi kapatana kadar büküm başlatılamaz.')}</span>
+                </div>
+                <button
+                  className={`${styles.modeBtn} ${styles.modeBtnOff}`}
+                  onClick={() => void handleClearErrorLock()}
+                  disabled={pendingKey !== null}
+                >
+                  {t('KİLİDİ KAPAT')}
+                </button>
+              </div>
+            )}
+
             {/* ── Bakım Modu toggle ─────────────────── */}
             <div className={`${styles.card} ${styles.modeCard} ${state.isInMaintenanceMode ? styles.modeOn : ''}`}>
               <div className={styles.modeInfo}>

@@ -56,12 +56,33 @@ export function LogoutIcon() {
   )
 }
 
+// 2026-11-20 — PC KAPAT / PC YENİDEN BAŞLAT
+export function PowerIcon() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
+      <path d="M32 7v24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M19 15a21 21 0 1 0 26 0" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function RestartIcon() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
+      <path d="M52 32a20 20 0 1 1-6-14.2" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M48 6v13H35" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 const ICONS = {
   plus: PlusIcon,
   home: HomeIcon,
   service: ServiceIcon,
   gear: GearIcon,
   logout: LogoutIcon,
+  restart: RestartIcon,
+  power: PowerIcon,
 } as const
 
 export function SideMenuIcon({ name }: { name: keyof typeof ICONS }) {

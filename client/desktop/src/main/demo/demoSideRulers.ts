@@ -33,8 +33,17 @@ export class DemoSideRulers {
   }
 
   /** Gönyede hepsi en geriye (backend RetractSideSupportsAsync gibi — strok ucunda kendiliğinden durur) */
-  retractAll(): void {
-    for (const r of SIDE_RULERS) this.command(r.side, r.type, 'backward')
+  retractAll(settings: Record<string, unknown> = {}): void {
+    // 2026-11-20: backend gibi GERİ SINIRA (max(sınır, ofset)) — sınır kapalı + ofset 0 ise en geriye
+    const limitOn = settings.sideSupportBackLimitEnabled !== false
+    const limit = limitOn ? Number(settings.sideSupportBackLimitMm ?? 5) || 0 : 0
+    const tol = Number(settings.sideSupportPosTolMm ?? 0.5) || 0.5
+    for (const r of SIDE_RULERS) {
+      const offset = Number(settings[sideRulerSettingKeys(r.key).offsetMm] ?? 0) || 0
+      const floor = Math.max(limit, offset)
+      if (floor > 0.01 && !DISABLED) this.moveTo(r.side, r.type, floor - offset + tol, settings)
+      else this.command(r.side, r.type, 'backward')
+    }
   }
 
   /** /api/side-support/{side}/{type}/position { mm } — null = başarılı, string = hata */

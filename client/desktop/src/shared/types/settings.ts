@@ -64,6 +64,12 @@ export interface MaintenanceState {
   lockAfterOverdueDays?: number
   /** Kilit eşiğini geçmiş periyotlar (ayar kapalıyken de dolu — bilgi) */
   lockedPeriods?: MaintenanceLockedPeriod[]
+  // ── GÜVENLİ MOD (2026-11-20): aynı hata pencere içinde N kez → bakım kilidi; SERVICEMAN+ kapatır ──
+  errorLockActive?: boolean
+  errorLockReason?: string | null
+  errorLockAt?: string | null
+  errorLockClearedAt?: string | null
+  errorLockClearedBy?: string | null
 }
 
 export interface MaintenanceLockedPeriod {

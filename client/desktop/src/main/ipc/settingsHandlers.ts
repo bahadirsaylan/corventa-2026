@@ -182,6 +182,11 @@ export function registerSettingsHandlers(): void {
     },
   )
 
+  ipcMain.handle(Ipc.IpcInvoke.SettingsClearMaintenanceErrorLock, async () => {
+    log.info('clear-maintenance-error-lock')
+    return dataApi.clearMaintenanceErrorLock()
+  })
+
   ipcMain.handle(
     Ipc.IpcInvoke.SettingsSetMaintenanceMode,
     async (_evt, on: boolean) => {

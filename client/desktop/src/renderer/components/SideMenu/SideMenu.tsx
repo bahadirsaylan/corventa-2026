@@ -9,6 +9,7 @@
 // soluk + kilitli görünür, dokununca yetki uyarısı verir.
 
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CorventaLogo from '@/components/CorventaLogo/CorventaLogo'
 import { Icon } from '@/components/Icon'
@@ -46,6 +47,7 @@ export default function SideMenu() {
   }, [userKey, loadMenu])
 
   const [peek, setPeek] = useState(false)   // fare kenara yaklaştı → kare tuş görünür
+  const [power, setPower] = useState<'restart' | 'shutdown' | null>(null) // PC KAPAT / YENİDEN BAŞLAT onayı
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null)
 
   // Sayfa değişince menü kapanır
@@ -106,6 +108,8 @@ export default function SideMenu() {
     } else if (a.type === 'logout') {
       resetJob()
       void endSession().then(() => navigate('/login', { replace: true }))
+    } else if (a.type === 'pc-power') {
+      setPower(a.power)
     }
   }
 
@@ -208,6 +212,50 @@ export default function SideMenu() {
           <Icon name="close" size={40} />
         </button>
       </nav>
+
+      {power && <PowerConfirm power={power} onClose={() => setPower(null)} />}
     </>
+  )
+}
+
+/** PC KAPAT / YENİDEN BAŞLAT onayı (2026-11-20). Önce hidrolik motor durdurulur (PC kapanınca PLC son komutu tutar). */
+function PowerConfirm({ power, onClose }: { power: 'restart' | 'shutdown'; onClose: () => void }) {
+  const t = useT()
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const title = power === 'shutdown' ? t('BİLGİSAYAR KAPATILSIN MI?') : t('BİLGİSAYAR YENİDEN BAŞLATILSIN MI?')
+
+  async function go() {
+    if (busy) return
+    setBusy(true)
+    setMsg(null)
+    try {
+      try { await window.corventa.machine.setHydraulicMotor(false) } catch { /* makine yoksa da devam */ }
+      const r = await window.corventa.system.pcPower(power)
+      if (!r.ok) setMsg(r.error ?? t('İŞLEM YAPILAMADI'))
+      else if (r.simulated) setMsg(t('DEMO / GELİŞTİRME — BİLGİSAYAR KAPATILMADI'))
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return createPortal(
+    <div className={styles.powerOverlay} onClick={() => !busy && onClose()}>
+      <div className={styles.powerModal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <span className={styles.powerIcon}><SideMenuIcon name={power === 'shutdown' ? 'power' : 'restart'} /></span>
+        <h2 className={styles.powerTitle}>{title}</h2>
+        <p className={styles.powerText}>{t('Hidrolik motor durdurulur, program kapanır.')}</p>
+        {msg && <p className={styles.powerMsg}>{msg}</p>}
+        <div className={styles.powerBtns}>
+          <button type="button" className={styles.powerCancel} disabled={busy} onClick={onClose}>{t('İPTAL')}</button>
+          <button type="button" className={styles.powerOk} disabled={busy} onClick={() => void go()}>
+            {power === 'shutdown' ? t('KAPAT') : t('YENİDEN BAŞLAT')}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }

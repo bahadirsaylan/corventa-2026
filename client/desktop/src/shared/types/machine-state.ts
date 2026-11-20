@@ -11,6 +11,8 @@ export interface MachineState {
   hydraulicMotorState: number // 0=OFF, 1=Starting, 2=Ready
   fanActive: boolean
   alarmActive: boolean
+  /** (2026-11-20) Operatör alarmı susturdu (güvenlik düzelince kalkar). Eski backend göndermez. */
+  alarmMuted?: boolean
   systemReady: boolean
   safetyBits: number
   errorCode: ErrorCode

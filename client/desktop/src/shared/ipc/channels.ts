@@ -77,6 +77,7 @@ export const IpcInvoke = {
   SetHydraulicMotor: 'machine:set-hydraulic-motor',
   SetFan: 'machine:set-fan', // MAKİNE DEĞERLERİ (2026-11-19) — POST /api/machine/fan
   SetAlarm: 'machine:set-alarm', // MAKİNE DEĞERLERİ (2026-11-19) — POST /api/machine/alarm
+  MuteAlarm: 'machine:mute-alarm', // 2026-11-20 — ALARMI SESSİZE AL — POST /api/machine/alarm/mute
   SendMachineCommand: 'machine:send-command',
 
   // DataApi — Service modülü (Soru/Öneri/Şikayet + Servis Talepleri/Raporları)
@@ -113,6 +114,8 @@ export const IpcInvoke = {
   SettingsGetMaintenance: 'settings:get-maintenance',
   SettingsMarkMaintenanceCompleted: 'settings:mark-maintenance-completed',
   SettingsSetMaintenanceMode: 'settings:set-maintenance-mode',
+  // 2026-11-20 — GÜVENLİ MOD kapat (POST /api/maintenance/error-lock/clear, SERVICEMAN+)
+  SettingsClearMaintenanceErrorLock: 'settings:clear-maintenance-error-lock',
   // Bakım modu kuralları — hatırlatmada DEVAM ET + min süre / hatırlatma / otomatik kapanma (PUT ADMIN+)
   SettingsContinueMaintenance: 'settings:continue-maintenance',
   SettingsGetMaintenanceRules: 'settings:get-maintenance-rules',
@@ -196,6 +199,8 @@ export const IpcInvoke = {
   // İnternet erişimi (EXCEL 37) — son durum / şimdi kontrol et
   SystemGetInternetStatus: 'system:get-internet-status',
   SystemCheckInternetNow: 'system:check-internet-now',
+  // 2026-11-20 — hızlı menü PC KAPAT / YENİDEN BAŞLAT (demo / geliştirmede çalıştırılmaz)
+  SystemPcPower: 'system:pc-power',
 } as const
 
 // send (main → renderer, push)

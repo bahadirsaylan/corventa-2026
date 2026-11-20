@@ -34,6 +34,9 @@
 .ctrlHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
 .ctrlLabel { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text); }
 .ctrlBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* 2026-11-20 — pnömatik İLERİ / GERİ / DUR */
+.pneuControls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.ctrlBtns3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .onBtn, .offBtn {
   min-height: 44px; padding: 4px 8px; border-radius: 8px; cursor: pointer;
   font-size: 13px; font-weight: 800; letter-spacing: 0.05em;

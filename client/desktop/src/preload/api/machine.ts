@@ -68,6 +68,8 @@ export const machineApi = {
   // Fan / alarm aç-kapat (MAKİNE DEĞERLERİ sayfası, SÜPERADMİN)
   setFan: (on: boolean): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.SetFan, on),
   setAlarm: (on: boolean): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.SetAlarm, on),
+  // 2026-11-20 — acil stop / encoder durması uyarısında sireni sustur (güvenlik düzelince kendiliğinden kalkar)
+  muteAlarm: (): Promise<unknown> => ipcRenderer.invoke(Ipc.IpcInvoke.MuteAlarm),
 
   sendCommand: (command: unknown): Promise<unknown> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SendMachineCommand, command),

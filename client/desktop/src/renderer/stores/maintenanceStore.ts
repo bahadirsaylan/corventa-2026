@@ -198,6 +198,13 @@ export async function markMaintenancePeriodCompleted(period: MaintenancePeriodKe
   return updated
 }
 
+/** 2026-11-20 — GÜVENLİ MOD'u kapat (SERVICEMAN+). Hata fırlatır. */
+export async function clearMaintenanceErrorLock(): Promise<MaintenanceState> {
+  const updated = await window.corventa.settings.clearMaintenanceErrorLock()
+  applyMaintenanceState(updated)
+  return updated
+}
+
 /** Bakım modunu aç/kapat (POST /api/maintenance/mode). Hata fırlatır. */
 export async function setMaintenanceModeOn(on: boolean): Promise<MaintenanceState> {
   const updated = await window.corventa.settings.setMaintenanceMode(on)

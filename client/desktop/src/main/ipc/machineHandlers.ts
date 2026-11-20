@@ -110,6 +110,11 @@ export function registerMachineHandlers(): void {
     return engineApi.setAlarm(!!on)
   })
 
+  ipcMain.handle(Ipc.IpcInvoke.MuteAlarm, async () => {
+    log.info('mute alarm')
+    return engineApi.muteAlarm()
+  })
+
   ipcMain.handle(Ipc.IpcInvoke.SendMachineCommand, async (_evt, command: unknown) => {
     // Generic fallback — gelecekteki yeni komutlar için
     log.warn('Generic SendMachineCommand not implemented', { command })

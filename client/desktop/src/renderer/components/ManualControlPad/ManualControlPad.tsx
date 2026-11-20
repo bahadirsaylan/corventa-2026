@@ -12,9 +12,9 @@
 // Hedef gönderme (2026-11-19): piston hapındaki değere (ÜST 0.0 …) dokununca PistonTargetModal açılır —
 // KONUMA GİT (mm) / BASINÇLA İT (bar). Tuş takımına yeni bölüm eklenmedi; tek iz değerin noktalı alt çizgisi.
 //
-// Yan dayama tuş eşleşmesi (2026-11-20 kullanıcı düzeltmesi): dikey çift = MAKARA, yatay çift = GÖVDE, eğik çift = MAFSAL.
-//   (Önceden yatay = MAFSAL, eğik = GÖVDE yazıyordu ama yatay tuş fiziksel GÖVDE'yi sürüyordu — IO listesinde ikisi ters;
-//   PLC eşlemesi backend Core/Models/SideSupportPlcMap.) Tuşun sürdüğü silindir değişmedi, sadece adı + cetveli doğru.
+// Yan dayama tuş eşleşmesi (2026-11-20 öğleden sonra, kullanıcı makinede doğruladı): dikey çift = MAKARA, yatay çift = MAFSAL,
+//   eğik çift = GÖVDE — PLC adlarıyla aynı (sabahki ters eşleme geri alındı; tuşların sürdüğü silindir hiç değişmedi).
+// Hız (2026-11-20): üstteki kutu ROTASYON HIZI, tuş takımının altındaki kutu PİSTON (hareket) HIZI — ayrı ayrı.
 // Yan dayama konumu (2026-11-20): etiketteki cetvel değerine dokununca SideSupportTargetModal (KONUMA GÖNDER).
 
 import { memo, useCallback, useState } from 'react'
@@ -25,7 +25,7 @@ import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useT } from '@/i18n'
 import { Icon } from '@/components/Icon'
 import { useHoldAction } from './useHoldAction'
-import { readManualSpeed } from '@/services/operatorPrefs'
+import { readManualRotationSpeed, readManualSpeed } from '@/services/operatorPrefs'
 import { pistonAxis } from '@/services/macroAxes'
 import { useMacroRecorderStore } from '@/stores/macroRecorderStore'
 import PistonTargetModal from './PistonTargetModal'
@@ -46,7 +46,8 @@ function ManualControlPad() {
   const locked = LOCK_DURING_BENDING && bendingActive
   const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
-  const [speed, setSpeed] = useState(readManualSpeed)
+  const [speed, setSpeed] = useState(readManualSpeed) // piston (hareket) hızı
+  const [rotSpeed, setRotSpeed] = useState(readManualRotationSpeed)
   const [motorBusy, setMotorBusy] = useState(false)
   const [targetPiston, setTargetPiston] = useState<PistonName | null>(null)
   const [sideTarget, setSideTarget] = useState<{ side: SideSupportSide; type: SideSupportType } | null>(null)
@@ -86,12 +87,12 @@ function ManualControlPad() {
       <SideBtn side="left" type="reel" dir={-1} arrow={90} cls={styles.lReelBwd} />
       <div className={`${styles.link} ${styles.lReelLink}`} />
 
-      <SideBtn side="left" type="body" dir={-1} arrow={180} label={t('GÖVDE')} cls={styles.lJointBwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="left" type="body" dir={1} arrow={0} cls={styles.lJointFwd} />
+      <SideBtn side="left" type="joint" dir={-1} arrow={180} label={t('MAFSAL')} cls={styles.lJointBwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="joint" dir={1} arrow={0} cls={styles.lJointFwd} />
       <div className={`${styles.link} ${styles.lJointLink}`} />
 
-      <SideBtn side="left" type="joint" dir={1} arrow={-70} label={t('MAFSAL')} cls={styles.lBodyFwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="left" type="joint" dir={-1} arrow={110} cls={styles.lBodyBwd} />
+      <SideBtn side="left" type="body" dir={1} arrow={-70} label={t('GÖVDE')} cls={styles.lBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="left" type="body" dir={-1} arrow={110} cls={styles.lBodyBwd} />
       <div className={`${styles.link} ${styles.lBodyLink}`} />
 
       {/* ── Sağ yan dayamalar (ayna) ──────────────── */}
@@ -99,43 +100,21 @@ function ManualControlPad() {
       <SideBtn side="right" type="reel" dir={-1} arrow={90} cls={styles.rReelBwd} />
       <div className={`${styles.link} ${styles.rReelLink}`} />
 
-      <SideBtn side="right" type="body" dir={1} arrow={180} cls={styles.rJointFwd} />
-      <SideBtn side="right" type="body" dir={-1} arrow={0} label={t('GÖVDE')} cls={styles.rJointBwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="right" type="joint" dir={1} arrow={180} cls={styles.rJointFwd} />
+      <SideBtn side="right" type="joint" dir={-1} arrow={0} label={t('MAFSAL')} cls={styles.rJointBwd} onOpenTarget={setSideTarget} />
       <div className={`${styles.link} ${styles.rJointLink}`} />
 
-      <SideBtn side="right" type="joint" dir={1} arrow={-110} label={t('MAFSAL')} cls={styles.rBodyFwd} onOpenTarget={setSideTarget} />
-      <SideBtn side="right" type="joint" dir={-1} arrow={70} cls={styles.rBodyBwd} />
+      <SideBtn side="right" type="body" dir={1} arrow={-110} label={t('GÖVDE')} cls={styles.rBodyFwd} onOpenTarget={setSideTarget} />
+      <SideBtn side="right" type="body" dir={-1} arrow={70} cls={styles.rBodyBwd} />
       <div className={`${styles.link} ${styles.rBodyLink}`} />
 
-      {/* ── Hız − / + ─────────────────────────────── */}
-      <div className={styles.speed}>
-        <button
-          type="button"
-          className={styles.speedBtn}
-          disabled={locked || speed <= SPEED_MIN}
-          onClick={() => setSpeed((v) => Math.max(SPEED_MIN, v - SPEED_STEP))}
-          aria-label={t('Hızı azalt')}
-        >
-          <Icon name="minus" size="xl" />
-        </button>
-        <div className={styles.speedValue}>
-          <span className={styles.speedPct}>%{speed}</span>
-          <span className={styles.speedLabel}>{t('MANUEL HIZ')}</span>
-        </div>
-        <button
-          type="button"
-          className={styles.speedBtn}
-          disabled={locked || speed >= SPEED_MAX}
-          onClick={() => setSpeed((v) => Math.min(SPEED_MAX, v + SPEED_STEP))}
-          aria-label={t('Hızı artır')}
-        >
-          <Icon name="plus" size="xl" />
-        </button>
-      </div>
+      {/* ── Hız − / + : üstte ROTASYON, altta PİSTON (2026-11-20) ── */}
+      <SpeedBox value={rotSpeed} onChange={setRotSpeed} label={t('ROTASYON HIZI')} cls={styles.speedTop} locked={locked} />
+      <SpeedBox value={speed} onChange={setSpeed} label={t('PİSTON HIZI')} cls={styles.speedBottom} locked={locked} />
 
       {/* ── Rotasyon ──────────────────────────────── */}
-      <RotationBtn dir={1} speed={speed} locked={locked} cls={styles.rotCw} label="ROTASYON CW" />
-      <RotationBtn dir={-1} speed={speed} locked={locked} cls={styles.rotCcw} label="ROTASYON CCW" />
+      <RotationBtn dir={1} speed={rotSpeed} locked={locked} cls={styles.rotCw} label="ROTASYON CW" />
+      <RotationBtn dir={-1} speed={rotSpeed} locked={locked} cls={styles.rotCcw} label="ROTASYON CCW" />
 
       {/* ── Pistonlar ─────────────────────────────── */}
       {/* Backend polaritesi: -1 ileri (parçaya), +1 geri.
@@ -342,7 +321,7 @@ function PistonPill(p: PistonPillProps) {
         aria-label={t('{name} HEDEF GÖNDER', { name: t(p.title) })}
       >
         <span className={styles.pillTitle}>{t(p.title)}</span>
-        <span className={styles.pillValue}>{p.value.toFixed(1)}</span>
+        <span className={styles.pillValue}>{p.value.toFixed(2)}</span>
       </button>
       <PistonHalf piston={p.piston} dir={p.bottomDir} arrow={p.bottomArrow} speed={p.speed} locked={p.locked} pos="bottom" />
     </div>
@@ -388,3 +367,40 @@ function PistonHalf({ piston, dir, arrow, speed, locked, pos }: PistonHalfProps)
 
 // Prop'suz bileşen — üst panel (ControlPanel) başlık değerleri yüzünden yeniden çizilince tuş takımı çizilmesin.
 export default memo(ManualControlPad)
+
+/** Hız − / + kutusu (2026-11-20: rotasyon ve piston ayrı) */
+function SpeedBox({ value, onChange, label, cls, locked }: {
+  value: number
+  onChange: (fn: (v: number) => number) => void
+  label: string
+  cls: string
+  locked: boolean
+}) {
+  const t = useT()
+  return (
+    <div className={`${styles.speed} ${cls}`}>
+      <button
+        type="button"
+        className={styles.speedBtn}
+        disabled={locked || value <= SPEED_MIN}
+        onClick={() => onChange((v) => Math.max(SPEED_MIN, v - SPEED_STEP))}
+        aria-label={t('Hızı azalt')}
+      >
+        <Icon name="minus" size="xl" />
+      </button>
+      <div className={styles.speedValue}>
+        <span className={styles.speedPct}>%{value}</span>
+        <span className={styles.speedLabel}>{label}</span>
+      </div>
+      <button
+        type="button"
+        className={styles.speedBtn}
+        disabled={locked || value >= SPEED_MAX}
+        onClick={() => onChange((v) => Math.min(SPEED_MAX, v + SPEED_STEP))}
+        aria-label={t('Hızı artır')}
+      >
+        <Icon name="plus" size="xl" />
+      </button>
+    </div>
+  )
+}

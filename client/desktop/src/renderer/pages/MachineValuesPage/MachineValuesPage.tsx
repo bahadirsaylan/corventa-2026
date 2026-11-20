@@ -237,8 +237,9 @@ function flatten(obj: unknown, prefix = '', out: [string, unknown][] = []): [str
   return out
 }
 
+// 2026-11-20: yuvarlanmış gibi görünmesin — her zaman sabit hane (0.00)
 function fmtNum(v: number, digits: number): string {
-  return Number.isInteger(v) ? String(v) : v.toFixed(digits)
+  return v.toFixed(digits)
 }
 
 function fmtTime(iso: string): string {
@@ -369,6 +370,7 @@ export default function MachineValuesPage() {
               <Section title={t('ROTASYON')} fields={ROTATION_FIELDS} state={state} />
               <div className={styles.sectionTitle}>{t('PNÖMATİKLER')}</div>
               <ObjectTable state={state} objects={PNEUMATICS} rows={PNEUMATIC_ROWS} />
+              <PneumaticControls state={state} />
             </>
           )}
           {tab === 'ÖLÇÜM SENSÖRLERİ' && <MeasureTab state={state} />}
@@ -453,6 +455,63 @@ function Controls({ state }: { state: MachineState }) {
           {error ? `${t('KOMUT GÖNDERİLEMEDİ')}: ${error}` : t('BÜKÜM DEVAM EDİYOR — SADECE MOTOR DURDURMA SERBEST')}
         </p>
       )}
+    </>
+  )
+}
+
+// ── pnömatik İLERİ / GERİ / DUR (2026-11-20) ────────────────
+// Tıkla-başlat: İLERİ / GERİ komutu pnömatiği o yöne sürer, DUR keser (backend /api/pneumatic/{side}/control + stop).
+function PneumaticControls({ state }: { state: MachineState }) {
+  const t = useT()
+  const bendingActive = useBendingActive()
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const m = window.corventa.machine
+
+  async function send(key: string, fn: () => Promise<unknown>) {
+    if (busy) return
+    setBusy(key)
+    setError(null)
+    try {
+      await fn()
+    } catch (e) {
+      setError(tp(e instanceof Error ? e.message : String(e)))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const sides = [
+    { side: 'left' as const, label: 'SOL PNÖMATİK', dir: state.leftPneumatic?.activeDirection ?? 0 },
+    { side: 'right' as const, label: 'SAĞ PNÖMATİK', dir: state.rightPneumatic?.activeDirection ?? 0 },
+  ]
+  return (
+    <>
+      <div className={styles.pneuControls}>
+        {sides.map((s) => (
+          <div key={s.side} className={styles.ctrlCard}>
+            <div className={styles.ctrlHead}>
+              <span className={styles.ctrlLabel}>{t(s.label)}</span>
+              <Value shown={show(s.dir, 'pneuDir', t)} />
+            </div>
+            <div className={styles.ctrlBtns3}>
+              <button type="button" className={styles.onBtn} disabled={bendingActive || busy != null}
+                onClick={() => void send(s.side + 'f', () => m.pneumaticControl({ side: s.side, direction: 1 }))}>
+                {t('İLERİ')}
+              </button>
+              <button type="button" className={styles.onBtn} disabled={bendingActive || busy != null}
+                onClick={() => void send(s.side + 'b', () => m.pneumaticControl({ side: s.side, direction: -1 }))}>
+                {t('GERİ')}
+              </button>
+              <button type="button" className={styles.offBtn} disabled={busy != null}
+                onClick={() => void send(s.side + 's', () => m.pneumaticStop(s.side))}>
+                {t('DUR')}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {error && <p className={styles.message} data-kind="err">{`${t('KOMUT GÖNDERİLEMEDİ')}: ${error}`}</p>}
     </>
   )
 }

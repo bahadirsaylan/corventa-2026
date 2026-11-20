@@ -54,6 +54,10 @@ export const settingsApi = {
   setMaintenanceMode: (on: boolean): Promise<MaintenanceState> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsSetMaintenanceMode, on),
 
+  // 2026-11-20 — GÜVENLİ MOD'u kapat (SERVICEMAN+)
+  clearMaintenanceErrorLock: (): Promise<MaintenanceState> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SettingsClearMaintenanceErrorLock),
+
   // Bakım modu hatırlatması — DEVAM ET (mod kapalıysa reject)
   continueMaintenanceMode: (): Promise<MaintenanceState> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SettingsContinueMaintenance),

@@ -54,7 +54,7 @@ interface Props {
 }
 
 function fmt(v: number): string {
-  return v.toFixed(1);
+  return v.toFixed(2); // 2026-11-20: piston konumu 0.00
 }
 
 export default function PistonTargetModal({

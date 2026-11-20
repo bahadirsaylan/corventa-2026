@@ -465,6 +465,11 @@ export class EngineApiClient {
   setAlarm(on: boolean): Promise<unknown> {
     return http.post(`${this.baseUrl}/api/machine/alarm`, { value: on })
   }
+
+  // 2026-11-20 — ALARMI SESSİZE AL (PLC nCmdAlarm=2; güvenlik düzelince backend 0'a çeker)
+  muteAlarm(): Promise<unknown> {
+    return http.post(`${this.baseUrl}/api/machine/alarm/mute`, {})
+  }
 }
 
 // Tahliye HTTP timeout'u — backend'in en kötü toplamının (UnloadPartHandler: DataApi kontrolü 30sn +

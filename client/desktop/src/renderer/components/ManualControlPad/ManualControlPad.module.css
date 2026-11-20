@@ -112,7 +112,6 @@
 .speed {
   position: absolute;
   left: 400px;
-  top: 18px;
   width: 240px;
   height: 64px;
   display: flex;
@@ -169,6 +168,10 @@
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
 }
+
+/* 2026-11-20: üstte ROTASYON HIZI, tuş takımının altında PİSTON HIZI */
+.speedTop { top: 18px; }
+.speedBottom { top: 548px; }
 
 /* ── Rotasyon (büyük daire) ─────────────────── */
 .rotBtn {

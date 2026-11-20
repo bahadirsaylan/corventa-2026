@@ -6,6 +6,7 @@ import BottomStatsPanel from '@/components/BottomStatsPanel/BottomStatsPanel'
 import KioskExitCorner from '@/components/KioskExitCorner/KioskExitCorner'
 import SideMenu from '@/components/SideMenu/SideMenu'
 import AlertQueueHost from '@/components/AlertQueue/AlertQueueHost'
+import AlarmMuteButton from '@/components/AlarmMuteButton/AlarmMuteButton'
 import MaintenanceModeScreen from '@/components/MaintenanceModeScreen/MaintenanceModeScreen'
 import { startMaintenancePoller, useMaintenanceStore } from '@/stores/maintenanceStore'
 import { startBendingActivityPoller, useBendingActive, useBendingActivityStore } from '@/stores/bendingActivityStore'
@@ -187,6 +188,9 @@ export default function AppLayout() {
           yağ kirlilik > bakım uyarısı / kilidi > bakım modu hatırlatması > otomatik kapatıldı bilgisi > karşılama.
           Büküm sürerken / büküm modalı açıkken / alarm-tahliye ekranlarında beklerler (AlertQueueHost). */}
       <AlertQueueHost />
+
+      {/* 2026-11-20 — alarm çalarken ALARMI SESSİZE AL (acil stop / encoder durması / arıza uyarıları) */}
+      <AlarmMuteButton />
     </div>
   )
 }

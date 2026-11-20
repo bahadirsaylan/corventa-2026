@@ -167,6 +167,29 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'AÇIK' },
             ],
           },
+          // 2026-11-20 — aynı hata tekrarlarsa GÜVENLİ MOD (bakım kilidi)
+          {
+            type: 'select',
+            key: 'errorRepeatLockEnabled',
+            label: 'HATA TEKRARINDA GÜVENLİ MOD',
+            desc: 'AÇIK: aynı hata / uyarı belirtilen sürede belirtilen sayıda tekrarlarsa bakım kilidi açılır; servis yetkilisi kapatana kadar büküm başlatılamaz.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
+          { key: 'errorRepeatLockCount', label: 'TEKRAR SAYISI', min: 2, max: 20, integer: true },
+          { key: 'errorRepeatLockWindowHours', label: 'TEKRAR SÜRESİ', unit: 'saat', min: 1, max: 168, integer: true },
+          {
+            type: 'select',
+            key: 'errorRepeatLockCountEmergencyStop',
+            label: 'ACİL STOP DA SAYILSIN',
+            desc: 'KAPALI: operatörün bastığı acil stop sayılmaz (arıza değil).',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
         ],
       },
     ],
@@ -212,7 +235,20 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           { key: 'sideSupportGonyeRetractTimeoutS', label: 'GÖNYE GERİ ÇEKME SÜRE SINIRI', unit: 'sn', min: 3, max: 120, integer: true },
-          { key: 'sideSupportGonyeRetractNoRulerSec', label: 'CETVELSİZ GERİ ÇEKME SÜRESİ', unit: 'sn', min: 1, max: 60, integer: true, desc: 'Cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.' },
+          { key: 'sideSupportGonyeRetractNoRulerSec', label: 'CETVELSİZ GERİ ÇEKME SÜRESİ', unit: 'sn', min: 1, max: 60, integer: true, desc: 'Sadece geri sınır KAPALI ve ofset 0 iken: cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.' },
+          // 2026-11-20 — yan dayamalar mekanik en geriye inmez
+          {
+            type: 'select',
+            key: 'sideSupportBackLimitEnabled',
+            label: 'YAN DAYAMA GERİ SINIRI',
+            desc: 'AÇIK: yan dayamalar sınırın gerisine gitmez (jog durur, konum reddedilir, gönyede sınıra çekilir). Sınır = bu değer veya o yan dayamanın ofseti (büyük olan).',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
+          { key: 'sideSupportBackLimitMm', label: 'GERİ SINIR (EN GERİDEN)', unit: 'mm', min: 0, max: 50, desc: 'Kalibre cetvelde mekanik en geriden mesafe. Varsayılan 5 mm.' },
+          { key: 'sideSupportBackLimitMarginMm', label: 'GERİ SINIR DURMA PAYI', unit: 'mm', min: 0, max: 30, desc: 'Elle geri sürerken sınırın bu kadar önünde durdurulur (okuma gecikmesi + kayma). Sınırın gerisine geçiyorsa büyütün.' },
         ],
       },
       {

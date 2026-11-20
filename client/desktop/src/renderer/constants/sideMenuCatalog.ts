@@ -4,22 +4,25 @@
 //   fixed: true          → kapatılamaz (her zaman menüde, sadece sırası değişir)
 //   defaultEnabled: true → kullanıcının kaydı yoksa menüde görünür
 //   lockWhileBending     → otomatik büküm sürerken pasif
+//   pinBottom            → (2026-11-20) her zaman EN ALTTA (PC YENİDEN BAŞLAT / PC KAPAT)
 
-export type SideMenuItemId = 'new-bending' | 'home' | 'service' | 'settings' | 'logout'
+export type SideMenuItemId = 'new-bending' | 'home' | 'service' | 'settings' | 'logout' | 'pc-restart' | 'pc-shutdown'
 
 export type SideMenuAction =
   | { type: 'route'; to: string }
   | { type: 'new-bending' }
   | { type: 'logout' }
+  | { type: 'pc-power'; power: 'restart' | 'shutdown' }
 
 export interface SideMenuCatalogItem {
   id: SideMenuItemId
   label: string
-  icon: 'plus' | 'home' | 'service' | 'gear' | 'logout'
+  icon: 'plus' | 'home' | 'service' | 'gear' | 'logout' | 'restart' | 'power'
   action: SideMenuAction
   fixed?: boolean
   defaultEnabled?: boolean
   lockWhileBending?: boolean
+  pinBottom?: boolean
 }
 
 export const SIDE_MENU_CATALOG: SideMenuCatalogItem[] = [
@@ -28,6 +31,9 @@ export const SIDE_MENU_CATALOG: SideMenuCatalogItem[] = [
   { id: 'service', label: 'SERVİS', icon: 'service', action: { type: 'route', to: '/service' }, defaultEnabled: true },
   { id: 'settings', label: 'AYARLAR', icon: 'gear', action: { type: 'route', to: '/settings' } },
   { id: 'logout', label: 'OTURUMU KAPAT', icon: 'logout', action: { type: 'logout' }, fixed: true, defaultEnabled: true, lockWhileBending: true },
+  // 2026-11-20 — kaldırılamaz, her zaman en altta (onay penceresiyle; önce hidrolik motor durdurulur)
+  { id: 'pc-restart', label: 'PC YENİDEN BAŞLAT', icon: 'restart', action: { type: 'pc-power', power: 'restart' }, fixed: true, defaultEnabled: true, lockWhileBending: true, pinBottom: true },
+  { id: 'pc-shutdown', label: 'PC KAPAT', icon: 'power', action: { type: 'pc-power', power: 'shutdown' }, fixed: true, defaultEnabled: true, lockWhileBending: true, pinBottom: true },
 ]
 
 export const SIDE_MENU_PREF_KEY = 'side-menu'
@@ -54,7 +60,9 @@ export function normalizeSideMenuOrder(ids: unknown): SideMenuItemId[] {
   for (const item of SIDE_MENU_CATALOG) {
     if (item.fixed && !out.includes(item.id)) out.push(item.id)
   }
-  return out
+  // en alta sabitlenenler her zaman sonda (katalog sırasıyla)
+  const bottom = SIDE_MENU_CATALOG.filter((i) => i.pinBottom).map((i) => i.id)
+  return [...out.filter((id) => !bottom.includes(id)), ...bottom]
 }
 
 /** DB'de saklanan JSON biçimi */

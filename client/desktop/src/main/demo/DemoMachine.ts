@@ -1675,7 +1675,7 @@ export class DemoMachine extends EventEmitter {
     if (path === '/api/preparation/gonye') {
       // 2026-11-19 GÜVENLİ GÖNYE — her gönye güvenli (demoSafeGonye.ts; 409 onay / 403 yetki / 400 engel)
       // 2026-11-20: yan dayamalar önce en geriye (ayar SideSupportGonyeRetractEnabled)
-      if (this.machineSettings.sideSupportGonyeRetractEnabled !== false) this.sideRulers.retractAll()
+      if (this.machineSettings.sideSupportGonyeRetractEnabled !== false) this.sideRulers.retractAll(this.machineSettings)
       return this.safeGonye.run(rawUrl, b)
     }
 
@@ -1882,6 +1882,12 @@ export class DemoMachine extends EventEmitter {
     }
     if (path === '/api/machine/alarm') {
       this.state.alarmActive = !!b.value
+      this.state.alarmMuted = false
+      return ok
+    }
+    if (path === '/api/machine/alarm/mute') {
+      this.state.alarmActive = false
+      this.state.alarmMuted = true
       return ok
     }
     if ((m = /^\/api\/pneumatic\/(left|right)\/(control|forward|backward|stop)$/.exec(path))) {

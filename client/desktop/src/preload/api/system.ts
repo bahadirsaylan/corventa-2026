@@ -25,6 +25,10 @@ export const systemApi = {
     ipcRenderer.invoke(Ipc.IpcInvoke.DemoWindowZoom, action),
 
   // İnternet erişimi (EXCEL 37) — son durum / hemen kontrol (değişimler events.onInternetStatusChanged ile gelir)
+  // 2026-11-20 — PC KAPAT / YENİDEN BAŞLAT (sadece paketli + demo değil; aksi halde simulated: true)
+  pcPower: (power: 'restart' | 'shutdown'): Promise<{ ok: boolean; simulated?: boolean; error?: string }> =>
+    ipcRenderer.invoke(Ipc.IpcInvoke.SystemPcPower, power),
+
   getInternetStatus: (): Promise<InternetStatus> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.SystemGetInternetStatus),
   checkInternetNow: (): Promise<InternetStatus> =>

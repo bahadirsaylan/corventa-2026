@@ -168,6 +168,18 @@ export function saveManualSpeed(v: number): void {
   write(MANUAL_SPEED_KEY, JSON.stringify(v))
 }
 
+// 2026-11-20 — tuş takımında rotasyon hızı ayrı (kayıt yoksa piston başlangıç hızı)
+const MANUAL_ROT_SPEED_KEY = 'corventa.manualRotationSpeed'
+
+export function readManualRotationSpeed(): number {
+  const v = Number(readJson(MANUAL_ROT_SPEED_KEY))
+  return Number.isFinite(v) && v >= MANUAL_SPEED.min && v <= MANUAL_SPEED.max ? v : readManualSpeed()
+}
+
+export function saveManualRotationSpeed(v: number): void {
+  write(MANUAL_ROT_SPEED_KEY, JSON.stringify(v))
+}
+
 // ── Ölçü ekranı ön doldurma: H (kıvrım hızı %) ve G (adım mm) ────
 // H YÜZDE (%1..%100): %100 = makine ayarlarındaki en yüksek hız. Değer sadece işe kaydedilir
 // (profileH / kivrimHizMetreDakika alan adları geriye uyum için aynı kaldı), hareketi etkilemez.

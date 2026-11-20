@@ -1,6 +1,7 @@
 // Sistem yardımcı IPC handler'ları — PDF açma vb.
 
 import { app, ipcMain, shell } from 'electron'
+import { spawn } from 'child_process'
 import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
@@ -37,6 +38,23 @@ export function registerSystemHandlers(): void {
     if (!demoWindowFitActive()) return null
     if (action === 'in' || action === 'out' || action === 'reset') return changeDemoZoom(action)
     return currentDemoZoomPercent()
+  })
+
+  // 2026-11-20 — PC KAPAT / YENİDEN BAŞLAT (hızlı menü). Demo / geliştirme (paketsiz) → çalıştırılmaz (simulated).
+  ipcMain.handle(Ipc.IpcInvoke.SystemPcPower, async (_evt, power: unknown) => {
+    if (power !== 'restart' && power !== 'shutdown') return { ok: false, error: 'Geçersiz işlem' }
+    if (IS_DEMO || !app.isPackaged || process.platform !== 'win32') {
+      log.info('pc power simulated', { power, demo: IS_DEMO, packaged: app.isPackaged })
+      return { ok: true, simulated: true }
+    }
+    try {
+      log.warn('PC power', { power })
+      const child = spawn('shutdown', [power === 'shutdown' ? '/s' : '/r', '/t', '0'], { detached: true, stdio: 'ignore', windowsHide: true })
+      child.unref()
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: (err as Error).message }
+    }
   })
 
   // İnternet erişimi (EXCEL 37) — son bilinen durum / şimdi kontrol et (Google generate_204)
