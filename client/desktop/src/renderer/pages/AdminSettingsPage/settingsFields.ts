@@ -76,6 +76,18 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'BÜKÜMÜ DURDUR' },
             ],
           },
+          // 2026-11-20 — alarm davranışı
+          { key: 'bendingEndAlarmSeconds', label: 'BÜKÜM SONU ALARM SÜRESİ', unit: 'sn', min: 0, max: 10, integer: true, desc: 'Büküm bitince (başarılı / başarısız) alarm bu kadar çalar. 0 = kapalı. Operatör iptalinde çalmaz.' },
+          {
+            type: 'select',
+            key: 'alarmAutoOffOnUnload',
+            label: 'TAHLİYEDE ALARMI KAPAT',
+            desc: 'Sıkıştırma / encoder durması / basınç düşüşü alarmı tahliye veya yeni büküm başlayınca kapanır. Fiziksel acil stop alarmı etkilenmez.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
           // 2026-11-19: eşiğe ULAŞINCA (≥) uyarı; alt sınır 0 — soğuk yağda da denenebilsin
           { key: 'oilTempWarnC', label: 'YAĞ SICAKLIĞI UYARI EŞİĞİ', unit: '°C', min: 0, max: 100, integer: true, desc: 'Yağ sıcaklığı bu değere ulaşınca alt şeritte uyarı çıkar.' },
           { key: 'oilTempBlockC', label: 'YAĞ SICAKLIĞI ENGEL EŞİĞİ', unit: '°C', min: 20, max: 110, integer: true, desc: 'Uyarı eşiğinden küçük olamaz. Büküm engeli sadece aşağıda ENGELLE seçiliyse uygulanır.' },

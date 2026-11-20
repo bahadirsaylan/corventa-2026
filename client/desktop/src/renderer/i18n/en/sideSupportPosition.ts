@@ -37,6 +37,15 @@ const en: Record<string, string> = {
   'CETVELSİZ GERİ ÇEKME SÜRESİ': 'RETRACT TIME WITHOUT RULERS',
   'Cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.': 'If the rulers cannot be read the side supports are driven back for this long.',
 
+  // ── Alarm (2026-11-20) ──
+  'BÜKÜM SONU ALARM SÜRESİ': 'END OF BENDING ALARM TIME',
+  'Büküm bitince (başarılı / başarısız) alarm bu kadar çalar. 0 = kapalı. Operatör iptalinde çalmaz.':
+    'When bending ends (success / failure) the alarm sounds this long. 0 = off. Not on operator cancel.',
+  'TAHLİYEDE ALARMI KAPAT': 'TURN ALARM OFF ON UNLOAD',
+  'Sıkıştırma / encoder durması / basınç düşüşü alarmı tahliye veya yeni büküm başlayınca kapanır. Fiziksel acil stop alarmı etkilenmez.':
+    'The clamping / encoder stall / pressure drop alarm turns off when unloading or a new bending starts. The physical emergency stop alarm is not affected.',
+  'Büküm sonu alarm süresi 0-10 sn arası olmalı': 'End of bending alarm time must be between 0 and 10 s',
+
   // ── Backend mesajları ──
   "YAN DAYAMA KONUM KONTROLÜ PLC'DE YOK — PLC programını güncelleyin (PLC/YAN_DAYAMA_KONUM_YUKLEME.md). Elle (jog) çalışır.":
     'SIDE SUPPORT POSITION CONTROL IS NOT IN THE PLC — update the PLC program (PLC/YAN_DAYAMA_KONUM_YUKLEME.md). Manual (jog) works.',

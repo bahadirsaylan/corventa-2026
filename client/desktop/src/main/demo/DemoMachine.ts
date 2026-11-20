@@ -95,6 +95,7 @@ const DEMO_MACHINE_SETTINGS = {
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   sideSupportPosTolMm: 0.5, sideSupportPosLeadMm: 1, sideSupportPosHoldMm: 2, sideSupportPosTimeoutS: 20,
   sideSupportGonyeRetractEnabled: true, sideSupportGonyeRetractTimeoutS: 20, sideSupportGonyeRetractNoRulerSec: 8,
+  bendingEndAlarmSeconds: 2, alarmAutoOffOnUnload: true,
   centerDistanceMiddleRadiusMm: 300, upperLowerCenterDistanceMm: 488, clampOverpressMm: 0.1,
   defaultThetaDeg: 63, defaultXA1: -465, defaultYA1: 0,
   slpisZeroOffsetMm: 0, slpisLMm: 70, slpisRulmanCapMm: 35,
