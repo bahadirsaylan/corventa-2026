@@ -91,6 +91,8 @@ const DEMO_MACHINE_SETTINGS = {
   arcSlackDistanceMm: 0.1, arcSlackPressureBar: 157, arcAdaptiveInitialSlackDistanceMm: null,
   defaultClampPressureBar: 150, defaultBallDiameterMm: 220, defaultCenterDistanceMm: 300.82,
   upperBallDiameterMm: 220, lowerBallDiameterMm: 220, leftBallDiameterMm: 220, rightBallDiameterMm: 220,
+  upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
+  rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   centerDistanceMiddleRadiusMm: 300, upperLowerCenterDistanceMm: 488, clampOverpressMm: 0.1,
   defaultThetaDeg: 63, defaultXA1: -465, defaultYA1: 0,
   slpisZeroOffsetMm: 0, slpisLMm: 70, slpisRulmanCapMm: 35,

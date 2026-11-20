@@ -37,6 +37,7 @@ export default function RollArrangementPage() {
   const stage = useEarlyStage()
 
   function confirm() {
+    if (stage.phase === 'blocked') return
     stage.startNowIfPending()
     setParams({ rollArrangementConfirmed: true })
     navigate('/bending/ai/part-loading')
@@ -54,7 +55,11 @@ export default function RollArrangementPage() {
             : t('STAGE KONTROL EDİLİYOR…')}
         </p>
       )}
-      <p className={styles.hint}>{t('VALS TOPLARINI GÖRSELDEKİ GİBİ DİZİP ONAYLAYIN')}</p>
+      {stage.phase === 'blocked' && stage.blockMessage ? (
+        <p className={styles.blockNote} role="alert">{stage.blockMessage}</p>
+      ) : (
+        <p className={styles.hint}>{t('VALS TOPLARINI GÖRSELDEKİ GİBİ DİZİP ONAYLAYIN')}</p>
+      )}
 
       <div className={styles.row}>
         <div className={styles.cell}>
@@ -68,7 +73,7 @@ export default function RollArrangementPage() {
         </div>
       </div>
 
-      <StatusBar backTo={backTo} onConfirm={confirm} />
+      <StatusBar backTo={backTo} onConfirm={confirm} confirmDisabled={stage.phase === 'blocked'} />
 
       {stage.phase === 'countdown' && stage.targetStage != null && (
         <StageMoveCountdown

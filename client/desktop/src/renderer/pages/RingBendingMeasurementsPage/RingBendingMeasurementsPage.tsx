@@ -14,7 +14,7 @@ import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
 import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
-import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm } from '@/services/machineGeometry'
+import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm, loadRollOverlap, rollOverlapMessage, type RollOverlapInfo } from '@/services/machineGeometry'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -64,6 +64,17 @@ export default function RingBendingMeasurementsPage() {
   }, [])
   const setValues = (v: MeasurementValues) => setRawValues(fillHiddenProfileFields(v, visibleFields))
 
+  // 2026-11-20 ÜST-ALT TOP BİNDİRME — A top dış/iç çap farkından küçükse kırmızı uyarı + ONAYLA'da engel
+  const [overlapInfo, setOverlapInfo] = useState<RollOverlapInfo | null>(null)
+  useEffect(() => {
+    let alive = true
+    void loadRollOverlap().then((i) => { if (alive) setOverlapInfo(i) })
+    return () => {
+      alive = false
+    }
+  }, [])
+  const overlapMsg = rollOverlapMessage(overlapInfo, parseFloat(values.A))
+
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
   const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)
 
@@ -74,6 +85,9 @@ export default function RingBendingMeasurementsPage() {
   // Canlı kapasite uyarısı — numpad onayında A/B/R/G değişince aynı checkCapacity çalışır (engellemez,
   // ONAYLA'daki kontrol aynen kalır). Formun altında kırmızı metin olarak gösterilir.
   const [liveCapacityIssues, setLiveCapacityIssues] = useState<CapacityIssue[]>([])
+  const formIssues: CapacityIssue[] = overlapMsg
+    ? [{ severity: 'block', message: overlapMsg }, ...liveCapacityIssues]
+    : liveCapacityIssues
 
   // 2026-11-16 — çap (R) girilince HEDEF KONUM + ADIM SAYISI (G ile) önizlemesi. Sadece gösterim;
   // büküm akışı ONAYLA'da kendi hesabını yapar. A ve R şart, adım sayısı için G ve L de gerekir.
@@ -143,6 +157,7 @@ export default function RingBendingMeasurementsPage() {
   const bendingMode = useBendingJobStore((s) => s.params.bendingMode)
 
   function handleConfirm() {
+    if (overlapMsg) return // bindirme: uyarı formda gösteriliyor
     const check = runCapacityCheck(values)
     if (check.issues.length > 0) {
       setCapacityCheck(check)
@@ -207,7 +222,7 @@ export default function RingBendingMeasurementsPage() {
           onReset={handleReset}
           onConfirm={handleConfirm}
           confirmDisabled={!isComplete(values)}
-          capacityIssues={liveCapacityIssues}
+          capacityIssues={formIssues}
           plan={plan}
         />
       </div>

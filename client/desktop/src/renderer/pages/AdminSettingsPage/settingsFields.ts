@@ -171,9 +171,32 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'lowerBallDiameterMm', label: 'ALT TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Büküm hesabı, sıvama ve sıkıştırma hedefinde kullanılır.' },
           { key: 'leftBallDiameterMm', label: 'SOL TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
           { key: 'rightBallDiameterMm', label: 'SAĞ TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
+          // 2026-11-20 — yukarıdakiler İÇ çap (parça oluk dibine oturur). DIŞ çap = kenar → üst-alt top bindirme kontrolü
+          { key: 'upperBallOuterDiameterMm', label: 'ÜST TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Kenar çapı — sadece bindirme kontrolü. Büküm hesabı iç çapla yapılır.' },
+          { key: 'lowerBallOuterDiameterMm', label: 'ALT TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Kenar çapı — sadece bindirme kontrolü. Büküm hesabı iç çapla yapılır.' },
+          { key: 'leftBallOuterDiameterMm', label: 'SOL TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
+          { key: 'rightBallOuterDiameterMm', label: 'SAĞ TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
           { key: 'defaultCenterDistanceMm', label: 'EKSEN MESAFESİ (NORMAL)', unit: 'mm', min: 1, max: 2000, desc: 'Sol-sağ top arası. Arc Normal / Ters Normal segmentler.' },
           { key: 'centerDistanceMiddleRadiusMm', label: 'EKSEN MESAFESİ (RADIUS ORTADA)', unit: 'mm', min: 1, max: 2000, nullable: true, desc: 'Arc Middle segmentler. Boş = normal eksen mesafesi kullanılır.' },
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },
+        ],
+      },
+      {
+        // 2026-11-20 — üst-alt top kenarları (dış çap) birbirine değer (Core/Models/RollOverlap)
+        title: 'ÜST-ALT TOP BİNDİRME KONTROLÜ',
+        note: 'Açıkken profil A, top dış ve iç çap farkından küçükse büküm başlamaz (220 / 280 toplarda A en az 60 mm); üst / alt top kenarları çarpışacak konum hareketi yapılmaz, ileri jog ve basınç hareketi kenarlar yaklaşınca durdurulur.',
+        fields: [
+          {
+            type: 'select',
+            key: 'rollOverlapCheckEnabled',
+            label: 'BİNDİRME KONTROLÜ',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { key: 'rollOverlapMinClearanceMm', label: 'KENARLAR ARASI EN AZ BOŞLUK', unit: 'mm', min: 0, max: 50, desc: 'Üst ve alt top kenarları arasında bırakılacak pay.' },
+          { key: 'rollOverlapJogMarginMm', label: 'JOG DURDURMA PAYI', unit: 'mm', min: 0, max: 50, desc: 'İleri jog sırasında kenarlar bu kadar yaklaşınca top durur.' },
         ],
       },
       {

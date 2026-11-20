@@ -62,3 +62,12 @@
   letter-spacing: 0.05em;
   color: #b45309;
 }
+
+/* 2026-11-20 — üst-alt top bindirme engeli (hint yerine, aynı yükseklikte) */
+.blockNote {
+  margin: 0;
+  text-align: center;
+  color: #c93235;
+  font-weight: 700;
+  font-size: 15px;
+}

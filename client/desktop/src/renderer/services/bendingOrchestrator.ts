@@ -15,6 +15,7 @@ import { loadLowerBallDiameterMm } from '@/services/machineGeometry'
 import { readApplyProductionTolerance, readProductionToleranceMm } from '@/services/operatorPrefs'
 import type { BendingJob } from '@shared/types'
 import { t } from '@/i18n'
+import { loadRollOverlap, rollOverlapMessage } from '@/services/machineGeometry'
 
 export class BendingOrchestratorError extends Error {
   constructor(
@@ -98,6 +99,11 @@ export async function isAtStage(stage: number): Promise<boolean> {
  * 2026-11-20 — Büküm akışının kullanacağı stage (akışla AYNI kural): elle hedefte (Standart, çember) kayıttaki stage,
  * yoksa profil A'ya göre önerilen stage. Parça yükleme sayfası parçayı koymadan ÖNCE bu stage'e geçmek için kullanır.
  */
+/** Store'daki parametrelerden profil A (mm) — bindirme kontrolü (vals dizilimi ekranı) için. */
+export function currentProfileA(): number {
+  return mapToCreateRequest(useBendingJobStore.getState().params, {}).profileA
+}
+
 export async function resolveTargetStage(opts: OrchestrationOptions = {}): Promise<number> {
   const params = useBendingJobStore.getState().params
   const manualTarget =
@@ -225,6 +231,12 @@ export async function executeBendingFlow(
   } catch (err) {
     if (err instanceof BendingOrchestratorError) throw err
     throw new BendingOrchestratorError('preview', toMessage(err), err)
+  }
+
+  // 2026-11-20 ÜST-ALT TOP BİNDİRME — A çok küçükse stage / sıkıştırma hiç başlamaz (backend StartJob da engeller)
+  {
+    const overlapMsg = rollOverlapMessage(await loadRollOverlap(), createReq.profileA)
+    if (overlapMsg) throw new BendingOrchestratorError('recommend-stage', overlapMsg)
   }
 
   // ---------- Step 3: Recommend stage (opsiyonel) ----------

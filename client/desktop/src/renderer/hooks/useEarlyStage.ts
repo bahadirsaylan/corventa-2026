@@ -7,20 +7,33 @@
 // Parça sensörü BEKLENMEZ (kullanıcı: "koyarsa kendi bilir") — uyarı geri sayım penceresinde.
 
 import { useCallback, useEffect, useState } from 'react'
-import { isAtStage, resolveTargetStage } from '@/services/bendingOrchestrator'
+import { currentProfileA, isAtStage, resolveTargetStage } from '@/services/bendingOrchestrator'
+import { loadRollOverlap, rollOverlapMessage } from '@/services/machineGeometry'
 import { awaitStageReturn, stageMoveAllowed, startStageMove } from '@/services/stageReturn'
 
-export type EarlyStagePhase = 'checking' | 'countdown' | 'moving' | 'ready' | 'deferred'
+// 'blocked' (2026-11-20): üst-alt top BİNDİRİR (profil A < top dış−iç farkı) — stage alınmaz, ONAY kapalı
+export type EarlyStagePhase = 'checking' | 'countdown' | 'moving' | 'ready' | 'deferred' | 'blocked'
 
 export function useEarlyStage() {
   const [phase, setPhase] = useState<EarlyStagePhase>('checking')
   const [targetStage, setTargetStage] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [blockMessage, setBlockMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
     ;(async () => {
       try {
+        let a = 0
+        try { a = currentProfileA() } catch { a = 0 }
+        const overlapMsg = rollOverlapMessage(await loadRollOverlap(), a)
+        if (overlapMsg) {
+          if (alive) {
+            setBlockMessage(overlapMsg)
+            setPhase('blocked')
+          }
+          return
+        }
         await awaitStageReturn() // tahliye sonrası dönüş sürüyorsa önce o bitsin
         const target = await resolveTargetStage()
         if (!alive) return
@@ -56,5 +69,5 @@ export function useEarlyStage() {
     if (phase === 'countdown' && targetStage != null) void run()
   }, [phase, targetStage, run])
   const busy = phase === 'checking' || phase === 'countdown' || phase === 'moving'
-  return { phase, targetStage, error, clearError: () => setError(null), run, cancel, startNowIfPending, busy }
+  return { phase, targetStage, error, clearError: () => setError(null), run, cancel, startNowIfPending, busy, blockMessage }
 }
