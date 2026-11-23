@@ -75,6 +75,7 @@ function PartLoadingContent() {
   // Zero handler'ları parçayı sensörden bu mesafeye göre konumlar; sensör görmüyorsa operatör
   // parça ucunu merkezden bu kadar uzağa (sensör hizasına) koyar. Ayar okunamazsa not gösterilmez.
   const [zeroResetMm, setZeroResetMm] = useState<number | null>(null)
+  const [leftSensorOnRight, setLeftSensorOnRight] = useState(true) // 2026-11-23 elle konumlandırma çizimi
   useEffect(() => {
     let cancelled = false
     window.corventa.settings
@@ -82,6 +83,8 @@ function PartLoadingContent() {
       .then((m) => {
         const v = Number(m?.zeroResetDistanceMm)
         if (!cancelled && Number.isFinite(v) && v > 0) setZeroResetMm(v)
+        const lr = (m as { leftPartSensorOnMachineRight?: unknown } | null)?.leftPartSensorOnMachineRight
+        if (!cancelled && typeof lr === 'boolean') setLeftSensorOnRight(lr)
       })
       .catch(() => {
         /* ayar okunamadı — bilgi notu gösterilmez */
@@ -257,6 +260,8 @@ function PartLoadingContent() {
       {manualOpen && (
         <ManualPlacementModal
           distanceMm={zeroResetMm}
+          partLengthMm={params.ringBending?.L ?? params.arcBending?.LTotal ?? params.sivamaBending?.L ?? null}
+          leftSensorOnMachineRight={leftSensorOnRight}
           onCancel={() => setManualOpen(false)}
           onConfirm={(side) => {
             setManualSide(side)

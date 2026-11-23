@@ -40,6 +40,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         fields: [
           { key: 'safetyMarginMm', label: 'PİSTON GÜVENLİK PAYI', unit: 'mm', min: 0, max: 50, desc: 'Pasif piston geri çekilme limiti için.' },
           { key: 'zeroResetDistanceMm', label: 'PARÇA SIFIRLAMA MESAFESİ', unit: 'mm', min: 0, max: 5000, desc: 'Sensörden "0" noktasına olan mesafe.' },
+          // 2026-11-23 — "SOL" parça sensörü bu makinede önden bakınca SAĞDA (kablo/isim değişmedi); sadece elle konumlandırma çizimi
+          {
+            type: 'select',
+            key: 'leftPartSensorOnMachineRight',
+            label: 'SOL PARÇA SENSÖRÜNÜN YERİ',
+            desc: 'Makineye önden bakınca "SOL" parça varlık sensörünün durduğu taraf. Sadece elle konumlandırma çizimini etkiler.',
+            options: [
+              { value: true, label: 'SAĞDA' },
+              { value: false, label: 'SOLDA' },
+            ],
+          },
           { key: 'defaultSafetyMarginMm', label: 'PARÇA UÇ GÜVENLİK PAYI', unit: 'mm', min: 0, max: 1000, desc: 'İş kaydında güvenlik payı girilmezse kullanılır.' },
         ],
       },

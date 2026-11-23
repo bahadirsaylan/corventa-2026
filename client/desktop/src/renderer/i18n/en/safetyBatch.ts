@@ -78,6 +78,14 @@ const en: Record<string, string> = {
   'AI ÖĞRENME: ilk ölçüm {0} mm — benzer kayıt yok, klasik düzeltme': 'AI LEARNING: first measurement {0} mm — no similar record, classic correction',
   "AI ÖĞRENME: ilk ölçüm {0} mm ≈ Job #{1} → doğrudan {2} mm'ye (o kayıtta parçayı toleransa sokan pozisyon)": 'AI LEARNING: first measurement {0} mm ≈ Job #{1} → directly to {2} mm (the position that brought that part into tolerance)',
   'Düzeltme {0} mm, adım {1} mm → {2} parçada (her parçada rotasyon)': 'Correction {0} mm, step {1} mm → in {2} parts (rotation in each part)',
+
+  // ── Elle konumlandırma çizimi (2026-11-23) ──
+  'SOL PARÇA SENSÖRÜNÜN YERİ': 'LOCATION OF THE LEFT PART SENSOR',
+  'Makineye önden bakınca "SOL" parça varlık sensörünün durduğu taraf. Sadece elle konumlandırma çizimini etkiler.':
+    'The side where the "LEFT" part presence sensor sits when looking at the machine from the front. Only affects the manual placement drawing.',
+  'SAĞDA': 'ON THE RIGHT',
+  'SOLDA': 'ON THE LEFT',
+  'PARÇA {mm} mm': 'PART {mm} mm',
 }
 
 export default en
