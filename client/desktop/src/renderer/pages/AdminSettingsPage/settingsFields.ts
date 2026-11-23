@@ -280,6 +280,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'leftBodyBendMm', label: 'SOL GÖVDE (EK)', unit: 'mm', min: -50, max: 400, desc: 'Hedef = çene kalınlığı + bu değer.' },
           { key: 'rightJointBendMm', label: 'SAĞ MAFSAL (EK)', unit: 'mm', min: -50, max: 400, desc: 'Hedef = çene kalınlığı + bu değer.' },
           { key: 'leftJointBendMm', label: 'SOL MAFSAL (EK)', unit: 'mm', min: -50, max: 400, desc: 'Hedef = çene kalınlığı + bu değer.' },
+          // 2026-11-23 — ölçüm aparatı mafsala çarpmasın
+          {
+            type: 'select',
+            key: 'measureRetractJointEnabled',
+            label: 'ÖLÇÜMDE MAFSALI GERİ ÇEK',
+            desc: 'Geri esneme ölçümünden önce sağ + sol mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
           { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
           { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
         ],

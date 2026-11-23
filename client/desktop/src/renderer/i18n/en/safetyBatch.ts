@@ -98,6 +98,12 @@ const en: Record<string, string> = {
   'Hedef = çene kalınlığı + bu değer.': 'Target = jaw thickness + this value.',
 
   'PARÇA UCUNU SENSÖR TARAFINDA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.': 'BRING THE PART END ON THE SENSOR SIDE {mm} MM FROM THE CENTER (IN LINE WITH THE SENSOR).',
+
+  'ÖLÇÜMDE MAFSALI GERİ ÇEK': 'RETRACT JOINT DURING MEASUREMENT',
+  'Geri esneme ölçümünden önce sağ + sol mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.':
+    'Before the springback measurement the right + left joints are retracted to the back limit and return to their previous position afterwards. If they cannot retract, no measurement is made.',
+  'Ölçüm için mafsal geri çekilemedi: {0}': 'Joint could not be retracted for measurement: {0}',
+  'Mafsal ölçümden sonra eski yerine dönemedi: {0}': 'Joint could not return to its position after measurement: {0}',
 }
 
 export default en
