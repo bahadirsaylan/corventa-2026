@@ -244,6 +244,16 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'AÇIK' },
             ],
           },
+          // 2026-11-23 — stage geçişinde de sıfıra
+          {
+            type: 'select',
+            key: 'sideSupportStageRetractEnabled',
+            label: 'STAGE GEÇİŞİNDE YAN DAYAMALARI SIFIRA ÇEK',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
           { key: 'sideSupportGonyeRetractTimeoutS', label: 'GÖNYE GERİ ÇEKME SÜRE SINIRI', unit: 'sn', min: 3, max: 120, integer: true },
           { key: 'sideSupportGonyeRetractNoRulerSec', label: 'CETVELSİZ GERİ ÇEKME SÜRESİ', unit: 'sn', min: 1, max: 60, integer: true, desc: 'Sadece geri sınır KAPALI ve ofset 0 iken: cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.' },
           // 2026-11-20 — yan dayamalar mekanik en geriye inmez
@@ -291,6 +301,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: false, label: 'KAPALI' },
             ],
           },
+          { key: 'sideSupportSecondSideExtraMm', label: 'KARŞI TARAF EK MESAFE', unit: 'mm', min: 0, max: 500, desc: 'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.' },
           { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
           { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
         ],

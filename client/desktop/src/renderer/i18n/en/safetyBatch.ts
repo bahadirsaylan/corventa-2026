@@ -131,6 +131,12 @@ const en: Record<string, string> = {
   'AKTİF': 'ACTIVE',
   'PASİF': 'PASSIVE',
   'DEAKTİF': 'DISABLED',
+
+  // ── Yan dayama sırası (2026-11-23) ──
+  'STAGE GEÇİŞİNDE YAN DAYAMALARI SIFIRA ÇEK': 'RETRACT SIDE SUPPORTS TO ZERO ON STAGE CHANGE',
+  'KARŞI TARAF EK MESAFE': 'OPPOSITE SIDE EXTRA DISTANCE',
+  'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.':
+    'In circular bending the opposite side supports come in once the part has travelled safety margin + stage XA1 + this distance in the first rotation.',
 }
 
 export default en
