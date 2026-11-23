@@ -104,6 +104,33 @@ const en: Record<string, string> = {
     'Before the springback measurement the joint on the measuring side is retracted to the back limit and returns to its previous position afterwards. If it cannot retract, no measurement is made.',
   'Ölçüm için mafsal geri çekilemedi: {0}': 'Joint could not be retracted for measurement: {0}',
   'Mafsal ölçümden sonra eski yerine dönemedi: {0}': 'Joint could not return to its position after measurement: {0}',
+
+  // ── Sensör durumları (2026-11-23, sadece arayüz) ──
+  'SENSÖR DURUMLARI': 'SENSOR STATES',
+  'ÖNİZLEME — seçimler henüz makineye uygulanmıyor.': 'PREVIEW — selections are not applied to the machine yet.',
+  'AKTİF: kullanılır · PASİF: gösterilir, hata vermez · DEAKTİF: yok sayılır': 'ACTIVE: used · PASSIVE: shown, raises no errors · DISABLED: ignored',
+  'PARÇA VARLIK SENSÖRLERİ': 'PART PRESENCE SENSORS',
+  'SOL PARÇA VARLIK': 'LEFT PART PRESENCE',
+  'SAĞ PARÇA VARLIK': 'RIGHT PART PRESENCE',
+  'GERİ ESNEME ÖLÇÜM SENSÖRLERİ': 'SPRINGBACK MEASUREMENT SENSORS',
+  'SOL ÖLÇÜM SENSÖRÜ': 'LEFT MEASUREMENT SENSOR',
+  'SAĞ ÖLÇÜM SENSÖRÜ': 'RIGHT MEASUREMENT SENSOR',
+  'PİSTON CETVELLERİ': 'PISTON RULERS',
+  'SAĞ TOP CETVELİ': 'RIGHT ROLL RULER',
+  'SOL TOP CETVELİ': 'LEFT ROLL RULER',
+  'ÜST TOP CETVELİ': 'UPPER ROLL RULER',
+  'ALT TOP CETVELİ': 'LOWER ROLL RULER',
+  'YAN DAYAMA CETVELLERİ': 'SIDE SUPPORT RULERS',
+  'HİDROLİK SENSÖRLERİ': 'HYDRAULIC SENSORS',
+  'S1 BASINÇ': 'S1 PRESSURE',
+  'S2 BASINÇ': 'S2 PRESSURE',
+  'S1 AKIŞ': 'S1 FLOW',
+  'S2 AKIŞ': 'S2 FLOW',
+  'YAĞ SEVİYESİ': 'OIL LEVEL',
+  'NEM': 'HUMIDITY',
+  'AKTİF': 'ACTIVE',
+  'PASİF': 'PASSIVE',
+  'DEAKTİF': 'DISABLED',
 }
 
 export default en

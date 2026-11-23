@@ -30,6 +30,7 @@ import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
 import AlertAcksPage from '@/pages/AlertAcksPage/AlertAcksPage'
 import AiRecipeRulesPage from '@/pages/AiRecipeRulesPage/AiRecipeRulesPage'
 import ClampLogsPage from '@/pages/ClampLogsPage/ClampLogsPage'
+import SensorModesPage from '@/pages/SensorModesPage/SensorModesPage'
 import MachineValuesPage from '@/pages/MachineValuesPage/MachineValuesPage'
 import BendingHistoryPage from '@/pages/BendingHistoryPage/BendingHistoryPage'
 import MachineUsageHoursPage from '@/pages/MachineUsageHoursPage/MachineUsageHoursPage'
@@ -114,6 +115,7 @@ export default function App() {
             <Route path="settings/operator" element={<OperatorSettingsPage />} />
             <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
             <Route path="settings/clamp-logs" element={<RequireRole permission="admin-settings"><ClampLogsPage /></RequireRole>} />
+            <Route path="settings/sensors" element={<RequireRole permission="admin-settings"><SensorModesPage /></RequireRole>} />
             <Route path="settings/machine-values" element={<RequireRole permission="machine-values"><MachineValuesPage /></RequireRole>} />
             <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />
             <Route path="settings/side-menu" element={<SideMenuSettingsPage />} />

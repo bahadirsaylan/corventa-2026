@@ -30,7 +30,10 @@ const KEYS = [
 
 export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClose, allowNegative, digitsOnly, maxLength }: NumpadModalProps) {
   const t = useT()
-  const [display, setDisplay] = useState(initialValue || '')
+  // 2026-11-23 (kullanıcı): numpad her zaman BOŞ açılır (eski değerin sonuna yazılmasın). Eski değer silik ipucu olarak
+  // görünür; hiçbir tuşa basmadan onaylanırsa eski değer KORUNUR. C'ye basıp boş onaylamak alanı bilerek temizler.
+  const [display, setDisplay] = useState('')
+  const [touched, setTouched] = useState(false)
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -42,6 +45,7 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   })
 
   function press(key: string) {
+    setTouched(true)
     if (key === '⌫') {
       setDisplay((d) => d.slice(0, -1))
       return
@@ -66,14 +70,21 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   }
 
   function toggleSign() {
+    setTouched(true)
     setDisplay((d) => (d.startsWith('-') ? d.slice(1) : '-' + d))
   }
 
   function handleClear() {
+    setTouched(true)
     setDisplay('')
   }
 
   function handleConfirm() {
+    if (!touched) {
+      onConfirm(initialValue || '')
+      onClose()
+      return
+    }
     let cleaned = display.endsWith('.') ? display.slice(0, -1) : display
     if (cleaned === '-') cleaned = ''
     onConfirm(cleaned)
@@ -88,7 +99,11 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
         <div className={styles.displayRow}>
           <span className={styles.fieldLabel}>{fieldLabel}</span>
           <div className={styles.display}>
-            <span className={styles.displayValue}>{display || '0'}</span>
+            {display === '' && !touched && initialValue ? (
+              <span className={styles.displayValue} style={{ opacity: 0.35 }}>{initialValue}</span>
+            ) : (
+              <span className={styles.displayValue}>{display || '0'}</span>
+            )}
           </div>
         </div>
 
