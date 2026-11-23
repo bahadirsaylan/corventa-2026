@@ -26,6 +26,12 @@ export interface AiRecipeMatchSettings {
   oilTempTolC: number
   oilTempAllowMissing: boolean
   profileTypeEnabled: boolean
+  /** (2026-11-23) büküm (piston) hızı % aynı olmalı */
+  pistonSpeedEnabled: boolean
+  pistonSpeedTolPct: number
+  /** (2026-11-23) AI ilk geri esneme ölçümünden sonra: kaydın ilk ölçümü (çap) bu parçanınkine ± tolerans */
+  firstMeasureEnabled: boolean
+  firstMeasureTolMm: number
   requireWithinTolerance: boolean
   excludeFailedMeasurement: boolean
   minSuccessfulRecords: number
@@ -46,6 +52,7 @@ export interface AiRecipeRulesResponse {
 export type AiCriterionKey =
   | 'TargetDiameter' | 'PartLength' | 'StepDistance' | 'ProfileA' | 'ProfileB' | 'ProfileS' | 'BallDiameter'
   | 'CenterDistance' | 'OilTemp' | 'ProfileType' | 'FailedMeasurement' | 'MaxAge' | 'Duration'
+  | 'PistonSpeed' | 'FirstMeasure'
 
 export interface AiCriterionCheck {
   key: AiCriterionKey

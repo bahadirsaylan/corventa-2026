@@ -32,6 +32,7 @@ const DEFAULTS: AiRecipeMatchSettings = {
   centerDistanceEnabled: true, centerDistanceTolMm: 0.01,
   oilTempEnabled: true, oilTempTolC: 2, oilTempAllowMissing: false,
   profileTypeEnabled: false,
+  pistonSpeedEnabled: true, pistonSpeedTolPct: 0, firstMeasureEnabled: true, firstMeasureTolMm: 10,
   requireWithinTolerance: true, excludeFailedMeasurement: true, minSuccessfulRecords: 1,
   selection: 'FASTEST', maxRecordAgeDays: 0, includeCloudRecipes: true, cloudCenterDistanceTolMm: 0,
   updatedAt: null, updatedBy: null,

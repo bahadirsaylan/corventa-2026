@@ -54,6 +54,9 @@ const CRITERIA: CriterionDef[] = [
   { key: 'CenterDistance', label: 'MERKEZ MESAFESİ', desc: 'Stage geometrisi — sadece büküm sırasında bilinir', enabled: 'centerDistanceEnabled', tol: 'centerDistanceTolMm', unit: 'mm', max: 50 },
   { key: 'OilTemp', label: 'YAĞ SICAKLIĞI', desc: 'Başlangıç VEYA ortalama yağ sıcaklığı tutmalı', enabled: 'oilTempEnabled', tol: 'oilTempTolC', unit: '°C', max: 50 },
   { key: 'ProfileType', label: 'PROFİL TİPİ', desc: 'Kare / boru / lama … aynı olmalı', enabled: 'profileTypeEnabled' },
+  // 2026-11-23 (testçi): AI ilk geri esneme ölçümünden SONRA devreye girer
+  { key: 'PistonSpeed', label: 'PİSTON HIZI', desc: 'Büküm hızı (%) farkı', enabled: 'pistonSpeedEnabled', tol: 'pistonSpeedTolPct', unit: '%', max: 100 },
+  { key: 'FirstMeasure', label: 'İLK GERİ ESNEME ÖLÇÜMÜ', desc: 'Kaydın ilk ölçümü (çap) bu parçanın ilk ölçümüne yakın olmalı', enabled: 'firstMeasureEnabled', tol: 'firstMeasureTolMm', unit: 'mm', max: 1000 },
 ]
 
 const CRITERION_LABEL: Record<AiCriterionKey, string> = {

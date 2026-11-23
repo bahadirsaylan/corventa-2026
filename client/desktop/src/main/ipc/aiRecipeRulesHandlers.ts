@@ -56,6 +56,11 @@ function sanitize(b: AiRecipeMatchSettings): AiRecipeMatchSettings {
     oilTempTolC: num(b?.oilTempTolC, 2),
     oilTempAllowMissing: bool(b?.oilTempAllowMissing),
     profileTypeEnabled: bool(b?.profileTypeEnabled),
+    // 2026-11-23 — piston hızı + ilk geri esneme ölçümü benzerliği (eski renderer göndermezse varsayılan AÇIK)
+    pistonSpeedEnabled: b?.pistonSpeedEnabled === undefined ? true : bool(b.pistonSpeedEnabled),
+    pistonSpeedTolPct: num(b?.pistonSpeedTolPct, 0),
+    firstMeasureEnabled: b?.firstMeasureEnabled === undefined ? true : bool(b.firstMeasureEnabled),
+    firstMeasureTolMm: num(b?.firstMeasureTolMm, 10),
     requireWithinTolerance: bool(b?.requireWithinTolerance),
     excludeFailedMeasurement: bool(b?.excludeFailedMeasurement),
     minSuccessfulRecords: Math.round(num(b?.minSuccessfulRecords, 1)),

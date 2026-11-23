@@ -68,6 +68,16 @@ const en: Record<string, string> = {
   'Bükümde yan dayama konumu: {0}': 'Side support bending position: {0}',
   'Bükümde yan dayama konuma gidemedi: {0}': 'Side support could not reach bending position: {0}',
   '{0} zaten {1} mm konumunda': '{0} already at {1} mm',
+
+  // ── AI öğrenme (2026-11-23) ──
+  'İLK GERİ ESNEME ÖLÇÜMÜ': 'FIRST SPRINGBACK MEASUREMENT',
+  'Kaydın ilk ölçümü (çap) bu parçanın ilk ölçümüne yakın olmalı': "The record's first measurement (diameter) must be close to this part's first measurement",
+  'Büküm hızı (%) farkı': 'Bending speed (%) difference',
+  'piston hızı toleransı 0..100 % olmalı': 'piston speed tolerance must be 0..100 %',
+  'ilk ölçüm benzerlik toleransı 0..1000 mm olmalı': 'first measurement similarity tolerance must be 0..1000 mm',
+  'AI ÖĞRENME: ilk ölçüm {0} mm — benzer kayıt yok, klasik düzeltme': 'AI LEARNING: first measurement {0} mm — no similar record, classic correction',
+  "AI ÖĞRENME: ilk ölçüm {0} mm ≈ Job #{1} → doğrudan {2} mm'ye (o kayıtta parçayı toleransa sokan pozisyon)": 'AI LEARNING: first measurement {0} mm ≈ Job #{1} → directly to {2} mm (the position that brought that part into tolerance)',
+  'Düzeltme {0} mm, adım {1} mm → {2} parçada (her parçada rotasyon)': 'Correction {0} mm, step {1} mm → in {2} parts (rotation in each part)',
 }
 
 export default en
