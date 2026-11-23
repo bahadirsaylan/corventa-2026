@@ -86,6 +86,8 @@ const en: Record<string, string> = {
   'SAĞDA': 'ON THE RIGHT',
   'SOLDA': 'ON THE LEFT',
   'PARÇA {mm} mm': 'PART {mm} mm',
+
+  'SIKIŞTIRMA SÜRÜYOR — yan dayama hareket ettirilemez (üst top basıncını bozar)': 'CLAMPING IN PROGRESS — side supports cannot move (it disturbs the upper roll pressure)',
 }
 
 export default en
