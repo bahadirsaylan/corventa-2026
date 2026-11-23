@@ -96,6 +96,8 @@ const en: Record<string, string> = {
   'SAĞ MAFSAL (EK)': 'RIGHT JOINT (EXTRA)',
   'SOL MAFSAL (EK)': 'LEFT JOINT (EXTRA)',
   'Hedef = çene kalınlığı + bu değer.': 'Target = jaw thickness + this value.',
+
+  'PARÇA UCUNU SENSÖR TARAFINDA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.': 'BRING THE PART END ON THE SENSOR SIDE {mm} MM FROM THE CENTER (IN LINE WITH THE SENSOR).',
 }
 
 export default en

@@ -85,7 +85,7 @@ export default function ManualPlacementModal({ distanceMm, partLengthMm = null, 
           <ol className={styles.steps}>
             <li>{t('PARÇAYI TOPLARIN ARASINA YERLEŞTİRİN.')}</li>
             <li>
-              {t('PARÇA UCUNU SEÇİLEN TARAFTA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.', { mm: mmText })}
+              {t('PARÇA UCUNU SENSÖR TARAFINDA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.', { mm: mmText })}
             </li>
             <li>{t('ONAYDAN SONRA PARÇAYI ELLE OYNATMAYIN — MAKİNA SENSÖR ARAMADAN DOĞRUDAN SIFIRA GİDER.')}</li>
           </ol>
