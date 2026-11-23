@@ -285,7 +285,7 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             type: 'select',
             key: 'measureRetractJointEnabled',
             label: 'ÖLÇÜMDE MAFSALI GERİ ÇEK',
-            desc: 'Geri esneme ölçümünden önce sağ + sol mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.',
+            desc: 'Geri esneme ölçümünden önce ölçüm tarafındaki mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.',
             options: [
               { value: true, label: 'AÇIK' },
               { value: false, label: 'KAPALI' },
