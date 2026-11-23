@@ -88,6 +88,14 @@ const en: Record<string, string> = {
   'PARÇA {mm} mm': 'PART {mm} mm',
 
   'SIKIŞTIRMA SÜRÜYOR — yan dayama hareket ettirilemez (üst top basıncını bozar)': 'CLAMPING IN PROGRESS — side supports cannot move (it disturbs the upper roll pressure)',
+
+  'TOP ÇENE KALINLIĞI': 'ROLL JAW THICKNESS',
+  'Gövde ve mafsal bu kadar + kendi ek değeri kadar ileri çıkar.': 'Body and joint move forward by this plus their own extra value.',
+  'SAĞ GÖVDE (EK)': 'RIGHT BODY (EXTRA)',
+  'SOL GÖVDE (EK)': 'LEFT BODY (EXTRA)',
+  'SAĞ MAFSAL (EK)': 'RIGHT JOINT (EXTRA)',
+  'SOL MAFSAL (EK)': 'LEFT JOINT (EXTRA)',
+  'Hedef = çene kalınlığı + bu değer.': 'Target = jaw thickness + this value.',
 }
 
 export default en
