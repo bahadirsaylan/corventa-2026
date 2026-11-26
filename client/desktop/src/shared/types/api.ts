@@ -108,6 +108,8 @@ export interface ValidateArcPlanRequest {
   xa1AbsMm: number
   /** Profil A (mm) — backend ölçülebilirlik için stage seçer (stage |XA1| = ölçüm mesafesi). 0 → xa1AbsMm. */
   profileAMm?: number
+  /** (2026-11-26) Operatörün seçtiği stage — uygunsa ölçüm mesafesi onun |XA1|'i; yoksa önerilen */
+  stageNumber?: number
   segments: ValidateArcPlanSegment[]
 }
 

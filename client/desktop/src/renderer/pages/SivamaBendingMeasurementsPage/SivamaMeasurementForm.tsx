@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './SivamaMeasurementForm.module.css'
+import StageChoiceField from '@/components/StageChoice/StageChoiceField'
 import SivamaInfoModal from './SivamaInfoModal'
 import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -197,6 +198,8 @@ export default function SivamaMeasurementForm({ values, onChange, onReset, onCon
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderRightField)}
+            {/* 2026-11-26 — STAGE: varsayılan önerilen; birden çok uygunsa operatör seçer */}
+            <StageChoiceField profileA={parseFloat(values.A) || 0} styles={styles} />
           </div>
         </div>
 

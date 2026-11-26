@@ -18,6 +18,8 @@ export interface RingPlanInput {
   stepMm: number
   /** Parça boyu L (mm) — adım sayısı için gerekli */
   partLengthMm: number | null
+  /** (2026-11-26) Operatörün seçtiği stage — verilirse önerilen yerine bu stage'in ofset / XA1'i kullanılır */
+  stageNumber?: number | null
 }
 
 export interface RingPlanResult {
@@ -85,9 +87,10 @@ export async function computeRingPlan(input: RingPlanInput): Promise<RingPlanRes
   // StartJob (FullCircle) aktif taraf stage ofsetini > 0,5 mm ise itme derinliğine ekler; akış sensörü sol varsayar
   let stageOffsetMm = 0
   try {
-    const rec = await window.corventa.bending.recommendStage(input.a)
-    stageNumber = rec.stageNumber
-    const st = geo.stages.find((s) => s.stageNumber === rec.stageNumber)
+    stageNumber = input.stageNumber != null && input.stageNumber > 0
+      ? input.stageNumber
+      : (await window.corventa.bending.recommendStage(input.a)).stageNumber
+    const st = geo.stages.find((s) => s.stageNumber === stageNumber)
     const off = Number(st?.leftOffsetMm)
     if (Number.isFinite(off) && off > 0.5) stageOffsetMm = off
     if (st?.xA1Mm != null && Number.isFinite(st.xA1Mm)) {

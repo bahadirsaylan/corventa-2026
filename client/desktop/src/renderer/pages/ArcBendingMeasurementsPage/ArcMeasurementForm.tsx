@@ -1,6 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { filterProfileFieldList, isMoldLockedField, MOLD_LOCKED_FIELD_STYLE, useMoldLock, useVisibleProfileFields } from '@/constants/profileFields'
 import styles from './ArcMeasurementForm.module.css'
+import StageChoiceField from '@/components/StageChoice/StageChoiceField'
+import { useBendingJobStore } from '@/store/bendingJobStore'
 import ArcInfoModal from './ArcInfoModal'
 import { normalizeMeasureHInput } from '@/services/operatorPrefs'
 import NumpadModal from '@/components/NumpadModal/NumpadModal'
@@ -188,11 +190,13 @@ export function isArcBelowMin(arc: number): boolean {
 //   ONAYLA davranışı değişmez — burası sadece operatöre erken bilgi verir.
 const PLANNER_DEFAULT_XA1_ABS_MM = 465
 
-function measurementDistanceFor(stages: StageInfo[] | null, profileA: number): number {
+function measurementDistanceFor(stages: StageInfo[] | null, profileA: number, chosen: number | null): number {
   if (!stages || !(profileA > 0)) return PLANNER_DEFAULT_XA1_ABS_MM
-  const stage = stages
+  const suitable = stages
     .filter((s) => s.isActive !== false && s.maxProfileAMm != null && profileA <= s.maxProfileAMm)
-    .sort((a, b) => (a.maxProfileAMm as number) - (b.maxProfileAMm as number))[0]
+    .sort((a, b) => (a.maxProfileAMm as number) - (b.maxProfileAMm as number))
+  // 2026-11-26 — operatörün seçtiği stage (uygunsa), yoksa önerilen (backend StageSelector ile aynı)
+  const stage = (chosen != null ? suitable.find((s) => s.stageNumber === chosen) : undefined) ?? suitable[0]
   const xa1 = stage?.xA1Mm
   return xa1 != null && Math.abs(xa1) > 0 ? Math.abs(xa1) : PLANNER_DEFAULT_XA1_ABS_MM
 }
@@ -243,6 +247,9 @@ export default function ArcMeasurementForm({
   const lastEditedSegRef = useRef<number | null>(null)
   // Stage listesi — canlı plan uyarısındaki ölçüm mesafesi için (okunamazsa varsayılan |XA1|)
   const [stages, setStages] = useState<StageInfo[] | null>(null)
+  const stageChoice = useBendingJobStore((s) => s.params.stageChoice)
+  const chosenForA =
+    stageChoice && Math.abs(stageChoice.profileA - (parseFloat(values.A) || 0)) < 1e-6 ? stageChoice.stageNumber : null
 
   useEffect(() => {
     let alive = true
@@ -431,9 +438,9 @@ export default function ArcMeasurementForm({
       })),
       partLengthMm: ltMm,
       xa1AbsMm: PLANNER_DEFAULT_XA1_ABS_MM,
-      measurementDistanceMm: measurementDistanceFor(stages, parseFloat(values.A) || 0),
+      measurementDistanceMm: measurementDistanceFor(stages, parseFloat(values.A) || 0, chosenForA),
     })
-  }, [allSegmentsValid, ltValid, remainingOverflow, anyMinArcViolation, values.segments, values.A, ltMm, stages])
+  }, [allSegmentsValid, ltValid, remainingOverflow, anyMinArcViolation, values.segments, values.A, ltMm, stages, chosenForA])
   const livePlanBlocked = livePlan != null && !livePlan.canBend
   const livePlanExtension = livePlan != null && livePlan.canBend && livePlan.extensionMm > 0
   const livePlanReversed = livePlan != null && livePlan.canBend && livePlan.extensionMm === 0 && livePlan.isReversed
@@ -508,7 +515,11 @@ export default function ArcMeasurementForm({
             {/* AŞAMA 1: A/B/S/H + P/G/LT (2-col grid) */}
             <div className={styles.inputGrid}>
               <div className={styles.inputCol}>{filterProfileFieldList(MAIN_LEFT, visibleFields).map(renderMainField)}</div>
-              <div className={styles.inputCol}>{MAIN_RIGHT.map(renderMainField)}</div>
+              <div className={styles.inputCol}>
+                {MAIN_RIGHT.map(renderMainField)}
+                {/* 2026-11-26 — STAGE: varsayılan önerilen; birden çok uygunsa operatör seçer (ölçülebilirlik bu stage'le) */}
+                <StageChoiceField profileA={parseFloat(values.A) || 0} styles={styles} />
+              </div>
             </div>
 
             <FormActionRow onReset={onReset} onConfirm={onConfirm} confirmDisabled={confirmDisabled} />

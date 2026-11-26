@@ -1591,7 +1591,8 @@ export class DemoMachine extends EventEmitter {
       if (segs.length === 0) demoFail(400, rawUrl, 'Segments zorunlu', { success: false })
       const xa1Abs = Number(b.xa1AbsMm) > 0 ? Number(b.xa1AbsMm) : 465
       const profileA = Number(b.profileAMm) || 0
-      const measurementDistanceMm = profileA > 0 ? Math.abs(recommendStage(profileA).xa1) || xa1Abs : xa1Abs
+      const chosenSt = Number(b.stageNumber) > 0 ? STAGES.find((s) => s.stageNumber === Number(b.stageNumber) && profileA <= s.maxProfileAMm) : undefined
+      const measurementDistanceMm = profileA > 0 ? Math.abs((chosenSt ?? recommendStage(profileA)).xa1) || xa1Abs : xa1Abs
       const r = planArc({ segments: segs, partLengthMm: Number(b.partLengthMm) || 0, xa1AbsMm: xa1Abs, measurementDistanceMm })
       if (!r.canBend) demoFail(400, rawUrl, r.errorMessage ?? 'Plan oluşturulamadı', { success: false })
       return {

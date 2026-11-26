@@ -8,6 +8,7 @@
 //   KAYDET / GÜNCELLE   — bu parçayı büken girdiler kayıtlı büküme → tahliye
 //   KAYDETMEDEN BİTİR   — tahliye
 
+import { chosenStage } from '@/services/stageChoice'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -173,6 +174,7 @@ export default function MethodResult() {
           partLengthMm: ab.LTotal ?? 0,
           xa1AbsMm: 0,
           profileAMm: ab.A ?? 0,
+          stageNumber: chosenStage(ab.A ?? 0) ?? undefined,
           segments: (ab.segments ?? []).map((s, i) => ({
             segmentOrder: i + 1,
             radiusMm: s.R ?? 0,

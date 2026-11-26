@@ -391,6 +391,12 @@ export interface BendingJobParams {
 
   /** STANDART SÜRÜM (2026-11-17) — ÇEMBER dışı metot düzeltme bağlamı; null = ilk büküm (bugünkü davranış) */
   methodRun: MethodRunContext | null
+
+  /**
+   * STAGE SEÇİMİ (2026-11-26) — operatörün ölçü ekranında önerilen yerine seçtiği stage. profileA ile birlikte
+   * tutulur: A değişirse geçersiz (önerilen kullanılır). null = önerilen stage (bugünkü davranış).
+   */
+  stageChoice: { profileA: number; stageNumber: number } | null
 }
 
 // ── Store state + actions ────────────────────────────────────────────────────
@@ -426,6 +432,7 @@ const INITIAL_PARAMS: BendingJobParams = {
   mold: null,
   manualTarget: null,
   methodRun: null,
+  stageChoice: null,
 }
 
 export const useBendingJobStore = create<BendingJobState>((set) => ({

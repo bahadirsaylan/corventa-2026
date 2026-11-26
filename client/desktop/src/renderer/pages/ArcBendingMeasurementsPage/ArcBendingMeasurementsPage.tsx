@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { chosenStage } from '@/services/stageChoice'
 import { fillHiddenProfileFields, useVisibleProfileFields } from '@/constants/profileFields'
 import { useNavigate } from 'react-router-dom'
 import { useBendingJobStore, type ArcSegmentParams } from '@/store/bendingJobStore'
@@ -170,6 +171,8 @@ export default function ArcBendingMeasurementsPage() {
         xa1AbsMm: 0, // Backend default (Stage 2 = 465). Gelecekte stage'e göre doldurulabilir.
         // Ölçülebilirlik: backend profileA'ya göre stage seçer, |XA1|'ini ölçüm mesafesi olarak kullanır
         profileAMm: parseFloat(values.A) || 0,
+        // 2026-11-26 — operatörün seçtiği stage (yoksa backend önerileni kullanır)
+        stageNumber: chosenStage(parseFloat(values.A) || 0) ?? undefined,
         segments: segmentsToPlannerRequest(),
       }
       const res = await window.corventa.bending.validateArcPlan(req)

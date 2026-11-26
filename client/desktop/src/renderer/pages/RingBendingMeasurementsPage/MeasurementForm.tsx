@@ -11,6 +11,7 @@ import { useProfileDimensionImage } from '@/hooks/useProfileDimensionImage'
 import defaultMethodImage from '@/assets/images/blend4-2-buyuk.png'
 import { useMethodTileImage } from '@/hooks/useMethodTileImage'
 import type { CapacityIssue } from '@/constants/capacityCatalog'
+import StageChoiceField from '@/components/StageChoice/StageChoiceField'
 
 export type FieldKey = 'A' | 'B' | 'S' | 'R' | 'H' | 'G' | 'L'
 
@@ -88,9 +89,11 @@ interface Props {
   capacityIssues?: CapacityIssue[]
   /** Hedef konum + adım sayısı önizlemesi — verilirse giriş ızgarasının altında tam genişlik şerit olarak gösterilir */
   plan?: PlanPreview
+  /** Elle hedefin (kayıtlı büküm) stage'i — STAGE alanı bunu gösterir, değiştirilemez */
+  lockedStage?: number | null
 }
 
-export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled, capacityIssues, plan }: Props) {
+export default function MeasurementForm({ values, onChange, onReset, onConfirm, confirmDisabled, capacityIssues, plan, lockedStage }: Props) {
   const t = useT()
   const profileImage = useProfileDimensionImage()
   const visibleFields = useVisibleProfileFields()
@@ -161,6 +164,8 @@ export default function MeasurementForm({ values, onChange, onReset, onConfirm, 
           </div>
           <div className={styles.inputCol}>
             {RIGHT_FIELDS.map(renderField)}
+            {/* 2026-11-26 — STAGE: varsayılan önerilen; birden çok uygunsa operatör seçer */}
+            <StageChoiceField profileA={parseFloat(values.A) || 0} styles={styles} lockedStage={lockedStage} />
           </div>
         </div>
 

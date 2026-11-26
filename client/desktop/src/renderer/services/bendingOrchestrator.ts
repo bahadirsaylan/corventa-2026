@@ -1,6 +1,7 @@
 // 6-step bending flow — UI'dan PartLoadingPage "Kıvrımı Başlat" tetiklediğinde çalışır.
 // Adımlar bağımsız, her biri kendi hatasını fırlatır; UI tek try/catch ile yakalar.
 
+import { chosenStage, loadStageOptions } from './stageChoice'
 import { manualTargetKey, useBendingJobStore } from '@/store/bendingJobStore'
 import { awaitStageReturn } from './stageReturn'
 import { useMachineStateStore } from '@/stores/machineStateStore'
@@ -104,6 +105,18 @@ export function currentProfileA(): number {
   return mapToCreateRequest(useBendingJobStore.getState().params, {}).profileA
 }
 
+/** Operatörün seçtiği stage — bu profil A için hâlâ uygun listedeyse (ayarlar sonradan değiştiyse önerilene dönülür). */
+async function validChosenStage(profileA: number): Promise<number | null> {
+  const n = chosenStage(profileA)
+  if (!n) return null
+  try {
+    const opts = await loadStageOptions(profileA)
+    return opts.some((o) => o.stageNumber === n) ? n : null
+  } catch {
+    return null
+  }
+}
+
 export async function resolveTargetStage(opts: OrchestrationOptions = {}): Promise<number> {
   const params = useBendingJobStore.getState().params
   const manualTarget =
@@ -118,6 +131,9 @@ export async function resolveTargetStage(opts: OrchestrationOptions = {}): Promi
     opts.forceStage ?? (manualTarget?.stageNumber != null && manualTarget.stageNumber > 0 ? manualTarget.stageNumber : undefined)
   if (forceStage) return forceStage
   const createReq = mapToCreateRequest(params, opts)
+  // 2026-11-26 — operatörün ölçü ekranında seçtiği stage (bu profil A için); yoksa önerilen (eski davranış)
+  const chosen = await validChosenStage(createReq.profileA)
+  if (chosen) return chosen
   const rec = await window.corventa.bending.recommendStage(createReq.profileA)
   return rec.stageNumber
 }
@@ -244,7 +260,10 @@ export async function executeBendingFlow(
   const forceStage =
     opts.forceStage ?? (manualTarget?.stageNumber != null && manualTarget.stageNumber > 0 ? manualTarget.stageNumber : undefined)
   let recommendedStage = forceStage ?? 0
-  if (!forceStage) {
+  // 2026-11-26 — operatörün ölçü ekranında seçtiği stage (bu profil A için hâlâ uygunsa); yoksa önerilen
+  const chosenStageNumber = forceStage ? null : await validChosenStage(createReq.profileA)
+  if (chosenStageNumber) recommendedStage = chosenStageNumber
+  if (!forceStage && !chosenStageNumber) {
     notify('recommend-stage')
     try {
       const rec = await window.corventa.bending.recommendStage(createReq.profileA)
