@@ -252,6 +252,16 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'AÇIK' },
             ],
           },
+          {
+            type: 'select',
+            key: 'pistonHoldOutsideJob',
+            label: 'TEST: İŞ DIŞINDA DA TUT',
+            desc: 'AÇIK: büküm işi yokken de (tuş takımı ile elle konum + rotasyon) tutar — makinede denemek için. Sıkıştırma korumaları aynen geçerli. Denemeden sonra KAPALI yapın.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
           { type: 'select', key: 'pistonHoldLeft', label: 'SOL TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
           { type: 'select', key: 'pistonHoldRight', label: 'SAĞ TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
           { type: 'select', key: 'pistonHoldLower', label: 'ALT TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
