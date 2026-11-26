@@ -4,9 +4,6 @@ const en: Record<string, string> = {
   'Paylaşılan valf başka eksen (rotasyon, diğer piston, yan dayama) için açılınca duran piston kayar. Açıkken SADECE büküm işi, elle düzeltme ve tahliye sırasında piston bırakıldığı yerde tutulur: kayma ölü bandı aşınca düşük gerilimle geri itilir. Üst top parça sıkılıyken asla tutulmaz. PLC programı güncel değilse etkisizdir (PLC/PISTON_TUTMA_YUKLEME.md).':
     'When the shared valve opens for another axis (rotation, another piston, a side support) an idle piston drifts. When ON, ONLY during a bending job, manual correction and unloading the piston is held where it was left: once the drift exceeds the dead band it is pushed back with a low voltage. The upper roll is never held while the part is clamped. Has no effect unless the PLC program is up to date (PLC/PISTON_TUTMA_YUKLEME.md).',
   'KONUMDA TUTMA': 'POSITION HOLD',
-  'TEST: İŞ DIŞINDA DA TUT': 'TEST: HOLD OUTSIDE A JOB TOO',
-  'AÇIK: büküm işi yokken de (tuş takımı ile elle konum + rotasyon) tutar — makinede denemek için. Sıkıştırma korumaları aynen geçerli. Denemeden sonra KAPALI yapın.':
-    'ON: holds also without a bending job (manual keypad position + rotation) — for testing on the machine. Clamping protections still apply. Set OFF after testing.',
   'TUT': 'HOLD',
   'TUTMA': 'DO NOT HOLD',
   'ALT TOP — PARÇA SIKILIYKEN': 'LOWER ROLL — WHILE CLAMPED',
