@@ -12,7 +12,7 @@
 
 import { app, ipcMain } from 'electron'
 import { spawn } from 'child_process'
-import { existsSync, realpathSync, statSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, statSync } from 'fs'
 import { dirname, basename, isAbsolute, join, relative, resolve } from 'path'
 
 import { IS_DEMO } from '@main/demo/DemoMachine'
@@ -29,6 +29,7 @@ import {
   type CloudInstallResult,
   type CloudResult,
   type CloudStatus,
+  type UpdateFlowStatus,
 } from '@shared'
 
 const log = childLogger('ipc:cloud')
@@ -148,24 +149,81 @@ async function installUpdate(rawPath: unknown): Promise<CloudInstallResult> {
   if (blockers.unloadActive) return { ok: false, error: 'Tahliye sürüyor — güncelleme kurulamaz' }
   if (blockers.machineMoving) return { ok: false, error: 'Makine hareket halinde — güncelleme kurulamaz' }
 
+  return performInstall(v.path)
+}
+
+/** Son kaç DB yedeği tutulur (C:\ProgramData\Corventa\backups) */
+const KEEP_BACKUPS = 5
+
+/**
+ * (2026-11-26) KURULUM ÖNCESİ YEDEK — backend'ler DURDURULDUKTAN sonra (DB kilitli değil) machine.db (+ -wal / -shm,
+ * WAL birlikte kopyalanınca tutarlı) ve config\machine.json → <DATA_DIR>\backups\<eski sürüm>-<tarih>\.
+ * En yeni KEEP_BACKUPS klasör tutulur. Yedek alınamazsa hata fırlatır (kurulum YAPILMAZ).
+ */
+function backupBeforeInstall(): string {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19)
+  const root = join(DATA_DIR, 'backups')
+  const dir = join(root, `${app.getVersion()}-${stamp}`)
+  mkdirSync(dir, { recursive: true })
+  const db = join(DATA_DIR, 'machine.db')
+  if (!existsSync(db)) throw new Error(`machine.db bulunamadı: ${db}`)
+  for (const f of ['machine.db', 'machine.db-wal', 'machine.db-shm']) {
+    const src = join(DATA_DIR, f)
+    if (existsSync(src)) copyFileSync(src, join(dir, f))
+  }
+  const identity = join(DATA_DIR, 'config', 'machine.json')
+  if (existsSync(identity)) copyFileSync(identity, join(dir, 'machine.json'))
+  // Eski yedekleri temizle (en yeni KEEP_BACKUPS kalsın)
+  try {
+    const dirs = readdirSync(root, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => ({ name: d.name, t: statSync(join(root, d.name)).mtimeMs }))
+      .sort((a, b) => b.t - a.t)
+    for (const old of dirs.slice(KEEP_BACKUPS)) rmSync(join(root, old.name), { recursive: true, force: true })
+  } catch (err) {
+    log.warn('eski yedekler temizlenemedi', { error: (err as Error).message })
+  }
+  return dir
+}
+
+/** Backend'leri durdur → DB yedeği → setup'ı başlat → uygulamayı kapat. Yedek / setup başarısızsa uygulama yeniden açılır. */
+async function performInstall(path: string): Promise<CloudInstallResult> {
   installing = true
-  log.warn('INSTALL UPDATE — backend servisleri durduruluyor, setup başlatılacak', {
-    path: v.path,
+  log.warn('INSTALL UPDATE — backend servisleri durduruluyor, yedek alınıp setup başlatılacak', {
+    path,
     username: getAuthUser()?.username ?? null,
   })
   // Setup resources\backend altındaki exe'lerin üzerine yazar → önce backend'ler kapanmalı (kilitli kalmasın)
   await backendSupervisor.stop().catch(() => {})
 
-  try {
-    await launchSetup(v.path)
-  } catch (err) {
-    const msg = (err as Error).message
-    // Backend'ler kapalı kaldı — en temiz kurtarma: uygulamayı yeniden başlat (backend + SignalR baştan)
-    log.error('setup başlatılamadı — uygulama yeniden başlatılıyor', { error: msg })
+  const relaunchSoon = () =>
     setTimeout(() => {
       app.relaunch()
       app.quit()
     }, 3000)
+
+  setFlow({ phase: 'backup' })
+  try {
+    const dir = backupBeforeInstall()
+    log.warn('kurulum öncesi yedek alındı', { dir })
+  } catch (err) {
+    const msg = (err as Error).message
+    // Yedeksiz kurulum yok — backend'ler kapalı kaldı, uygulama yeniden açılır (eski sürüm aynen)
+    log.error('yedek alınamadı — kurulum YAPILMADI, uygulama yeniden başlatılıyor', { error: msg })
+    setFlow({ phase: 'error', error: `Yedek alınamadı: ${msg} — kurulum yapılmadı` })
+    relaunchSoon()
+    return { ok: false, error: `Yedek alınamadı: ${msg} — kurulum yapılmadı, uygulama yeniden başlatılıyor` }
+  }
+
+  setFlow({ phase: 'installing' })
+  try {
+    await launchSetup(path)
+  } catch (err) {
+    const msg = (err as Error).message
+    // Backend'ler kapalı kaldı — en temiz kurtarma: uygulamayı yeniden başlat (backend + SignalR baştan)
+    log.error('setup başlatılamadı — uygulama yeniden başlatılıyor', { error: msg })
+    setFlow({ phase: 'error', error: `Kurulum başlatılamadı: ${msg}` })
+    relaunchSoon()
     return { ok: false, error: `Kurulum başlatılamadı: ${msg} — uygulama yeniden başlatılıyor` }
   }
 
@@ -173,6 +231,110 @@ async function installUpdate(rawPath: unknown): Promise<CloudInstallResult> {
   // Renderer cevabı alsın, sonra normal kapanış yolu (before-quit → servis durdurma)
   setTimeout(() => app.quit(), 500)
   return { ok: true }
+}
+
+// ── TEK TUŞLA GÜNCELLEME (2026-11-26, kullanıcı: "UI'dan güncelle dediğimizde otomatik güncellensin") ──
+// GÜNCELLE (tek onay) → DataApi indirir + sha256 doğrular → büküm / tahliye / hareket yoksa (varsa bitmesi beklenir)
+// → backend'ler durur → DB yedeği → sessiz kurulum → uygulama yeniden açılır. Akış main'de: ekran değişse de sürer.
+const FLOW_POLL_MS = 1_000
+const DOWNLOAD_TIMEOUT_MS = 60 * 60_000
+
+let flow: UpdateFlowStatus = { phase: 'idle', version: null, progress: null, waitReason: null, error: null }
+let flowToken = 0
+
+function setFlow(patch: Partial<UpdateFlowStatus>): void {
+  flow = { ...flow, ...patch }
+}
+
+function flowActive(): boolean {
+  return flow.phase === 'downloading' || flow.phase === 'waiting' || flow.phase === 'backup' || flow.phase === 'installing'
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+function blockReason(b: CloudInstallBlockers | null): string | null {
+  if (!b) return 'Büküm durumu doğrulanamadı (DataApi yanıt vermiyor)'
+  if (b.bendingActive) return 'Büküm sürüyor — bitince kurulacak'
+  if (b.unloadActive) return 'Tahliye sürüyor — bitince kurulacak'
+  if (b.machineMoving) return 'Makine hareket halinde — durunca kurulacak'
+  return null
+}
+
+async function runUpdateFlow(token: number): Promise<void> {
+  const alive = () => token === flowToken
+  try {
+    // 1) İndir (zaten indirildiyse atla) — DataApi parça + bütün sha256 doğrular
+    let st = await dataApi.getCloudStatus()
+    if (!st.update) throw new Error('Yeni sürüm yok')
+    setFlow({ version: st.update.version })
+    if (!st.update.downloaded) {
+      if (!st.update.downloading) await dataApi.downloadCloudUpdate()
+      const started = Date.now()
+      for (;;) {
+        if (!alive()) return
+        await sleep(FLOW_POLL_MS)
+        st = await dataApi.getCloudStatus()
+        const u = st.update
+        if (!u) throw new Error('Güncelleme bilgisi kayboldu (bulut sürümü geri çekilmiş olabilir)')
+        setFlow({ progress: u.progress ?? null, version: u.version })
+        if (u.downloaded) break
+        if (!u.downloading && u.error) throw new Error(`İndirme başarısız: ${u.error}`)
+        if (!u.downloading && Date.now() - started > 15_000) throw new Error('İndirme başlamadı')
+        if (Date.now() - started > DOWNLOAD_TIMEOUT_MS) throw new Error('İndirme zaman aşımı (60 dk)')
+      }
+    }
+    const path = st.update?.downloadPath
+    if (!path) throw new Error('İndirilen kurulum dosyası bulunamadı')
+    const v = IS_DEMO ? { path } : validateSetupPath(path)
+    if ('error' in v) throw new Error(v.error)
+
+    // 2) Makine boşalana kadar bekle (büküm / tahliye / hareket)
+    for (;;) {
+      if (!alive()) return
+      const reason = blockReason(await computeBlockers())
+      if (!reason) break
+      setFlow({ phase: 'waiting', waitReason: reason, progress: 100 })
+      await sleep(2_000)
+    }
+    if (!alive()) return
+    // Demo: akış buraya kadar gösterilir, kurulum yapılmaz
+    if (IS_DEMO) {
+      setFlow({ phase: 'error', error: 'DEMO MODU — güncelleme indirildi, kurulum demoda yapılmaz' })
+      return
+    }
+
+    // 3) Yedek + kurulum (iptal edilemez)
+    const r = await performInstall(v.path)
+    if (!r.ok) setFlow({ phase: 'error', error: r.error ?? 'Kurulum başarısız' })
+  } catch (err) {
+    if (!alive()) return
+    const msg = (err as Error).message
+    log.error('update flow failed', { error: msg })
+    setFlow({ phase: 'error', error: msg })
+  }
+}
+
+function startUpdateFlow(): CloudInstallResult {
+  if (installing || flowActive()) return { ok: true }
+  if (!sessionHasRole('SERVICEMAN')) return { ok: false, error: denied('SERVICEMAN').error }
+  if (!IS_DEMO && !app.isPackaged && process.env.CORVENTA_ALLOW_DEV_UPDATE !== '1') {
+    return { ok: false, error: 'Geliştirme modunda kurulum kapalı (CORVENTA_ALLOW_DEV_UPDATE=1 ile açılır)' }
+  }
+  const token = ++flowToken
+  flow = { phase: 'downloading', version: null, progress: 0, waitReason: null, error: null }
+  log.warn('UPDATE NOW — tek tuşla güncelleme başladı', { username: getAuthUser()?.username ?? null })
+  void runUpdateFlow(token)
+  return { ok: true }
+}
+
+function cancelUpdateFlow(): UpdateFlowStatus {
+  // Yedek / kurulum başladıysa (backend'ler durmuş olabilir) iptal yok
+  if (flow.phase === 'downloading' || flow.phase === 'waiting') {
+    flowToken++
+    log.warn('update flow cancelled', { phase: flow.phase })
+    flow = { phase: 'cancelled', version: flow.version, progress: null, waitReason: null, error: null }
+  }
+  return flow
 }
 
 export function registerCloudHandlers(): void {
@@ -223,6 +385,10 @@ export function registerCloudHandlers(): void {
 
   ipcMain.handle(Ipc.IpcInvoke.CloudGetInstallBlockers, async (): Promise<CloudInstallBlockers | null> =>
     computeBlockers())
+
+  ipcMain.handle(Ipc.IpcInvoke.CloudUpdateNow, async (): Promise<CloudInstallResult> => startUpdateFlow())
+  ipcMain.handle(Ipc.IpcInvoke.CloudUpdateFlowStatus, async (): Promise<UpdateFlowStatus> => flow)
+  ipcMain.handle(Ipc.IpcInvoke.CloudUpdateFlowCancel, async (): Promise<UpdateFlowStatus> => cancelUpdateFlow())
 
   ipcMain.handle(Ipc.IpcInvoke.CloudInstallUpdate, async (_evt, path: unknown): Promise<CloudInstallResult> => {
     try {

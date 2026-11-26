@@ -14,6 +14,8 @@ export interface CloudUpdateInfo {
   downloading: boolean
   /** 0..100 — indirme sürerken */
   progress: number | null
+  /** Son indirme hatası (DataApi CloudUpdateDownloader) — yoksa null */
+  error?: string | null
 }
 
 /** DataApi GET /api/cloud/status */
@@ -63,4 +65,21 @@ export interface CloudInstallBlockers {
 export interface CloudInstallResult {
   ok: boolean
   error?: string
+}
+
+/**
+ * TEK TUŞLA GÜNCELLEME (2026-11-26) — main süreçteki akış: GÜNCELLE → indir + doğrula → makine boşalınca
+ * (büküm / tahliye / hareket yok) → DB yedeği → sessiz kurulum → uygulama yeniden açılır. Ekran değişse de sürer.
+ */
+export type UpdateFlowPhase = 'idle' | 'downloading' | 'waiting' | 'backup' | 'installing' | 'error' | 'cancelled'
+
+export interface UpdateFlowStatus {
+  phase: UpdateFlowPhase
+  version: string | null
+  /** İndirme yüzdesi (downloading) */
+  progress: number | null
+  /** 'waiting': kurulumu bekleten durum (Türkçe anahtar) */
+  waitReason: string | null
+  /** 'error': hata metni */
+  error: string | null
 }

@@ -3,8 +3,9 @@
 //   • BULUT DURUMU — DataApi GET /api/cloud/status (sayfa açıkken 5 sn'de bir), ŞİMDİ SENKRONİZE ET
 //   • AKTİVASYON — kod XXXX-XXXX-XXXX-XXXX → BULUTA BAĞLAN; bağlıysa BULUT BAĞLANTISINI KALDIR (SÜPERADMİN)
 //   • REÇETE PAYLAŞIMI (BIG DATA) — MachineSettings.CloudShareRecipes
-//   • GÜNCELLEME — İNDİR (DataApi) → GÜNCELLEMEYİ KUR (main setup'ı başlatıp kapanır). Büküm / tahliye /
-//     hareket sürerken KUR kapalı; main ayrıca kendisi de kontrol eder.
+//   • GÜNCELLEME — (2026-11-26) TEK TUŞ: GÜNCELLE → onay → main: indir + doğrula → makine boşalınca (büküm /
+//     tahliye / hareket bitince) DB yedeği → sessiz kurulum → uygulama yeniden açılır. Akış main'de sürer,
+//     sayfa kapansa da devam eder; indirme / bekleme sırasında VAZGEÇ.
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -15,9 +16,8 @@ import KeyboardModal from '@/components/KeyboardModal/KeyboardModal'
 import { formatCheckTime, internetStateText } from '@/components/InternetStatus/InternetStatusChip'
 import { useInternetStore } from '@/stores/internetStore'
 import { useCloudStatusPolling, useCloudStore } from '@/stores/cloudStore'
-import { useBendingActive } from '@/stores/bendingActivityStore'
 import { useCan } from '@/stores/sessionStore'
-import type { CloudInstallBlockers, CloudStatus } from '@shared/types'
+import type { CloudStatus, UpdateFlowStatus } from '@shared/types'
 import styles from './BigDataConnectionPage.module.css'
 
 const PAGE_POLL_MS = 5_000
@@ -82,48 +82,34 @@ export default function BigDataConnectionPage() {
   const view = cloudStateView(status, loaded, pollError, t)
 
   const canDeactivate = useCan('cloud-deactivate')
-  const bendingActive = useBendingActive()
 
   const [code, setCode] = useState('')
   const [showKeyboard, setShowKeyboard] = useState(false)
   const [busy, setBusy] = useState<null | 'sync' | 'activate' | 'deactivate' | 'share' | 'download' | 'install'>(null)
   const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null)
   const [confirm, setConfirm] = useState<null | 'deactivate' | 'install'>(null)
-  const [installing, setInstalling] = useState(false)
   const [appVersion, setAppVersion] = useState<string>('')
 
-  // Kurulum engelleri (main hesaplar) — indirilmiş güncelleme varken 5 sn'de bir
   const update = status?.update ?? null
-  const [blockers, setBlockers] = useState<CloudInstallBlockers | null | undefined>(undefined)
+  // Tek tuşla güncelleme akışı (main) — sayfa açıkken saniyede bir
+  const [flow, setFlow] = useState<UpdateFlowStatus | null>(null)
   useEffect(() => {
-    if (!update?.downloaded) return
     let alive = true
     const load = () => {
-      window.corventa.cloud.getInstallBlockers().then(
-        (b) => { if (alive) setBlockers(b) },
-        () => { if (alive) setBlockers(null) },
+      window.corventa.cloud.getUpdateFlowStatus().then(
+        (f) => { if (alive) setFlow(f) },
+        () => {},
       )
     }
     load()
-    const id = setInterval(load, PAGE_POLL_MS)
+    const id = setInterval(load, 1_000)
     return () => { alive = false; clearInterval(id) }
-  }, [update?.downloaded])
+  }, [])
+  const flowRunning = flow != null && ['downloading', 'waiting', 'backup', 'installing'].includes(flow.phase)
 
   useEffect(() => {
     window.corventa.getAppVersion().then(setAppVersion, () => {})
   }, [])
-
-  const installBlockReason: string | null = !update?.downloaded
-    ? null
-    : bendingActive || blockers?.bendingActive
-      ? t('Büküm sürüyor — bitince kurabilirsiniz')
-      : blockers?.unloadActive
-        ? t('Tahliye sürüyor — bitince kurabilirsiniz')
-        : blockers?.machineMoving
-          ? t('Makine hareket halinde — durunca kurabilirsiniz')
-          : blockers === null
-            ? t('Büküm durumu doğrulanamadı (DataApi yanıt vermiyor)')
-            : null
 
   async function run<R>(
     kind: NonNullable<typeof busy>,
@@ -168,20 +154,25 @@ export default function BigDataConnectionPage() {
     if (s) setStatus(s)
   }
 
-  async function install() {
+  async function updateNow() {
     setConfirm(null)
-    if (!update?.downloadPath) return
     setBusy('install')
     setMessage(null)
     try {
-      const r = await window.corventa.cloud.installUpdate(update.downloadPath)
-      if (r.ok) setInstalling(true)
-      else setMessage({ kind: 'error', text: tp(r.error) || t('İşlem başarısız') })
+      const r = await window.corventa.cloud.updateNow()
+      if (!r.ok) setMessage({ kind: 'error', text: tp(r.error) || t('İşlem başarısız') })
+      setFlow(await window.corventa.cloud.getUpdateFlowStatus())
     } catch (err) {
       setMessage({ kind: 'error', text: (err as Error).message })
     } finally {
       setBusy(null)
     }
+  }
+
+  async function cancelUpdate() {
+    try {
+      setFlow(await window.corventa.cloud.cancelUpdateFlow())
+    } catch { /* bir sonraki okumada güncellenir */ }
   }
 
   const activated = status?.activated === true
@@ -343,33 +334,43 @@ export default function BigDataConnectionPage() {
                 <Stat label={t('MEVCUT SÜRÜM')} value={appVersion || '—'} />
                 <Stat label={t('YENİ SÜRÜM')} value={update.version} />
                 <Stat label={t('BOYUT')} value={formatSize(update.sizeBytes)} />
-                {!update.downloaded ? (
-                  <button
-                    type="button"
-                    className={styles.actionBtn}
-                    onClick={() => void run('download', () => window.corventa.cloud.downloadUpdate())}
-                    disabled={update.downloading || busy != null}
-                  >
-                    {update.downloading
-                      ? t('İNDİRİLİYOR %{p}', { p: Math.round(update.progress ?? 0) })
-                      : <IconLabel icon="download">{t('İNDİR')}</IconLabel>}
-                  </button>
+                {flowRunning && (
+                  <span className={styles.upToDate} role="status">
+                    {flow?.phase === 'downloading'
+                      ? t('İNDİRİLİYOR %{p}', { p: Math.round(flow.progress ?? update.progress ?? 0) })
+                      : flow?.phase === 'waiting'
+                        ? t(flow.waitReason ?? 'Makine boşalınca kurulacak')
+                        : flow?.phase === 'backup'
+                          ? t('VERİTABANI YEDEĞİ ALINIYOR…')
+                          : t('KURULUYOR…')}
+                  </span>
+                )}
+                {flowRunning ? (
+                  (flow?.phase === 'downloading' || flow?.phase === 'waiting') && (
+                    <button type="button" className={styles.dangerBtn} style={{ marginLeft: 'auto' }} onClick={() => void cancelUpdate()}>
+                      {t('VAZGEÇ')}
+                    </button>
+                  )
                 ) : (
                   <button
                     type="button"
                     className={styles.primaryBtn}
                     onClick={() => setConfirm('install')}
-                    disabled={installBlockReason != null || !update.downloadPath || busy != null || installing}
+                    disabled={busy != null}
                   >
-                    {busy === 'install' || installing ? t('KURULUYOR…') : t('GÜNCELLEMEYİ KUR')}
+                    <IconLabel icon="download">{t('GÜNCELLE')}</IconLabel>
                   </button>
                 )}
               </div>
-              {update.downloading && (
-                <div className={styles.progress}><div className={styles.progressBar} style={{ width: `${Math.min(100, Math.max(0, update.progress ?? 0))}%` }} /></div>
+              {(flow?.phase === 'downloading' || update.downloading) && (
+                <div className={styles.progress}><div className={styles.progressBar} style={{ width: `${Math.min(100, Math.max(0, flow?.progress ?? update.progress ?? 0))}%` }} /></div>
               )}
-              {update.notes && <p className={styles.notes}>{update.notes}</p>}
-              {installBlockReason && <p className={styles.noteError}>{installBlockReason}</p>}
+              {/* Akış mesajı varken sürüm notu gizli — üst alan kaydırmasız sığsın */}
+              {update.notes && !flowRunning && flow?.phase !== 'error' && flow?.phase !== 'cancelled' && (
+                <p className={styles.notes}>{update.notes}</p>
+              )}
+              {flow?.phase === 'error' && flow.error && <p className={styles.noteError}>{t('GÜNCELLEME YAPILAMADI')}: {tp(flow.error)}</p>}
+              {flow?.phase === 'cancelled' && <p className={styles.note}>{t('Güncelleme iptal edildi')}</p>}
             </>
           )}
         </section>
@@ -398,16 +399,16 @@ export default function BigDataConnectionPage() {
 
       {confirm === 'install' && (
         <ConfirmModal
-          message="UYGULAMA KAPANIP GÜNCELLEME KURULACAK, SONRA OTOMATİK AÇILACAK. DEVAM EDİLSİN Mİ"
+          message="GÜNCELLEME İNDİRİLİP KURULACAK. BÜKÜM / TAHLİYE / HAREKET VARSA BİTMESİ BEKLENİR; KURULUMDAN ÖNCE VERİTABANI YEDEKLENİR, UYGULAMA KAPANIP OTOMATİK AÇILIR. DEVAM EDİLSİN Mİ"
           variant="primary"
-          confirmLabel="KUR"
+          confirmLabel="GÜNCELLE"
           cancelLabel="VAZGEÇ"
           onCancel={() => setConfirm(null)}
-          onConfirm={() => void install()}
+          onConfirm={() => void updateNow()}
         />
       )}
 
-      {installing && (
+      {(flow?.phase === 'backup' || flow?.phase === 'installing') && (
         <div className={styles.installOverlay}>
           <div className={styles.installBox}>
             <div className={styles.installTitle}>{t('GÜNCELLEME KURULUYOR')}</div>

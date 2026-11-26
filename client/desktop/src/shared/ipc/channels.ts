@@ -180,6 +180,10 @@ export const IpcInvoke = {
   CloudDeactivate: 'cloud:deactivate',
   CloudGetInstallBlockers: 'cloud:get-install-blockers',
   CloudInstallUpdate: 'cloud:install-update',
+  // 2026-11-26 — tek tuşla güncelleme (indir → bekle → yedek → kur) main'de
+  CloudUpdateNow: 'cloud:update-now',
+  CloudUpdateFlowStatus: 'cloud:update-flow-status',
+  CloudUpdateFlowCancel: 'cloud:update-flow-cancel',
 
   // DataApi — Bulut v2 (BULUT_API_V2.md §6): kalıp kütüphanesi + lisans, yönetilen veriler, checklist sonucu
   MoldList: 'mold:list',

@@ -12,6 +12,7 @@ import {
   type CloudInstallResult,
   type CloudResult,
   type CloudStatus,
+  type UpdateFlowStatus,
 } from '@shared'
 
 export const cloudApi = {
@@ -33,6 +34,11 @@ export const cloudApi = {
   /** ADMIN+ — setup'ı başlatır, ok:true ise uygulama birazdan kapanır */
   installUpdate: (downloadPath: string): Promise<CloudInstallResult> =>
     ipcRenderer.invoke(Ipc.IpcInvoke.CloudInstallUpdate, downloadPath),
+  /** SERVICEMAN+ — TEK TUŞLA GÜNCELLE: indir → makine boşalınca DB yedeği + sessiz kurulum (main'de sürer) */
+  updateNow: (): Promise<CloudInstallResult> => ipcRenderer.invoke(Ipc.IpcInvoke.CloudUpdateNow),
+  getUpdateFlowStatus: (): Promise<UpdateFlowStatus> => ipcRenderer.invoke(Ipc.IpcInvoke.CloudUpdateFlowStatus),
+  /** İndirme / bekleme sırasında vazgeç (yedek / kurulum başladıysa iptal edilmez) */
+  cancelUpdateFlow: (): Promise<UpdateFlowStatus> => ipcRenderer.invoke(Ipc.IpcInvoke.CloudUpdateFlowCancel),
   /** Bulut v2 yönetilen veriler (garanti, bakım politikası, checklist şablonu, karşılama, servis ağı/talepleri) */
   getConfig: (): Promise<CloudResult<CloudConfig>> => ipcRenderer.invoke(Ipc.IpcInvoke.CloudGetConfig),
   /** ADMIN+ — kalite kontrol checklist sonucu (yerel kayıt + bulut push) */
