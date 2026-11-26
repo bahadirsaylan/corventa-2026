@@ -93,6 +93,11 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallDiameterMm: 220, lowerBallDiameterMm: 220, leftBallDiameterMm: 220, rightBallDiameterMm: 220,
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
+  // 2026-11-26 — rotasyon top çapı → PLC + piston konumda tutma (backend varsayılanları; demoda etkisi yok)
+  rotationDiameterToPlcEnabled: false, pistonHoldEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
+  pistonHoldUpper: false, pistonHoldLower: true, pistonHoldLowerWhileClamped: false, pistonHoldDeadbandMm: 0.1,
+  pistonHoldExitBandMm: 0.03, pistonHoldKpPctPerMm: 20, pistonHoldMinPct: 4, pistonHoldMaxPct: 8,
+  pistonHoldNullRightMv: 0, pistonHoldNullLeftMv: 0, pistonHoldNullUpperMv: 0, pistonHoldNullLowerMv: 0,
   sideSupportPosTolMm: 0.5, sideSupportPosLeadMm: 1, sideSupportPosHoldMm: 2, sideSupportPosTimeoutS: 20,
   sideSupportGonyeRetractEnabled: true, sideSupportGonyeRetractTimeoutS: 20, sideSupportGonyeRetractNoRulerSec: 8,
   bendingEndAlarmSeconds: 2, alarmAutoOffOnUnload: true,

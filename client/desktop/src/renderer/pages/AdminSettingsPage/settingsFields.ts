@@ -213,7 +213,18 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
         note: 'Bu değerler piston hedef hesabını doğrudan değiştirir. Sahada ölçülmeden değiştirmeyin.',
         fields: [
           // 2026-11-16 — her vals topu ayrı (eski tek TOP ÇAPI dördüne kopyalandı)
-          { key: 'upperBallDiameterMm', label: 'ÜST TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Sıkıştırma hedefinde kullanılır.' },
+          { key: 'upperBallDiameterMm', label: 'ÜST TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Sıkıştırma hedefinde kullanılır. Rotasyon encoder\'ı (RV3100) üst topta — aşağıdaki ayar açıkken rotasyon mesafeleri de bu çapla hesaplanır.' },
+          // 2026-11-26 (kullanıcı: "top çapları değişebilir, SoftPLC'de de değişmeli") — PLC holding 34
+          {
+            type: 'select',
+            key: 'rotationDiameterToPlcEnabled',
+            label: 'ROTASYON TOP ÇAPINI PLC\'YE GÖNDER',
+            desc: 'AÇIK: rotasyon mm hesabı ÜST TOP ÇAPI ile yapılır (değişiklik rotasyon dururken ve iş yokken uygulanır). KAPALI: PLC sabit 220 mm kullanır (eski davranış).',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
           { key: 'lowerBallDiameterMm', label: 'ALT TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Büküm hesabı, sıvama ve sıkıştırma hedefinde kullanılır.' },
           { key: 'leftBallDiameterMm', label: 'SOL TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
           { key: 'rightBallDiameterMm', label: 'SAĞ TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
@@ -225,6 +236,54 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'defaultCenterDistanceMm', label: 'EKSEN MESAFESİ (NORMAL)', unit: 'mm', min: 1, max: 2000, desc: 'Sol-sağ top arası. Arc Normal / Ters Normal segmentler.' },
           { key: 'centerDistanceMiddleRadiusMm', label: 'EKSEN MESAFESİ (RADIUS ORTADA)', unit: 'mm', min: 1, max: 2000, nullable: true, desc: 'Arc Middle segmentler. Boş = normal eksen mesafesi kullanılır.' },
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },
+        ],
+      },
+      {
+        // 2026-11-26 — hidrolikçi: "konuma götürüp voltajı sıfırlamak yetmez, konumda tutmalısınız" (PLC FB_PistonControl 8b)
+        title: 'PİSTON KONUMDA TUTMA',
+        note: 'Paylaşılan valf başka eksen (rotasyon, diğer piston, yan dayama) için açılınca duran piston kayar. Açıkken SADECE büküm işi, elle düzeltme ve tahliye sırasında piston bırakıldığı yerde tutulur: kayma ölü bandı aşınca düşük gerilimle geri itilir. Üst top parça sıkılıyken asla tutulmaz. PLC programı güncel değilse etkisizdir (PLC/PISTON_TUTMA_YUKLEME.md).',
+        fields: [
+          {
+            type: 'select',
+            key: 'pistonHoldEnabled',
+            label: 'KONUMDA TUTMA',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { type: 'select', key: 'pistonHoldLeft', label: 'SOL TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
+          { type: 'select', key: 'pistonHoldRight', label: 'SAĞ TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
+          { type: 'select', key: 'pistonHoldLower', label: 'ALT TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
+          {
+            type: 'select',
+            key: 'pistonHoldLowerWhileClamped',
+            label: 'ALT TOP — PARÇA SIKILIYKEN',
+            desc: 'AÇIK: parça sıkılıyken de alt top tutulur (geri iterken sıkıştırma basıncı değişebilir). Önce KAPALI deneyin.',
+            options: [
+              { value: false, label: 'TUTMA' },
+              { value: true, label: 'TUT' },
+            ],
+          },
+          {
+            type: 'select',
+            key: 'pistonHoldUpper',
+            label: 'ÜST TOP (SIKILI DEĞİLKEN)',
+            desc: 'Üst top sadece parça sıkılı değilken tutulur; sıkıştırma sürerken ve sonrasında (geri çekilene kadar) hiç tutulmaz.',
+            options: [
+              { value: false, label: 'TUTMA' },
+              { value: true, label: 'TUT' },
+            ],
+          },
+          { key: 'pistonHoldDeadbandMm', label: 'ÖLÜ BANT', unit: 'mm', min: 0.02, max: 2, desc: 'Bu kadar kayınca düzeltmeye başlar. Salınım varsa büyütün.' },
+          { key: 'pistonHoldExitBandMm', label: 'BİTİŞ BANDI', unit: 'mm', min: 0, max: 2, desc: 'Bu kadar yaklaşınca düzeltmeyi bırakır (ölü banttan küçük).' },
+          { key: 'pistonHoldKpPctPerMm', label: 'KAZANÇ', unit: '%/mm', min: 0, max: 200, desc: 'Hata başına gerilim. Salınım varsa düşürün.' },
+          { key: 'pistonHoldMinPct', label: 'EN DÜŞÜK GERİLİM', unit: '%', min: 0, max: 20, desc: 'Valf ölü bölgesi — piston kıpırdamıyorsa ("TUTMA ARIZASI") artırın.' },
+          { key: 'pistonHoldMaxPct', label: 'EN YÜKSEK GERİLİM', unit: '%', min: 0, max: 20, desc: 'Düzeltme en fazla bu kadar gerilimle yapılır (PLC sınırı %20).' },
+          { key: 'pistonHoldNullLeftMv', label: 'SOL VALF SIFIR OFSETİ', unit: 'mV', min: -1500, max: 1500, integer: true, negative: true, desc: 'Valf açıkken hep eklenir (+ = geri yönde). Sızıntı yönünün tersine küçük değer. Bilinmiyorsa 0.' },
+          { key: 'pistonHoldNullRightMv', label: 'SAĞ VALF SIFIR OFSETİ', unit: 'mV', min: -1500, max: 1500, integer: true, negative: true },
+          { key: 'pistonHoldNullUpperMv', label: 'ÜST VALF SIFIR OFSETİ', unit: 'mV', min: -1500, max: 1500, integer: true, negative: true },
+          { key: 'pistonHoldNullLowerMv', label: 'ALT VALF SIFIR OFSETİ', unit: 'mV', min: -1500, max: 1500, integer: true, negative: true },
         ],
       },
       {
