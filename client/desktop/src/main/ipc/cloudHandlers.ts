@@ -112,13 +112,33 @@ function validateSetupPath(rawPath: unknown): { path: string } | { error: string
   return { path: real }
 }
 
-/** Setup'ı ayrık başlat; süreç oluşunca resolve, oluşamazsa reject */
+/** PowerShell tek tırnaklı metin */
+const psq = (v: string) => `'${v.replace(/'/g, "''")}'`
+
+/**
+ * Setup'ı ayrık başlat; süreç oluşunca resolve, oluşamazsa reject.
+ * 2026-11-27 (makinede 0.3.17 → 0.3.18: kuruldu ama uygulama AÇILMADI, Windows masaüstü kaldı): '--force-run'a güvenilmez.
+ * Gizli PowerShell bekçisi: setup'ı başlatır, BİTMESİNİ bekler, 3 sn sonra uygulama çalışmıyorsa KENDİSİ açar
+ * (çalışıyorsa — force-run açtıysa — dokunmaz; tek örnek kilidi ikinciyi zaten kapatır). Sonuç <DATA_DIR>\logs\update-install.log.
+ */
 function launchSetup(path: string): Promise<void> {
+  const appExe = process.execPath
+  const procName = basename(appExe).replace(/\.exe$/i, '')
+  const logFile = join(DATA_DIR, 'logs', 'update-install.log')
+  const script = [
+    `$log = ${psq(logFile)}`,
+    `function W($m) { try { "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $m" | Out-File -FilePath $log -Append -Encoding utf8 } catch {} }`,
+    `W ('setup başlıyor: ' + ${psq(path)})`,
+    `try { $p = Start-Process -FilePath ${psq(path)} -ArgumentList '/S','--force-run' -PassThru; $p.WaitForExit(); W ('setup bitti, çıkış kodu ' + $p.ExitCode) } catch { W ('setup HATASI: ' + $_) }`,
+    `Start-Sleep -Seconds 3`,
+    `if (Get-Process -Name ${psq(procName)} -ErrorAction SilentlyContinue) { W 'uygulama zaten açık (force-run)' } else {`,
+    `  try { Start-Process -FilePath ${psq(appExe)}; W ('uygulama başlatıldı: ' + ${psq(appExe)}) } catch { W ('uygulama BAŞLATILAMADI: ' + $_) } }`,
+  ].join('\n')
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(path, ['/S', '--force-run'], {
+    const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', script], {
       detached: true,
       stdio: 'ignore',
-      windowsHide: false,
+      windowsHide: true,
       cwd: dirname(path),
     })
     child.once('error', reject)

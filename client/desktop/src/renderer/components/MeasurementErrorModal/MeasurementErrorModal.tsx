@@ -66,10 +66,43 @@ export default function MeasurementErrorModal() {
     }
   }
 
+  // 2026-11-27 (kullanıcı): DAİRESEL bükümde de sensör ölçemezse bir şans daha (segment yok; pnömatik zaten geri çekilmiş)
+  const circular = modal1Open && segNo == null
+
   return (
     <div className={styles.overlay}>
       <div className={styles.modal}>
-        {modal1Open && (
+        {circular && (
+          <>
+            <h2 className={styles.title}><IconLabel icon="warning">{t('ÖLÇÜM HATASI')}</IconLabel></h2>
+            <p className={styles.subtitle}>{t('Geri esneme sensörü ölçüm yapamadı.')}</p>
+            <p className={styles.instruction}>
+              {t('Parçayı ve sensörü kontrol edin, sonra <b>TEKRAR ÖLÇ</b> ile yeniden ölçün.')
+                .split(/<\/?b>/)
+                .map((part, i) => (i % 2 === 1 ? <b key={i}>{part}</b> : part))}
+            </p>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                disabled={submitting !== null}
+                onClick={() => sendAction('finish_all')}
+              >
+                {submitting === 'finish_all' ? t('Gönderiliyor…') : <IconLabel icon="stop">{t('BÜKÜMÜ BİTİR')}</IconLabel>}
+              </button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                disabled={submitting !== null}
+                onClick={() => sendAction('remeasure')}
+              >
+                {submitting === 'remeasure' ? t('Ölçülüyor…') : t('TEKRAR ÖLÇ')}
+              </button>
+            </div>
+          </>
+        )}
+
+        {modal1Open && !circular && (
           <>
             <h2 className={styles.title}><IconLabel icon="warning">{t('ÖLÇÜM HATASI')}</IconLabel></h2>
             <p className={styles.subtitle}>

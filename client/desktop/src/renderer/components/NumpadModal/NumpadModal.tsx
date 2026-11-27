@@ -38,7 +38,14 @@ export default function NumpadModal({ fieldLabel, initialValue, onConfirm, onClo
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'Enter') handleConfirm()
+      if (e.key === 'Enter') { e.preventDefault(); handleConfirm(); return }
+      // 2026-11-27 (kullanıcı): FİZİKSEL klavye — rakamlar, nokta/virgül, eksi, Backspace (sil), Delete (temizle)
+      if (e.ctrlKey || e.altKey || e.metaKey) return
+      if (/^[0-9]$/.test(e.key)) { e.preventDefault(); press(e.key); return }
+      if (e.key === '.' || e.key === ',' || e.key === 'Decimal') { e.preventDefault(); press('.'); return }
+      if (e.key === 'Backspace') { e.preventDefault(); press('⌫'); return }
+      if (e.key === 'Delete') { e.preventDefault(); handleClear(); return }
+      if (e.key === '-' && allowNegative && !digitsOnly) { e.preventDefault(); toggleSign() }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)

@@ -415,6 +415,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: false, label: 'ONAYLA & DEVAM' },
             ],
           },
+          {
+            // 2026-11-27 (kullanıcı) — dairesel bükümde sensör ölçemezse bir şans daha
+            type: 'select',
+            key: 'circularMeasureRetryEnabled',
+            label: 'DAİRESEL — ÖLÇÜM HATASINDA',
+            desc: 'TEKRAR ÖLÇ SOR: geri esneme sensörü ölçemezse büküm bitmez, operatöre TEKRAR ÖLÇ / BÜKÜMÜ BİTİR sorulur (en fazla 5 kez). BÜKÜMÜ BİTİR: eski davranış.',
+            options: [
+              { value: true, label: 'TEKRAR ÖLÇ SOR' },
+              { value: false, label: 'BÜKÜMÜ BİTİR' },
+            ],
+          },
         ],
       },
       {

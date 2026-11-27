@@ -76,6 +76,18 @@ export default function KeyboardModal({
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') { e.preventDefault(); onClose() }
       if (e.key === 'Enter') { e.preventDefault(); onConfirm(value) }
+      // 2026-11-27 (kullanıcı): end PC'ye FİZİKSEL klavye bağlıysa doğrudan yazılabilsin (ekran klavyesi de aynen çalışır).
+      // Ctrl kısayolları (Ctrl +/− yakınlaştırma) karışmasın; AltGr (Ctrl+Alt, ör. @) karakter sayılır.
+      if (e.ctrlKey && !e.altKey) return
+      if (e.metaKey) return
+      if (e.key === 'Backspace') { e.preventDefault(); backspace(); return }
+      if (e.key.length === 1) {
+        e.preventDefault()
+        setValue((v) => {
+          const next = v + e.key
+          return maxLength && next.length > maxLength ? next.slice(0, maxLength) : next
+        })
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
