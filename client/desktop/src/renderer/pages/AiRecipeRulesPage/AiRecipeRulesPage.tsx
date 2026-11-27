@@ -439,6 +439,10 @@ function QualityTab({ draft, defaults, set }: { draft: AiRecipeMatchSettings; de
       {row(draft.selection !== defaults.selection, 'HANGİ KAYIT KULLANILSIN',
         'En hızlı biten (en az düzeltme) ya da en son yapılan uygun büküm',
         <Seg value={draft.selection} options={[{ v: 'FASTEST', label: 'EN HIZLI' }, { v: 'NEWEST', label: 'EN YENİ' }]} onChange={(v) => set('selection', v)} />)}
+      {/* 2026-11-27 (kullanıcı): eşleşen tüm kayıtlar hafızaya, ilk ölçümden sonra en uygunu */}
+      {row((draft.pickClosestFirstMeasure ?? true) !== (defaults.pickClosestFirstMeasure ?? true), 'İLK ÖLÇÜME EN YAKIN KAYIT',
+        'Eşleşen tüm kayıtlar bükümde hafızaya alınır; ilk geri esneme ölçümünden sonra ilk ölçümü en yakın olan kullanılır (eşitlikte üstteki seçim)',
+        <Seg value={draft.pickClosestFirstMeasure ?? true} options={[{ v: true, label: 'EVET' }, { v: false, label: 'HAYIR' }]} onChange={(v) => set('pickClosestFirstMeasure', v)} />)}
       {row(draft.maxRecordAgeDays !== defaults.maxRecordAgeDays, 'KAYIT YAŞI SINIRI',
         'Bu günden eski bükümler kullanılmaz (0 = sınır yok)',
         <NumberButton label={t('KAYIT YAŞI SINIRI')} value={draft.maxRecordAgeDays} unit={t('gün')} integer digits={0} max={3650}

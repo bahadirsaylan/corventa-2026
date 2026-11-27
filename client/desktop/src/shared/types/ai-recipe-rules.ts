@@ -32,6 +32,8 @@ export interface AiRecipeMatchSettings {
   /** (2026-11-23) AI ilk geri esneme ölçümünden sonra: kaydın ilk ölçümü (çap) bu parçanınkine ± tolerans */
   firstMeasureEnabled: boolean
   firstMeasureTolMm: number
+  /** (2026-11-27) eşleşen tüm kayıtlar önceden alınır, ilk ölçümden sonra ilk ölçümü EN YAKIN olan seçilir (false = seçim sırasındaki ilk) */
+  pickClosestFirstMeasure?: boolean
   requireWithinTolerance: boolean
   excludeFailedMeasurement: boolean
   minSuccessfulRecords: number
