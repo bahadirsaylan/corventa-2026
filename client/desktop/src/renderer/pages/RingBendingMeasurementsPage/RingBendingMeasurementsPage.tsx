@@ -15,7 +15,7 @@ import styles from './RingBendingMeasurementsPage.module.css'
 import artificialIntelligenceIcon from '@/assets/images/artificial.png'
 import type { SimilarBendingJobRequest } from '@shared/types'
 import { applyMeasureDefaults, loadMachineSpeedH } from '@/services/operatorPrefs'
-import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm, loadRollOverlap, rollOverlapMessage, type RollOverlapInfo } from '@/services/machineGeometry'
+import { cachedLowerBallDiameterMm, loadLowerBallDiameterMm, loadRollOverlap, rollOverlapMessage, type RollOverlapInfo, loadPartMinLength, partMinLengthMessage, type PartMinLengthInfo } from '@/services/machineGeometry'
 import { useT } from '@/i18n'
 import { useBendingModeLabel } from '@/hooks/useBendingModeLabel'
 import { useMoldHint } from '@/components/MoldLockHint/useMoldHint'
@@ -77,7 +77,16 @@ export default function RingBendingMeasurementsPage() {
       alive = false
     }
   }, [])
-  const overlapMsg = rollOverlapMessage(overlapInfo, parseFloat(values.A))
+  // 2026-11-27 (kullanıcı) EN KISA PARÇA BOYU — L < sıfırlama mesafesi + emniyet payı → kırmızı uyarı + ONAYLA'da engel
+  const [partMinInfo, setPartMinInfo] = useState<PartMinLengthInfo | null>(null)
+  useEffect(() => {
+    let alive = true
+    void loadPartMinLength().then((i) => { if (alive) setPartMinInfo(i) })
+    return () => {
+      alive = false
+    }
+  }, [])
+  const overlapMsg = rollOverlapMessage(overlapInfo, parseFloat(values.A)) ?? partMinLengthMessage(partMinInfo, parseFloat(values.L))
 
   // AI RECIPE FAZ 4B UI (2026-09-04) — İLERİ tıklanınca AI preview modal aç
   const [aiModalRequest, setAiModalRequest] = useState<SimilarBendingJobRequest | null>(null)

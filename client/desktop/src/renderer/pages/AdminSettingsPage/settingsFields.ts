@@ -426,6 +426,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: false, label: 'BÜKÜMÜ BİTİR' },
             ],
           },
+          {
+            // 2026-11-27 (kullanıcı) — parça boyu sıfırlama mesafesinden kısa girilemez
+            type: 'select',
+            key: 'partMinLengthCheckEnabled',
+            label: 'EN KISA PARÇA BOYU',
+            desc: 'KONTROL ET: parça boyu en az SIFIRLAMA MESAFESİ + EMNİYET PAYI olmalı; kısa parça ile büküm başlatılamaz. KONTROL ETME: eski davranış.',
+            options: [
+              { value: true, label: 'KONTROL ET' },
+              { value: false, label: 'KONTROL ETME' },
+            ],
+          },
         ],
       },
       {

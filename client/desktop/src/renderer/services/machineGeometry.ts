@@ -55,6 +55,37 @@ export async function loadRollOverlap(): Promise<RollOverlapInfo | null> {
 }
 
 /** A bindirme sınırının altındaysa ekranda gösterilecek mesaj; değilse null. */
+// ── EN KISA PARÇA BOYU (2026-11-27, kullanıcı) — backend Core/Models/PartLengthRule ile AYNI:
+// parça boyu ≥ sıfırlama mesafesi (ZeroResetDistanceMm) + emniyet payı (DefaultSafetyMarginMm). Backend de iş kaydında + başlatmada engeller.
+export interface PartMinLengthInfo {
+  enabled: boolean
+  resetMm: number
+  safetyMm: number
+  minMm: number
+}
+
+export async function loadPartMinLength(): Promise<PartMinLengthInfo | null> {
+  try {
+    const m = (await window.corventa.settings.getMachine()) as Record<string, unknown>
+    const resetMm = Number(m.zeroResetDistanceMm) || 0
+    const safetyMm = Math.max(0, Number(m.defaultSafetyMarginMm) || 0)
+    if (!(resetMm > 0)) return null
+    return { enabled: m.partMinLengthCheckEnabled !== false, resetMm, safetyMm, minMm: resetMm + safetyMm }
+  } catch {
+    return null
+  }
+}
+
+export function partMinLengthMessage(info: PartMinLengthInfo | null, l: number): string | null {
+  if (!info || !info.enabled || !(l > 0) || l + 1e-6 >= info.minMm) return null
+  return t('PARÇA BOYU EN AZ {min} mm OLMALI (SIFIRLAMA {reset} + EMNİYET {safety}) — GİRİLEN {l} mm', {
+    min: info.minMm,
+    reset: info.resetMm,
+    safety: info.safetyMm,
+    l,
+  })
+}
+
 export function rollOverlapMessage(info: RollOverlapInfo | null, a: number): string | null {
   if (!info || !info.enabled || !(a > 0) || a + 1e-6 >= info.minProfileAMm) return null
   return t('ÜST VE ALT TOP BİNDİRİR — PROFİL A EN AZ {min} mm OLMALI (GİRİLEN {a} mm)', {
