@@ -12,7 +12,7 @@
 
 import { app, ipcMain } from 'electron'
 import { spawn } from 'child_process'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, statSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'fs'
 import { dirname, basename, isAbsolute, join, relative, resolve } from 'path'
 
 import { IS_DEMO } from '@main/demo/DemoMachine'
@@ -112,41 +112,79 @@ function validateSetupPath(rawPath: unknown): { path: string } | { error: string
   return { path: real }
 }
 
-/** PowerShell tek tırnaklı metin */
-const psq = (v: string) => `'${v.replace(/'/g, "''")}'`
+/** VBScript çift tırnaklı metin */
+const vbq = (v: string) => `"${v.replace(/"/g, '""')}"`
 
-/**
- * Setup'ı ayrık başlat; süreç oluşunca resolve, oluşamazsa reject.
- * 2026-11-27 (makinede 0.3.17 → 0.3.18: kuruldu ama uygulama AÇILMADI, Windows masaüstü kaldı): '--force-run'a güvenilmez.
- * Gizli PowerShell bekçisi: setup'ı başlatır, BİTMESİNİ bekler, 3 sn sonra uygulama çalışmıyorsa KENDİSİ açar
- * (çalışıyorsa — force-run açtıysa — dokunmaz; tek örnek kilidi ikinciyi zaten kapatır). Sonuç <DATA_DIR>\logs\update-install.log.
- */
-function launchSetup(path: string): Promise<void> {
-  const appExe = process.execPath
-  const procName = basename(appExe).replace(/\.exe$/i, '')
-  const logFile = join(DATA_DIR, 'logs', 'update-install.log')
-  const script = [
-    `$log = ${psq(logFile)}`,
-    `function W($m) { try { "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $m" | Out-File -FilePath $log -Append -Encoding utf8 } catch {} }`,
-    `W ('setup başlıyor: ' + ${psq(path)})`,
-    `try { $p = Start-Process -FilePath ${psq(path)} -ArgumentList '/S','--force-run' -PassThru; $p.WaitForExit(); W ('setup bitti, çıkış kodu ' + $p.ExitCode) } catch { W ('setup HATASI: ' + $_) }`,
-    `Start-Sleep -Seconds 3`,
-    `if (Get-Process -Name ${psq(procName)} -ErrorAction SilentlyContinue) { W 'uygulama zaten açık (force-run)' } else {`,
-    `  try { Start-Process -FilePath ${psq(appExe)}; W ('uygulama başlatıldı: ' + ${psq(appExe)}) } catch { W ('uygulama BAŞLATILAMADI: ' + $_) } }`,
-  ].join('\n')
+/** Ayrık süreç başlat; süreç oluşunca resolve, oluşamazsa reject */
+function spawnDetached(cmd: string, args: string[], cwd: string): Promise<void> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', script], {
-      detached: true,
-      stdio: 'ignore',
-      windowsHide: true,
-      cwd: dirname(path),
-    })
+    const child = spawn(cmd, args, { detached: true, stdio: 'ignore', windowsHide: true, cwd })
     child.once('error', reject)
     child.once('spawn', () => {
       child.unref()
       resolvePromise()
     })
   })
+}
+
+/**
+ * Setup'ı ayrık başlat.
+ * 2026-11-27 (makinede): 0.3.17 → 0.3.18 kuruldu ama uygulama AÇILMADI (--force-run'a güvenilmez); 0.3.19'daki gizli
+ * PowerShell bekçisi ise ayrık (konsolsuz) başlatılınca HİÇ çalışmadı → setup başlamadı, ekran "kuruluyor"da kaldı.
+ * Şimdi: Windows Script Host (wscript.exe — konsol gerektirmez) + <DATA_DIR>\updates\run-update.vbs:
+ *   setup'ı /S --force-run ile başlatır, BİTMESİNİ bekler, çıkış kodunu yazar; 3 sn sonra uygulama çalışmıyorsa KENDİSİ açar.
+ *   Sonuç <DATA_DIR>\logs\update-install.log (UTF-16). Dev PC'de ayrık + üst süreç kapandıktan sonra doğrulandı.
+ * wscript başlatılamazsa (WSH kapalı vb.) eski yol: setup doğrudan '/S --force-run' (açılmazsa elle açılır).
+ */
+async function launchSetup(path: string): Promise<void> {
+  const appExe = process.execPath
+  const exeName = basename(appExe).replace(/'/g, '')
+  const logFile = join(DATA_DIR, 'logs', 'update-install.log')
+  try { mkdirSync(dirname(logFile), { recursive: true }) } catch { /* log klasörü yoksa VBS yazamaz — kurulum yine yapılır */ }
+  const vbsFile = join(dirname(path), 'run-update.vbs')
+  const vbs = [
+    'On Error Resume Next',
+    'Set sh = CreateObject("WScript.Shell")',
+    'Set fso = CreateObject("Scripting.FileSystemObject")',
+    `logPath = ${vbq(logFile)}`,
+    'Sub W(m)',
+    '  Set f = fso.OpenTextFile(logPath, 8, True, -1)',
+    '  f.WriteLine Now & " " & m',
+    '  f.Close',
+    'End Sub',
+    `W "setup başlıyor: " & ${vbq(path)}`,
+    `rc = sh.Run(${vbq(vbq(path) + ' /S --force-run')}, 0, True)`,
+    'If Err.Number <> 0 Then',
+    '  W "setup HATASI: " & Err.Description',
+    '  Err.Clear',
+    'Else',
+    '  W "setup bitti, çıkış kodu " & rc',
+    'End If',
+    'WScript.Sleep 3000',
+    'Set wmi = GetObject("winmgmts:root\\cimv2")',
+    `Set ps = wmi.ExecQuery("select ProcessId from Win32_Process where Name='${exeName}'")`,
+    'If ps.Count > 0 Then',
+    '  W "uygulama zaten açık (force-run)"',
+    'Else',
+    `  sh.Run ${vbq(vbq(appExe))}, 1, False`,
+    '  If Err.Number <> 0 Then',
+    '    W "uygulama BAŞLATILAMADI: " & Err.Description',
+    '    Err.Clear',
+    '  Else',
+    '    W "uygulama başlatıldı"',
+    '  End If',
+    'End If',
+  ].join('\r\n')
+  try {
+    // UTF-16 LE + BOM: Türkçe karakterli yollar wscript'te bozulmasın
+    writeFileSync(vbsFile, Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(vbs, 'utf16le')]))
+    await spawnDetached('wscript.exe', ['//B', '//Nologo', vbsFile], dirname(path))
+    log.warn('setup bekçisi (wscript) başlatıldı', { vbsFile, logFile })
+    return
+  } catch (err) {
+    log.error('setup bekçisi başlatılamadı — setup doğrudan başlatılıyor', { error: (err as Error).message })
+  }
+  await spawnDetached(path, ['/S', '--force-run'], dirname(path))
 }
 
 async function installUpdate(rawPath: unknown): Promise<CloudInstallResult> {
@@ -250,6 +288,11 @@ async function performInstall(path: string): Promise<CloudInstallResult> {
   log.warn('setup başlatıldı — uygulama kapanıyor')
   // Renderer cevabı alsın, sonra normal kapanış yolu (before-quit → servis durdurma)
   setTimeout(() => app.quit(), 500)
+  // 2026-11-27 (makinede ekran 'kuruluyor'da açık kaldı): normal kapanış takılırsa 5 sn sonra zorla çık — setup dosyaları yazabilsin
+  setTimeout(() => {
+    log.warn('uygulama 5 sn içinde kapanmadı — zorla çıkılıyor (app.exit)')
+    app.exit(0)
+  }, 5000)
   return { ok: true }
 }
 
