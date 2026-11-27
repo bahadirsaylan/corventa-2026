@@ -1,3 +1,6 @@
+import UserBadge from '@/components/UserBadge/UserBadge'
+import { useT } from '@/i18n'
+import { Icon } from '@/components/Icon'
 import styles from './SettingsHeader.module.css'
 
 interface Props {
@@ -5,16 +8,17 @@ interface Props {
 }
 
 export default function SettingsHeader({ onBack }: Props) {
+  const t = useT()
   return (
     <div className={styles.header}>
       {/* Left — title */}
       <div className={styles.titleBlock}>
-        <button className={styles.backBtn} onClick={onBack} aria-label="Back to dashboard">
-          ←
+        <button className={styles.backBtn} onClick={onBack} aria-label={t('Geri')}>
+          <Icon name="back" size="xl" />
         </button>
         <div className={styles.titleText}>
-          <span className={styles.titleTop}>CORVENTA BENDING</span>
-          <span className={styles.titleBottom}>MACHINE SETTINGS</span>
+          <span className={styles.titleTop}>{t('CORVENTA BÜKÜM')}</span>
+          <span className={styles.titleBottom}>{t('MAKİNE AYARLARI')}</span>
         </div>
       </div>
 
@@ -25,8 +29,12 @@ export default function SettingsHeader({ onBack }: Props) {
 
       {/* Right — customer info */}
       <div className={styles.customerBlock}>
-        <span className={styles.customerLabel}>MÜŞTERİ ADI :</span>
-        <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>
+        <span className={styles.customerLabel}>{t('MÜŞTERİ ADI :')}</span>
+        <span className={styles.customerName}>SERSOVİS A.Ş.  –  40.198517, 28.836939</span>{/* i18n-ignore */}
+        {/* Aktif kullanıcı + rol rozeti (rol sistemi) */}
+        <div className={styles.userRow}>
+          <UserBadge />
+        </div>
       </div>
     </div>
   )
@@ -37,6 +45,7 @@ export default function SettingsHeader({ onBack }: Props) {
  * matches the reference image: large dark gear (back-left) + small blue gear (front-right).
  */
 function SettingsIcon({ className }: { className?: string }) {
+  const t = useT()
   const gearPath = (cx: number, cy: number, r: number, teeth: number, toothH: number) => {
     const innerR = r
     const outerR = r + toothH
@@ -75,7 +84,7 @@ function SettingsIcon({ className }: { className?: string }) {
         <path id="arcTop" d="M 14 60 A 46 46 0 0 1 106 60" />
       </defs>
       <text fontSize="9" fontWeight="700" letterSpacing="3" fill="#888" textAnchor="middle" fontFamily="inherit">
-        <textPath href="#arcTop" startOffset="50%">SETTINGS</textPath>
+        <textPath href="#arcTop" startOffset="50%">{t('AYARLAR')}</textPath>
       </text>
 
       {/* Small dot accent (red dot top-left, matching original) */}

@@ -1,15 +1,19 @@
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './StatusBar.module.css'
 import touchIcon from '@/assets/images/touch.png'
+import { Icon } from '@/components/Icon'
 
 interface StatusBarProps {
   backTo?: string
   onBack?: () => void
   onConfirm?: () => void
   confirmDisabled?: boolean
+  /** Opsiyonel bilgi notu — touch ikonunun hemen solunda, alt panelde gösterilir (ikon yerinde kalır). */
+  hint?: ReactNode
 }
 
-export default function StatusBar({ backTo, onBack, onConfirm, confirmDisabled = false }: StatusBarProps) {
+export default function StatusBar({ backTo, onBack, onConfirm, confirmDisabled = false, hint }: StatusBarProps) {
   const navigate = useNavigate()
 
   function handleBack() {
@@ -25,8 +29,9 @@ export default function StatusBar({ backTo, onBack, onConfirm, confirmDisabled =
           onClick={handleBack}
           aria-label="Go back"
         >
-          ←
+          <Icon name="back" size="xxl" />
         </button>
+        {hint && <div className={styles.hint}>{hint}</div>}
       </div>
 
       <div className={styles.right}>

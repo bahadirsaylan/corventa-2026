@@ -1,0 +1,63 @@
+// İngilizce sözlük — SIKIŞTIRMA KAYITLARI (sıkıştırma telemetrisi, 2026-11-04).
+// Anahtar = Türkçe kaynak metin (birebir). Başka dosyada tanımlı olanlar burada tekrarlanmaz.
+const en: Record<string, string> = {
+  'SIKIŞTIRMA KAYITLARI': 'CLAMP LOGS',
+  'Her sıkıştırma; konumlar, basınçlar, yağ sıcaklığı ve sonrasındaki üst/alt top kayması ile kaydedilir.':
+    'Every clamp is recorded with positions, pressures, oil temperature and the upper/lower roll drift afterwards.',
+  'KAYITLARI AÇ': 'OPEN LOGS',
+  'SIKIŞTIRMA KAYDI #{id}': 'CLAMP LOG #{id}',
+  'Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Sıkıştırmadan sonra üst/alt topun konum kaybı (KAYMA) izlenir. Satıra dokunun: zaman çizgisi + CSV.':
+    'During every clamp the 4 piston positions, rotation and all oil data are recorded every 100 ms. After clamping, upper/lower roll position loss (DRIFT) is monitored. Tap a row: timeline + CSV.',
+  SONUÇ: 'RESULT',
+  YAĞ: 'OIL',
+  'KAYMA ÜST/ALT': 'DRIFT UPPER/LOWER',
+  'Henüz sıkıştırma kaydı yok': 'No clamp logs yet',
+  OK: 'OK',
+  SÜRÜYOR: 'RUNNING',
+  'Sıkıştırma kaydını kaydet': 'Save clamp log',
+  'Kaydedildi: {path}': 'Saved: {path}',
+  'Kaydedilemedi: {err}': 'Could not save: {err}',
+  'Kayıt okunamadı': 'Could not read the log',
+  'İŞ #{id}': 'JOB #{id}',
+  HEDEF: 'TARGET',
+  'BASINÇ MODU': 'PRESSURE MODE',
+  'BASINÇ / HIZ': 'PRESSURE / SPEED',
+  'BAŞLANGIÇ ÜST/ALT': 'START UPPER/LOWER',
+  'BİTİŞ ÜST/ALT': 'END UPPER/LOWER',
+  'BİTİŞ SOL/SAĞ': 'END LEFT/RIGHT',
+  'BİTİŞ S1 / S2': 'END S1 / S2',
+  'MAKS S1': 'MAX S1',
+  'YAĞ BAŞ/BİTİŞ': 'OIL START/END',
+  'İZLEME (SONRASI)': 'WATCH (AFTER)',
+  'MAKS KAYMA ÜST/ALT': 'MAX DRIFT UPPER/LOWER',
+  'SON KAYMA ÜST/ALT': 'LAST DRIFT UPPER/LOWER',
+  SONRASI: 'AFTER',
+  NOTLAR: 'NOTES',
+  FAZ: 'PHASE',
+  'KAYMA Ü/A': 'DRIFT U/L',
+  'İlk {n} satır gösteriliyor — tamamı için CSV': 'Showing the first {n} rows — CSV has all',
+  // 2026-11-05 — iş boyunca izleme
+  'Her sıkıştırmada 100 ms aralıkla 4 piston konumu, rotasyon ve tüm yağ verileri kaydedilir. Büküm işinde kayıt iş bitene kadar sürer: boşluk alma ve üst/alt topun KOMUTSUZ kayması (sıkışma gevşemesi) her paso için ayrı izlenir. Satıra dokunun: paso tablosu, zaman çizgisi + CSV.':
+    'During every clamp the 4 piston positions, rotation and all oil data are recorded every 100 ms. In a bending job the log continues until the job ends: slack take-up and UNCOMMANDED upper/lower roll movement (clamp loosening) are tracked per pass. Tap a row: pass table, timeline + CSV.',
+  'İŞTE ÜST GERİ / BOŞLUK': 'JOB UPPER BACK / SLACK',
+  '{n}×': '{n}×',
+  'İŞ İZLEME': 'JOB WATCH',
+  'KOMUTSUZ ÜST GERİ (EN FAZLA)': 'UNCOMMANDED UPPER BACK (MAX)',
+  'KOMUTSUZ ÜST İLERİ (EN FAZLA)': 'UNCOMMANDED UPPER FORWARD (MAX)',
+  'KOMUTSUZ ALT': 'UNCOMMANDED LOWER',
+  'MİN S1 (TUTARKEN)': 'MIN S1 (HOLDING)',
+  'BOŞLUK ALMA': 'SLACK TAKE-UP',
+  '{n} kez · toplam {mm} mm': '{n} times · total {mm} mm',
+  'ÜST KOMUT': 'UPPER CMD',
+  'PASO ÖZETİ — boşluk alma ve sıkışma (komutsuz kayma, − = üst top geri itildi)':
+    'PASS SUMMARY — slack take-up and clamping (uncommanded drift, − = upper roll pushed back)',
+  'BOŞLUK KOMUT/GERÇEK': 'SLACK CMD/REAL',
+  'ÜST GERİ': 'UPPER BACK',
+  'ÜST İLERİ': 'UPPER FWD',
+  'S1 MİN/MAKS': 'S1 MIN/MAX',
+  'CSV İÇE AKTAR': 'IMPORT CSV',
+  '{n} kayıt içe aktarıldı': '{n} logs imported',
+  hatalı: 'invalid',
+}
+
+export default en

@@ -97,3 +97,130 @@
   align-self: flex-end;
   margin-top: -24px;
 }
+
+/* ── Rol sistemi (2026-11-01): hata kutusu, ilk kurulum formu ── */
+.hint {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.errorBox {
+  margin: -8px 0 0;
+  padding: 14px 18px;
+  border-left: 6px solid var(--color-error);
+  background-color: rgba(232, 71, 74, 0.08);
+  color: var(--color-error);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.setupHead {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 2px solid var(--color-primary);
+  border-radius: 2px;
+}
+
+.setupTitle {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+}
+
+.setupNote {
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* DEMO: giriş bilgisi notu (sadece demo modunda) */
+.demoHint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* 2026-11-05 — demo: ekran boyutu (başka PC'de büyük/küçük görünürse) */
+.demoZoom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 18px;
+  font-weight: 800;
+}
+.demoZoom small {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.demoZoomBtn {
+  min-width: 56px;
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid #92400e;
+  border-radius: 8px;
+  background: #fff;
+  color: #92400e;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* STANDART SÜRÜM (2026-11-17) — logo altı sürüm adı */
+.edition {
+  margin: -8px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--color-text-muted);
+}
+
+/* 2026-11-19 — demo hazır kullanıcı seçimi */
+.demoPick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.demoSelect {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border: 1.5px solid #d97706;
+  border-radius: 6px;
+  background: #fff;
+  color: #2a2a2a;
+  max-width: 100%;
+}

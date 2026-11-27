@@ -57,9 +57,10 @@
 }
 
 .navIcon {
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
-  text-align: center;
   flex-shrink: 0;
 }
 

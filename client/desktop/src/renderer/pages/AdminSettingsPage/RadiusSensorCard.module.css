@@ -1,0 +1,72 @@
+/* Kart yarım sayfa genişliğinde (PagedColumns iki sütun) — içerik dar alana göre */
+.card {
+  min-width: 0;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.badge[data-zeroed] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.value {
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unit {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sub {
+  font-size: 12px;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.btnRow {
+  display: flex;
+  gap: 8px;
+}
+
+/* Ortak saveBtn/resetBtn yatay dolgusu (22–30px) dar kartta taşıyordu */
+.btnRow > button,
+.encoderBtn {
+  flex: 1;
+  min-width: 0;
+  padding-left: 6px;
+  padding-right: 6px;
+  font-size: 13px;
+  white-space: normal;
+}
+
+.encoderBtn {
+  width: 100%;
+}

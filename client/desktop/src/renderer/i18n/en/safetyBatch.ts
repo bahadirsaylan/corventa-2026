@@ -1,0 +1,142 @@
+// İngilizce sözlük — 2026-11-20 güvenlik paketi: yan dayama geri sınırı, tuş takımı hızları, PC kapat / yeniden başlat,
+// alarm susturma, GÜVENLİ MOD (hata tekrarı → bakım kilidi), pnömatik düğmeleri. ({0} = C# interpolasyon boşluğu)
+
+const en: Record<string, string> = {
+  // ── Tuş takımı ──
+
+  // ── Hızlı menü ──
+  'PC YENİDEN BAŞLAT': 'RESTART PC',
+  'PC KAPAT': 'SHUT DOWN PC',
+  'BİLGİSAYAR KAPATILSIN MI?': 'SHUT DOWN THE COMPUTER?',
+  'BİLGİSAYAR YENİDEN BAŞLATILSIN MI?': 'RESTART THE COMPUTER?',
+  'Hidrolik motor durdurulur, program kapanır.': 'The hydraulic motor is stopped and the program closes.',
+  'DEMO / GELİŞTİRME — BİLGİSAYAR KAPATILMADI': 'DEMO / DEVELOPMENT — COMPUTER NOT SHUT DOWN',
+  'YENİDEN BAŞLAT': 'RESTART',
+
+  // ── Alarm ──
+  'ALARMI SESSİZE AL': 'SILENCE ALARM',
+  'SUSTURULAMADI — TEKRAR DENE': 'COULD NOT SILENCE — TRY AGAIN',
+  'Alarm susturuldu': 'Alarm silenced',
+
+  // ── Makine değerleri: pnömatik ──
+  'DUR': 'STOP',
+
+  // ── Güvenli mod ──
+  'GÜVENLİ MOD — BAKIM KİLİDİ': 'SAFE MODE — MAINTENANCE LOCK',
+  'Yetkili kişi kilidi kapatana kadar büküm başlatılamaz.': 'Bending cannot be started until an authorized person releases the lock.',
+  'KİLİDİ KAPAT': 'RELEASE LOCK',
+  'GÜVENLİ MOD KAPATILDI': 'SAFE MODE RELEASED',
+  'Kilit kapatılamadı: {err}': 'Lock could not be released: {err}',
+  'HATA TEKRARINDA GÜVENLİ MOD': 'SAFE MODE ON REPEATED ERRORS',
+  'AÇIK: aynı hata / uyarı belirtilen sürede belirtilen sayıda tekrarlarsa bakım kilidi açılır; servis yetkilisi kapatana kadar büküm başlatılamaz.':
+    'ON: if the same error / warning repeats the given number of times within the given period the maintenance lock is set; bending cannot start until service releases it.',
+  'TEKRAR SAYISI': 'REPEAT COUNT',
+  'TEKRAR SÜRESİ': 'REPEAT PERIOD',
+  'ACİL STOP DA SAYILSIN': 'COUNT EMERGENCY STOPS TOO',
+  'KAPALI: operatörün bastığı acil stop sayılmaz (arıza değil).': 'OFF: emergency stops pressed by the operator are not counted (not a fault).',
+  'Hata tekrar sayısı 2-20 arası olmalı': 'Repeat count must be between 2 and 20',
+  'Hata tekrar penceresi 1-168 saat arası olmalı': 'Repeat period must be between 1 and 168 hours',
+
+  // ── Yan dayama geri sınırı ──
+  'YAN DAYAMA GERİ SINIRI': 'SIDE SUPPORT BACK LIMIT',
+  'AÇIK: yan dayamalar sınırın gerisine gitmez (jog durur, konum reddedilir, gönyede sınıra çekilir). Sınır = bu değer veya o yan dayamanın ofseti (büyük olan).':
+    'ON: side supports never go behind the limit (jog stops, positions are rejected, homing retracts to the limit). Limit = this value or that support\'s offset (whichever is larger).',
+  'GERİ SINIR (EN GERİDEN)': 'BACK LIMIT (FROM FULL RETRACTION)',
+  'Kalibre cetvelde mekanik en geriden mesafe. Varsayılan 5 mm.': 'Distance from the mechanical back end on the calibrated ruler. Default 5 mm.',
+  'GERİ SINIR DURMA PAYI': 'BACK LIMIT STOP MARGIN',
+  'Elle geri sürerken sınırın bu kadar önünde durdurulur (okuma gecikmesi + kayma). Sınırın gerisine geçiyorsa büyütün.':
+    'When driving back manually it is stopped this far before the limit (read delay + coasting). Increase it if it passes the limit.',
+  'Sadece geri sınır KAPALI ve ofset 0 iken: cetvel okunamıyorsa yan dayamalar bu kadar süre geri sürülür.':
+    'Only when the back limit is OFF and the offset is 0: if the rulers cannot be read the side supports are driven back this long.',
+  'Yan dayama geri sınırı 0-50 mm arası olmalı': 'Side support back limit must be between 0 and 50 mm',
+  'Yan dayama geri sınır payı 0-30 mm arası olmalı': 'Side support back limit margin must be between 0 and 30 mm',
+  '{0} GERİ SINIRDA — daha geri gidemez': '{0} AT BACK LIMIT — cannot go further back',
+  '{0}: hedef {1} mm geri sınırın gerisinde (en az {2} mm)': '{0}: target {1} mm is behind the back limit (at least {2} mm)',
+  '{0} CETVELİ OKUNMUYOR — GERİ ÇEKİLMEDİ (GERİ SINIRI KORUNAMAZ)': '{0} RULER NOT READ — NOT RETRACTED (BACK LIMIT CANNOT BE KEPT)',
+  '{0} GERİ SINIRA GİDEMEDİ: {1}': '{0} COULD NOT REACH THE BACK LIMIT: {1}',
+  '{0} {1} SN İÇİNDE GERİ SINIRA / EN GERİYE GELMEDİ': '{0} DID NOT REACH THE BACK LIMIT / FULL RETRACTION WITHIN {1} S',
+
+  // ── Bükümde yan dayama konumları ──
+  'BÜKÜMDE YAN DAYAMA KONUMLARI': 'SIDE SUPPORT POSITIONS DURING BENDING',
+  'Açıkken büküm başlarken (parça sıkılmadan önce) yan dayamalar bu konumlara gider, varınca durur ve iş boyunca orada kalır. Değerler tuş takımında görünen mm (ofsetli sıfırdan). Geri sınırın gerisindeki değer sınıra çekilir. Gidemezse büküm başlamaz.':
+    'When ON, the side supports move to these positions when bending starts (before clamping), stop there and stay for the whole job. Values are the mm shown on the keypad (from the offset zero). Values behind the back limit are raised to the limit. If they cannot get there, bending does not start.',
+  'BÜKÜMDE YAN DAYAMALARI KONUMA GÖNDER': 'SEND SIDE SUPPORTS TO POSITION DURING BENDING',
+  'TOP ÇENE KALINLIĞI (SAĞ + SOL GÖVDE)': 'ROLL JAW THICKNESS (RIGHT + LEFT BODY)',
+  'Gövde bükümde sıfırdan bu kadar ileri çıkar.': 'During bending the body moves this far forward from zero.',
+  'Yan dayamalar büküm konumuna gidiyor...': 'Side supports moving to bending position...',
+  'Bükümde yan dayama konumları -50 … 400 mm arası olmalı': 'Side support bending positions must be between -50 and 400 mm',
+  'Bükümde yan dayama konumu: {0}': 'Side support bending position: {0}',
+  'Bükümde yan dayama konuma gidemedi: {0}': 'Side support could not reach bending position: {0}',
+  '{0} zaten {1} mm konumunda': '{0} already at {1} mm',
+
+  // ── AI öğrenme (2026-11-23) ──
+  'İLK GERİ ESNEME ÖLÇÜMÜ': 'FIRST SPRINGBACK MEASUREMENT',
+  'Kaydın ilk ölçümü (çap) bu parçanın ilk ölçümüne yakın olmalı': "The record's first measurement (diameter) must be close to this part's first measurement",
+  'Büküm hızı (%) farkı': 'Bending speed (%) difference',
+  'piston hızı toleransı 0..100 % olmalı': 'piston speed tolerance must be 0..100 %',
+  'ilk ölçüm benzerlik toleransı 0..1000 mm olmalı': 'first measurement similarity tolerance must be 0..1000 mm',
+  'AI ÖĞRENME: ilk ölçüm {0} mm — benzer kayıt yok, klasik düzeltme': 'AI LEARNING: first measurement {0} mm — no similar record, classic correction',
+  "AI ÖĞRENME: ilk ölçüm {0} mm ≈ Job #{1} → doğrudan {2} mm'ye (o kayıtta parçayı toleransa sokan pozisyon)": 'AI LEARNING: first measurement {0} mm ≈ Job #{1} → directly to {2} mm (the position that brought that part into tolerance)',
+  'Düzeltme {0} mm, adım {1} mm → {2} parçada (her parçada rotasyon)': 'Correction {0} mm, step {1} mm → in {2} parts (rotation in each part)',
+
+  // ── Elle konumlandırma çizimi (2026-11-23) ──
+  'SOL PARÇA SENSÖRÜNÜN YERİ': 'LOCATION OF THE LEFT PART SENSOR',
+  'Makineye önden bakınca "SOL" parça varlık sensörünün durduğu taraf. Sadece elle konumlandırma çizimini etkiler.':
+    'The side where the "LEFT" part presence sensor sits when looking at the machine from the front. Only affects the manual placement drawing.',
+  'SAĞDA': 'ON THE RIGHT',
+  'SOLDA': 'ON THE LEFT',
+  'PARÇA {mm} mm': 'PART {mm} mm',
+
+  'SIKIŞTIRMA SÜRÜYOR — yan dayama hareket ettirilemez (üst top basıncını bozar)': 'CLAMPING IN PROGRESS — side supports cannot move (it disturbs the upper roll pressure)',
+
+  'TOP ÇENE KALINLIĞI': 'ROLL JAW THICKNESS',
+  'Gövde ve mafsal bu kadar + kendi ek değeri kadar ileri çıkar.': 'Body and joint move forward by this plus their own extra value.',
+  'SAĞ GÖVDE (EK)': 'RIGHT BODY (EXTRA)',
+  'SOL GÖVDE (EK)': 'LEFT BODY (EXTRA)',
+  'SAĞ MAFSAL (EK)': 'RIGHT JOINT (EXTRA)',
+  'SOL MAFSAL (EK)': 'LEFT JOINT (EXTRA)',
+  'Hedef = çene kalınlığı + bu değer.': 'Target = jaw thickness + this value.',
+
+  'PARÇA UCUNU SENSÖR TARAFINDA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.': 'BRING THE PART END ON THE SENSOR SIDE {mm} MM FROM THE CENTER (IN LINE WITH THE SENSOR).',
+
+  'ÖLÇÜMDE MAFSALI GERİ ÇEK': 'RETRACT JOINT DURING MEASUREMENT',
+  'Geri esneme ölçümünden önce ölçüm tarafındaki mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.':
+    'Before the springback measurement the joint on the measuring side is retracted to the back limit and returns to its previous position afterwards. If it cannot retract, no measurement is made.',
+  'Ölçüm için mafsal geri çekilemedi: {0}': 'Joint could not be retracted for measurement: {0}',
+  'Mafsal ölçümden sonra eski yerine dönemedi: {0}': 'Joint could not return to its position after measurement: {0}',
+
+  // ── Sensör durumları (2026-11-23, sadece arayüz) ──
+  'SENSÖR DURUMLARI': 'SENSOR STATES',
+  'ÖNİZLEME — seçimler henüz makineye uygulanmıyor.': 'PREVIEW — selections are not applied to the machine yet.',
+  'AKTİF: kullanılır · PASİF: gösterilir, hata vermez · DEAKTİF: yok sayılır': 'ACTIVE: used · PASSIVE: shown, raises no errors · DISABLED: ignored',
+  'PARÇA VARLIK SENSÖRLERİ': 'PART PRESENCE SENSORS',
+  'SOL PARÇA VARLIK': 'LEFT PART PRESENCE',
+  'SAĞ PARÇA VARLIK': 'RIGHT PART PRESENCE',
+  'GERİ ESNEME ÖLÇÜM SENSÖRLERİ': 'SPRINGBACK MEASUREMENT SENSORS',
+  'SOL ÖLÇÜM SENSÖRÜ': 'LEFT MEASUREMENT SENSOR',
+  'SAĞ ÖLÇÜM SENSÖRÜ': 'RIGHT MEASUREMENT SENSOR',
+  'PİSTON CETVELLERİ': 'PISTON RULERS',
+  'SAĞ TOP CETVELİ': 'RIGHT ROLL RULER',
+  'SOL TOP CETVELİ': 'LEFT ROLL RULER',
+  'ÜST TOP CETVELİ': 'UPPER ROLL RULER',
+  'ALT TOP CETVELİ': 'LOWER ROLL RULER',
+  'YAN DAYAMA CETVELLERİ': 'SIDE SUPPORT RULERS',
+  'HİDROLİK SENSÖRLERİ': 'HYDRAULIC SENSORS',
+  'S1 BASINÇ': 'S1 PRESSURE',
+  'S2 BASINÇ': 'S2 PRESSURE',
+  'S1 AKIŞ': 'S1 FLOW',
+  'S2 AKIŞ': 'S2 FLOW',
+  'YAĞ SEVİYESİ': 'OIL LEVEL',
+  'NEM': 'HUMIDITY',
+  'AKTİF': 'ACTIVE',
+  'PASİF': 'PASSIVE',
+  'DEAKTİF': 'DISABLED',
+
+  // ── Yan dayama sırası (2026-11-23) ──
+  'STAGE GEÇİŞİNDE YAN DAYAMALARI SIFIRA ÇEK': 'RETRACT SIDE SUPPORTS TO ZERO ON STAGE CHANGE',
+  'KARŞI TARAF EK MESAFE': 'OPPOSITE SIDE EXTRA DISTANCE',
+  'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.':
+    'In circular bending the opposite side supports come in once the part has travelled safety margin + stage XA1 + this distance in the first rotation.',
+}
+
+export default en

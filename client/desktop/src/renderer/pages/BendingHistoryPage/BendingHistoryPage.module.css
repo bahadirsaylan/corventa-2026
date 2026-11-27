@@ -1,0 +1,161 @@
+/* Büküm Geçmişi — ErrorReportsPage stiliyle aynı (kart / tablo / pill); dokunmatik için büyük düğmeler */
+.page { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #e8e0d0; overflow: hidden; }
+
+.header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 10px 20px; background: #2a2a2a; color: #fff; flex-shrink: 0;
+}
+
+.backBtn {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #fff; color: #2a2a2a;
+  font-size: 22px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: none; flex-shrink: 0;
+}
+
+.title { font-size: 20px; font-weight: 800; letter-spacing: 0.08em; flex: 1; }
+
+.body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; overflow-y: auto; }
+
+.card {
+  background: #fff; border: 1.5px solid #d07070; border-radius: 12px;
+  padding: 12px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.1em;
+  color: var(--color-primary);
+  padding-bottom: 6px; border-bottom: 2px solid #d07070;
+}
+
+.filterRow { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.filterField { display: flex; flex-direction: column; gap: 4px; min-width: 220px; }
+.filterLabel { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.filterHint { flex: 1; min-width: 160px; font-size: 12px; color: var(--color-text-muted); line-height: 1.4; }
+
+.selectInput {
+  border: 1.5px solid #cbd5e1; border-radius: 6px;
+  padding: 0 12px; min-height: 48px;
+  font-size: 15px; font-weight: 700;
+  color: var(--color-text); background: #f9fafb;
+  font-family: inherit;
+}
+
+/* Durum filtresi çipleri */
+.chipRow { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+.chip {
+  min-height: 48px; padding: 0 18px;
+  border: 2px solid #9ca3af; border-radius: 8px; background: #fff;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text);
+  cursor: pointer;
+}
+.chip[data-on] { background: #2a2a2a; border-color: #2a2a2a; color: #fff; }
+
+.refreshBtn, .moreBtn, .exportBtn {
+  min-height: 48px;
+  background: #2a2a2a; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 0 20px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.exportBtn { background: #f4a0a0; color: var(--color-text); border: 1.5px solid #d07070; }
+.refreshBtn:disabled, .moreBtn:disabled, .exportBtn:disabled { opacity: 0.4; cursor: default; }
+.moreBtn { align-self: center; min-width: 260px; }
+.moreRow { display: flex; align-items: center; gap: 12px; }
+
+/* Tablo */
+.table { width: 100%; border-collapse: collapse; }
+
+.table thead th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table tbody td {
+  padding: 10px;
+  font-size: 13px;
+  border-bottom: 1px dotted #e5e7eb;
+}
+
+.thNum, .tdNum { text-align: right !important; }
+.tdMono { font-family: var(--font-mono); font-size: 12px; color: var(--color-text); }
+.tdId { font-family: var(--font-mono); font-size: 15px; font-weight: 900; color: var(--color-text); }
+.tdCat { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text-muted); }
+.tdAction { width: 28px; color: var(--color-text-muted); }
+
+/* Liste satırı — eldivenle dokunulabilir yükseklik */
+.clickRow { cursor: pointer; }
+.clickRow td { height: 56px; }
+.clickRow:hover td, .clickRow:active td { background: #f8f3ea; }
+
+.statusPill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.empty { text-align: center; padding: 24px !important; color: var(--color-text-muted); font-style: italic; }
+
+.errorBox, .warnBox, .okBox {
+  display: flex; flex-direction: column; gap: 4px;
+  border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 700;
+}
+.errorBox { background: #fef2f2; border: 1.5px solid #dc2626; color: #991b1b; }
+.warnBox { background: #fffbeb; border: 1.5px solid #f59e0b; color: #92400e; }
+.okBox { background: #f0fdf4; border: 1.5px solid #16a34a; color: #166534; }
+.errorDetail { font-family: var(--font-mono); font-size: 11px; font-weight: 400; }
+.boxText { font-size: 14px; font-weight: 700; line-height: 1.4; word-break: break-word; }
+
+/* Detay */
+.detailHead { display: flex; align-items: center; gap: 12px; }
+.detailMethod { font-size: 16px; font-weight: 900; letter-spacing: 0.06em; color: var(--color-text); flex: 1; }
+.detailTime { font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--color-text-muted); }
+
+.kvGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 16px; }
+.kv { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kvValue { font-family: var(--font-mono); font-size: 15px; font-weight: 800; color: var(--color-text); }
+
+/* Log sekmeleri */
+.tabRow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tab {
+  min-height: 56px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  border: 2px solid #9ca3af; border-radius: 8px; background: #fff;
+  font-size: 14px; font-weight: 900; letter-spacing: 0.06em; color: var(--color-text);
+  cursor: pointer;
+}
+.tab[data-on] { background: #2a2a2a; border-color: #2a2a2a; color: #fff; }
+.tabCount {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 800;
+  padding: 2px 8px; border-radius: 10px; background: #e5e7eb; color: #374151;
+}
+.tab[data-danger] .tabCount { background: #dc2626; color: #fff; }
+
+/* Log tablosu */
+.logBox { max-height: 460px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; }
+
+/* İş detayı: özet kartı sabit, log kartı kalan yüksekliği doldurur — sayfa kaymaz, sadece log tablosu kayar */
+.detailBody > .card { flex-shrink: 0; }
+.detailBody > .logCard { flex: 1 1 0; min-height: 300px; }
+.detailBody .logCard .tab { min-height: 48px; }
+.detailBody .logCard .logBox { flex: 1 1 0; min-height: 120px; max-height: none; }
+.logBox .table thead th { position: sticky; top: 0; background: #fff; z-index: 1; }
+.logBox .table tbody td { padding: 6px 8px; vertical-align: top; }
+.tdTime { font-family: var(--font-mono); font-size: 12px; white-space: nowrap; color: var(--color-text); }
+.tdLog { font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+.tdValues { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted); white-space: nowrap; }
+.logDetail td { color: #4b5563; }
+.logWarn td { background: #fef9c3; color: #854d0e; font-weight: 700; }
+.logError td { background: #fef2f2; color: #b91c1c; font-weight: 700; }
+.detailBody .kvGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px 12px; }
+.detailBody .kvGrid .kvValue { font-size: 13px; }
+.detailBody > .card > .errorBox, .detailBody > .card > .warnBox { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: 12px; padding: 8px 14px; }

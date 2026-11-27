@@ -41,10 +41,11 @@
 /* ── Right: section wrapper ─────────────────── */
 .inputSection {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 16px;
+  gap: 14px; /* 2026-11-17: bilgi şeridi + kapasite uyarısı birlikteyken de üst alana sığar */
 }
 
 /* ── Right: 2-column input grid ─────────────── */
@@ -52,7 +53,7 @@
   display: flex;
   flex-direction: row;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start; /* 2026-11-05: sütunlar üstten hizalı (sağ sütun kısa olunca kayıyordu) */
 }
 
 .inputCol {
@@ -138,10 +139,10 @@
 .infoBtn {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  border: 2px solid #4a90d9;
-  background: #4a90d9;
-  color: #fff;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #4a90d9;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -149,10 +150,112 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: color 0.15s;
 }
 
 .infoBtn:hover {
-  background-color: #2d6fb8;
-  border-color: #2d6fb8;
+  color: #2d6fb8;
+}
+
+/* ── Canlı kapasite uyarısı (numpad onayından sonra, engellemez) ── */
+.capacityNotice {
+  margin: 0;
+  padding: 6px 10px 6px 26px;
+  border-left: 4px solid #c0392b;
+  border-radius: 6px;
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #a93226;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* ── Hedef konum + adım sayısı — ızgara altında tam genişlik bilgi şeridi (2026-11-17) ──
+   Girişlerle aynı dil: 2px kenarlık, radius-md, açık yüzey; sonuç gelince seçili (yeşil) tonu.
+   Sabit yükseklik: içerik değişince (—/değer/ipucu) form kaymaz. */
+.planStrip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  overflow: hidden;
+}
+
+.planStrip[data-state='ok'] {
+  border-color: var(--color-selected-border);
+  background-color: var(--color-selected);
+}
+
+.planCell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 8px;
+  line-height: 1.1;
+}
+
+.planCell + .planCell {
+  border-left: 1px solid var(--color-border);
+}
+
+.planStrip[data-state='ok'] .planCell + .planCell {
+  border-left-color: rgba(22, 163, 74, 0.35);
+}
+
+/* İpucu varken hücreler sabit genişlik, ipucu kalan yeri alır (2 satıra kadar sarar) */
+.planStrip:has(.planHint) .planCell {
+  flex: 0 0 132px;
+}
+
+.planHint {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-left: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--color-text-muted);
+  overflow: hidden;
+}
+
+.planStrip[data-state='error'] .planHint {
+  color: #a93226;
+}
+
+.planLabel {
+  max-width: 100%;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planStrip[data-state='ok'] .planLabel {
+  color: var(--color-selected-text);
+}
+
+.planValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.planValue small {
+  font-size: 13px;
+  font-weight: 700;
 }

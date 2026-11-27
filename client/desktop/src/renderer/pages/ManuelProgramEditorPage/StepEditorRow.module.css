@@ -1,0 +1,47 @@
+tr {
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+tr:hover {
+  background-color: rgba(110, 167, 214, 0.08);
+}
+
+tr.selected {
+  background-color: #cfe1f4 !important;
+}
+
+tr.selected td {
+  color: var(--color-text) !important;
+  font-weight: 700;
+}
+
+td {
+  padding: 6px 16px;
+  border-bottom: 1px solid #f0e9d2;
+  color: var(--color-text-muted);
+}
+
+.no {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  width: 140px;
+}
+
+.cmd {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+}
+
+.modifier {
+  font-weight: 600;
+}
+
+.date {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  white-space: nowrap;
+}

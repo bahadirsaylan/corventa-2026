@@ -1,0 +1,128 @@
+/* AI ÖĞRENME KURALLARI — üst alana (750 px) kaydırmasız sığar; ortak görünüm SettingsForm.module.css */
+.root { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+.fill { flex: 1; min-height: 0; overflow: hidden; padding: 8px 14px; gap: 4px; }
+
+.footerMsg { font-weight: 800; }
+.footerMsg[data-kind='ok'] { color: #166534; }
+.footerMsg[data-kind='err'] { color: #b91c1c; }
+
+/* Kriter tablosu */
+.critGrid { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 14px; align-items: center; }
+.colHead {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--color-text-muted);
+  padding: 0 6px 1px; border-bottom: 2px solid #e5e7eb;
+}
+.critRow { display: contents; }
+.critRow > * { padding: 1px 6px; border-bottom: 1px dotted #d1d5db; min-height: 42px; display: flex; align-items: center; }
+.critRow[data-changed] > * { background: #fff7d6; }
+.critRow[data-off] .critInfo { opacity: 0.55; }
+.critInfo { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 1px; min-width: 0; }
+.defHint { color: #6b7280; font-style: italic; }
+.tolCell { gap: 8px; }
+.numBtn { min-width: 104px; min-height: 40px; }
+.seg button { min-height: 40px; }
+.exact { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; color: #6b7280; }
+.chip {
+  min-height: 40px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.03em; color: #6b7280; cursor: pointer; max-width: 170px; line-height: 1.15;
+}
+.chip[data-on] { background: #1a6fd4; border-color: #1a6fd4; color: #fff; }
+.chip:disabled { opacity: 0.45; cursor: default; }
+
+/* Kalite satırları */
+.qRow {
+  display: flex; align-items: center; gap: 16px; padding: 6px 8px; min-height: 58px;
+  border-bottom: 1px dotted #d1d5db; border-radius: 6px;
+}
+.qRow[data-changed] { background: #fff7d6; }
+.qRow .critInfo { display: flex; flex: 1; }
+.qControl { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+
+/* Deneme */
+.tryWrap { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.formCard { flex-shrink: 0; gap: 8px; }
+.formGrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px 10px; }
+.formField { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.formField .numBtn { min-width: 0; width: 100%; min-height: 40px; }
+.formLabel { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.select {
+  min-height: 40px; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 4px 8px; background: #f9fafb;
+  font-size: 13px; font-weight: 700; font-family: inherit; color: var(--color-text);
+}
+.formActions { display: flex; align-items: center; gap: 10px; }
+.formNote { flex: 1; font-size: 12px; font-weight: 700; color: var(--color-text-muted); min-width: 0; }
+.warn { color: #b45309; }
+
+.resultCard { flex: 1; min-height: 0; overflow: hidden; gap: 6px; }
+.empty { text-align: center; padding: 18px; color: var(--color-text-muted); font-style: italic; font-size: 13px; }
+.summary {
+  display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; border-radius: 8px;
+  background: #fdecec; border-left: 5px solid #dc2626;
+}
+.summary[data-ok] { background: #effaf2; border-left-color: #16a34a; }
+.summaryMain { font-size: 14px; font-weight: 900; letter-spacing: 0.04em; }
+.summaryMeta { font-size: 11px; font-weight: 700; color: #4b5563; }
+
+.table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.table thead th {
+  text-align: left; padding: 4px 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--color-text-muted); border-bottom: 2px solid #e5e7eb;
+}
+.table thead th:nth-child(1) { width: 8%; }
+.table thead th:nth-child(2) { width: 16%; }
+.table thead th:nth-child(3) { width: 15%; }
+.table tbody td {
+  padding: 0 8px; height: 40px; font-size: 12px; border-bottom: 1px dotted #e5e7eb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.clickRow { cursor: pointer; }
+.clickRow:hover { background: #f8f4ec; }
+.mono { font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+.reason { font-weight: 700; }
+.pill {
+  display: inline-block; padding: 3px 8px; border-radius: 4px; color: #fff; background: #6b7280;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.05em; vertical-align: middle;
+}
+.pill[data-v='SELECTED'] { background: #15803d; }
+.pill[data-v='MATCH'] { background: #1a6fd4; }
+.pill[data-v='NO_RECIPE'] { background: #d97706; }
+.pill[data-v='ELIMINATED'] { background: #dc2626; }
+
+.pager { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pagerInfo { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; }
+.pagerBtn {
+  background: #2a2a2a; color: #fff; border: none; border-radius: 6px; padding: 8px 14px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer;
+}
+.pagerBtn:disabled { opacity: 0.4; cursor: default; }
+
+/* Aday detay penceresi */
+.dlgOverlay {
+  position: fixed; inset: 0; z-index: 300; display: flex; align-items: flex-start; justify-content: center;
+  padding: 50px 40px 0; background: rgba(0, 0, 0, 0.45);
+}
+.dlg {
+  width: min(860px, 100%); background: #fff; border-radius: 14px; padding: 18px 22px;
+  display: flex; flex-direction: column; gap: 10px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+.dlgTitle { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 900; letter-spacing: 0.05em; }
+.dlgSub { font-size: 13px; font-weight: 700; color: #4b5563; }
+.dlgChecks { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.dlgCheck { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; padding: 4px 6px; border-radius: 6px; background: #f9fafb; min-height: 32px; }
+.dlgStatus {
+  flex-shrink: 0; width: 92px; text-align: center; padding: 2px 4px; border-radius: 4px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: #fff; background: #9ca3af;
+}
+.dlgCheck[data-s='OK'] .dlgStatus { background: #16a34a; }
+.dlgCheck[data-s='FAIL'] { background: #fdecec; }
+.dlgCheck[data-s='FAIL'] .dlgStatus { background: #dc2626; }
+.dlgClose {
+  align-self: flex-end; background: #2a2a2a; color: #fff; border: none; border-radius: 8px;
+  padding: 11px 24px; font-size: 14px; font-weight: 800; letter-spacing: 0.08em; cursor: pointer;
+}
+
+/* 2026-11-23 — 12 kriter (piston hızı + ilk ölçüm) kaydırmasız sığsın: kriter satırları biraz daha sık */
+.critRow > * { min-height: 32px; padding-top: 0; padding-bottom: 0; }
+.critRow .numBtn,
+.critRow .seg button,
+.critRow button { min-height: 30px; padding-top: 2px; padding-bottom: 2px; }
