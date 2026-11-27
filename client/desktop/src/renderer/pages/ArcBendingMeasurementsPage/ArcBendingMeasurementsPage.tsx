@@ -13,7 +13,7 @@ import ArcMeasurementForm, {
   isArcBelowMin,
   mainFieldsValid,
 } from './ArcMeasurementForm'
-import ArcPlanConfirmModal from './ArcPlanConfirmModal'
+import ArcPlanConfirmModal, { arcExtensionFix } from './ArcPlanConfirmModal'
 import ArcPlanSummary from './ArcPlanSummary'
 import ApiNoticeModal from '@/components/ApiNoticeModal/ApiNoticeModal'
 import styles from './ArcBendingMeasurementsPage.module.css'
@@ -141,6 +141,22 @@ export default function ArcBendingMeasurementsPage() {
   //   aşama 3 (summary) bunu okur, tekrar segmentleri düzenlemek istenirse null'a döner.
   const [planResult, setPlanResult] = useState<ValidateArcPlanResponse | null>(null)
   const [acceptedPlan, setAcceptedPlan] = useState<ValidateArcPlanResponse | null>(null)
+  // 2026-11-27 (kullanıcı): uzatma gerekiyorsa operatör ölçüleri KENDİSİ değiştirir (ayar ArcExtensionRequireLengthEdit, vars. AÇIK)
+  const [requireLengthEdit, setRequireLengthEdit] = useState(true)
+  //   Ölçü ekranına dönülünce yeniden ONAYLA'ya kadar alt çubukta hatırlatma (girilmesi gereken değerler)
+  const [lengthFixHint, setLengthFixHint] = useState<string | null>(null)
+  useEffect(() => {
+    let alive = true
+    window.corventa.settings
+      .getMachine()
+      .then((m) => {
+        if (alive) setRequireLengthEdit((m as Record<string, unknown>).arcExtensionRequireLengthEdit !== false)
+      })
+      .catch(() => undefined)
+    return () => {
+      alive = false
+    }
+  }, [])
 
   function handleReset() {
     setValues(applyMeasureDefaults({ ...EMPTY, segments: [] }))
@@ -149,6 +165,7 @@ export default function ArcBendingMeasurementsPage() {
     setValidationError(null)
     setPlanResult(null)
     setAcceptedPlan(null)
+    setLengthFixHint(null)
   }
 
   // Segmentleri backend planner formatına çevir (α her durumda dolu — form sync effect halleder).
@@ -183,6 +200,7 @@ export default function ArcBendingMeasurementsPage() {
       }
       setPlanResult(res)
       setValidating(false)
+      setLengthFixHint(null)
       // Uzatma YOK ve ters YOK ise direkt aşama 3'e geç — modal göstermeye gerek yok.
       if ((res.extensionMm ?? 0) === 0 && !res.isReversed) {
         acceptPlanAndGoToSummary(res)
@@ -275,7 +293,7 @@ export default function ArcBendingMeasurementsPage() {
           backTo="/bending/ai/method"
           confirmDisabled={!mainFieldsValid(values)}
           onConfirm={() => setStage('segments')}
-          hint={FEATURES.moldLicense ? moldHint : undefined}
+          hint={lengthFixHint ?? (FEATURES.moldLicense ? moldHint : undefined)}
         />
       )}
       {stage === 'segments' && (
@@ -283,6 +301,7 @@ export default function ArcBendingMeasurementsPage() {
           onBack={() => setStage('main')}
           confirmDisabled={!isComplete(values, inputMode) || validating}
           onConfirm={handleConfirmClick}
+          hint={lengthFixHint ?? undefined}
         />
       )}
       {stage === 'summary' && (
@@ -313,6 +332,17 @@ export default function ArcBendingMeasurementsPage() {
       {planResult && ((planResult.extensionMm ?? 0) > 0 || planResult.isReversed) && (
         <ArcPlanConfirmModal
           plan={planResult}
+          requireEdit={requireLengthEdit}
+          onEdit={() => {
+            // Ölçü ekranına (LT) dön — operatör parça boyunu (baştan uzatmada L1'i de) kendisi artırır
+            const fix = arcExtensionFix(planResult)
+            if (fix) {
+              const lt = t('PARÇA BOYU (LT) EN AZ {b} mm', { b: fix.newLen.toFixed(0) })
+              setLengthFixHint(fix.l1To != null ? `${lt} · ${t('L1 EN AZ {b} mm', { b: fix.l1To.toFixed(0) })}` : lt)
+            }
+            setPlanResult(null)
+            setStage('main')
+          }}
           onCancel={() => setPlanResult(null)}
           onAccept={() => {
             const p = planResult

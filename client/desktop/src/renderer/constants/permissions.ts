@@ -71,6 +71,7 @@ export const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, Permission]> = [
   ['/settings/users', 'user-management'],
   ['/settings/admin', 'admin-settings'],
   ['/settings/clamp-logs', 'admin-settings'],
+  ['/settings/side-offsets', 'admin-settings'],
   ['/settings/sensors', 'admin-settings'],
   ['/settings/encoder-reset', 'encoder-reset'],
   ['/settings/customer-change', 'customer-change'],

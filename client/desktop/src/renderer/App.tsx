@@ -24,6 +24,7 @@ import BigDataConnectionPage from '@/pages/BigDataConnectionPage/BigDataConnecti
 import UserManagementPage from '@/pages/UserManagementPage/UserManagementPage'
 import OperatorSettingsPage from '@/pages/OperatorSettingsPage/OperatorSettingsPage'
 import AdminSettingsPage from '@/pages/AdminSettingsPage/AdminSettingsPage'
+import SideOffsetsPage from '@/pages/SideOffsetsPage/SideOffsetsPage'
 import EncoderResetPage from '@/pages/EncoderResetPage/EncoderResetPage'
 import SideMenuSettingsPage from '@/pages/SideMenuSettingsPage/SideMenuSettingsPage'
 import ErrorReportsPage from '@/pages/ErrorReportsPage/ErrorReportsPage'
@@ -115,6 +116,8 @@ export default function App() {
             <Route path="settings/operator" element={<OperatorSettingsPage />} />
             <Route path="settings/admin" element={<RequireRole permission="admin-settings"><AdminSettingsPage /></RequireRole>} />
             <Route path="settings/clamp-logs" element={<RequireRole permission="admin-settings"><ClampLogsPage /></RequireRole>} />
+            {/* 2026-11-27 — hızlı menüden yan dayama ofseti */}
+            <Route path="settings/side-offsets" element={<RequireRole permission="admin-settings"><SideOffsetsPage /></RequireRole>} />
             <Route path="settings/sensors" element={<RequireRole permission="admin-settings"><SensorModesPage /></RequireRole>} />
             <Route path="settings/machine-values" element={<RequireRole permission="machine-values"><MachineValuesPage /></RequireRole>} />
             <Route path="settings/encoder-reset" element={<RequireRole permission="encoder-reset"><EncoderResetPage /></RequireRole>} />

@@ -25,8 +25,10 @@ export default function ContaminationAlertOverlay() {
   const navigate = useNavigate()
   const dirty = useContaminationStore((s) => s.dirty)
   const promptedKey = useContaminationStore((s) => s.promptedKey)
+  // 2026-11-27 (kullanıcı): yağ 35 °C (ayar) altındayken pencere yok — sadece alt şeritte uyarı
+  const modalAllowed = useContaminationStore((s) => s.modalAllowed)
   const key = contaminationKey(dirty)
-  const want = dirty.length > 0 && key !== promptedKey
+  const want = dirty.length > 0 && key !== promptedKey && modalAllowed
   const visible = useAlertSlot(SLOT_ID, ALERT_PRIORITY.contamination, want)
 
   if (!visible) return null

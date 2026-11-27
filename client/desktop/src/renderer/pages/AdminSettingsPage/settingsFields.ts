@@ -123,6 +123,9 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'ENGELLE' },
             ],
           },
+          // 2026-11-27 (kullanıcı) — yağ kirlilik sensörleri (K1–K3)
+          { key: 'contaminationMinDurationSec', label: 'KİRLİLİK EN KISA SÜRESİ', unit: 'sn', min: 1, max: 60, integer: true, desc: 'Kirlilik sensörü bu süreden UZUN kesintisiz kirli demezse yok sayılır (anlık basınçlarda kısa kirli sinyali gelir).' },
+          { key: 'contaminationModalMinOilTempC', label: 'KİRLİLİK PENCERESİ YAĞ SICAKLIĞI', unit: '°C', min: 0, max: 120, desc: 'Yağ bu sıcaklığın altındayken kirlilik sadece alt şeritte uyarı olarak görünür, uyarı penceresi açılmaz. 0 = her sıcaklıkta pencere.' },
         ],
       },
       {
@@ -263,6 +266,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'AÇIK' },
             ],
           },
+          // 2026-11-27 (kullanıcı) — elle kontrolde de: bir eksen hareket ederken kaçan diğer toplar düzeltilir
+          {
+            type: 'select',
+            key: 'pistonHoldManualControl',
+            label: 'ELLE KONTROLDE DE TUT',
+            desc: 'AÇIK: iş yokken de (tuş takımı, yan dayamalar, rotasyon) bir eksen hareket ederken kaçan diğer toplar düzeltilir. Gönye, stage geçişi, yağ ısıtma ve basınç düşüş testi sırasında tutma yapılmaz.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
           { type: 'select', key: 'pistonHoldLeft', label: 'SOL TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
           { type: 'select', key: 'pistonHoldRight', label: 'SAĞ TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
           { type: 'select', key: 'pistonHoldLower', label: 'ALT TOP', options: [{ value: true, label: 'TUT' }, { value: false, label: 'TUTMA' }] },
@@ -385,6 +399,22 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           },
           { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
           { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
+        ],
+      },
+      {
+        // 2026-11-27 (kullanıcı) — çok açılıda uzatma uyarısı: operatör parça boyunu kendisi değiştirir
+        title: 'ÇOK AÇILI — PARÇA UZATMA',
+        fields: [
+          {
+            type: 'select',
+            key: 'arcExtensionRequireLengthEdit',
+            label: 'UZATMA GEREKİRSE',
+            desc: 'ÖLÇÜLERİ DÜZELT: parça uzatılmalıysa devam edilemez, operatör ölçü ekranına dönüp parça boyunu (baştan uzatmada 1. düzlüğü de) kendisi artırır. ONAYLA & DEVAM: eski davranış.',
+            options: [
+              { value: true, label: 'ÖLÇÜLERİ DÜZELT' },
+              { value: false, label: 'ONAYLA & DEVAM' },
+            ],
+          },
         ],
       },
       {

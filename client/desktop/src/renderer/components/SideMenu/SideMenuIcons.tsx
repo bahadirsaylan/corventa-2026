@@ -75,11 +75,22 @@ export function RestartIcon() {
   )
 }
 
+// 2026-11-27 — YAN DAYAMA OFSETİ: cetvel
+export function RulerIcon() {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" aria-hidden>
+      <rect x="6" y="22" width="52" height="20" rx="3" stroke="currentColor" strokeWidth="3.5" />
+      <path d="M16 22v8M26 22v12M36 22v8M46 22v12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 const ICONS = {
   plus: PlusIcon,
   home: HomeIcon,
   service: ServiceIcon,
   gear: GearIcon,
+  ruler: RulerIcon,
   logout: LogoutIcon,
   restart: RestartIcon,
   power: PowerIcon,

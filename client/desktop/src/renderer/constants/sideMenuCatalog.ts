@@ -6,7 +6,7 @@
 //   lockWhileBending     → otomatik büküm sürerken pasif
 //   pinBottom            → (2026-11-20) her zaman EN ALTTA (PC YENİDEN BAŞLAT / PC KAPAT)
 
-export type SideMenuItemId = 'new-bending' | 'home' | 'service' | 'settings' | 'logout' | 'pc-restart' | 'pc-shutdown'
+export type SideMenuItemId = 'new-bending' | 'home' | 'service' | 'settings' | 'side-offsets' | 'logout' | 'pc-restart' | 'pc-shutdown'
 
 export type SideMenuAction =
   | { type: 'route'; to: string }
@@ -17,12 +17,14 @@ export type SideMenuAction =
 export interface SideMenuCatalogItem {
   id: SideMenuItemId
   label: string
-  icon: 'plus' | 'home' | 'service' | 'gear' | 'logout' | 'restart' | 'power'
+  icon: 'plus' | 'home' | 'service' | 'gear' | 'ruler' | 'logout' | 'restart' | 'power'
   action: SideMenuAction
   fixed?: boolean
   defaultEnabled?: boolean
   lockWhileBending?: boolean
   pinBottom?: boolean
+  /** Kayıtlı düzen bu sürümden eskiyse (version < addedInVersion) bir kez menüye eklenir (2026-11-27) */
+  addedInVersion?: number
 }
 
 export const SIDE_MENU_CATALOG: SideMenuCatalogItem[] = [
@@ -30,6 +32,8 @@ export const SIDE_MENU_CATALOG: SideMenuCatalogItem[] = [
   { id: 'home', label: 'ANA EKRAN', icon: 'home', action: { type: 'route', to: '/dashboard' }, fixed: true, defaultEnabled: true },
   { id: 'service', label: 'SERVİS', icon: 'service', action: { type: 'route', to: '/service' }, defaultEnabled: true },
   { id: 'settings', label: 'AYARLAR', icon: 'gear', action: { type: 'route', to: '/settings' } },
+  // 2026-11-27 (kullanıcı) — yan dayama ofsetine tek tıkla (yetki: Admin Ayarları ile aynı)
+  { id: 'side-offsets', label: 'YAN DAYAMA OFSETİ', icon: 'ruler', action: { type: 'route', to: '/settings/side-offsets' }, defaultEnabled: true, lockWhileBending: true, addedInVersion: 2 },
   { id: 'logout', label: 'OTURUMU KAPAT', icon: 'logout', action: { type: 'logout' }, fixed: true, defaultEnabled: true, lockWhileBending: true },
   // 2026-11-20 — kaldırılamaz, her zaman en altta (onay penceresiyle; önce hidrolik motor durdurulur)
   { id: 'pc-restart', label: 'PC YENİDEN BAŞLAT', icon: 'restart', action: { type: 'pc-power', power: 'restart' }, fixed: true, defaultEnabled: true, lockWhileBending: true, pinBottom: true },
@@ -37,6 +41,8 @@ export const SIDE_MENU_CATALOG: SideMenuCatalogItem[] = [
 ]
 
 export const SIDE_MENU_PREF_KEY = 'side-menu'
+/** Kayıtlı düzenin güncel sürümü — addedInVersion'lı seçenekler eski kayıtlara bir kez eklenir */
+export const SIDE_MENU_PREF_VERSION = 2
 
 const byId = new Map(SIDE_MENU_CATALOG.map((i) => [i.id, i]))
 
@@ -48,13 +54,19 @@ export function defaultSideMenuOrder(): SideMenuItemId[] {
   return SIDE_MENU_CATALOG.filter((i) => i.defaultEnabled).map((i) => i.id)
 }
 
-/** Kayıtlı listeyi doğrula: bilinmeyenleri at, tekrarları at, sabitleri (yoksa) ekle. */
-export function normalizeSideMenuOrder(ids: unknown): SideMenuItemId[] {
+/** Kayıtlı listeyi doğrula: bilinmeyenleri at, tekrarları at, sabitleri (yoksa) ekle.
+ *  savedVersion verilirse (kayıttan okunurken) o sürümden SONRA eklenen seçenekler bir kez eklenir. */
+export function normalizeSideMenuOrder(ids: unknown, savedVersion?: number): SideMenuItemId[] {
   if (!Array.isArray(ids)) return defaultSideMenuOrder()
   const out: SideMenuItemId[] = []
   for (const id of ids) {
     if (typeof id === 'string' && byId.has(id as SideMenuItemId) && !out.includes(id as SideMenuItemId)) {
       out.push(id as SideMenuItemId)
+    }
+  }
+  if (savedVersion != null) {
+    for (const item of SIDE_MENU_CATALOG) {
+      if (item.addedInVersion && savedVersion < item.addedInVersion && !out.includes(item.id)) out.push(item.id)
     }
   }
   for (const item of SIDE_MENU_CATALOG) {
@@ -67,6 +79,6 @@ export function normalizeSideMenuOrder(ids: unknown): SideMenuItemId[] {
 
 /** DB'de saklanan JSON biçimi */
 export interface SideMenuPrefValue {
-  version: 1
+  version: number
   items: SideMenuItemId[]
 }

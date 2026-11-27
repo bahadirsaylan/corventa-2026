@@ -4,6 +4,7 @@
 import { create } from 'zustand'
 import {
   SIDE_MENU_PREF_KEY,
+  SIDE_MENU_PREF_VERSION,
   defaultSideMenuOrder,
   normalizeSideMenuOrder,
   type SideMenuItemId,
@@ -28,7 +29,7 @@ export const useSideMenuStore = create<SideMenuStore>((set, get) => ({
       if (get().userKey !== userKey) return // bu arada kullanıcı değişti
       if (!pref) return
       const parsed = JSON.parse(pref.valueJson) as Partial<SideMenuPrefValue>
-      set({ items: normalizeSideMenuOrder(parsed.items) })
+      set({ items: normalizeSideMenuOrder(parsed.items, typeof parsed.version === 'number' ? parsed.version : 1) })
     } catch (e) {
       console.warn('[side-menu] tercih okunamadı, varsayılan kullanılıyor', e)
     }
@@ -36,7 +37,7 @@ export const useSideMenuStore = create<SideMenuStore>((set, get) => ({
 
   save: async (userKey, items) => {
     const normalized = normalizeSideMenuOrder(items)
-    const value: SideMenuPrefValue = { version: 1, items: normalized }
+    const value: SideMenuPrefValue = { version: SIDE_MENU_PREF_VERSION, items: normalized }
     await window.corventa.settings.putUserPreference(userKey, SIDE_MENU_PREF_KEY, JSON.stringify(value))
     if (get().userKey === userKey) set({ items: normalized })
   },
