@@ -2,6 +2,9 @@
 // Admin Ayarları bölümü, backend mesajları (tp — {0} yer tutucuları C# interpolasyon boşlukları).
 
 const en: Record<string, string> = {
+  'ÇOK AÇILIDA DA YAN DAYAMA': 'SIDE SUPPORTS IN MULTI-ANGLE TOO',
+  'AÇIK: çok açılı bükümde de dairesel ile aynı sıra — sıkıştırmadan sonra sensör tarafı, parça karşı topa varınca karşı taraf (sıfırlamadaki ek ileri sürüş düşülür). Segment aralarında ve sonda yerinde kalır.':
+    'ON: multi-angle bending uses the same order as circular — after clamping the sensor side, the opposite side once the part reaches the opposite roll (minus the extra forward travel at zeroing). They stay in place between segments and at the end.',
   // ── Hedef penceresi ──
   'KONUMA GÖNDER': 'SEND TO POSITION',
   'MAFSAL': 'JOINT',

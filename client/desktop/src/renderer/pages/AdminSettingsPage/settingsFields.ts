@@ -361,6 +361,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           { key: 'sideSupportSecondSideExtraMm', label: 'KARŞI TARAF EK MESAFE', unit: 'mm', min: 0, max: 500, desc: 'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.' },
+          // 2026-11-27 (kullanıcı) — çok açılıda da aynı sıra
+          {
+            type: 'select',
+            key: 'sideSupportArcEnabled',
+            label: 'ÇOK AÇILIDA DA YAN DAYAMA',
+            desc: 'AÇIK: çok açılı bükümde de dairesel ile aynı sıra — sıkıştırmadan sonra sensör tarafı, parça karşı topa varınca karşı taraf (sıfırlamadaki ek ileri sürüş düşülür). Segment aralarında ve sonda yerinde kalır.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
           { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
           { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
         ],
