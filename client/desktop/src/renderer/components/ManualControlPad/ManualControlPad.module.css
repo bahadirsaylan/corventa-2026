@@ -426,3 +426,35 @@
 .sideValueBtn[data-pos='3'],
 .sideValueBtn[data-pos='4'],
 .sideValueBtn[data-pos='5'] { color: #c93235; }
+
+/* 2026-11-27 — BAKIM MODU örtüsü: tuşların üstünde, tüm dokunmaları yutar */
+.maintOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 247, 224, 0.88);
+  border: 2px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-align: center;
+  padding: 24px;
+  cursor: not-allowed;
+}
+
+.maintTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.maintSub {
+  font-size: 16px;
+  font-weight: 600;
+  max-width: 640px;
+  line-height: 1.4;
+}

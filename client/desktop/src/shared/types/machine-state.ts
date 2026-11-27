@@ -13,6 +13,8 @@ export interface MachineState {
   alarmActive: boolean
   /** (2026-11-20) Operatör alarmı susturdu (güvenlik düzelince kalkar). Eski backend göndermez. */
   alarmMuted?: boolean
+  /** (2026-11-27) BAKIM MODU KİLİDİ — hidrolik motor çalıştırılamaz, tuş takımı kapalı (backend MaintenanceMachineLockService) */
+  maintenanceLockActive?: boolean
   systemReady: boolean
   safetyBits: number
   errorCode: ErrorCode

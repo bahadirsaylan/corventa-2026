@@ -52,6 +52,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           { key: 'defaultSafetyMarginMm', label: 'PARÇA UÇ GÜVENLİK PAYI', unit: 'mm', min: 0, max: 1000, desc: 'İş kaydında güvenlik payı girilmezse kullanılır.' },
+          // 2026-11-27 (kullanıcı) — bakım modunda motor kapalı + tuş takımı kapalı
+          {
+            type: 'select',
+            key: 'maintenanceMachineLockEnabled',
+            label: 'BAKIM MODUNDA MOTOR VE TUŞ TAKIMI KİLİDİ',
+            desc: 'AÇIK: bakım modu açılınca hidrolik motor kapanır, bakım modundan çıkmadan çalıştırılamaz ve tuş takımı kapalı olur. Büküm / tahliye sürüyorsa motor iş bitince kapanır.',
+            options: [
+              { value: true, label: 'AÇIK' },
+              { value: false, label: 'KAPALI' },
+            ],
+          },
         ],
       },
       {

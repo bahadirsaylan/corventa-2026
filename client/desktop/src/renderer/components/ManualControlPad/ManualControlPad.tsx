@@ -44,6 +44,8 @@ const LOCK_DURING_BENDING = false
 function ManualControlPad() {
   const bendingActive = useBendingActive()
   const locked = LOCK_DURING_BENDING && bendingActive
+  // 2026-11-27 (kullanıcı): BAKIM MODUNDA tuş takımı tamamen kapalı (motor da kapalı, bakım modundan çıkmadan açılamaz)
+  const maintLocked = useMachineStateStore((s) => s.state.maintenanceLockActive === true)
   const t = useT()
   const motorState = useMachineStateStore((s) => s.state.hydraulicMotorState)
   const [speed, setSpeed] = useState(readManualSpeed) // piston (hareket) hızı
@@ -166,11 +168,20 @@ function ManualControlPad() {
         <span className={styles.motorSub}>{t('HİDROLİK MOTOR')}</span>
       </button>
 
-      {targetPiston && !locked && (
+      {targetPiston && !locked && !maintLocked && (
         <PistonTargetModal piston={targetPiston} initialSpeed={speed} onClose={() => setTargetPiston(null)} />
       )}
-      {sideTarget && (
+      {sideTarget && !maintLocked && (
         <SideSupportTargetModal side={sideTarget.side} type={sideTarget.type} onClose={() => setSideTarget(null)} />
+      )}
+
+      {/* 2026-11-27 — BAKIM MODU: tüm tuşların üstünde dokunmayı yutan örtü (tuş takımı kapalı) */}
+      {maintLocked && (
+        <div className={styles.maintOverlay} role="status" aria-live="polite">
+          <Icon name="lock" size={40} />
+          <span className={styles.maintTitle}>{t('BAKIM MODU — TUŞ TAKIMI KAPALI')}</span>
+          <span className={styles.maintSub}>{t('Hidrolik motor kapalı. Bakım modundan çıkınca tuş takımı ve motor yeniden kullanılabilir.')}</span>
+        </div>
       )}
     </div>
   )

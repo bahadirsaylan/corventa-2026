@@ -94,7 +94,7 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   // 2026-11-26 — rotasyon top çapı → PLC + piston konumda tutma (backend varsayılanları; demoda etkisi yok)
-  rotationDiameterToPlcEnabled: false, pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
+  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
   pistonHoldUpper: false, pistonHoldLower: true, pistonHoldLowerWhileClamped: false, pistonHoldDeadbandMm: 0.1,
   pistonHoldExitBandMm: 0.03, pistonHoldKpPctPerMm: 20, pistonHoldMinPct: 4, pistonHoldMaxPct: 8,
   pistonHoldNullRightMv: 0, pistonHoldNullLeftMv: 0, pistonHoldNullUpperMv: 0, pistonHoldNullLowerMv: 0,
@@ -733,6 +733,9 @@ export class DemoMachine extends EventEmitter {
     const sf = s.safety
     applyDemoContamination(sf, s.sensors) // 2026-11-19 — yağ kirlilik K1–K3 (CORVENTA_DEMO_DIRTY / F7), demoAlertAcks.ts
     this.safeGonye.applyTo(s as unknown as Record<string, unknown>) // 2026-11-19 — rulerStatus (güvenli gönye)
+    // 2026-11-27 — BAKIM MODU KİLİDİ: motor kapalı + tuş takımı kapalı (backend ile aynı yayın alanı)
+    s.maintenanceLockActive = demoMaintenanceState.isInMaintenanceMode
+    if (s.maintenanceLockActive && s.hydraulicMotorState !== 0) s.hydraulicMotorState = 0
     s.systemReady = s.hydraulicMotorState === 2 && sf.emergencyStopOK && sf.phaseSequenceOK
     s.safetyBits =
       (sf.emergencyStopOK ? 0x0001 : 0) | (sf.motorThermalOK ? 0x0002 : 0) | (sf.fanThermalOK ? 0x0004 : 0) |
@@ -1877,6 +1880,10 @@ export class DemoMachine extends EventEmitter {
       return ok
     }
     if (path === '/api/machine/motor') {
+      // 2026-11-27 — BAKIM MODU KİLİDİ (backend MaintenanceMachineLockService gibi): bakım modunda motor çalıştırılamaz
+      if (b.value && demoMaintenanceState.isInMaintenanceMode) {
+        demoFail(400, rawUrl, 'BAKIM MODU AÇIK — hidrolik motor çalıştırılamaz. Önce bakım modundan çıkın.', { success: false })
+      }
       this.state.hydraulicMotorState = b.value ? 2 : 0
       return ok
     }
