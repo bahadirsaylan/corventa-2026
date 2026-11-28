@@ -94,7 +94,7 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   // 2026-11-26 — rotasyon top çapı → PLC + piston konumda tutma (backend varsayılanları; demoda etkisi yok)
-  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, partMinLengthCheckEnabled: true, sideSupportBendOrder: 'JOINT,BODY,REEL', pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
+  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, swapShortRotationDoubleXa1Enabled: true, partMinLengthCheckEnabled: true, sideSupportBendOrder: 'JOINT,BODY,REEL', pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
   pistonHoldUpper: false, pistonHoldLower: true, pistonHoldLowerWhileClamped: false, pistonHoldDeadbandMm: 0.1,
   pistonHoldExitBandMm: 0.03, pistonHoldKpPctPerMm: 20, pistonHoldMinPct: 4, pistonHoldMaxPct: 8,
   pistonHoldNullRightMv: 0, pistonHoldNullLeftMv: 0, pistonHoldNullUpperMv: 0, pistonHoldNullLowerMv: 0,
@@ -1098,7 +1098,8 @@ export class DemoMachine extends EventEmitter {
 
     const home = 0
     const far = Math.max(300, Math.round(job.partLengthMm - 2 * safety))
-    const shortDelta = Math.abs(st.xa1) + job.profileA
+    // 2026-11-28: backend SwapShortRotation ile aynı — vars. |XA1| × 2, kapalıysa |XA1| + A
+    const shortDelta = this.machineSettings.swapShortRotationDoubleXa1Enabled !== false ? Math.abs(st.xa1) * 2 : Math.abs(st.xa1) + job.profileA
     this.circleDisplay.set(job.id, { pushMax, rest: Math.max(st.left, st.right), far, shortDelta })
 
     // Toplam paso tahmini (EstimateTotalPasos gibi — paso 1 sonrası güncellenir)
@@ -2136,7 +2137,7 @@ export class DemoMachine extends EventEmitter {
     const map = this.circleDisplay.get(job.id) ?? {
       pushMax: prev || pushDepthMm, rest: Math.max(st.left, st.right),
       far: Math.max(300, Math.round(job.partLengthMm - 2 * (job.safetyMarginMm || 50))),
-      shortDelta: Math.abs(st.xa1) + job.profileA,
+      shortDelta: this.machineSettings.swapShortRotationDoubleXa1Enabled !== false ? Math.abs(st.xa1) * 2 : Math.abs(st.xa1) + job.profileA,
     }
     const disp = this.displayMapper(map.pushMax, map.rest)
     const f2 = (v: number) => v.toFixed(2).replace('.', ',')

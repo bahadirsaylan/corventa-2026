@@ -15,6 +15,10 @@ const en: Record<string, string> = {
   'KONTROL ETME': 'DO NOT CHECK',
   'KONTROL ET: parça boyu en az SIFIRLAMA MESAFESİ + EMNİYET PAYI olmalı; kısa parça ile büküm başlatılamaz. KONTROL ETME: eski davranış.':
     'CHECK: part length must be at least ZERO RESET DISTANCE + SAFETY MARGIN; bending cannot start with a shorter part. DO NOT CHECK: previous behaviour.',
+  // 2026-11-28 — top değişimi kısa rotasyon
+  'DAİRESEL — TOP DEĞİŞİMİ': 'CIRCULAR — ROLL CHANGE',
+  'Top değişiminde rotasyon önce bu kadar gidip durur, bükmeyi yapan top geri çekilir, diğer top gelir, sonra rotasyon devam eder (büküm, düzeltme ve elle düzeltmede). |XA1| × 2: stage XA1 değerinin iki katı. |XA1| + A: eski davranış.':
+    'At a roll change the rotation first travels this far and stops, the bending roll retracts, the other roll comes in, then rotation continues (in bending, correction and manual correction). |XA1| × 2: twice the stage XA1 value. |XA1| + A: previous behaviour.',
 }
 
 export default en

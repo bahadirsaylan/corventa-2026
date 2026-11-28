@@ -442,6 +442,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           {
+            // 2026-11-28 (kullanıcı) — top değişiminde rotasyonun önce gidip durduğu mesafe (backend Core/Models/SwapShortRotation)
+            type: 'select',
+            key: 'swapShortRotationDoubleXa1Enabled',
+            label: 'DAİRESEL — TOP DEĞİŞİMİ',
+            desc: 'Top değişiminde rotasyon önce bu kadar gidip durur, bükmeyi yapan top geri çekilir, diğer top gelir, sonra rotasyon devam eder (büküm, düzeltme ve elle düzeltmede). |XA1| × 2: stage XA1 değerinin iki katı. |XA1| + A: eski davranış.',
+            options: [
+              { value: true, label: '|XA1| × 2' },
+              { value: false, label: '|XA1| + A' },
+            ],
+          },
+          {
             // 2026-11-27 (kullanıcı) — parça boyu sıfırlama mesafesinden kısa girilemez
             type: 'select',
             key: 'partMinLengthCheckEnabled',
