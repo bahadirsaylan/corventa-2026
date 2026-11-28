@@ -94,7 +94,7 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   // 2026-11-26 — rotasyon top çapı → PLC + piston konumda tutma (backend varsayılanları; demoda etkisi yok)
-  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, partMinLengthCheckEnabled: true, pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
+  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, partMinLengthCheckEnabled: true, sideSupportBendOrder: 'JOINT,BODY,REEL', pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
   pistonHoldUpper: false, pistonHoldLower: true, pistonHoldLowerWhileClamped: false, pistonHoldDeadbandMm: 0.1,
   pistonHoldExitBandMm: 0.03, pistonHoldKpPctPerMm: 20, pistonHoldMinPct: 4, pistonHoldMaxPct: 8,
   pistonHoldNullRightMv: 0, pistonHoldNullLeftMv: 0, pistonHoldNullUpperMv: 0, pistonHoldNullLowerMv: 0,

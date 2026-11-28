@@ -386,6 +386,21 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           { key: 'sideSupportSecondSideExtraMm', label: 'KARŞI TARAF EK MESAFE', unit: 'mm', min: 0, max: 500, desc: 'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.' },
+          {
+            // 2026-11-28 (kullanıcı) — her tarafta üç yan dayamanın gönderilme sırası (backend Core/Models/SideSupportBendOrder)
+            type: 'select',
+            key: 'sideSupportBendOrder',
+            label: 'YAN DAYAMA SIRASI',
+            desc: 'Bükümde her taraftaki yan dayamalar bu sırayla konuma gider (sıkıştırmadan önce sıfıra çekmede de). M = MAFSAL, G = GÖVDE, K = MAKARA.',
+            options: [
+              { value: 'JOINT,BODY,REEL', label: 'M→G→K' },
+              { value: 'JOINT,REEL,BODY', label: 'M→K→G' },
+              { value: 'BODY,JOINT,REEL', label: 'G→M→K' },
+              { value: 'BODY,REEL,JOINT', label: 'G→K→M' },
+              { value: 'REEL,JOINT,BODY', label: 'K→M→G' },
+              { value: 'REEL,BODY,JOINT', label: 'K→G→M' },
+            ],
+          },
           // 2026-11-27 (kullanıcı) — çok açılıda da aynı sıra
           {
             type: 'select',
