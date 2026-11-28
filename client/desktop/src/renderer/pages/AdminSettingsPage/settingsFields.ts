@@ -396,6 +396,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: false, label: 'KAPALI' },
             ],
           },
+          {
+            // 2026-11-28 (kullanıcı) — dairesel: yan dayamalar top değişiminde (backend SideSupportPositionAtSwapEnabled)
+            type: 'select',
+            key: 'sideSupportPositionAtSwapEnabled',
+            label: 'DAİRESEL — YAN DAYAMA ZAMANI',
+            desc: 'TOP DEĞİŞİMİNDE: sıkıştırma ve sıfırlamada yan dayama gelmez; ön bükümden sonra rotasyon top değişiminde durunca parçanın gittiği taraf konuma gelir, sonraki top değişiminde öbür taraf. SIFIRLAMADA: eski davranış (sıfırlamayla sensör tarafı, ilk rotasyonda karşı taraf).',
+            options: [
+              { value: true, label: 'TOP DEĞİŞİMİNDE' },
+              { value: false, label: 'SIFIRLAMADA' },
+            ],
+          },
           { key: 'sideSupportSecondSideExtraMm', label: 'KARŞI TARAF EK MESAFE', unit: 'mm', min: 0, max: 500, desc: 'Dairesel bükümde karşı taraf yan dayamaları, ilk rotasyonda parça emniyet payı + stage XA1 + bu kadar ilerleyince gelir.' },
           {
             // 2026-11-28 (kullanıcı) — her tarafta üç yan dayamanın gönderilme sırası (backend Core/Models/SideSupportBendOrder)

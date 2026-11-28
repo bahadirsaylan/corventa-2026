@@ -15,6 +15,12 @@ const en: Record<string, string> = {
   'KONTROL ETME': 'DO NOT CHECK',
   'KONTROL ET: parça boyu en az SIFIRLAMA MESAFESİ + EMNİYET PAYI olmalı; kısa parça ile büküm başlatılamaz. KONTROL ETME: eski davranış.':
     'CHECK: part length must be at least ZERO RESET DISTANCE + SAFETY MARGIN; bending cannot start with a shorter part. DO NOT CHECK: previous behaviour.',
+  // 2026-11-28 — dairesel yan dayama zamanı
+  'DAİRESEL — YAN DAYAMA ZAMANI': 'CIRCULAR — SIDE SUPPORT TIMING',
+  'TOP DEĞİŞİMİNDE': 'AT ROLL CHANGE',
+  'SIFIRLAMADA': 'AT ZEROING',
+  'TOP DEĞİŞİMİNDE: sıkıştırma ve sıfırlamada yan dayama gelmez; ön bükümden sonra rotasyon top değişiminde durunca parçanın gittiği taraf konuma gelir, sonraki top değişiminde öbür taraf. SIFIRLAMADA: eski davranış (sıfırlamayla sensör tarafı, ilk rotasyonda karşı taraf).':
+    'AT ROLL CHANGE: no side support moves during clamping and zeroing; after the pre-bend, when rotation stops at the roll change the side the part is heading to moves into position, at the next roll change the other side. AT ZEROING: previous behaviour (sensor side with zeroing, other side during the first rotation).',
   // 2026-11-28 — acil stop ekranı
   'ACİL STOP BASILI': 'EMERGENCY STOP PRESSED',
   'MAKİNE DURDURULDU. ACİL STOP BIRAKILANA KADAR İŞLEM YAPILAMAZ.': 'MACHINE STOPPED. NO OPERATION IS POSSIBLE UNTIL THE EMERGENCY STOP IS RELEASED.',

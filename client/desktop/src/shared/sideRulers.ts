@@ -20,13 +20,14 @@ export interface SideRulerDef {
   calibrated: boolean
 }
 
+// 2026-11-28: mafsal ↔ gövde varsayılanları backend SideSupportRulerCalibration ile birlikte çevrildi (gövde 129 mm, mafsal 187 mm)
 export const SIDE_RULERS: SideRulerDef[] = [
-  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
-  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
+  { key: 'rightBody', side: 'right', type: 'body', label: 'SAĞ GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
+  { key: 'leftBody', side: 'left', type: 'body', label: 'SOL GÖVDE', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
   { key: 'rightReel', side: 'right', type: 'reel', label: 'SAĞ MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: true },
   { key: 'leftReel', side: 'left', type: 'reel', label: 'SOL MAKARA', rawMin: 400, rawMax: 4021, strokeMm: 352, calibrated: false },
-  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: true },
-  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 698, rawMax: 2806, strokeMm: 129, calibrated: false },
+  { key: 'rightJoint', side: 'right', type: 'joint', label: 'SAĞ MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: true },
+  { key: 'leftJoint', side: 'left', type: 'joint', label: 'SOL MAFSAL', rawMin: 365, rawMax: 3425, strokeMm: 187, calibrated: false },
 ]
 
 export const SIDE_RULER_RAW_LIMIT = 4095
