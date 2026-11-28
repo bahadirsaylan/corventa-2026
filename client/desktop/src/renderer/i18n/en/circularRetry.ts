@@ -27,6 +27,11 @@ const en: Record<string, string> = {
   'İKİ TARAF': 'BOTH SIDES',
   'SADECE KIVRIM TARAFI: sıkıştırmada yan dayama gelmez; sıfırlamadan sonra kıvrım başlamadan sadece kıvrımın yapılacağı taraf (sol sensör → sağ) konuma gelir, sensör tarafına dokunulmaz. İKİ TARAF: eski davranış.':
     'BEND SIDE ONLY: no side support moves during clamping; after zeroing, before the bend starts, only the side the bend is made towards (left sensor → right) moves into position; the sensor side is not touched. BOTH SIDES: previous behaviour.',
+  // 2026-11-28 — stage otomatik
+  'STAGE YAN OFSETİ OTOMATİK (KAYITTA)': 'AUTOMATIC STAGE SIDE OFFSET (ON SAVE)',
+  'STAGE OTOMATİK (TOP ÇAPINA GÖRE)': 'AUTOMATIC STAGES (BY ROLL DIAMETER)',
+  "AÇIK: stage 1 (gönye) referans; diğer stage'lerde sağ/sol top alt ofsetten (alt ÷ sin θ) hesaplanıp oraya gider, büküm hesabındaki yan top konumu (XA1/YA1) stage ve alt/yan top çapı farkından hesaplanır. Kayıtlı XA1 değerleri kullanılmaz. KAPALI: kayıtlı stage değerleri.":
+    "ON: stage 1 (square-up) is the reference; on the other stages the right/left rolls are calculated from the lower offset (lower ÷ sin θ) and move there, and the side roll position in the bending calculation (XA1/YA1) is calculated from the stage and the lower/side roll diameter difference. Stored XA1 values are not used. OFF: stored stage values.",
   // 2026-11-28 — ölçümden sonra gövde
   'ÖLÇÜMDEN SONRA GÖVDE': 'BODY AFTER MEASUREMENT',
   'SORUNSUZ ÖLÇÜMDE DÖNSÜN': 'RETURN AFTER GOOD MEASUREMENT',

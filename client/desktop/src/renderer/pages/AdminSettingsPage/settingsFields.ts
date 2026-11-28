@@ -276,8 +276,19 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           {
             type: 'select',
             key: 'stageSideOffsetFromLowerEnabled',
-            label: 'STAGE YAN OFSETİ OTOMATİK',
+            label: 'STAGE YAN OFSETİ OTOMATİK (KAYITTA)',
             desc: 'AÇIK: stage kaydedilirken sağ ve sol ofset alt ofsetten hesaplanır (alt ÷ sin θ: 60 → 67,34, 120 → 134,68). KAPALI: elle girilen değerler.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          {
+            // 2026-11-28 (kullanıcı) — stage'ler top çapına göre otomatik (backend RollGeometry.ApplyStageGeometry)
+            type: 'select',
+            key: 'stageAutoGeometryEnabled',
+            label: 'STAGE OTOMATİK (TOP ÇAPINA GÖRE)',
+            desc: "AÇIK: stage 1 (gönye) referans; diğer stage'lerde sağ/sol top alt ofsetten (alt ÷ sin θ) hesaplanıp oraya gider, büküm hesabındaki yan top konumu (XA1/YA1) stage ve alt/yan top çapı farkından hesaplanır. Kayıtlı XA1 değerleri kullanılmaz. KAPALI: kayıtlı stage değerleri.",
             options: [
               { value: false, label: 'KAPALI' },
               { value: true, label: 'AÇIK' },
