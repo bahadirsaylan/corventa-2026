@@ -1,0 +1,69 @@
+/* 2026-11-28 — ACİL STOP EKRANI: tüm ekran, her şeyin üstünde (kiosk çıkış köşesi 9999 ve yetki uyarısı hariç) */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(127, 0, 0, 0.92);
+  animation: pulse 1.6s ease-in-out infinite;
+  touch-action: none;
+  user-select: none;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    background: rgba(127, 0, 0, 0.92);
+  }
+  50% {
+    background: rgba(185, 28, 28, 0.94);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+  padding: 48px 32px;
+  border-radius: 20px;
+  background: #fff;
+  border: 6px solid #dc2626;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  color: #7f1d1d;
+  text-align: center;
+}
+
+.card svg {
+  width: 96px;
+  height: 96px;
+  color: #dc2626;
+}
+
+.title {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #dc2626;
+}
+
+.text {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #111;
+}
+
+.hint {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #444;
+}

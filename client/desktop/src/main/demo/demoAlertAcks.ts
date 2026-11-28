@@ -124,10 +124,20 @@ export function toggleDemoContamination(key: Key = 'K2'): void {
   log.info('DEMO yağ kirlilik', { key, dirty: contamination[key] })
 }
 
+// 2026-11-28 — DEMO ACİL STOP (F3): basılı / bırakıldı (ACİL STOP EKRANI denemesi)
+let demoEstopPressed = false
+export function isDemoEstopPressed(): boolean {
+  return demoEstopPressed
+}
+
 if (process.env.CORVENTA_DEMO === '1') {
   void app.whenReady().then(() => {
-    // F8 parça sensörü, F9 hız (index.ts) · F7 yağ kirlilik K2
+    // F8 parça sensörü, F9 hız (index.ts) · F7 yağ kirlilik K2 · F3 acil stop
     globalShortcut.register('F7', () => toggleDemoContamination('K2'))
+    globalShortcut.register('F3', () => {
+      demoEstopPressed = !demoEstopPressed
+      log.info('DEMO acil stop', { pressed: demoEstopPressed })
+    })
   })
 }
 

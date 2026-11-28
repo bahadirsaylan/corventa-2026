@@ -99,11 +99,14 @@ const en: Record<string, string> = {
 
   'PARÇA UCUNU SENSÖR TARAFINDA MERKEZDEN {mm} MM UZAĞA (SENSÖR HİZASINA) GETİRİN.': 'BRING THE PART END ON THE SENSOR SIDE {mm} MM FROM THE CENTER (IN LINE WITH THE SENSOR).',
 
-  'ÖLÇÜMDE MAFSALI GERİ ÇEK': 'RETRACT JOINT DURING MEASUREMENT',
-  'Geri esneme ölçümünden önce ölçüm tarafındaki mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.':
-    'Before the springback measurement the joint on the measuring side is retracted to the back limit and returns to its previous position afterwards. If it cannot retract, no measurement is made.',
+  'ÖLÇÜMDE GÖVDEYİ GERİ ÇEK': 'RETRACT BODY DURING MEASUREMENT',
+  'Geri esneme ölçümünden önce ölçüm tarafındaki gövde geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.':
+    'Before the springback measurement the body on the measuring side retracts to the back limit and returns afterwards. If it cannot retract, no measurement is made.',
   'Ölçüm için mafsal geri çekilemedi: {0}': 'Joint could not be retracted for measurement: {0}',
   'Mafsal ölçümden sonra eski yerine dönemedi: {0}': 'Joint could not return to its position after measurement: {0}',
+  // 2026-11-28 — ölçümde geri çekilen artık fiziksel GÖVDE
+  'Ölçüm için gövde geri çekilemedi: {0}': 'Body could not be retracted for measurement: {0}',
+  'Gövde ölçümden sonra eski yerine dönemedi: {0}': 'Body could not return to its position after measurement: {0}',
 
   // ── Sensör durumları (2026-11-23, sadece arayüz) ──
   'SENSÖR DURUMLARI': 'SENSOR STATES',

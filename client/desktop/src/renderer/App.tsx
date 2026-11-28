@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 import AppLayout from '@/components/layout/AppLayout'
 import ArcNextSegmentModal from '@/components/ArcNextSegmentModal/ArcNextSegmentModal'
+import EmergencyStopOverlay from '@/components/EmergencyStopOverlay/EmergencyStopOverlay'
 import MeasurementErrorModal from '@/components/MeasurementErrorModal/MeasurementErrorModal'
 import ConnectionBanner from '@/components/ConnectionBanner/ConnectionBanner'
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary'
@@ -94,6 +95,8 @@ export default function App() {
       <VirtualKeyboard />
       {/* Yetki uyarısı — "BU İŞLEM İÇİN {ROL} YETKİSİ GEREKLİ" (yetki matrisi: constants/permissions.ts) */}
       <RoleNotice />
+      {/* 2026-11-28 — ACİL STOP basılıyken tüm ekranı kaplayan kilit (ayar emergencyStopLockScreenEnabled) */}
+      <EmergencyStopOverlay />
       <HashRouter>
         <Routes>
           {/* Auth / pre-login screens — full screen, no chrome */}

@@ -110,6 +110,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: false, label: 'KAPALI' },
             ],
           },
+          {
+            // 2026-11-28 (kullanıcı) — acil stop basılıyken tüm ekranı kaplayan kilit (components/EmergencyStopOverlay)
+            type: 'select',
+            key: 'emergencyStopLockScreenEnabled',
+            label: 'ACİL STOP EKRANI',
+            desc: 'TAM EKRAN: acil stop basılıyken tüm ekranı kaplayan pencere açılır, acil stop bırakılana kadar başka işlem yapılamaz (sadece ALARMI SESSİZE AL). ŞERİT: eski davranış, sadece alt şeritte uyarı.',
+            options: [
+              { value: true, label: 'TAM EKRAN' },
+              { value: false, label: 'ŞERİT' },
+            ],
+          },
           // 2026-11-19: eşiğe ULAŞINCA (≥) uyarı; alt sınır 0 — soğuk yağda da denenebilsin
           { key: 'oilTempWarnC', label: 'YAĞ SICAKLIĞI UYARI EŞİĞİ', unit: '°C', min: 0, max: 100, integer: true, desc: 'Yağ sıcaklığı bu değere ulaşınca alt şeritte uyarı çıkar.' },
           { key: 'oilTempBlockC', label: 'YAĞ SICAKLIĞI ENGEL EŞİĞİ', unit: '°C', min: 20, max: 110, integer: true, desc: 'Uyarı eşiğinden küçük olamaz. Büküm engeli sadece aşağıda ENGELLE seçiliyse uygulanır.' },
@@ -378,8 +389,8 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           {
             type: 'select',
             key: 'measureRetractJointEnabled',
-            label: 'ÖLÇÜMDE MAFSALI GERİ ÇEK',
-            desc: 'Geri esneme ölçümünden önce ölçüm tarafındaki mafsal geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.',
+            label: 'ÖLÇÜMDE GÖVDEYİ GERİ ÇEK',
+            desc: 'Geri esneme ölçümünden önce ölçüm tarafındaki gövde geri sınıra çekilir, ölçümden sonra eski yerine döner. Geri çekilemezse ölçüm yapılmaz.',
             options: [
               { value: true, label: 'AÇIK' },
               { value: false, label: 'KAPALI' },

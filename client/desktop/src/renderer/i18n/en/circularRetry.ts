@@ -15,6 +15,15 @@ const en: Record<string, string> = {
   'KONTROL ETME': 'DO NOT CHECK',
   'KONTROL ET: parça boyu en az SIFIRLAMA MESAFESİ + EMNİYET PAYI olmalı; kısa parça ile büküm başlatılamaz. KONTROL ETME: eski davranış.':
     'CHECK: part length must be at least ZERO RESET DISTANCE + SAFETY MARGIN; bending cannot start with a shorter part. DO NOT CHECK: previous behaviour.',
+  // 2026-11-28 — acil stop ekranı
+  'ACİL STOP BASILI': 'EMERGENCY STOP PRESSED',
+  'MAKİNE DURDURULDU. ACİL STOP BIRAKILANA KADAR İŞLEM YAPILAMAZ.': 'MACHINE STOPPED. NO OPERATION IS POSSIBLE UNTIL THE EMERGENCY STOP IS RELEASED.',
+  'TEHLİKE ORTADAN KALKINCA ACİL STOP BUTONUNU ÇEVİREREK BIRAKIN.': 'WHEN THE DANGER IS GONE, RELEASE THE EMERGENCY STOP BUTTON BY TURNING IT.',
+  'ACİL STOP EKRANI': 'EMERGENCY STOP SCREEN',
+  'TAM EKRAN': 'FULL SCREEN',
+  'ŞERİT': 'STRIP',
+  'TAM EKRAN: acil stop basılıyken tüm ekranı kaplayan pencere açılır, acil stop bırakılana kadar başka işlem yapılamaz (sadece ALARMI SESSİZE AL). ŞERİT: eski davranış, sadece alt şeritte uyarı.':
+    'FULL SCREEN: while the emergency stop is pressed a window covers the whole screen and nothing else can be done until it is released (only MUTE ALARM). STRIP: previous behaviour, warning in the bottom strip only.',
   // 2026-11-28 — top değişimi kısa rotasyon
   'DAİRESEL — TOP DEĞİŞİMİ': 'CIRCULAR — ROLL CHANGE',
   'Top değişiminde rotasyon önce bu kadar gidip durur, bükmeyi yapan top geri çekilir, diğer top gelir, sonra rotasyon devam eder (büküm, düzeltme ve elle düzeltmede). |XA1| × 2: stage XA1 değerinin iki katı. |XA1| + A: eski davranış.':

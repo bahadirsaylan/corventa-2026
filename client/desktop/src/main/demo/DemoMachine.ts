@@ -33,7 +33,7 @@ import { demoAuth, demoRequireRole } from '@main/demo/demoAuth'
 import { demoMacros } from '@main/demo/demoMacros'
 import { demoSavedBends } from '@main/demo/demoSavedBends'
 import { demoAiRecipeRules } from '@main/demo/demoAiRecipeRules'
-import { applyDemoContamination, demoAlertAcks, demoResolveMaintenanceAlerts } from '@main/demo/demoAlertAcks'
+import { applyDemoContamination, demoAlertAcks, demoResolveMaintenanceAlerts, isDemoEstopPressed } from '@main/demo/demoAlertAcks'
 import { IS_STANDARD } from '@shared/edition'
 import { demoCloud, demoCloudActivated } from '@main/demo/demoCloud'
 import { demoCloudData } from '@main/demo/demoCloudData'
@@ -94,7 +94,7 @@ const DEMO_MACHINE_SETTINGS = {
   upperBallOuterDiameterMm: 280, lowerBallOuterDiameterMm: 280, leftBallOuterDiameterMm: 280, rightBallOuterDiameterMm: 280,
   rollOverlapCheckEnabled: true, rollOverlapMinClearanceMm: 0, rollOverlapJogMarginMm: 3,
   // 2026-11-26 — rotasyon top çapı → PLC + piston konumda tutma (backend varsayılanları; demoda etkisi yok)
-  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, swapShortRotationDoubleXa1Enabled: true, partMinLengthCheckEnabled: true, sideSupportBendOrder: 'JOINT,BODY,REEL', pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
+  rotationDiameterToPlcEnabled: false, maintenanceMachineLockEnabled: true, contaminationMinDurationSec: 5, contaminationModalMinOilTempC: 35, pistonHoldManualControl: true, arcExtensionRequireLengthEdit: true, circularMeasureRetryEnabled: true, swapShortRotationDoubleXa1Enabled: true, emergencyStopLockScreenEnabled: true, partMinLengthCheckEnabled: true, sideSupportBendOrder: 'BODY,JOINT,REEL', pistonHoldEnabled: false, sideSupportArcEnabled: false, pistonHoldRight: true, pistonHoldLeft: true,
   pistonHoldUpper: false, pistonHoldLower: true, pistonHoldLowerWhileClamped: false, pistonHoldDeadbandMm: 0.1,
   pistonHoldExitBandMm: 0.03, pistonHoldKpPctPerMm: 20, pistonHoldMinPct: 4, pistonHoldMaxPct: 8,
   pistonHoldNullRightMv: 0, pistonHoldNullLeftMv: 0, pistonHoldNullUpperMv: 0, pistonHoldNullLowerMv: 0,
@@ -732,6 +732,7 @@ export class DemoMachine extends EventEmitter {
     if (Math.random() < 0.01) s.sensors.oilHumidityPercent = Math.max(15, Math.min(22, s.sensors.oilHumidityPercent + (Math.random() < 0.5 ? -1 : 1)))
     const sf = s.safety
     applyDemoContamination(sf, s.sensors) // 2026-11-19 — yağ kirlilik K1–K3 (CORVENTA_DEMO_DIRTY / F7), demoAlertAcks.ts
+    sf.emergencyStopOK = !isDemoEstopPressed() // 2026-11-28 — F3 demo acil stop (ACİL STOP EKRANI)
     this.safeGonye.applyTo(s as unknown as Record<string, unknown>) // 2026-11-19 — rulerStatus (güvenli gönye)
     // 2026-11-27 — BAKIM MODU KİLİDİ: motor kapalı + tuş takımı kapalı (backend ile aynı yayın alanı)
     s.maintenanceLockActive = demoMaintenanceState.isInMaintenanceMode
