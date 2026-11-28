@@ -434,6 +434,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
               { value: true, label: 'AÇIK' },
             ],
           },
+          {
+            // 2026-11-28 (kullanıcı) — çok açılıda sadece kıvrım tarafı (backend SideSupportArcBendSideOnly)
+            type: 'select',
+            key: 'sideSupportArcBendSideOnly',
+            label: 'ÇOK AÇILI — HANGİ TARAF',
+            desc: 'SADECE KIVRIM TARAFI: sıkıştırmada yan dayama gelmez; sıfırlamadan sonra kıvrım başlamadan sadece kıvrımın yapılacağı taraf (sol sensör → sağ) konuma gelir, sensör tarafına dokunulmaz. İKİ TARAF: eski davranış.',
+            options: [
+              { value: true, label: 'SADECE KIVRIM TARAFI' },
+              { value: false, label: 'İKİ TARAF' },
+            ],
+          },
           { key: 'rightReelBendMm', label: 'SAĞ MAKARA', unit: 'mm', min: -50, max: 400 },
           { key: 'leftReelBendMm', label: 'SOL MAKARA', unit: 'mm', min: -50, max: 400 },
         ],

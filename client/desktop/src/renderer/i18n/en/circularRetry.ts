@@ -21,6 +21,12 @@ const en: Record<string, string> = {
   'SIFIRLAMADA': 'AT ZEROING',
   'TOP DEĞİŞİMİNDE: sıkıştırma ve sıfırlamada yan dayama gelmez; ön bükümden sonra rotasyon top değişiminde durunca parçanın gittiği taraf konuma gelir, sonraki top değişiminde öbür taraf. SIFIRLAMADA: eski davranış (sıfırlamayla sensör tarafı, ilk rotasyonda karşı taraf).':
     'AT ROLL CHANGE: no side support moves during clamping and zeroing; after the pre-bend, when rotation stops at the roll change the side the part is heading to moves into position, at the next roll change the other side. AT ZEROING: previous behaviour (sensor side with zeroing, other side during the first rotation).',
+  // 2026-11-28 — çok açılı sadece kıvrım tarafı
+  'ÇOK AÇILI — HANGİ TARAF': 'MULTI-ANGLE — WHICH SIDE',
+  'SADECE KIVRIM TARAFI': 'BEND SIDE ONLY',
+  'İKİ TARAF': 'BOTH SIDES',
+  'SADECE KIVRIM TARAFI: sıkıştırmada yan dayama gelmez; sıfırlamadan sonra kıvrım başlamadan sadece kıvrımın yapılacağı taraf (sol sensör → sağ) konuma gelir, sensör tarafına dokunulmaz. İKİ TARAF: eski davranış.':
+    'BEND SIDE ONLY: no side support moves during clamping; after zeroing, before the bend starts, only the side the bend is made towards (left sensor → right) moves into position; the sensor side is not touched. BOTH SIDES: previous behaviour.',
   // 2026-11-28 — acil stop ekranı
   'ACİL STOP BASILI': 'EMERGENCY STOP PRESSED',
   'MAKİNE DURDURULDU. ACİL STOP BIRAKILANA KADAR İŞLEM YAPILAMAZ.': 'MACHINE STOPPED. NO OPERATION IS POSSIBLE UNTIL THE EMERGENCY STOP IS RELEASED.',
