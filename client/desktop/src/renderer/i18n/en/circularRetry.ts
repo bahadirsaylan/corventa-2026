@@ -27,6 +27,18 @@ const en: Record<string, string> = {
   'İKİ TARAF': 'BOTH SIDES',
   'SADECE KIVRIM TARAFI: sıkıştırmada yan dayama gelmez; sıfırlamadan sonra kıvrım başlamadan sadece kıvrımın yapılacağı taraf (sol sensör → sağ) konuma gelir, sensör tarafına dokunulmaz. İKİ TARAF: eski davranış.':
     'BEND SIDE ONLY: no side support moves during clamping; after zeroing, before the bend starts, only the side the bend is made towards (left sensor → right) moves into position; the sensor side is not touched. BOTH SIDES: previous behaviour.',
+  // 2026-11-28 — değişken top çapı formülü
+  'DEĞİŞKEN TOP ÇAPI FORMÜLÜ': 'VARIABLE ROLL DIAMETER FORMULA',
+  'AÇIK: büküm hesabı üst, alt ve yan topu ayrı çapla kullanır; merkez mesafesi = üst çap/2 + alt çap/2 + profil A + eksen kayması (220/220 + A 80 → 300,82). KAPALI: eski formül (tek top çapı, merkez 300,82 sabit). Tüm toplar 220 ve A 80 iken sonuç aynı.':
+    'ON: the bending calculation uses the upper, lower and side rolls with their own diameters; centre distance = upper diameter/2 + lower diameter/2 + profile A + axis offset (220/220 + A 80 → 300.82). OFF: previous formula (single roll diameter, centre 300.82 fixed). Same result when all rolls are 220 and A is 80.',
+  'MERKEZ MESAFESİ EKSEN KAYMASI': 'CENTRE DISTANCE AXIS OFFSET',
+  'Değişken top çapı formülünde merkez mesafesine eklenir (SolidWorks: 300 + 0,82).': 'Added to the centre distance in the variable roll diameter formula (SolidWorks: 300 + 0.82).',
+  'STAGE YAN OFSETİ OTOMATİK': 'AUTOMATIC STAGE SIDE OFFSET',
+  'AÇIK: stage kaydedilirken sağ ve sol ofset alt ofsetten hesaplanır (alt ÷ sin θ: 60 → 67,34, 120 → 134,68). KAPALI: elle girilen değerler.':
+    'ON: when a stage is saved the right and left offsets are calculated from the lower offset (lower ÷ sin θ: 60 → 67.34, 120 → 134.68). OFF: manually entered values.',
+  'STAGE YAN OFSETİ OTOMATİK açıksa kayıtta alt ofsetten hesaplanır.': 'If AUTOMATIC STAGE SIDE OFFSET is on, calculated from the lower offset when saved.',
+  'DEĞİŞKEN TOP ÇAPI FORMÜLÜ açıkken büküm hesabında yan top çapı (sağ ile aynı olmalı). Kapalıyken sadece kayıt.': 'Side roll diameter in the bending calculation when VARIABLE ROLL DIAMETER FORMULA is on (must equal right). Record only when off.',
+  'Sol ile aynı olmalı (formül sol top çapını kullanır).': 'Must equal left (the formula uses the left roll diameter).',
   // 2026-11-28 — acil stop ekranı
   'ACİL STOP BASILI': 'EMERGENCY STOP PRESSED',
   'MAKİNE DURDURULDU. ACİL STOP BIRAKILANA KADAR İŞLEM YAPILAMAZ.': 'MACHINE STOPPED. NO OPERATION IS POSSIBLE UNTIL THE EMERGENCY STOP IS RELEASED.',

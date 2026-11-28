@@ -251,8 +251,8 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           { key: 'lowerBallDiameterMm', label: 'ALT TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Büküm hesabı, sıvama ve sıkıştırma hedefinde kullanılır.' },
-          { key: 'leftBallDiameterMm', label: 'SOL TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
-          { key: 'rightBallDiameterMm', label: 'SAĞ TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Şimdilik sadece kayıt.' },
+          { key: 'leftBallDiameterMm', label: 'SOL TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'DEĞİŞKEN TOP ÇAPI FORMÜLÜ açıkken büküm hesabında yan top çapı (sağ ile aynı olmalı). Kapalıyken sadece kayıt.' },
+          { key: 'rightBallDiameterMm', label: 'SAĞ TOP ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Sol ile aynı olmalı (formül sol top çapını kullanır).' },
           // 2026-11-20 — yukarıdakiler İÇ çap (parça oluk dibine oturur). DIŞ çap = kenar → üst-alt top bindirme kontrolü
           { key: 'upperBallOuterDiameterMm', label: 'ÜST TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Kenar çapı — sadece bindirme kontrolü. Büküm hesabı iç çapla yapılır.' },
           { key: 'lowerBallOuterDiameterMm', label: 'ALT TOP DIŞ ÇAPI', unit: 'mm', min: 1, max: 1000, desc: 'Kenar çapı — sadece bindirme kontrolü. Büküm hesabı iç çapla yapılır.' },
@@ -261,6 +261,28 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
           { key: 'defaultCenterDistanceMm', label: 'EKSEN MESAFESİ (NORMAL)', unit: 'mm', min: 1, max: 2000, desc: 'Sol-sağ top arası. Arc Normal / Ters Normal segmentler.' },
           { key: 'centerDistanceMiddleRadiusMm', label: 'EKSEN MESAFESİ (RADIUS ORTADA)', unit: 'mm', min: 1, max: 2000, nullable: true, desc: 'Arc Middle segmentler. Boş = normal eksen mesafesi kullanılır.' },
           { key: 'defaultThetaDeg', label: 'THETA AÇISI', unit: '°', min: 0, max: 180 },
+          {
+            // 2026-11-28 (kullanıcı) — Downloads/261118_BendingRadius_Hesaplama_DeğişkenTopCapi.xlsx (backend Core/Models/RollGeometry)
+            type: 'select',
+            key: 'variableRollFormulaEnabled',
+            label: 'DEĞİŞKEN TOP ÇAPI FORMÜLÜ',
+            desc: 'AÇIK: büküm hesabı üst, alt ve yan topu ayrı çapla kullanır; merkez mesafesi = üst çap/2 + alt çap/2 + profil A + eksen kayması (220/220 + A 80 → 300,82). KAPALI: eski formül (tek top çapı, merkez 300,82 sabit). Tüm toplar 220 ve A 80 iken sonuç aynı.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
+          { key: 'centerDistanceAxisOffsetMm', label: 'MERKEZ MESAFESİ EKSEN KAYMASI', unit: 'mm', min: -20, max: 20, negative: true, desc: 'Değişken top çapı formülünde merkez mesafesine eklenir (SolidWorks: 300 + 0,82).' },
+          {
+            type: 'select',
+            key: 'stageSideOffsetFromLowerEnabled',
+            label: 'STAGE YAN OFSETİ OTOMATİK',
+            desc: 'AÇIK: stage kaydedilirken sağ ve sol ofset alt ofsetten hesaplanır (alt ÷ sin θ: 60 → 67,34, 120 → 134,68). KAPALI: elle girilen değerler.',
+            options: [
+              { value: false, label: 'KAPALI' },
+              { value: true, label: 'AÇIK' },
+            ],
+          },
         ],
       },
       {
@@ -758,8 +780,8 @@ export const STAGE_ACTIVE_FIELD: FieldDef = {
 
 export const STAGE_FIELDS: FieldDef[] = [
   // Üst sınırlar piston stroklarından (sol/sağ 422, alt 195) gönye payı düşülerek
-  { key: 'leftOffsetMm', label: 'SOL OFSET', unit: 'mm', min: 0, max: 415 },
-  { key: 'rightOffsetMm', label: 'SAĞ OFSET', unit: 'mm', min: 0, max: 415 },
+  { key: 'leftOffsetMm', label: 'SOL OFSET', unit: 'mm', min: 0, max: 415, desc: 'STAGE YAN OFSETİ OTOMATİK açıksa kayıtta alt ofsetten hesaplanır.' },
+  { key: 'rightOffsetMm', label: 'SAĞ OFSET', unit: 'mm', min: 0, max: 415, desc: 'STAGE YAN OFSETİ OTOMATİK açıksa kayıtta alt ofsetten hesaplanır.' },
   { key: 'lowerOffsetMm', label: 'ALT OFSET', unit: 'mm', min: 0, max: 180 },
   { key: 'xA1Mm', label: 'XA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true, desc: 'Stage merkezi (üst top referansı). Ölçüm sürüşü de bu değeri kullanır.' },
   { key: 'yA1Mm', label: 'YA1', unit: 'mm', min: -5000, max: 5000, negative: true, nullable: true },
