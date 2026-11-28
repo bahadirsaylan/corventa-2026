@@ -419,6 +419,17 @@ export const MACHINE_SECTIONS: { tab: string; sections: SectionDef[] }[] = [
             ],
           },
           {
+            // 2026-11-28 (kullanıcı) — hatalı ölçümde gövde geride bekler (backend MeasureRetractRestoreOnlyOnSuccess)
+            type: 'select',
+            key: 'measureRetractRestoreOnlyOnSuccess',
+            label: 'ÖLÇÜMDEN SONRA GÖVDE',
+            desc: 'SORUNSUZ ÖLÇÜMDE DÖNSÜN: ölçüm hatalıysa gövde geride bekler (tekrar ölçümde ileri-geri gitmez), ölçüm sorunsuzsa konumuna döner, sonra düzeltme yapılır. HER ÖLÇÜMDE DÖNSÜN: eski davranış.',
+            options: [
+              { value: true, label: 'SORUNSUZ ÖLÇÜMDE DÖNSÜN' },
+              { value: false, label: 'HER ÖLÇÜMDE DÖNSÜN' },
+            ],
+          },
+          {
             // 2026-11-28 (kullanıcı) — dairesel: yan dayamalar top değişiminde (backend SideSupportPositionAtSwapEnabled)
             type: 'select',
             key: 'sideSupportPositionAtSwapEnabled',

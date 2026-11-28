@@ -27,6 +27,12 @@ const en: Record<string, string> = {
   'İKİ TARAF': 'BOTH SIDES',
   'SADECE KIVRIM TARAFI: sıkıştırmada yan dayama gelmez; sıfırlamadan sonra kıvrım başlamadan sadece kıvrımın yapılacağı taraf (sol sensör → sağ) konuma gelir, sensör tarafına dokunulmaz. İKİ TARAF: eski davranış.':
     'BEND SIDE ONLY: no side support moves during clamping; after zeroing, before the bend starts, only the side the bend is made towards (left sensor → right) moves into position; the sensor side is not touched. BOTH SIDES: previous behaviour.',
+  // 2026-11-28 — ölçümden sonra gövde
+  'ÖLÇÜMDEN SONRA GÖVDE': 'BODY AFTER MEASUREMENT',
+  'SORUNSUZ ÖLÇÜMDE DÖNSÜN': 'RETURN AFTER GOOD MEASUREMENT',
+  'HER ÖLÇÜMDE DÖNSÜN': 'RETURN AFTER EVERY MEASUREMENT',
+  'SORUNSUZ ÖLÇÜMDE DÖNSÜN: ölçüm hatalıysa gövde geride bekler (tekrar ölçümde ileri-geri gitmez), ölçüm sorunsuzsa konumuna döner, sonra düzeltme yapılır. HER ÖLÇÜMDE DÖNSÜN: eski davranış.':
+    'RETURN AFTER GOOD MEASUREMENT: if the measurement fails the body stays back (no back-and-forth on re-measure); after a good measurement it returns to its position, then the correction is made. RETURN AFTER EVERY MEASUREMENT: previous behaviour.',
   // 2026-11-28 — değişken top çapı formülü
   'DEĞİŞKEN TOP ÇAPI FORMÜLÜ': 'VARIABLE ROLL DIAMETER FORMULA',
   'AÇIK: büküm hesabı üst, alt ve yan topu ayrı çapla kullanır; merkez mesafesi = üst çap/2 + alt çap/2 + profil A + eksen kayması (220/220 + A 80 → 300,82). KAPALI: eski formül (tek top çapı, merkez 300,82 sabit). Tüm toplar 220 ve A 80 iken sonuç aynı.':
